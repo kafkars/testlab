@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "25a26e9f429fc35f9224a88bfceef277f0d0a2ede7b77b4ebf97f4f00301a3ad"
+contract_sha256 = "d7b0eb758a698f34acf7beab14deea7b81308c8bf5a12d13fb28878f98d9a075"
 ratchet = []
 
 [[package]]
@@ -492,6 +492,30 @@ path = "clippy.toml"
 sha256 = "04c92e3dce7f76bb0340dfce281fe1eb2956cc5dcf1223b3b11bed683c946dd4"
 
 [[gate.input]]
+path = "clusters/apache-kafka/3.7.2/single-plaintext.toml"
+sha256 = "6fe9b2922903a3e510a179dd00a428b719d2d60db20b968b7b9064fd8246bdb2"
+
+[[gate.input]]
+path = "clusters/apache-kafka/3.8.1/single-plaintext.toml"
+sha256 = "61e23485c95896134b19d280d410345db0e3b90daf087da6f3e1c7f8a59fc828"
+
+[[gate.input]]
+path = "clusters/apache-kafka/3.9.2/single-plaintext.toml"
+sha256 = "80d6d2eca54fd63d292a32d3b3b99e51e4a4ad224ab77f8a83d15d1a40db2da5"
+
+[[gate.input]]
+path = "clusters/apache-kafka/4.0.2/single-plaintext.toml"
+sha256 = "f925e94a41b31d596df8c691cf9ab7f55a0b1b830bbea352fb92b6a27144878b"
+
+[[gate.input]]
+path = "clusters/apache-kafka/4.1.2/single-plaintext.toml"
+sha256 = "1dba25d55b3863aa7c90ab291dca59c639fd1f673e851a9191f67aa3fdc39798"
+
+[[gate.input]]
+path = "clusters/apache-kafka/4.2.1/single-plaintext.toml"
+sha256 = "02b6f6da1603222e69c57c6927bd3aadef89f821aea5411466e54d7b6bf90812"
+
+[[gate.input]]
 path = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
 sha256 = "db96547ca9b12a429083285c078f88c7bb3fac284b7274237309683169931c3f"
 
@@ -518,6 +542,10 @@ sha256 = "3676bbfceb360dfa064ad63e3f9d95d714f825f2878e421699f13c9553eda62e"
 [[gate.input]]
 path = "qualifications/kafkars-pr.toml"
 sha256 = "48b2b5261fedf39caacff045a8440ccfa9de198bec152b1be279aabb99168ba1"
+
+[[gate.input]]
+path = "qualifications/kafkars-release.toml"
+sha256 = "fca293eeaddb9686d328b0400052de139bc511bd88ee20969ef84208e16b90f6"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"
@@ -558,6 +586,10 @@ sha256 = "a3390d85d24dddbc24b18ecea418246f4a7f5fd39266ac04de81e353535ed9ad"
 [[gate.input]]
 path = "scripts/run-kafkars-qualification"
 sha256 = "7b2751df8a60fbbbe76f3c3f7fe42fe170cb65aaca9f1991e14ba392177a19d7"
+
+[[gate.input]]
+path = "scripts/run-kafkars-release-qualification"
+sha256 = "61c9aefa3e341d476edc6b1b27f69a22a2e8c45925449bb76fb736f79970421e"
 
 [[gate.input]]
 path = "scripts/run-reference-pack"

@@ -1,0 +1,19 @@
+schema_version = 1
+id = "apache-kafka-3.8.1-single-plaintext"
+title = "Apache Kafka 3.8.1 single-broker plaintext"
+
+[driver]
+kind = "docker_compose"
+image = "apache/kafka@sha256:22c4bea38875408e8f9fe52aca8e3a6ee67f9aa0090db59af99a2f6647558db5"
+cluster_size = 1
+compose_files = ["clusters/apache-kafka/compose/single-plaintext.yml"]
+broker_services = ["broker"]
+client_port = 9092
+
+[driver.broker]
+implementation = "apache-kafka"
+version = "3.8.1"
+
+[driver.security]
+transport = "plaintext"
+authentication = "none"

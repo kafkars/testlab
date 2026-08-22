@@ -1,0 +1,19 @@
+schema_version = 1
+id = "apache-kafka-4.1.2-single-plaintext"
+title = "Apache Kafka 4.1.2 single-broker plaintext"
+
+[driver]
+kind = "docker_compose"
+image = "apache/kafka@sha256:5cc2a2fd93fa2687b44015eee04fb2c3edd9e526bd64bf8bec5ff1e268772e0e"
+cluster_size = 1
+compose_files = ["clusters/apache-kafka/compose/single-plaintext.yml"]
+broker_services = ["broker"]
+client_port = 9092
+
+[driver.broker]
+implementation = "apache-kafka"
+version = "4.1.2"
+
+[driver.security]
+transport = "plaintext"
+authentication = "none"
