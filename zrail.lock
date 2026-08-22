@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "86e36741f3255932a003fc1a2bc60c766100e55263d307a62b2d2b9c59b55de4"
+contract_sha256 = "65100e2350a243249907f7e41080acc47581ed5571daec43fc5448c47e47acee"
 ratchet = []
 
 [[package]]
@@ -342,6 +342,14 @@ sha256 = "00e8de2a629ffc7234bb95915f11a9424e1169f23b69c7931facfa8eaa6af482"
 [[gate.input]]
 path = "clippy.toml"
 sha256 = "04c92e3dce7f76bb0340dfce281fe1eb2956cc5dcf1223b3b11bed683c946dd4"
+
+[[gate.input]]
+path = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
+sha256 = "db96547ca9b12a429083285c078f88c7bb3fac284b7274237309683169931c3f"
+
+[[gate.input]]
+path = "clusters/apache-kafka/compose/single-plaintext.yml"
+sha256 = "8eabfbcbc71cbab748c6d7e94956598d7f8cd5d2972570b4231d259ecca68091"
 
 [[gate.input]]
 path = "clusters/model-broker.toml"

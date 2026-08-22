@@ -7,3 +7,6 @@ evidence.
 
 `model-broker.toml` declares the in-process harness self-test environment. It is
 not Kafka compatibility evidence.
+
+`apache-kafka/` contains real Apache Kafka environments. Every manifest selects
+an immutable image digest and a reviewed Compose topology.
