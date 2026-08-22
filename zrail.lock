@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "69c41ca6352970815bf9fe96c090177efbf64af47c739cd7a165c4e7f7fb548c"
+contract_sha256 = "706ff9af021ccbe8a21ba857cb4d2cdc4feb7638a08f3943419fe3ab6750ccea"
 ratchet = []
 
 [[package]]
@@ -246,6 +246,59 @@ kind = "registry"
 requirement = "0.8"
 
 [[package]]
+name = "testlab-kafkars-adapter"
+
+[[package.dependency]]
+alias = "kafkars"
+name = "kafkars"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "=0.0.1"
+
+[[package.dependency]]
+alias = "serde_json"
+name = "serde_json"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "1.0"
+
+[[package.dependency]]
+alias = "testlab-schema"
+name = "testlab-schema"
+crate_root = "testlab_schema"
+kind = "normal"
+scope = "internal"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "workspace-member"
+directory = "crates/testlab-schema"
+requirement = "0.1.0"
+
+[[package.dependency]]
+alias = "thiserror"
+name = "thiserror"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "2.0"
+
+[[package]]
 name = "testlab-reference-adapter"
 
 [[package.dependency]]
@@ -388,11 +441,11 @@ sha256 = "e0ec30a08049199550c9f13bdc389abbc6bf61daead2754b76de20bc08028475"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "9ab6845e72d4e63ab4a8d248b4778a3a774cd73248b4a9c889f66fa2d131305e"
+sha256 = "7e76f33486c7d80b7013e8ac040aad7cbf1be66f488464f74e004497030cfe5d"
 
 [[gate.input]]
 path = "Cargo.toml"
-sha256 = "22cdcce36498c1bf1f602ad4f0ab834a972e3fe71a2e9e4654235bae878cd552"
+sha256 = "cfcea17d89e87b91efa3a526ba642602962a066152cffbd91f57b28eed6720a5"
 
 [[gate.input]]
 path = "clippy.toml"
@@ -457,6 +510,10 @@ sha256 = "b9e3b444bf84a2c7b2725ebb4ab1dbd34ee49d4954021e3c4408723ee222ca03"
 [[gate.input]]
 path = "scripts/run-reference-qualification"
 sha256 = "f2545333e416cbaa3ced5aa9dc0743c64645ada114d775f0bb430c7b48af30b7"
+
+[[gate.input]]
+path = "subjects/kafkars-rust.toml"
+sha256 = "7a077891b686a56f1c139ce17377c441b6b007348bfe3748c9b493c26f3f8b63"
 
 [[gate.input]]
 path = "subjects/reference-rust.toml"

@@ -1,0 +1,6 @@
+schema_version = 1
+id = "kafkars-rust-0.0.1"
+display_name = "packaged kafkars Rust client 0.0.1"
+command = "target/debug/testlab-kafkars-adapter"
+args = []
+working_directory = "."

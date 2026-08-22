@@ -2,7 +2,7 @@ schema = 1
 adapters = ["rust"]
 
 [repository]
-roots = ["adapters/reference-rust", "crates/testctl", "crates/testlab-broker", "crates/testlab-environment", "crates/testlab-schema", "crates/testlab-verifier"]
+roots = ["adapters/kafkars-rust", "adapters/reference-rust", "crates/testctl", "crates/testlab-broker", "crates/testlab-environment", "crates/testlab-schema", "crates/testlab-verifier"]
 exclude = []
 workspace_members = "exact"
 nested_git = "deny"
@@ -33,6 +33,7 @@ inputs = [
   "scenarios/producer/lost-response.toml",
   "scenarios/producer/round-trip.toml",
   "subjects/reference-rust.toml",
+  "subjects/kafkars-rust.toml",
 ]
 reason = "The canonical local gate qualifies structure, code, catalogs, and black-box evidence."
 
@@ -116,7 +117,7 @@ external = "locked"
 
 [[layer]]
 name = "adapter"
-packages = ["testlab-reference-adapter"]
+packages = ["testlab-kafkars-adapter", "testlab-reference-adapter"]
 may_depend_on = ["schema", "environment"]
 reason = "The reference adapter translates the public process protocol into environment effects."
 

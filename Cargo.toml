@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "adapters/reference-rust",
+  "adapters/kafkars-rust",
   "crates/testctl",
   "crates/testlab-broker",
   "crates/testlab-environment",
@@ -9,6 +10,7 @@ members = [
 ]
 default-members = [
   "adapters/reference-rust",
+  "adapters/kafkars-rust",
   "crates/testctl",
   "crates/testlab-broker",
   "crates/testlab-environment",
@@ -27,6 +29,7 @@ repository = "https://github.com/kafkars/testlab"
 [workspace.dependencies]
 clap = { version = "4.5", features = ["derive"] }
 hex = "0.4"
+kafkars = "=0.0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
