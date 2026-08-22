@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "4632766d6a3a4c9730402566b9a02edf57f49f5d62d4e8d41ea64854700f3c71"
+contract_sha256 = "f365c2f841a90abfb9c5314e3533fef623bb8b70289176f2356bfb967f4018f0"
 ratchet = []
 
 [[package]]
@@ -241,6 +241,7 @@ default_features = false
 features = [
     "cmake-build",
     "naive-runtime",
+    "ssl-vendored",
 ]
 
 [package.dependency.source]
@@ -477,15 +478,15 @@ requirement = "0.1.0"
 [[gate]]
 name = "check"
 path = "scripts/check"
-sha256 = "e0ec30a08049199550c9f13bdc389abbc6bf61daead2754b76de20bc08028475"
+sha256 = "63da380a7c5ce61fc95819597daf56593794e28eec869c2eb398b7827093c71f"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "ece4a0410b271d8043afc62976005b8c0c089936be38647415a1a0d05fec8996"
+sha256 = "501017f75af05dc4f357589d3d51b767f3e4bec0e5901a42b234051321e74aac"
 
 [[gate.input]]
 path = "Cargo.toml"
-sha256 = "8f690b4d271ba4fce2807be3c45a419fa6f82aba2f8a09540312e49e1d4a6a61"
+sha256 = "3814f8908271be93ab73f935eb30fd0812a3a01c86cd734a1ecbe5809c689dee"
 
 [[gate.input]]
 path = "clippy.toml"
@@ -524,12 +525,20 @@ path = "clusters/apache-kafka/4.3.1/single-sasl-plain.toml"
 sha256 = "f23ac244926ce46e0151940319c00d0bcdc275058101b4d1a2002dbc70391834"
 
 [[gate.input]]
+path = "clusters/apache-kafka/4.3.1/single-scram-sha-256.toml"
+sha256 = "66d50b107ef1ca97d26c97d73f54f6a37a49f9869463b38b08392c3f855f3754"
+
+[[gate.input]]
+path = "clusters/apache-kafka/4.3.1/single-scram-sha-512.toml"
+sha256 = "bff742fb53a0edf7c41ab210479dcc1d6ed2ab18b441067a6cfb87d617e71793"
+
+[[gate.input]]
 path = "clusters/apache-kafka/compose/single-plaintext.yml"
 sha256 = "7486f12e767a5412d94c40b5b892b5c678f00c2fcf6a67cfa8c7a6965e405a60"
 
 [[gate.input]]
 path = "clusters/apache-kafka/compose/single-sasl.yml"
-sha256 = "d4317ff31e3958011ad21b4770dc55fa7f9b79b67ea5b3b8537cc6c1ea42441a"
+sha256 = "1089b9f54a7c9d0a0a87dc49c39f044c8da7d904d5a09cf384ea8ceefe8eb8c6"
 
 [[gate.input]]
 path = "clusters/model-broker.toml"
@@ -581,31 +590,35 @@ sha256 = "5610f7e1cea8dda1cdff4a64cd6769e76b023749d678ffec3a4527d0f476c2a0"
 
 [[gate.input]]
 path = "scripts/check-rust-lint"
-sha256 = "416e39fc23337e502b3580d53d34ea4cdf3f7f8ec60679c428f74d188d58407b"
+sha256 = "f2c346453ef594f75581e3f141408ddbf8e6be6dfcaf73e2e6f36e127eeefc06"
 
 [[gate.input]]
 path = "scripts/check-rust-test"
-sha256 = "7c90e74284999b9114eddc42abb9f71bf9e9657926c4f900573ca8ee3739a942"
+sha256 = "bda5befd9bc5bdbbb1f64fc22ac84e371ef7173e3697e77c5d7fd571c549992d"
 
 [[gate.input]]
 path = "scripts/check-scenarios"
-sha256 = "a3390d85d24dddbc24b18ecea418246f4a7f5fd39266ac04de81e353535ed9ad"
+sha256 = "09440d6ce0e3b073f26db9eac1e7625e0169288ebb5e66e7ffc7e29702db4977"
+
+[[gate.input]]
+path = "scripts/portable-environment"
+sha256 = "272d53c89045c5ffe977a4cc9fe47cce957ef09a6e607cafacd0e6bd836bd7f0"
 
 [[gate.input]]
 path = "scripts/run-kafkars-qualification"
-sha256 = "7b2751df8a60fbbbe76f3c3f7fe42fe170cb65aaca9f1991e14ba392177a19d7"
+sha256 = "2ae6e7f210fe78f16ef123c10d797b6f1d71e0f2f61103c04d63f3e5d96787c6"
 
 [[gate.input]]
 path = "scripts/run-kafkars-release-qualification"
-sha256 = "61c9aefa3e341d476edc6b1b27f69a22a2e8c45925449bb76fb736f79970421e"
+sha256 = "f0be00687c197de8a68ea14f44c4f852b952ff77ea20bd08aa5c836dd7f2990f"
 
 [[gate.input]]
 path = "scripts/run-reference-pack"
-sha256 = "b9e3b444bf84a2c7b2725ebb4ab1dbd34ee49d4954021e3c4408723ee222ca03"
+sha256 = "a6c9aa3efcd14d3db66233ad3b50b3bedb48cd8d943d1532d0c6de0d65369919"
 
 [[gate.input]]
 path = "scripts/run-reference-qualification"
-sha256 = "f2545333e416cbaa3ced5aa9dc0743c64645ada114d775f0bb430c7b48af30b7"
+sha256 = "d0ff3b717c9a449f60ee983ddf89a9a0a7cfe28e4c616641b58dea906215691f"
 
 [[gate.input]]
 path = "subjects/kafkars-rust.toml"

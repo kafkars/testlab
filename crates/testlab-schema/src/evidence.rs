@@ -116,6 +116,8 @@ pub enum EnvironmentOperationKind {
     ComposeUp,
     /// Probe broker API readiness.
     Readiness,
+    /// Provision environment-owned broker authentication state.
+    BrokerSecuritySetup,
     /// Provision scenario-owned broker resources.
     BrokerProvision,
     /// Snapshot broker-visible records with an independent client.

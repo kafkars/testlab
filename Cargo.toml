@@ -31,7 +31,7 @@ clap = { version = "4.5", features = ["derive"] }
 hex = "0.4"
 kafkars = "=0.0.1"
 futures-executor = "=0.3.34"
-rdkafka = { version = "=0.39.0", default-features = false, features = ["cmake-build", "naive-runtime"] }
+rdkafka = { version = "=0.39.0", default-features = false, features = ["cmake-build", "naive-runtime", "ssl-vendored"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"

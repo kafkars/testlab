@@ -183,6 +183,20 @@ impl DockerComposeEnvironment {
                 return phase;
             }
         }
+        if let Some(mechanism) = self.client_security.scram_mechanism() {
+            let Some(service) = self.broker_services.first().cloned() else {
+                phase.fail(
+                    "environment_security_setup_failed",
+                    "broker service missing",
+                );
+                return phase;
+            };
+            let spec =
+                compose_command::scram_setup(&self.prefix, &service, self.client_port, mechanism);
+            if !self.required(&mut phase, spec, deadline) {
+                return phase;
+            }
+        }
         phase
     }
 

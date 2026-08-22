@@ -115,6 +115,28 @@ fn failed_up_attempt_still_runs_cleanup() {
     assert!(fixture.log().contains("down --volumes --remove-orphans"));
 }
 
+#[test]
+fn scram_setup_is_correlated_without_recording_the_password() {
+    let fixture = Fixture::with_authentication(false, Authentication::ScramSha256);
+    let mut environment = fixture.environment();
+
+    let setup = environment.start(Duration::from_secs(2));
+    let _cleanup = environment.finish(Duration::from_secs(2));
+
+    let operation = setup
+        .operations
+        .iter()
+        .find(|operation| operation.kind == EnvironmentOperationKind::BrokerSecuritySetup)
+        .unwrap_or_else(|| panic!("missing broker security setup operation"));
+    assert!(
+        !operation
+            .args
+            .join(" ")
+            .contains("kafkars-testlab-password")
+    );
+    assert!(operation.args.join(" ").contains("$TESTLAB_SCRAM_PASSWORD"));
+}
+
 fn assert_unique_operation_ids(operations: &[testlab_schema::EnvironmentOperation]) {
     for (index, operation) in operations.iter().enumerate() {
         assert!(
@@ -134,6 +156,10 @@ struct Fixture {
 
 impl Fixture {
     fn new(fail_up: bool) -> Self {
+        Self::with_authentication(fail_up, Authentication::None)
+    }
+
+    fn with_authentication(fail_up: bool, authentication: Authentication) -> Self {
         let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
         let root =
             std::env::temp_dir().join(format!("testlab-compose-{}-{sequence}", std::process::id()));
@@ -146,7 +172,7 @@ impl Fixture {
         Self {
             root,
             program,
-            manifest: manifest(),
+            manifest: manifest(authentication),
             run_id: RunId::new(format!("run-compose-{sequence}"))
                 .unwrap_or_else(|error| panic!("fixture run id: {error}")),
         }
@@ -178,7 +204,7 @@ impl Drop for Fixture {
     }
 }
 
-fn manifest() -> EnvironmentManifest {
+fn manifest(authentication: Authentication) -> EnvironmentManifest {
     EnvironmentManifest {
         schema_version: 1,
         id: EnvironmentId::new("apache-kafka-test")
@@ -193,7 +219,7 @@ fn manifest() -> EnvironmentManifest {
             cluster_size: 1,
             security: SecurityProfile {
                 transport: TransportSecurity::Plaintext,
-                authentication: Authentication::None,
+                authentication,
             },
             compose_files: vec!["clusters/kafka.yml".to_owned()],
             broker_services: vec!["broker".to_owned()],

@@ -73,6 +73,35 @@ pub(super) fn readiness(
     )
 }
 
+pub(super) fn scram_setup(
+    prefix: &[String],
+    service: &str,
+    client_port: u16,
+    mechanism: &str,
+) -> CommandSpec {
+    let command = format!(
+        "/opt/kafka/bin/kafka-configs.sh --bootstrap-server localhost:{client_port} \
+         --alter --entity-type users --entity-name kafkars \
+         --add-config \"{mechanism}=[iterations=8192,password=$TESTLAB_SCRAM_PASSWORD]\""
+    );
+    compose_owned(
+        EnvironmentOperationKind::BrokerSecuritySetup,
+        prefix,
+        vec![
+            "exec".to_owned(),
+            "--no-TTY".to_owned(),
+            "--env".to_owned(),
+            "TESTLAB_SCRAM_PASSWORD".to_owned(),
+            service.to_owned(),
+            "/bin/bash".to_owned(),
+            "-euc".to_owned(),
+            command,
+        ],
+        "security-setup.txt".to_owned(),
+        "security-setup.stderr.txt".to_owned(),
+    )
+}
+
 pub(super) fn ps(prefix: &[String]) -> CommandSpec {
     compose(
         EnvironmentOperationKind::ComposePs,

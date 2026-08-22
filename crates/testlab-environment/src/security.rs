@@ -111,6 +111,12 @@ impl ClientSecurity {
         if let Some(directory) = tls_directory {
             environment.push(("KAFKA_TLS_DIR".to_owned(), directory.display().to_string()));
         }
+        if self.scram_mechanism().is_some() {
+            environment.push((
+                "TESTLAB_SCRAM_PASSWORD".to_owned(),
+                SASL_PASSWORD.to_owned(),
+            ));
+        }
         environment
     }
 
@@ -142,6 +148,14 @@ impl ClientSecurity {
             Authentication::Plain => "PLAIN",
             Authentication::ScramSha256 => "SCRAM-SHA-256",
             Authentication::ScramSha512 => "SCRAM-SHA-512",
+        }
+    }
+
+    pub(super) fn scram_mechanism(&self) -> Option<&'static str> {
+        match self.profile.authentication {
+            Authentication::ScramSha256 => Some("SCRAM-SHA-256"),
+            Authentication::ScramSha512 => Some("SCRAM-SHA-512"),
+            Authentication::None | Authentication::Plain => None,
         }
     }
 }
