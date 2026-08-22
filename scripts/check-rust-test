@@ -3,4 +3,5 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$repo_root/scripts/portable-environment"
 cd "$repo_root"
+cargo build --workspace --bins --all-features
 cargo test --workspace --all-features

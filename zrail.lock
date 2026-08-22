@@ -646,7 +646,7 @@ sha256 = "f2c346453ef594f75581e3f141408ddbf8e6be6dfcaf73e2e6f36e127eeefc06"
 
 [[gate.input]]
 path = "scripts/check-rust-test"
-sha256 = "bda5befd9bc5bdbbb1f64fc22ac84e371ef7173e3697e77c5d7fd571c549992d"
+sha256 = "b1ac52525fab2dd91c7d2250102e8193c0590f486fb39bacbe0adc4b6f23077b"
 
 [[gate.input]]
 path = "scripts/check-scenarios"
