@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "d7b0eb758a698f34acf7beab14deea7b81308c8bf5a12d13fb28878f98d9a075"
+contract_sha256 = "4632766d6a3a4c9730402566b9a02edf57f49f5d62d4e8d41ea64854700f3c71"
 ratchet = []
 
 [[package]]
@@ -520,8 +520,16 @@ path = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
 sha256 = "db96547ca9b12a429083285c078f88c7bb3fac284b7274237309683169931c3f"
 
 [[gate.input]]
+path = "clusters/apache-kafka/4.3.1/single-sasl-plain.toml"
+sha256 = "f23ac244926ce46e0151940319c00d0bcdc275058101b4d1a2002dbc70391834"
+
+[[gate.input]]
 path = "clusters/apache-kafka/compose/single-plaintext.yml"
-sha256 = "8eabfbcbc71cbab748c6d7e94956598d7f8cd5d2972570b4231d259ecca68091"
+sha256 = "7486f12e767a5412d94c40b5b892b5c678f00c2fcf6a67cfa8c7a6965e405a60"
+
+[[gate.input]]
+path = "clusters/apache-kafka/compose/single-sasl.yml"
+sha256 = "d4317ff31e3958011ad21b4770dc55fa7f9b79b67ea5b3b8537cc6c1ea42441a"
 
 [[gate.input]]
 path = "clusters/model-broker.toml"

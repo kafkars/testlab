@@ -1,0 +1,6 @@
+services:
+  broker:
+    environment:
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_LISTENER_NAME_EXTERNAL_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG: org.apache.kafka.common.security.plain.PlainLoginModule required username="kafkars" password="kafkars-testlab-password" user_kafkars="kafkars-testlab-password";

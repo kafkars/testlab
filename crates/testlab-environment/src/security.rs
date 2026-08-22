@@ -99,7 +99,6 @@ impl ClientSecurity {
         image: &str,
         host_port: u16,
         tls_directory: Option<&Path>,
-        sasl_directory: &Path,
     ) -> Vec<(String, String)> {
         let mut environment = vec![
             ("IMAGE".to_owned(), image.to_owned()),
@@ -111,12 +110,6 @@ impl ClientSecurity {
         ];
         if let Some(directory) = tls_directory {
             environment.push(("KAFKA_TLS_DIR".to_owned(), directory.display().to_string()));
-        }
-        if self.profile.authentication != Authentication::None {
-            environment.push((
-                "KAFKA_SASL_DIR".to_owned(),
-                sasl_directory.display().to_string(),
-            ));
         }
         environment
     }

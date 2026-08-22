@@ -18,7 +18,7 @@ fn checked_in_catalog_is_complete() {
     assert_eq!(summary.scenarios, 4);
     assert_eq!(summary.packs, 2);
     assert_eq!(summary.subjects, 2);
-    assert_eq!(summary.environments, 8);
+    assert_eq!(summary.environments, 9);
     assert_eq!(summary.qualifications, 3);
     assert_eq!(summary.contracts, 20);
 }

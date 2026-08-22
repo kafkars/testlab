@@ -121,14 +121,8 @@ impl DockerComposeEnvironment {
         });
         let ca_pem = security_directory.as_ref().map(|path| path.join("ca.pem"));
         let client_security = ClientSecurity::new(*security, ca_pem.as_deref())?;
-        let environment = client_security.compose_environment(
-            image,
-            host_port,
-            security_directory.as_deref(),
-            &request
-                .repository_root
-                .join("clusters/apache-kafka/security/sasl"),
-        );
+        let environment =
+            client_security.compose_environment(image, host_port, security_directory.as_deref());
         Ok(Self {
             repository_root: request.repository_root.to_path_buf(),
             run_id: request.run_id.clone(),
