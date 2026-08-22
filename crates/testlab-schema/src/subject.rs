@@ -9,7 +9,7 @@ use thiserror::Error;
 use crate::SubjectId;
 
 /// Current subject manifest version.
-pub const SUBJECT_SCHEMA_VERSION: u16 = 1;
+pub const SUBJECT_SCHEMA_VERSION: u16 = 2;
 
 /// One packaged client adapter process.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -21,6 +21,9 @@ pub struct SubjectManifest {
     pub id: SubjectId,
     /// Human-readable display name.
     pub display_name: String,
+    /// Content-addressed packaged artifacts exercised by the adapter.
+    #[serde(default)]
+    pub artifacts: Vec<SubjectArtifact>,
     /// Repository-relative or absolute executable path.
     pub command: String,
     /// Exact arguments without shell parsing.
@@ -48,6 +51,16 @@ impl SubjectManifest {
         if self.command.trim().is_empty() {
             return Err(SubjectError::EmptyCommand);
         }
+        let mut artifacts = BTreeSet::new();
+        for artifact in &self.artifacts {
+            artifact.validate()?;
+            if !artifacts.insert((artifact.name.as_str(), artifact.version.as_str())) {
+                return Err(SubjectError::DuplicateArtifact {
+                    name: artifact.name.clone(),
+                    version: artifact.version.clone(),
+                });
+            }
+        }
         if let Some(directory) = &self.working_directory {
             validate_relative_path(directory)?;
         }
@@ -60,6 +73,35 @@ impl SubjectManifest {
         }
         for name in self.environment.keys() {
             validate_environment_name(name)?;
+        }
+        Ok(())
+    }
+}
+
+/// One exact Cargo package linked through the external subject adapter.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct SubjectArtifact {
+    /// Cargo package name.
+    pub name: String,
+    /// Packaged Cargo version.
+    pub version: String,
+    /// Lowercase SHA-256 of the `.crate` archive.
+    pub sha256: String,
+}
+
+impl SubjectArtifact {
+    fn validate(&self) -> Result<(), SubjectError> {
+        if self.name.trim().is_empty() || self.version.trim().is_empty() {
+            return Err(SubjectError::ArtifactIdentityEmpty);
+        }
+        let valid_digest = self.sha256.len() == 64
+            && self
+                .sha256
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
+        if !valid_digest {
+            return Err(SubjectError::ArtifactDigestInvalid(self.sha256.clone()));
         }
         Ok(())
     }
@@ -115,4 +157,18 @@ pub enum SubjectError {
     /// One environment variable had two authorities.
     #[error("duplicate environment variable declaration {0}")]
     DuplicateEnvironment(String),
+    /// A packaged artifact omitted its package identity.
+    #[error("subject artifact name and version must not be empty")]
+    ArtifactIdentityEmpty,
+    /// A packaged artifact digest was not a lowercase SHA-256.
+    #[error("invalid subject artifact SHA-256 {0}")]
+    ArtifactDigestInvalid(String),
+    /// One packaged artifact identity appeared twice.
+    #[error("duplicate subject artifact {name}@{version}")]
+    DuplicateArtifact {
+        /// Duplicate package name.
+        name: String,
+        /// Duplicate package version.
+        version: String,
+    },
 }

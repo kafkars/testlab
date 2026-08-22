@@ -22,9 +22,10 @@ fn missing_subject_qualifies_as_a_complete_invalid_evidence_set() {
         fs::write(
             &subject_path,
             concat!(
-                "schema_version = 1\n",
+                "schema_version = 2\n",
                 "id = \"missing-qualification-subject\"\n",
                 "display_name = \"missing qualification subject\"\n",
+                "artifacts = []\n",
                 "command = \"target/definitely-missing-testlab-adapter\"\n",
                 "args = []\n",
                 "working_directory = \".\"\n",

@@ -601,8 +601,8 @@ sha256 = "f2545333e416cbaa3ced5aa9dc0743c64645ada114d775f0bb430c7b48af30b7"
 
 [[gate.input]]
 path = "subjects/kafkars-rust.toml"
-sha256 = "7a077891b686a56f1c139ce17377c441b6b007348bfe3748c9b493c26f3f8b63"
+sha256 = "a9a15e46ea0d3b0e47f5ade9f9bc7df91add110723789ef215b5f46133de560b"
 
 [[gate.input]]
 path = "subjects/reference-rust.toml"
-sha256 = "68c5e17dbf4895542de1c3279df72144e36c9ee0b6fe09d2f57cd86a23d3384a"
+sha256 = "259691f32857de58a63ed46ff9c0ffc3318e6e1e165d7615d17b2fe50cf73db2"

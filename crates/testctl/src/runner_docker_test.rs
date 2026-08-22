@@ -40,9 +40,10 @@ fn subject_failure_after_kafka_start_seals_cleanup_evidence() {
         fs::write(
             &subject_path,
             concat!(
-                "schema_version = 1\n",
+                "schema_version = 2\n",
                 "id = \"missing-docker-subject\"\n",
                 "display_name = \"missing Docker subject executable\"\n",
+                "artifacts = []\n",
                 "command = \"target/definitely-missing-testlab-adapter\"\n",
                 "args = []\n",
                 "working_directory = \".\"\n",

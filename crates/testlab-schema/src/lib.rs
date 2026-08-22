@@ -49,7 +49,7 @@ pub use scenario::{
     BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
     ScenarioError, ScenarioStep, VisibilityExpectation,
 };
-pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectError, SubjectManifest};
+pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};
 
 #[cfg(test)]
@@ -66,3 +66,5 @@ mod qualification_test;
 mod record_test;
 #[cfg(test)]
 mod scenario_test;
+#[cfg(test)]
+mod subject_test;

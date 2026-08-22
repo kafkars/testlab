@@ -27,9 +27,10 @@ fn missing_subject_executable_seals_invalid_evidence() {
         fs::write(
             &subject_path,
             concat!(
-                "schema_version = 1\n",
+                "schema_version = 2\n",
                 "id = \"missing-subject\"\n",
                 "display_name = \"missing subject executable\"\n",
+                "artifacts = []\n",
                 "command = \"target/definitely-missing-testlab-adapter\"\n",
                 "args = []\n",
                 "working_directory = \".\"\n",

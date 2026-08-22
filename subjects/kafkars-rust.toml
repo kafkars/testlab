@@ -1,6 +1,9 @@
-schema_version = 1
+schema_version = 2
 id = "kafkars-rust-0.0.1"
 display_name = "packaged kafkars Rust client 0.0.1"
+artifacts = [
+  { name = "kafkars", version = "0.0.1", sha256 = "81734b75223779203b3346962a2349e43b219697da267c95fcd862cc2fece456" },
+]
 command = "target/debug/testlab-kafkars-adapter"
 args = []
 working_directory = "."
