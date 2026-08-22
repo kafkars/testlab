@@ -74,6 +74,9 @@ fn sends<'a>(
                         .map(|operation| (operation.operation_id.clone(), &operation.record)),
                 );
             }
+            ScenarioAction::FenceTransaction { operation, .. } => {
+                sends.insert(operation.operation_id.clone(), &operation.record);
+            }
             _ => {}
         }
     }

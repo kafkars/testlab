@@ -11,13 +11,13 @@ use crate::state::StateError;
 
 #[derive(Debug, Default)]
 pub(crate) struct TransactionalProducers {
-    owners: BTreeMap<ProducerId, Owner>,
+    owners: BTreeMap<ProducerId, OwnedTransactionalProducer>,
 }
 
 #[derive(Debug)]
-struct Owner {
-    client_id: ClientId,
-    producer: TransactionalProducer,
+pub(crate) struct OwnedTransactionalProducer {
+    pub(crate) client_id: ClientId,
+    pub(crate) producer: TransactionalProducer,
 }
 
 impl TransactionalProducers {
@@ -55,7 +55,7 @@ impl TransactionalProducers {
         };
         self.owners.insert(
             producer_id,
-            Owner {
+            OwnedTransactionalProducer {
                 client_id,
                 producer,
             },
@@ -79,6 +79,27 @@ impl TransactionalProducers {
             .remove(producer_id)
             .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))?;
         owner.producer.close();
+        Ok(())
+    }
+
+    pub(crate) fn take(
+        &mut self,
+        producer_id: &ProducerId,
+    ) -> Result<OwnedTransactionalProducer, StateError> {
+        self.owners
+            .remove(producer_id)
+            .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))
+    }
+
+    pub(crate) fn restore(
+        &mut self,
+        producer_id: ProducerId,
+        owner: OwnedTransactionalProducer,
+    ) -> Result<(), StateError> {
+        if self.owners.contains_key(&producer_id) {
+            return Err(StateError::DuplicateProducer(producer_id));
+        }
+        self.owners.insert(producer_id, owner);
         Ok(())
     }
 

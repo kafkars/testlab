@@ -20,6 +20,8 @@ mod admin_test;
 #[cfg(test)]
 mod contract_test;
 #[cfg(test)]
+mod transaction_fence_test;
+#[cfg(test)]
 mod transaction_test;
 #[cfg(test)]
 mod verify_fixture;

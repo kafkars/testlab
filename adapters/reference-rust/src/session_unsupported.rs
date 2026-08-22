@@ -14,6 +14,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         AdapterCommand::CreateTopic { .. } => "admin capability required",
         AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
+        | AdapterCommand::FenceTransaction { .. }
         | AdapterCommand::CloseTransactionalProducer { .. } => "transactions capability required",
         _ => "unsupported command",
     }

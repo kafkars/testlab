@@ -5,8 +5,9 @@ use std::collections::BTreeSet;
 use testlab_schema::{
     AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId,
     BrokerObservation, ByteString, Capability, ClientId, CommandEnvelope, CommandId, HistoryEntry,
-    HistoryPayload, OperationAssertion, OperationId, ProducerId, RecordSpec, Scenario,
-    ScenarioAction, ScenarioId, ScenarioStep, StepId, TerminalStatus, VisibilityExpectation,
+    HistoryPayload, OperationAssertion, OperationId, ProducerId, RecordSpec,
+    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
+    TerminalStatus, VisibilityExpectation,
 };
 
 pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectation) -> Scenario {
@@ -14,7 +15,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
     let producer = id(ProducerId::new("producer-1"));
     let operation = id(OperationId::new("op-1"));
     Scenario {
-        schema_version: 7,
+        schema_version: SCENARIO_SCHEMA_VERSION,
         id: id(ScenarioId::new("producer.verifier")),
         title: "verifier".to_owned(),
         description: "verifier fixture".to_owned(),

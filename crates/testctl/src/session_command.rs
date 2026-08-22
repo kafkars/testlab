@@ -66,6 +66,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         action @ ScenarioAction::CreateTopic { .. } => return admin(action),
         action @ (ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
+        | ScenarioAction::FenceTransaction { .. }
         | ScenarioAction::CloseTransactionalProducer { .. }) => return transaction(action),
         ScenarioAction::Flush { producer_id } => (
             AdapterCommand::Flush {
@@ -128,6 +129,34 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
                     .iter()
                     .map(|operation| operation.operation_id.clone())
                     .collect(),
+            },
+        ),
+        ScenarioAction::FenceTransaction {
+            producer_id,
+            transaction_id,
+            operation,
+            replacement_client_id,
+            replacement_producer_id,
+            transactional_id,
+            transaction_timeout_ms,
+            initialization_timeout_ms,
+            timeout_ms,
+        } => (
+            AdapterCommand::FenceTransaction {
+                producer_id: producer_id.clone(),
+                transaction_id: transaction_id.clone(),
+                operation: operation.clone(),
+                replacement_client_id: replacement_client_id.clone(),
+                replacement_producer_id: replacement_producer_id.clone(),
+                transactional_id: transactional_id.clone(),
+                transaction_timeout_ms: *transaction_timeout_ms,
+                initialization_timeout_ms: *initialization_timeout_ms,
+                timeout_ms: *timeout_ms,
+            },
+            ExpectedEvent::TransactionFenceCompleted {
+                transaction_id: transaction_id.clone(),
+                operation_id: operation.operation_id.clone(),
+                replacement_producer_id: replacement_producer_id.clone(),
             },
         ),
         ScenarioAction::CloseTransactionalProducer { producer_id } => (

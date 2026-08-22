@@ -121,6 +121,13 @@ pub enum AdapterEvent {
         /// Observed commit or abort outcome.
         disposition: TransactionDisposition,
     },
+    /// One old transaction exposed its public commit result after replacement initialization.
+    TransactionFenceCompleted {
+        /// Stable fenced transaction identity.
+        transaction_id: OperationId,
+        /// Normalized public commit error, or none when the old commit unexpectedly succeeded.
+        commit_error_code: Option<String>,
+    },
     /// One idle public transactional producer closed.
     TransactionalProducerClosed {
         /// Closed transactional producer.

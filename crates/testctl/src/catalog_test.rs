@@ -15,10 +15,10 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 11);
+    assert_eq!(summary.scenarios, 12);
     assert_eq!(summary.packs, 2);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 17);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 34);
+    assert_eq!(summary.contracts, 35);
 }

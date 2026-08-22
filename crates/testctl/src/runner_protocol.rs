@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v11 command.
+//! Expected event shapes constrain each sequential protocol-v12 command.
 
 use std::collections::BTreeSet;
 
@@ -35,6 +35,11 @@ pub(crate) enum ExpectedEvent {
     TransactionCompleted {
         transaction_id: OperationId,
         operation_ids: BTreeSet<OperationId>,
+    },
+    TransactionFenceCompleted {
+        transaction_id: OperationId,
+        operation_id: OperationId,
+        replacement_producer_id: ProducerId,
     },
     TransactionalProducerClosed(ProducerId),
     FlushCompleted(ProducerId),

@@ -81,6 +81,9 @@ fn targets(scenario: &Scenario) -> BTreeSet<(String, i32)> {
                     .iter()
                     .map(|operation| (operation.record.topic.clone(), operation.record.partition)),
             ),
+            ScenarioAction::FenceTransaction { operation, .. } => {
+                targets.insert((operation.record.topic.clone(), operation.record.partition));
+            }
             _ => {}
         }
     }

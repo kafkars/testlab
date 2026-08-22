@@ -5,9 +5,21 @@ use std::collections::BTreeMap;
 use crate::scenario_action_validation::ActionStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction, TransactionDisposition};
 
-pub(crate) type TransactionStates = BTreeMap<ProducerId, (ClientId, bool)>;
-pub(crate) type TransactionSends = BTreeMap<OperationId, TransactionDisposition>;
+pub(crate) type TransactionStates = BTreeMap<ProducerId, TransactionState>;
+pub(crate) type TransactionSends = BTreeMap<OperationId, TransactionRecordOutcome>;
 const MAX_TRANSACTION_RECORDS: usize = 31;
+
+pub(crate) struct TransactionState {
+    client_id: ClientId,
+    transactional_id: String,
+    closed: bool,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum TransactionRecordOutcome {
+    Completed(TransactionDisposition),
+    Fenced,
+}
 
 pub(crate) fn validate(
     action: &ScenarioAction,
@@ -45,6 +57,29 @@ pub(crate) fn validate(
             state,
             problems,
         ),
+        ScenarioAction::FenceTransaction {
+            producer_id,
+            transaction_id,
+            operation,
+            replacement_client_id,
+            replacement_producer_id,
+            transactional_id,
+            transaction_timeout_ms,
+            initialization_timeout_ms,
+            timeout_ms,
+        } => fence(
+            producer_id,
+            transaction_id,
+            operation,
+            replacement_client_id,
+            replacement_producer_id,
+            transactional_id,
+            *transaction_timeout_ms,
+            *initialization_timeout_ms,
+            *timeout_ms,
+            state,
+            problems,
+        ),
         ScenarioAction::CloseTransactionalProducer { producer_id } => {
             close(producer_id, &mut state.transactions, problems);
         }
@@ -73,7 +108,14 @@ fn create(
     if state.producers.contains_key(producer_id)
         || state
             .transactions
-            .insert(producer_id.clone(), (client_id.clone(), false))
+            .insert(
+                producer_id.clone(),
+                TransactionState {
+                    client_id: client_id.clone(),
+                    transactional_id: transactional_id.to_owned(),
+                    closed: false,
+                },
+            )
             .is_some()
     {
         problems.push(format!("duplicate producer id {producer_id}"));
@@ -116,21 +158,78 @@ fn execute(
         ));
     }
     for operation in operations {
-        if !state.operation_ids.insert(operation.operation_id.clone()) {
-            problems.push(format!("duplicate operation id {}", operation.operation_id));
-        }
-        state.sends.insert(operation.operation_id.clone());
-        state
-            .transaction_sends
-            .insert(operation.operation_id.clone(), disposition);
-        if let Err(error) = operation.record.validate() {
-            problems.push(format!(
-                "operation {} has invalid record: {error}",
-                operation.operation_id
-            ));
-        }
+        record_operation(
+            operation,
+            TransactionRecordOutcome::Completed(disposition),
+            state,
+            problems,
+        );
     }
     validate_timeout(producer_id, "timeout_ms", timeout_ms, problems);
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the validator mirrors every explicit fencing manifest field"
+)]
+fn fence(
+    producer_id: &ProducerId,
+    transaction_id: &OperationId,
+    operation: &crate::BatchRecord,
+    replacement_client_id: &ClientId,
+    replacement_producer_id: &ProducerId,
+    transactional_id: &str,
+    transaction_timeout_ms: u64,
+    initialization_timeout_ms: u64,
+    timeout_ms: u64,
+    state: &mut ActionStates,
+    problems: &mut Vec<String>,
+) {
+    require_open(producer_id, &state.transactions, problems);
+    if state
+        .transactions
+        .get(producer_id)
+        .is_some_and(|owner| owner.transactional_id != transactional_id)
+    {
+        problems.push(format!(
+            "fence transaction {transaction_id} must reuse producer {producer_id} transactional_id"
+        ));
+    }
+    if !state.operation_ids.insert(transaction_id.clone()) {
+        problems.push(format!("duplicate operation id {transaction_id}"));
+    }
+    record_operation(operation, TransactionRecordOutcome::Fenced, state, problems);
+    create(
+        replacement_client_id,
+        replacement_producer_id,
+        transactional_id,
+        transaction_timeout_ms,
+        initialization_timeout_ms,
+        state,
+        problems,
+    );
+    validate_timeout(producer_id, "timeout_ms", timeout_ms, problems);
+}
+
+fn record_operation(
+    operation: &crate::BatchRecord,
+    outcome: TransactionRecordOutcome,
+    state: &mut ActionStates,
+    problems: &mut Vec<String>,
+) {
+    if !state.operation_ids.insert(operation.operation_id.clone()) {
+        problems.push(format!("duplicate operation id {}", operation.operation_id));
+    }
+    state.sends.insert(operation.operation_id.clone());
+    state
+        .transaction_sends
+        .insert(operation.operation_id.clone(), outcome);
+    if let Err(error) = operation.record.validate() {
+        problems.push(format!(
+            "operation {} has invalid record: {error}",
+            operation.operation_id
+        ));
+    }
 }
 
 fn require_open(
@@ -139,8 +238,8 @@ fn require_open(
     problems: &mut Vec<String>,
 ) {
     match transactions.get(producer_id) {
-        Some((_, false)) => {}
-        Some((_, true)) => problems.push(format!(
+        Some(owner) if !owner.closed => {}
+        Some(_) => problems.push(format!(
             "transactional producer {producer_id} was used after close"
         )),
         None => problems.push(format!(
@@ -155,7 +254,7 @@ fn close(
     problems: &mut Vec<String>,
 ) {
     match transactions.get_mut(producer_id) {
-        Some((_, closed)) if !*closed => *closed = true,
+        Some(owner) if !owner.closed => owner.closed = true,
         Some(_) => problems.push(format!(
             "transactional producer {producer_id} closed more than once"
         )),
@@ -184,7 +283,7 @@ pub(crate) fn open_for_client(
 ) -> Vec<String> {
     transactions
         .iter()
-        .filter(|(_, (owner, closed))| owner == client_id && !closed)
+        .filter(|(_, owner)| &owner.client_id == client_id && !owner.closed)
         .map(|(producer, _)| producer.to_string())
         .collect()
 }
@@ -192,6 +291,6 @@ pub(crate) fn open_for_client(
 pub(crate) fn unclosed(transactions: TransactionStates) -> Vec<ProducerId> {
     transactions
         .into_iter()
-        .filter_map(|(producer, (_, closed))| (!closed).then_some(producer))
+        .filter_map(|(producer, owner)| (!owner.closed).then_some(producer))
         .collect()
 }

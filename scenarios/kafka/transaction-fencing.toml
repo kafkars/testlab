@@ -1,0 +1,156 @@
+schema_version = 9
+id = "kafka.transaction-fencing"
+title = "replacement transactional ownership fences an active producer"
+description = "A packaged producer stages a record, a replacement initializes with the same transactional identity, and the old commit must report fenced while read-committed observation excludes its record and retains replacement commit/abort isolation."
+timeout_ms = 150000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-original-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-original"
+transactional_id = "testlab-kafkars-fenced-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "fence-active-transaction"
+kind = "fence_transaction"
+producer_id = "transactional-producer-original"
+transaction_id = "transaction-fenced"
+replacement_client_id = "client-1"
+replacement_producer_id = "transactional-producer-replacement"
+transactional_id = "testlab-kafkars-fenced-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+timeout_ms = 60000
+
+[steps.operation]
+operation_id = "op-transaction-fenced"
+
+[steps.operation.record]
+topic = "testlab-kafkars-transaction-fencing"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "fenced" }
+value = { encoding = "hex", data = "0066656e636564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-fenced" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "replacement-commit"
+kind = "execute_transaction"
+producer_id = "transactional-producer-replacement"
+transaction_id = "transaction-replacement-commit"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-replacement-committed"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-fencing"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "committed" }
+value = { encoding = "hex", data = "00636f6d6d6974746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-replacement-committed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "replacement-abort"
+kind = "execute_transaction"
+producer_id = "transactional-producer-replacement"
+transaction_id = "transaction-replacement-abort"
+disposition = "abort"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-replacement-aborted"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-fencing"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "aborted" }
+value = { encoding = "hex", data = "0061626f72746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-replacement-aborted" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "replacement-sentinel"
+kind = "execute_transaction"
+producer_id = "transactional-producer-replacement"
+transaction_id = "transaction-replacement-sentinel"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-replacement-sentinel"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-fencing"
+partition = 0
+sequence = 4
+key = { encoding = "utf8", data = "sentinel" }
+value = { encoding = "hex", data = "0073656e74696e656cff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-replacement-sentinel" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+]
+
+[[steps]]
+id = "close-original-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-original"
+
+[[steps]]
+id = "close-replacement-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-replacement"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-transaction-fenced"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-replacement-committed"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-replacement-aborted"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-replacement-sentinel"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

@@ -3,8 +3,9 @@
 use std::collections::BTreeSet;
 
 use super::{
-    BatchRecord, Capability, ClientId, OperationAssertion, OperationId, ProducerId, Scenario,
-    ScenarioAction, ScenarioId, ScenarioStep, StepId, TerminalStatus, VisibilityExpectation,
+    BatchRecord, Capability, ClientId, OperationAssertion, OperationId, ProducerId,
+    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
+    TerminalStatus, VisibilityExpectation,
 };
 
 fn id<T, E>(result: Result<T, E>) -> T
@@ -17,7 +18,7 @@ where
 #[test]
 fn open_handles_are_rejected() {
     let scenario = Scenario {
-        schema_version: 7,
+        schema_version: SCENARIO_SCHEMA_VERSION,
         id: id(ScenarioId::new("lifecycle.open")),
         title: "open".to_owned(),
         description: "open handles".to_owned(),
@@ -39,7 +40,7 @@ fn open_handles_are_rejected() {
 fn rejected_admission_must_not_expect_a_terminal() {
     let operation = id(OperationId::new("op-1"));
     let scenario = Scenario {
-        schema_version: 7,
+        schema_version: SCENARIO_SCHEMA_VERSION,
         id: id(ScenarioId::new("producer.bad-assertion")),
         title: "bad assertion".to_owned(),
         description: "rejected with terminal".to_owned(),
@@ -62,7 +63,7 @@ fn empty_batch_is_rejected() {
     let client = id(ClientId::new("client-1"));
     let producer = id(ProducerId::new("producer-1"));
     let scenario = Scenario {
-        schema_version: 7,
+        schema_version: SCENARIO_SCHEMA_VERSION,
         id: id(ScenarioId::new("producer.empty-batch")),
         title: "empty batch".to_owned(),
         description: "batch requires records".to_owned(),
@@ -108,6 +109,36 @@ fn empty_batch_is_rejected() {
     };
 
     assert!(scenario.validate().is_err());
+}
+
+#[test]
+fn fencing_requires_the_original_transactional_identity() {
+    let mut scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transaction-fencing.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse fencing scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate fencing scenario: {error}"));
+    let Some(ScenarioAction::FenceTransaction {
+        transactional_id, ..
+    }) = scenario.steps.get_mut(3).map(|step| &mut step.action)
+    else {
+        panic!("fencing action missing");
+    };
+    *transactional_id = "different-owner".to_owned();
+
+    let error = match scenario.validate() {
+        Ok(()) => panic!("mismatched transactional identity must fail"),
+        Err(error) => error,
+    };
+
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem.contains("must reuse"))
+    );
 }
 
 fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {

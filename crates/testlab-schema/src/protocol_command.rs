@@ -153,6 +153,27 @@ pub enum AdapterCommand {
         /// Complete begin, send, and end bound.
         timeout_ms: u64,
     },
+    /// Stages one record and initializes a replacement owner before the old commit.
+    FenceTransaction {
+        /// Existing transactional producer whose active transaction is fenced.
+        producer_id: ProducerId,
+        /// Stable fenced transaction identity.
+        transaction_id: OperationId,
+        /// Exact record staged before replacement initialization.
+        operation: BatchRecord,
+        /// Existing client that owns the replacement producer.
+        replacement_client_id: ClientId,
+        /// New replacement transactional producer handle.
+        replacement_producer_id: ProducerId,
+        /// Kafka transactional identity shared with the original producer.
+        transactional_id: String,
+        /// Broker-side timeout for the replacement producer.
+        transaction_timeout_ms: u64,
+        /// Complete replacement initialization bound.
+        initialization_timeout_ms: u64,
+        /// Complete stage, replacement, and old-commit bound.
+        timeout_ms: u64,
+    },
     /// Closes one idle transactional producer.
     CloseTransactionalProducer {
         /// Transactional producer to close.

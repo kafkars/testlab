@@ -135,7 +135,7 @@ fn execute_started<W: Write>(
     )
 }
 
-fn send<W: Write>(
+pub(crate) fn send<W: Write>(
     transaction: &mut Transaction<'_>,
     writer: &mut W,
     command_id: &CommandId,

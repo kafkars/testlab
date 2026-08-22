@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v11 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v12 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -34,6 +34,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_topic`
 - `create_transactional_producer`
 - `execute_transaction`
+- `fence_transaction`
 - `close_transactional_producer`
 - `flush`
 - `close_producer`
@@ -63,6 +64,7 @@ boundary.
 - `topic_created`
 - `transactional_producer_created`
 - `transaction_completed`
+- `transaction_fence_completed`
 - `transactional_producer_closed`
 - `flush_completed`
 - `producer_closed`
@@ -100,6 +102,12 @@ one exact `transaction_completed` event reports the public disposition. The
 independent observer uses `read_committed`: committed records must appear once,
 while aborted records must remain absent.
 
+One `fence_transaction` command keeps the original public transaction open
+while it initializes a replacement producer with the same transactional ID.
+It reports the staged record, replacement producer creation, and the normalized
+old-commit result separately. The verifier requires `fenced` and independently
+requires the staged record to remain absent under `read_committed` isolation.
+
 ## Failure behavior
 
 A normal public client API failure emits one correlated `command_failed` event
@@ -116,6 +124,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v11 is an exact semantic contract. New capabilities may be declared
+Protocol v12 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

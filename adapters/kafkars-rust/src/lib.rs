@@ -14,6 +14,7 @@ mod protocol_send;
 mod state;
 mod state_error;
 mod transaction_execute;
+mod transaction_fence;
 mod transactional_producers;
 
 pub use adapter_error::AdapterError;

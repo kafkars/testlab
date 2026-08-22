@@ -37,6 +37,12 @@ statement = "Committed records are independently visible exactly once and aborte
 category = "transaction"
 
 [[contract]]
+id = "TXN-003"
+title = "Replacement ownership fences an active transaction"
+statement = "A replacement transactional producer makes the old commit report fenced and the old staged records remain absent from read-committed observation."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

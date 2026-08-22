@@ -166,6 +166,9 @@ pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
                 }
                 continue;
             }
+            ScenarioAction::FenceTransaction { operation, .. } => {
+                std::slice::from_ref(&operation.record)
+            }
             _ => continue,
         };
         for record in records {

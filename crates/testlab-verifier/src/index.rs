@@ -42,6 +42,12 @@ pub(crate) struct IndexedTransactionCompletion {
     pub(crate) disposition: TransactionDisposition,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedTransactionFence {
+    pub(crate) history_sequence: u64,
+    pub(crate) commit_error_code: Option<String>,
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct HistoryIndex {
     has_harness_commands: bool,
@@ -70,6 +76,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedTopicCreation>>,
     pub(crate) transactional_producers_created: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) transactions_completed: BTreeMap<OperationId, Vec<IndexedTransactionCompletion>>,
+    pub(crate) transactions_fenced: BTreeMap<OperationId, Vec<IndexedTransactionFence>>,
     pub(crate) transactional_producers_closed: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) clients_created: BTreeMap<ClientId, Vec<u64>>,
     pub(crate) clients_ready: BTreeMap<ClientId, Vec<u64>>,
@@ -141,7 +148,8 @@ impl HistoryIndex {
             ScenarioAction::CreateTransactionalProducer { producer_id, .. } => self
                 .transactional_producers_create_issued
                 .contains(producer_id),
-            ScenarioAction::ExecuteTransaction { transaction_id, .. } => {
+            ScenarioAction::ExecuteTransaction { transaction_id, .. }
+            | ScenarioAction::FenceTransaction { transaction_id, .. } => {
                 self.transactions_execute_issued.contains(transaction_id)
             }
             ScenarioAction::CloseTransactionalProducer { producer_id } => self

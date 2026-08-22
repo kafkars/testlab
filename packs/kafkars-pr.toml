@@ -10,4 +10,5 @@ scenarios = [
   "scenarios/kafka/consumer-protocol-group-round-trip.toml",
   "scenarios/kafka/admin-create-topic.toml",
   "scenarios/kafka/transaction-commit-abort.toml",
+  "scenarios/kafka/transaction-fencing.toml",
 ]

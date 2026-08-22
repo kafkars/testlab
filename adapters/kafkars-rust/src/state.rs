@@ -6,6 +6,7 @@ use std::time::Duration;
 use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::resolve;
 use crate::group_consumers::GroupConsumers;
+use crate::transactional_producers::OwnedTransactionalProducer;
 use crate::transactional_producers::TransactionalProducers;
 use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
 use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, GroupProtocol, ProducerId};
@@ -153,6 +154,21 @@ impl AdapterState {
         producer_id: &ProducerId,
     ) -> Result<(), StateError> {
         self.transactional_producers.close(producer_id)
+    }
+
+    pub(crate) fn take_transactional_producer(
+        &mut self,
+        producer_id: &ProducerId,
+    ) -> Result<OwnedTransactionalProducer, StateError> {
+        self.transactional_producers.take(producer_id)
+    }
+
+    pub(crate) fn restore_transactional_producer(
+        &mut self,
+        producer_id: ProducerId,
+        owner: OwnedTransactionalProducer,
+    ) -> Result<(), StateError> {
+        self.transactional_producers.restore(producer_id, owner)
     }
 
     pub(crate) fn create_assigned_consumer(

@@ -91,6 +91,7 @@ impl HistoryIndex {
             | AdapterEvent::GroupConsumerClosed { .. }
             | AdapterEvent::TransactionalProducerCreated { .. }
             | AdapterEvent::TransactionCompleted { .. }
+            | AdapterEvent::TransactionFenceCompleted { .. }
             | AdapterEvent::TransactionalProducerClosed { .. }
             | AdapterEvent::Fatal { .. } => {}
         }
@@ -155,6 +156,17 @@ impl HistoryIndex {
                 .push(IndexedTransactionCompletion {
                     history_sequence: sequence,
                     disposition: *disposition,
+                }),
+            AdapterEvent::TransactionFenceCompleted {
+                transaction_id,
+                commit_error_code,
+            } => self
+                .transactions_fenced
+                .entry(transaction_id.clone())
+                .or_default()
+                .push(super::IndexedTransactionFence {
+                    history_sequence: sequence,
+                    commit_error_code: commit_error_code.clone(),
                 }),
             AdapterEvent::TransactionalProducerClosed { producer_id } => push(
                 &mut self.transactional_producers_closed,
@@ -236,6 +248,19 @@ impl HistoryIndex {
             AdapterCommand::ExecuteTransaction { transaction_id, .. } => {
                 self.transactions_execute_issued
                     .insert(transaction_id.clone());
+            }
+            AdapterCommand::FenceTransaction {
+                transaction_id,
+                operation,
+                replacement_producer_id,
+                ..
+            } => {
+                self.transactions_execute_issued
+                    .insert(transaction_id.clone());
+                self.operations_issued
+                    .insert(operation.operation_id.clone());
+                self.transactional_producers_create_issued
+                    .insert(replacement_producer_id.clone());
             }
             AdapterCommand::CloseTransactionalProducer { producer_id } => {
                 self.transactional_producers_close_issued

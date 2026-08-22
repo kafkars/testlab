@@ -17,6 +17,7 @@ use crate::protocol_lifecycle;
 use crate::protocol_send;
 use crate::state::AdapterState;
 use crate::transaction_execute;
+use crate::transaction_fence;
 
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
 const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
@@ -143,6 +144,9 @@ fn dispatch<W: Write>(
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::CloseTransactionalProducer { .. }) => {
             transaction_execute::dispatch(state, writer, command_id, command)?;
+        }
+        command @ AdapterCommand::FenceTransaction { .. } => {
+            transaction_fence::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::Flush { .. }
         | AdapterCommand::CloseProducer { .. }

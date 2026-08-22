@@ -120,6 +120,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::CreateTopic { .. }
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
+        | AdapterCommand::FenceTransaction { .. }
         | AdapterCommand::CloseTransactionalProducer { .. }) => {
             return Err(AdapterError::Unsupported(
                 crate::session_unsupported::reason(&command),

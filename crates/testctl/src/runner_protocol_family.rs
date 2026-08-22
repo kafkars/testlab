@@ -92,7 +92,37 @@ pub(super) fn classify_transaction(
                 transaction_id: actual,
                 ..
             },
+        )
+        | (
+            ExpectedEvent::TransactionFenceCompleted { transaction_id, .. },
+            AdapterEvent::TransactionFenceCompleted {
+                transaction_id: actual,
+                ..
+            },
         ) => return Some(identity_result(transaction_id == actual, event, expected)),
+        (
+            ExpectedEvent::TransactionFenceCompleted { operation_id, .. },
+            AdapterEvent::OperationAccepted {
+                operation_id: actual,
+            }
+            | AdapterEvent::OperationRejected {
+                operation_id: actual,
+                ..
+            }
+            | AdapterEvent::OperationTerminal {
+                operation_id: actual,
+                ..
+            },
+        ) => operation_id == actual,
+        (
+            ExpectedEvent::TransactionFenceCompleted {
+                replacement_producer_id,
+                ..
+            },
+            AdapterEvent::TransactionalProducerCreated {
+                producer_id: actual,
+            },
+        ) => replacement_producer_id == actual,
         _ => return None,
     };
     Some(if matches {
@@ -173,6 +203,14 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
                     | AdapterEvent::OperationRejected { .. }
                     | AdapterEvent::OperationTerminal { .. }
                     | AdapterEvent::TransactionCompleted { .. }
+            )
+            | (
+                ExpectedEvent::TransactionFenceCompleted { .. },
+                AdapterEvent::OperationAccepted { .. }
+                    | AdapterEvent::OperationRejected { .. }
+                    | AdapterEvent::OperationTerminal { .. }
+                    | AdapterEvent::TransactionalProducerCreated { .. }
+                    | AdapterEvent::TransactionFenceCompleted { .. }
             )
             | (
                 ExpectedEvent::TransactionalProducerClosed(_),

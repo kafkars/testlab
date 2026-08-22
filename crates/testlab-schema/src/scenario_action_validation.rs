@@ -91,6 +91,7 @@ pub(crate) fn validate_action(
         }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
+        | ScenarioAction::FenceTransaction { .. }
         | ScenarioAction::CloseTransactionalProducer { .. }) => {
             crate::transaction_action_validation::validate(action, state, problems);
         }

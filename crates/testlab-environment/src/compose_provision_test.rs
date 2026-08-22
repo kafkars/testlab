@@ -33,7 +33,7 @@ fn operation_records_cluster_replication_factor() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 8
+schema_version = 9
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -64,7 +64,7 @@ operations = [
 fn admin_created_topics_are_not_preprovisioned() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 8
+schema_version = 9
 id = "admin.explicit-topic"
 title = "admin topic"
 description = "admin topic provisioning fixture"
@@ -93,4 +93,17 @@ record = { topic = "admin-owned", partition = 0, sequence = 1 }
     .unwrap_or_else(|error| panic!("parse scenario: {error}"));
 
     assert!(topics(&scenario).is_empty());
+}
+
+#[test]
+fn fenced_transaction_record_contributes_its_topic() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transaction-fencing.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse fencing scenario: {error}"));
+
+    assert_eq!(
+        topics(&scenario),
+        BTreeMap::from([("testlab-kafkars-transaction-fencing".to_owned(), 1)])
+    );
 }

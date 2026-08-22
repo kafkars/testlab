@@ -101,6 +101,7 @@ pub(crate) fn verify_lifecycle(
             | ScenarioAction::GroupReceive { .. }
             | ScenarioAction::CreateTopic { .. }
             | ScenarioAction::ExecuteTransaction { .. }
+            | ScenarioAction::FenceTransaction { .. }
             | ScenarioAction::CreateTransactionalProducer { .. }
             | ScenarioAction::CloseTransactionalProducer { .. } => {}
         }
@@ -143,6 +144,20 @@ fn verify_transaction_lifecycle(
                 index
                     .transactional_producers_closed
                     .get(producer_id)
+                    .map(Vec::as_slice),
+            ),
+            violations,
+        ),
+        ScenarioAction::FenceTransaction {
+            replacement_producer_id,
+            ..
+        } => check(
+            "LIFE-013",
+            "replacement transactional producer creation",
+            references(
+                index
+                    .transactional_producers_created
+                    .get(replacement_producer_id)
                     .map(Vec::as_slice),
             ),
             violations,

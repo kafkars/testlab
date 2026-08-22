@@ -86,6 +86,7 @@ fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
         ScenarioAction::CreateTopic { .. } => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
+        | ScenarioAction::FenceTransaction { .. }
         | ScenarioAction::CloseTransactionalProducer { .. } => Some(Capability::Transactions),
         _ => None,
     };
@@ -221,7 +222,7 @@ fn validate_assertions(
 
 fn validate_assertion_semantics(
     assertion: &crate::OperationAssertion,
-    transaction: Option<crate::TransactionDisposition>,
+    transaction: Option<crate::transaction_action_validation::TransactionRecordOutcome>,
     problems: &mut Vec<String>,
 ) {
     match (assertion.accepted, assertion.terminal) {
@@ -241,8 +242,8 @@ fn validate_assertion_semantics(
             assertion.operation_id
         ));
     }
-    if let Some(disposition) = transaction {
-        validate_transaction_assertion(assertion, disposition, problems);
+    if let Some(outcome) = transaction {
+        validate_transaction_assertion(assertion, outcome, problems);
     } else if assertion.terminal == Some(TerminalStatus::TransactionStaged) {
         problems.push(format!(
             "non-transactional operation {} cannot expect transaction_staged",
@@ -269,7 +270,7 @@ fn validate_assertion_semantics(
 
 fn validate_transaction_assertion(
     assertion: &crate::OperationAssertion,
-    disposition: crate::TransactionDisposition,
+    outcome: crate::transaction_action_validation::TransactionRecordOutcome,
     problems: &mut Vec<String>,
 ) {
     if !assertion.accepted || assertion.terminal != Some(TerminalStatus::TransactionStaged) {
@@ -278,13 +279,20 @@ fn validate_transaction_assertion(
             assertion.operation_id
         ));
     }
-    let expected = match disposition {
-        crate::TransactionDisposition::Commit => VisibilityExpectation::ExactlyOnce,
-        crate::TransactionDisposition::Abort => VisibilityExpectation::Absent,
+    let expected = match outcome {
+        crate::transaction_action_validation::TransactionRecordOutcome::Completed(
+            crate::TransactionDisposition::Commit,
+        ) => VisibilityExpectation::ExactlyOnce,
+        crate::transaction_action_validation::TransactionRecordOutcome::Completed(
+            crate::TransactionDisposition::Abort,
+        )
+        | crate::transaction_action_validation::TransactionRecordOutcome::Fenced => {
+            VisibilityExpectation::Absent
+        }
     };
     if assertion.visibility != expected {
         problems.push(format!(
-            "transactional operation {} with {disposition:?} must expect {expected:?} visibility",
+            "transactional operation {} must expect {expected:?} visibility",
             assertion.operation_id
         ));
     }

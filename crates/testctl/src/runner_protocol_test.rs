@@ -149,6 +149,42 @@ fn transaction_waits_for_exact_disposition_identity() {
     );
 }
 
+#[test]
+fn transaction_fence_waits_for_replacement_and_exact_result_identity() {
+    let operation_id = id(OperationId::new("fenced-record-1"));
+    let transaction_id = id(OperationId::new("fenced-transaction-1"));
+    let replacement = id(ProducerId::new("replacement-1"));
+    let expected = ExpectedEvent::TransactionFenceCompleted {
+        transaction_id: transaction_id.clone(),
+        operation_id: operation_id.clone(),
+        replacement_producer_id: replacement.clone(),
+    };
+
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::OperationAccepted { operation_id })
+            .unwrap_or_else(|error| panic!("classify fenced stage: {error}")),
+        EventDisposition::Continue
+    );
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::TransactionalProducerCreated {
+                producer_id: replacement,
+            })
+            .unwrap_or_else(|error| panic!("classify replacement: {error}")),
+        EventDisposition::Continue
+    );
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::TransactionFenceCompleted {
+                transaction_id,
+                commit_error_code: Some("fenced".to_owned()),
+            })
+            .unwrap_or_else(|error| panic!("classify fence completion: {error}")),
+        EventDisposition::Complete
+    );
+}
+
 fn id<T, E>(result: Result<T, E>) -> T
 where
     E: std::fmt::Display,
