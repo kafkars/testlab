@@ -100,11 +100,14 @@ fn assert_harness_failure(run: &Path) {
             "parse history",
         ));
     }
-    assert!(entries.iter().any(|entry| matches!(
-        &entry.payload,
-        HistoryPayload::HarnessError { error }
-            if error.code == "subject_executable_missing"
-    )));
+    assert!(
+        entries.iter().any(|entry| matches!(
+            &entry.payload,
+            HistoryPayload::HarnessError { error }
+                if error.code == "subject_executable_missing"
+        )),
+        "unexpected history: {source}"
+    );
 }
 
 fn assert_digests(run: &Path) {

@@ -1,8 +1,9 @@
 //! Evidence sealing publishes a run only after every required artifact is durable.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
+use testlab_environment::ComposeArtifact;
 use testlab_schema::{
     AdapterDescriptor, BrokerObservation, EVIDENCE_SCHEMA_VERSION, EnvironmentManifest,
     EvidenceManifest, HistoryEntry, RunId, Scenario, SubjectManifest, Verdict,
@@ -27,6 +28,7 @@ pub(crate) struct SealRequest<'a> {
     pub(crate) adapter: Option<&'a AdapterDescriptor>,
     pub(crate) history: &'a [HistoryEntry],
     pub(crate) observations: &'a [BrokerObservation],
+    pub(crate) environment_artifacts: &'a [ComposeArtifact],
     pub(crate) verdict: &'a Verdict,
     pub(crate) started_unix_ms: u64,
     pub(crate) completed_unix_ms: u64,
@@ -90,6 +92,7 @@ fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), Ap
     write_json(directory, "scenario.json", request.scenario)?;
     write_json(directory, "subject.json", request.subject)?;
     write_json(directory, "environment.json", request.environment)?;
+    write_environment_artifacts(directory, request.environment_artifacts)?;
     if let Some(adapter) = request.adapter {
         write_json(directory, "adapter.json", adapter)?;
     }
@@ -106,6 +109,29 @@ fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), Ap
     let digests = digest_directory(directory)?;
     write_json(directory, "digests.json", &digests)?;
     sync_directory(directory)
+}
+
+fn write_environment_artifacts(
+    directory: &Path,
+    artifacts: &[ComposeArtifact],
+) -> Result<(), AppError> {
+    for artifact in artifacts {
+        let path = Path::new(&artifact.name);
+        let mut components = path.components();
+        let portable = matches!(components.next(), Some(Component::Normal(_)))
+            && components.next().is_none()
+            && path.to_str().is_some()
+            && !artifact.name.contains('/')
+            && !artifact.name.contains('\\');
+        if !portable {
+            return Err(AppError::Evidence(format!(
+                "invalid environment artifact name {}",
+                artifact.name
+            )));
+        }
+        write_bytes(directory, &artifact.name, &artifact.bytes, false)?;
+    }
+    Ok(())
 }
 
 fn summary(request: &SealRequest<'_>) -> String {

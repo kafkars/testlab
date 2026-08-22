@@ -23,7 +23,8 @@ pub(crate) struct SessionRequest<'a> {
     pub(crate) subject: &'a SubjectManifest,
     pub(crate) run_id: &'a RunId,
     pub(crate) deadline: Deadline,
-    pub(crate) broker: &'a RunningBroker,
+    pub(crate) broker_endpoint: &'a str,
+    pub(crate) model_broker: Option<&'a RunningBroker>,
 }
 
 pub(crate) fn run_adapter_session(
@@ -37,7 +38,8 @@ pub(crate) fn run_adapter_session(
         subject,
         run_id,
         deadline,
-        broker,
+        broker_endpoint,
+        model_broker,
     } = request;
     let mut process = AdapterProcess::spawn(repository_root, subject)?;
     let mut protocol = ProtocolSession::default();
@@ -48,7 +50,7 @@ pub(crate) fn run_adapter_session(
         AdapterCommand::Hello {
             run_id: run_id.clone(),
             scenario_id: scenario.id.clone(),
-            broker_endpoint: broker.endpoint().to_owned(),
+            broker_endpoint: broker_endpoint.to_owned(),
         },
         &ExpectedEvent::Ready,
     )?;
@@ -59,7 +61,7 @@ pub(crate) fn run_adapter_session(
         execute_step(
             &mut process,
             recorder,
-            broker,
+            model_broker,
             deadline,
             &mut protocol,
             &step.action,
@@ -81,7 +83,7 @@ pub(crate) fn run_adapter_session(
 fn execute_step(
     process: &mut AdapterProcess,
     recorder: &mut HistoryRecorder,
-    broker: &RunningBroker,
+    model_broker: Option<&RunningBroker>,
     deadline: Deadline,
     protocol: &mut ProtocolSession,
     action: &ScenarioAction,
@@ -104,6 +106,12 @@ fn execute_step(
             ExpectedEvent::ProducerCreated(producer_id.clone()),
         ),
         ScenarioAction::SetBrokerBehavior { behavior } => {
+            let Some(broker) = model_broker else {
+                return Err(RunFailure::harness(
+                    "environment_control_unsupported",
+                    "scenario requested model-broker control from a real Kafka environment",
+                ));
+            };
             broker.set_next_behavior(*behavior).map_err(|error| {
                 RunFailure::harness(
                     "environment_control_failed",

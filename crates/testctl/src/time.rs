@@ -26,6 +26,22 @@ impl Deadline {
             .checked_duration_since(Instant::now())
             .ok_or_else(|| RunFailure::harness("scenario_timeout", "scenario deadline elapsed"))
     }
+
+    pub(crate) fn reserving(self, reserve: Duration) -> Result<Self, RunFailure> {
+        let Some(end) = self.end.checked_sub(reserve) else {
+            return Err(RunFailure::harness(
+                "deadline_reserve_invalid",
+                "cleanup reserve underflowed the monotonic clock",
+            ));
+        };
+        if end <= Instant::now() {
+            return Err(RunFailure::harness(
+                "deadline_reserve_exhausted",
+                format!("scenario deadline cannot preserve {reserve:?} for cleanup"),
+            ));
+        }
+        Ok(Self { end })
+    }
 }
 
 pub(crate) fn unix_ms() -> Result<u64, RunFailure> {

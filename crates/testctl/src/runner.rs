@@ -3,17 +3,14 @@
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use testlab_broker::RunningBroker;
-use testlab_schema::{
-    AdapterDescriptor, BrokerObservation, EnvironmentDriver, EnvironmentManifest, RunId, Scenario,
-    SubjectManifest, Verdict,
-};
+use testlab_environment::ComposeArtifact;
+use testlab_schema::{EnvironmentManifest, RunId, Scenario, SubjectManifest, Verdict};
 
 use crate::catalog::Repository;
 use crate::evidence::{SealRequest, SealedRun, seal};
 use crate::recorder::HistoryRecorder;
 use crate::run_error::{AppError, RunFailure};
-use crate::session::{SessionRequest, run_adapter_session};
+use crate::runner_environment::{EnvironmentExecutionRequest, execute_environment};
 use crate::time::{Deadline, unix_ms};
 
 static RUN_SEQUENCE: AtomicU64 = AtomicU64::new(0);
@@ -101,8 +98,9 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
     let mut recorder = HistoryRecorder::default();
     let mut adapter = None;
     let mut observations = Vec::new();
-    let execution = execute(
-        ExecutionRequest {
+    let mut environment_artifacts = Vec::<ComposeArtifact>::new();
+    let execution = execute_environment(
+        EnvironmentExecutionRequest {
             repository_root: repository.root(),
             scenario,
             subject,
@@ -113,6 +111,7 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
         &mut recorder,
         &mut adapter,
         &mut observations,
+        &mut environment_artifacts,
     );
     let mut failure = execution.err();
     if let Some(error) = &failure {
@@ -155,97 +154,11 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
         adapter: adapter.as_ref(),
         history: &history,
         observations: &observations,
+        environment_artifacts: &environment_artifacts,
         verdict: &verdict,
         started_unix_ms,
         completed_unix_ms,
     })
-}
-
-#[derive(Clone, Copy, Debug)]
-struct ExecutionRequest<'a> {
-    repository_root: &'a Path,
-    scenario: &'a Scenario,
-    subject: &'a SubjectManifest,
-    environment: &'a EnvironmentManifest,
-    run_id: &'a RunId,
-    deadline: Deadline,
-}
-
-fn execute(
-    request: ExecutionRequest<'_>,
-    recorder: &mut HistoryRecorder,
-    adapter: &mut Option<AdapterDescriptor>,
-    observations: &mut Vec<BrokerObservation>,
-) -> Result<(), RunFailure> {
-    let ExecutionRequest {
-        repository_root,
-        scenario,
-        subject,
-        environment,
-        run_id,
-        deadline,
-    } = request;
-    if !matches!(&environment.driver, EnvironmentDriver::ModelBroker) {
-        return Err(RunFailure::harness(
-            "environment_driver_unsupported",
-            format!(
-                "environment {} requires a driver that testctl does not execute yet",
-                environment.id
-            ),
-        ));
-    }
-    let broker = RunningBroker::start().map_err(|error| {
-        RunFailure::harness(
-            "environment_start_failed",
-            format!("failed to start model broker: {error}"),
-        )
-    })?;
-    let session_result = run_adapter_session(
-        SessionRequest {
-            repository_root,
-            scenario,
-            subject,
-            run_id,
-            deadline,
-            broker: &broker,
-        },
-        recorder,
-        adapter,
-    );
-    let observation_result = broker.observations().map_err(|error| {
-        RunFailure::harness(
-            "environment_snapshot_failed",
-            format!("failed to read model broker observations: {error}"),
-        )
-    });
-    let mut recording_result = Ok(());
-    if let Ok(snapshot) = &observation_result {
-        observations.clone_from(snapshot);
-        for observation in snapshot {
-            if recording_result.is_ok() {
-                recording_result = recorder.observation(observation.clone());
-            }
-        }
-    }
-    let health_result = broker.failure().map_err(|error| {
-        RunFailure::harness(
-            "environment_health_failed",
-            format!("failed to inspect model broker health: {error}"),
-        )
-    });
-    let shutdown_result = broker.shutdown().map_err(|error| {
-        RunFailure::harness(
-            "environment_shutdown_failed",
-            format!("failed to stop model broker: {error}"),
-        )
-    });
-    session_result?;
-    observation_result?;
-    recording_result?;
-    if let Some(diagnostic) = health_result? {
-        return Err(RunFailure::harness("environment_failed", diagnostic));
-    }
-    shutdown_result
 }
 
 fn preflight_time() -> Result<u64, AppError> {

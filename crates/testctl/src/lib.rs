@@ -11,6 +11,7 @@ mod protocol_session;
 mod recorder;
 mod run_error;
 mod runner;
+mod runner_environment;
 mod runner_protocol;
 mod session;
 mod time;
@@ -22,5 +23,7 @@ pub use run_error::AppError;
 mod catalog_test;
 #[cfg(test)]
 mod recorder_test;
+#[cfg(test)]
+mod runner_docker_test;
 #[cfg(test)]
 mod runner_test;

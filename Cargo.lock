@@ -324,6 +324,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "testlab-broker",
+ "testlab-environment",
  "testlab-schema",
  "testlab-verifier",
  "thiserror",

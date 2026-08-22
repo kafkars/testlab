@@ -85,6 +85,20 @@ directory = "crates/testlab-broker"
 requirement = "0.1.0"
 
 [[package.dependency]]
+alias = "testlab-environment"
+name = "testlab-environment"
+crate_root = "testlab_environment"
+kind = "normal"
+scope = "internal"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "workspace-member"
+directory = "crates/testlab-environment"
+requirement = "0.1.0"
+
+[[package.dependency]]
 alias = "testlab-schema"
 name = "testlab-schema"
 crate_root = "testlab_schema"
@@ -374,7 +388,7 @@ sha256 = "bcb691b5c93ecea4e8dd92c224daf21f8b30963386367c368e7d68261a555e21"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "a209f90b66b9e4b94c15d0f5818dc7ed78ce2e4a01644055b942a5a8ae6f7543"
+sha256 = "9ab6845e72d4e63ab4a8d248b4778a3a774cd73248b4a9c889f66fa2d131305e"
 
 [[gate.input]]
 path = "Cargo.toml"
