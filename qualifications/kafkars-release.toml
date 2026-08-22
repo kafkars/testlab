@@ -52,8 +52,8 @@ attempts = 1
 gating = true
 
 [[cells]]
-id = "apache-kafka-4-3-1-tls"
-environment = "clusters/apache-kafka/4.3.1/single-tls.toml"
+id = "apache-kafka-4-3-1-three-tls"
+environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
 pack = "packs/kafkars-pr.toml"
 attempts = 1
 gating = true
