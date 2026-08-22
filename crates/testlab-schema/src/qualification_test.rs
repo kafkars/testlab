@@ -40,6 +40,14 @@ fn environment_path_must_reference_cluster_catalog() {
     ));
 }
 
+#[test]
+fn qualification_requires_a_gating_cell() {
+    let mut manifest = qualification();
+    manifest.cells[0].gating = false;
+
+    assert_eq!(manifest.validate(), Err(QualificationError::NoGatingCells));
+}
+
 fn qualification() -> QualificationManifest {
     QualificationManifest {
         schema_version: 1,

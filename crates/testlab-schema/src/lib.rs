@@ -9,6 +9,7 @@ mod ids;
 mod pack;
 mod protocol;
 mod qualification;
+mod qualification_evidence;
 mod record;
 mod scenario;
 mod scenario_validation;
@@ -39,6 +40,10 @@ pub use protocol::{
 pub use qualification::{
     QUALIFICATION_SCHEMA_VERSION, QualificationCell, QualificationError, QualificationManifest,
 };
+pub use qualification_evidence::{
+    QUALIFICATION_EVIDENCE_SCHEMA_VERSION, QualificationCellEvidence, QualificationEvidenceError,
+    QualificationEvidenceManifest, QualificationRunEvidence,
+};
 pub use record::{HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{
     BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
@@ -53,6 +58,8 @@ mod bytes_test;
 mod environment_test;
 #[cfg(test)]
 mod ids_test;
+#[cfg(test)]
+mod qualification_evidence_test;
 #[cfg(test)]
 mod qualification_test;
 #[cfg(test)]

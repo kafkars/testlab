@@ -37,6 +37,9 @@ impl QualificationManifest {
         if self.cells.is_empty() {
             return Err(QualificationError::EmptySet);
         }
+        if !self.cells.iter().any(|cell| cell.gating) {
+            return Err(QualificationError::NoGatingCells);
+        }
         let mut identities = BTreeSet::new();
         let mut pairings = BTreeSet::new();
         for cell in &self.cells {
@@ -105,6 +108,9 @@ pub enum QualificationError {
     /// No qualification cells were declared.
     #[error("qualification must contain at least one cell")]
     EmptySet,
+    /// No cell could affect the qualification verdict.
+    #[error("qualification must contain at least one gating cell")]
+    NoGatingCells,
     /// One cell identity appeared twice.
     #[error("duplicate qualification cell id {0}")]
     DuplicateCellId(CellId),
