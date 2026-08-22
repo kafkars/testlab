@@ -3,14 +3,14 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use kafkars::{AssignedConsumer, Client, Producer, Security, StartPosition, TopicPartition};
+use kafkars::{AssignedConsumer, Client, Producer, Security};
 use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
 use thiserror::Error;
 
+use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::{SecurityError, resolve};
 
 const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
-const CONSUMER_OPERATION_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
@@ -18,19 +18,13 @@ pub(crate) struct AdapterState {
     security: Option<Security>,
     clients: BTreeMap<ClientId, Client>,
     producers: BTreeMap<ProducerId, ProducerOwner>,
-    consumers: BTreeMap<ConsumerId, ConsumerOwner>,
+    consumers: AssignedConsumers,
 }
 
 #[derive(Debug)]
 struct ProducerOwner {
     client_id: ClientId,
     producer: Producer,
-}
-
-#[derive(Debug)]
-struct ConsumerOwner {
-    client_id: ClientId,
-    consumer: AssignedConsumer,
 }
 
 impl AdapterState {
@@ -115,25 +109,11 @@ impl AdapterState {
         client_id: ClientId,
         consumer_id: ConsumerId,
     ) -> Result<(), StateError> {
-        if self.consumers.contains_key(&consumer_id) {
-            return Err(StateError::DuplicateConsumer(consumer_id));
-        }
         let client = self
             .clients
             .get(&client_id)
             .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
-        let consumer = client
-            .assigned_consumer()
-            .build()
-            .map_err(|error| StateError::Client(error.into_parts().1))?;
-        self.consumers.insert(
-            consumer_id,
-            ConsumerOwner {
-                client_id,
-                consumer,
-            },
-        );
-        Ok(())
+        self.consumers.create(client, client_id, consumer_id)
     }
 
     pub(crate) fn assign_beginning(
@@ -142,36 +122,22 @@ impl AdapterState {
         topic: String,
         partition: i32,
     ) -> Result<(), StateError> {
-        self.consumer_mut(consumer_id)?
-            .try_replace_assignment(
-                [TopicPartition::new(topic, partition).start_at(StartPosition::Beginning)],
-                CONSUMER_OPERATION_TIMEOUT,
-            )
-            .map_err(StateError::Client)?;
-        Ok(())
+        self.consumers
+            .assign_beginning(consumer_id, topic, partition)
     }
 
     pub(crate) fn consumer_mut(
         &mut self,
         consumer_id: &ConsumerId,
     ) -> Result<&mut AssignedConsumer, StateError> {
-        self.consumers
-            .get_mut(consumer_id)
-            .map(|owner| &mut owner.consumer)
-            .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))
+        self.consumers.get_mut(consumer_id)
     }
 
     pub(crate) fn close_assigned_consumer(
         &mut self,
         consumer_id: &ConsumerId,
     ) -> Result<(), StateError> {
-        self.consumer_mut(consumer_id)?
-            .try_close()
-            .map_err(StateError::Client)?
-            .wait()
-            .map_err(StateError::Client)?;
-        self.consumers.remove(consumer_id);
-        Ok(())
+        self.consumers.close(consumer_id)
     }
 
     pub(crate) fn close_producer(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {
@@ -190,11 +156,7 @@ impl AdapterState {
         {
             return Err(StateError::OpenProducer(client_id.clone()));
         }
-        if self
-            .consumers
-            .values()
-            .any(|owner| &owner.client_id == client_id)
-        {
+        if self.consumers.has_owner(client_id) {
             return Err(StateError::OpenConsumer(client_id.clone()));
         }
         let client = self

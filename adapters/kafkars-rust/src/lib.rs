@@ -1,6 +1,7 @@
 //! Kafkars adapter translates only the packaged public client surface.
 
 mod adapter_error;
+mod assigned_consumers;
 mod connection_security;
 mod normalize;
 mod protocol;
