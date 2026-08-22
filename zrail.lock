@@ -297,6 +297,18 @@ default_features = true
 kind = "registry"
 requirement = "2.0"
 
+[[package.dependency]]
+alias = "toml"
+name = "toml"
+kind = "development"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "0.8"
+
 [[package]]
 name = "testlab-verifier"
 
@@ -321,7 +333,7 @@ sha256 = "bcb691b5c93ecea4e8dd92c224daf21f8b30963386367c368e7d68261a555e21"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "782e98213f803b986bd067ad3ced7ee300b9c9391b435a1f783d1c20f9c45a15"
+sha256 = "c9a81b8d3a4c391e0ad9dacd504990139f95327784b0e15347a645d324730ae7"
 
 [[gate.input]]
 path = "Cargo.toml"

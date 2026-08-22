@@ -3,6 +3,7 @@
 mod adapter;
 mod bytes;
 mod contract;
+mod environment;
 mod evidence;
 mod ids;
 mod pack;
@@ -16,12 +17,16 @@ mod verdict;
 pub use adapter::{AdapterDescriptor, Capability};
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
+pub use environment::{
+    Authentication, BrokerIdentity, ENVIRONMENT_SCHEMA_VERSION, EnvironmentDriver,
+    EnvironmentError, EnvironmentManifest, SecurityProfile, TransportSecurity,
+};
 pub use evidence::{
     BrokerObservation, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
 };
 pub use ids::{
-    AdapterId, ClientId, CommandId, ContractId, IdError, OperationId, PackId, ProducerId, RunId,
-    ScenarioId, StepId, SubjectId,
+    AdapterId, ClientId, CommandId, ContractId, EnvironmentId, IdError, OperationId, PackId,
+    ProducerId, RunId, ScenarioId, StepId, SubjectId,
 };
 pub use pack::{ScenarioPack, ScenarioPackError};
 pub use protocol::{
@@ -38,6 +43,8 @@ pub use verdict::{Verdict, VerdictStatus, Violation};
 
 #[cfg(test)]
 mod bytes_test;
+#[cfg(test)]
+mod environment_test;
 #[cfg(test)]
 mod ids_test;
 #[cfg(test)]
