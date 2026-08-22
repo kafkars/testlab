@@ -7,7 +7,7 @@ Kafka environment control and broker observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v4 over stdin/stdout;
+2. implements protocol v5 over stdin/stdout;
 3. preserves admission rejection separately from accepted delivery;
 4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;

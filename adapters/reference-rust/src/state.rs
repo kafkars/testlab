@@ -7,22 +7,24 @@ use thiserror::Error;
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
-    broker_endpoint: Option<String>,
+    broker_endpoints: Option<Vec<String>>,
     clients: BTreeSet<ClientId>,
     producers: BTreeMap<ProducerId, ClientId>,
 }
 
 impl AdapterState {
-    pub(crate) fn hello(&mut self, endpoint: String) -> Result<(), StateError> {
-        if self.broker_endpoint.replace(endpoint).is_some() {
+    pub(crate) fn hello(&mut self, endpoints: Vec<String>) -> Result<(), StateError> {
+        if self.broker_endpoints.replace(endpoints).is_some() {
             return Err(StateError::DuplicateHello);
         }
         Ok(())
     }
 
     pub(crate) fn broker_endpoint(&self) -> Result<&str, StateError> {
-        self.broker_endpoint
+        self.broker_endpoints
             .as_deref()
+            .and_then(|endpoints| endpoints.first())
+            .map(String::as_str)
             .ok_or(StateError::HelloRequired)
     }
 

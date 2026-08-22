@@ -69,9 +69,9 @@ fn dispatch<W: Write>(
     let command_id = envelope.command_id;
     match envelope.command {
         AdapterCommand::Hello {
-            broker_endpoint, ..
+            broker_endpoints, ..
         } => {
-            state.hello(broker_endpoint)?;
+            state.hello(broker_endpoints)?;
             emit(
                 writer,
                 &AdapterEventEnvelope::new(

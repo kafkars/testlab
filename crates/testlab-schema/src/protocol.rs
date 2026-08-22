@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 4;
+pub const PROTOCOL_VERSION: u16 = 5;
 
 /// Environment variable carrying an ephemeral TLS certificate authority path.
 pub const TLS_CA_PEM_ENVIRONMENT: &str = "TESTLAB_KAFKA_TLS_CA_PEM";
@@ -29,7 +29,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v4 command envelope.
+    /// Creates one protocol-v5 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -43,14 +43,14 @@ impl CommandEnvelope {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterCommand {
-    /// Starts one adapter session and declares the environment endpoint.
+    /// Starts one adapter session and declares the environment endpoints.
     Hello {
         /// Unique test attempt.
         run_id: RunId,
         /// Stable scenario identity.
         scenario_id: ScenarioId,
-        /// Broker or test-peer endpoint selected by testctl.
-        broker_endpoint: String,
+        /// Ordered broker or test-peer bootstrap endpoints selected by testctl.
+        broker_endpoints: Vec<String>,
         /// Non-secret connection policy and secret environment references.
         security: AdapterSecurity,
     },
@@ -169,7 +169,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v4 event envelope.
+    /// Creates one protocol-v5 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,

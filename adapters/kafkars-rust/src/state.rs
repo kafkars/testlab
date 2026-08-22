@@ -13,7 +13,7 @@ const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
-    broker_endpoint: Option<String>,
+    broker_endpoints: Option<Vec<String>>,
     security: Option<Security>,
     clients: BTreeMap<ClientId, Client>,
     producers: BTreeMap<ProducerId, ProducerOwner>,
@@ -28,29 +28,29 @@ struct ProducerOwner {
 impl AdapterState {
     pub(crate) fn hello(
         &mut self,
-        endpoint: String,
+        endpoints: Vec<String>,
         security: AdapterSecurity,
     ) -> Result<(), StateError> {
-        if self.broker_endpoint.is_some() {
+        if self.broker_endpoints.is_some() {
             return Err(StateError::DuplicateHello);
         }
         let security = resolve(security)?;
-        self.broker_endpoint = Some(endpoint);
+        self.broker_endpoints = Some(endpoints);
         self.security = Some(security);
         Ok(())
     }
 
     pub(crate) fn create_client(&mut self, client_id: ClientId) -> Result<(), StateError> {
-        let endpoint = self
-            .broker_endpoint
-            .as_deref()
+        let endpoints = self
+            .broker_endpoints
+            .as_ref()
             .ok_or(StateError::HelloRequired)?;
         let security = self.security.clone().ok_or(StateError::HelloRequired)?;
         if self.clients.contains_key(&client_id) {
             return Err(StateError::DuplicateClient(client_id));
         }
         let client = Client::builder()
-            .bootstrap_servers([endpoint])
+            .bootstrap_servers(endpoints.iter().map(String::as_str))
             .client_id(client_id.as_str())
             .security(security)
             .build()

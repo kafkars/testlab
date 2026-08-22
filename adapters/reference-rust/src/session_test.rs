@@ -44,7 +44,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             AdapterCommand::Hello {
                 run_id: id(RunId::new("run-1")),
                 scenario_id: id(ScenarioId::new("producer.round-trip")),
-                broker_endpoint: broker.endpoint().to_owned(),
+                broker_endpoints: vec![broker.endpoint().to_owned()],
                 security: AdapterSecurity::Plaintext,
             },
         ),

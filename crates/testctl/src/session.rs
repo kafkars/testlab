@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v4 scenario actions.
+//! One sequential adapter session executes protocol-v5 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -23,7 +23,7 @@ pub(crate) struct SessionRequest<'a> {
     pub(crate) subject: &'a SubjectManifest,
     pub(crate) run_id: &'a RunId,
     pub(crate) deadline: Deadline,
-    pub(crate) broker_endpoint: &'a str,
+    pub(crate) broker_endpoints: &'a [String],
     pub(crate) security: AdapterSecurity,
     pub(crate) adapter_environment: &'a [(String, String)],
     pub(crate) model_broker: Option<&'a RunningBroker>,
@@ -40,7 +40,7 @@ pub(crate) fn run_adapter_session(
         subject,
         run_id,
         deadline,
-        broker_endpoint,
+        broker_endpoints,
         security,
         adapter_environment,
         model_broker,
@@ -54,7 +54,7 @@ pub(crate) fn run_adapter_session(
         AdapterCommand::Hello {
             run_id: run_id.clone(),
             scenario_id: scenario.id.clone(),
-            broker_endpoint: broker_endpoint.to_owned(),
+            broker_endpoints: broker_endpoints.to_vec(),
             security,
         },
         &ExpectedEvent::Ready,

@@ -57,6 +57,7 @@ fn execute_model(
             format!("failed to start model broker: {error}"),
         )
     })?;
+    let broker_endpoints = [broker.endpoint().to_owned()];
     let session_result = run_adapter_session(
         SessionRequest {
             repository_root: request.repository_root,
@@ -64,7 +65,7 @@ fn execute_model(
             subject: request.subject,
             run_id: request.run_id,
             deadline: request.deadline,
-            broker_endpoint: broker.endpoint(),
+            broker_endpoints: &broker_endpoints,
             security: AdapterSecurity::Plaintext,
             adapter_environment: &[],
             model_broker: Some(&broker),
@@ -126,7 +127,7 @@ fn execute_compose(
         ComposePhase::default()
     };
     let provision_result = record_phase(provision, recorder, artifacts);
-    let endpoint = environment.endpoint();
+    let broker_endpoints = [environment.endpoint()];
     let adapter_security = environment.adapter_security();
     let adapter_environment = environment.adapter_environment();
     let session_result = if setup_result.is_ok() && provision_result.is_ok() {
@@ -137,7 +138,7 @@ fn execute_compose(
                 subject: request.subject,
                 run_id: request.run_id,
                 deadline: work_deadline,
-                broker_endpoint: &endpoint,
+                broker_endpoints: &broker_endpoints,
                 security: adapter_security,
                 adapter_environment: &adapter_environment,
                 model_broker: None,

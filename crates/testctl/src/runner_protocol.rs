@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v4 command.
+//! Expected event shapes constrain each sequential protocol-v5 command.
 
 use testlab_schema::{AdapterEvent, ClientId, OperationId, ProducerId};
 
