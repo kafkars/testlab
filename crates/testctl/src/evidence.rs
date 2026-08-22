@@ -1,16 +1,16 @@
 //! Evidence sealing publishes a run only after every required artifact is durable.
 
-use std::collections::BTreeMap;
-use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Write};
+use std::fs;
 use std::path::{Path, PathBuf};
 
-use sha2::{Digest, Sha256};
 use testlab_schema::{
     AdapterDescriptor, BrokerObservation, EvidenceManifest, HistoryEntry, RunId, Scenario,
     SubjectManifest, Verdict,
 };
 
+use crate::evidence_io::{
+    digest_directory, sync_directory, write_bytes, write_json, write_json_lines,
+};
 use crate::run_error::AppError;
 
 #[derive(Debug)]
@@ -104,104 +104,6 @@ fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), Ap
     sync_directory(directory)
 }
 
-fn write_json<T: serde::Serialize + ?Sized>(
-    directory: &Path,
-    name: &str,
-    value: &T,
-) -> Result<(), AppError> {
-    let mut bytes =
-        serde_json::to_vec_pretty(value).map_err(|error| AppError::json(name, error))?;
-    bytes.push(b'\n');
-    write_bytes(directory, name, &bytes, false)
-}
-
-fn write_json_lines<T: serde::Serialize>(
-    directory: &Path,
-    name: &str,
-    values: &[T],
-) -> Result<(), AppError> {
-    let path = directory.join(name);
-    let mut file = create_new(&path)?;
-    for value in values {
-        serde_json::to_writer(&mut file, value).map_err(|error| AppError::json(name, error))?;
-        file.write_all(b"\n")
-            .map_err(|error| AppError::io(format!("failed to write {}", path.display()), error))?;
-    }
-    file.sync_all()
-        .map_err(|error| AppError::io(format!("failed to sync {}", path.display()), error))
-}
-
-fn write_bytes(
-    directory: &Path,
-    name: &str,
-    bytes: &[u8],
-    executable: bool,
-) -> Result<(), AppError> {
-    let path = directory.join(name);
-    let mut file = create_new(&path)?;
-    file.write_all(bytes)
-        .map_err(|error| AppError::io(format!("failed to write {}", path.display()), error))?;
-    file.sync_all()
-        .map_err(|error| AppError::io(format!("failed to sync {}", path.display()), error))?;
-    if executable {
-        make_executable(&path)?;
-    }
-    Ok(())
-}
-
-fn create_new(path: &Path) -> Result<File, AppError> {
-    OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(path)
-        .map_err(|error| AppError::io(format!("failed to create {}", path.display()), error))
-}
-
-fn digest_directory(directory: &Path) -> Result<BTreeMap<String, String>, AppError> {
-    let mut paths = fs::read_dir(directory)
-        .map_err(|error| AppError::io(format!("failed to list {}", directory.display()), error))?
-        .map(|entry| entry.map(|entry| entry.path()))
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|error| AppError::io("failed to inspect evidence files", error))?;
-    paths.sort();
-    let mut digests = BTreeMap::new();
-    for path in paths {
-        if path.file_name() == Some(std::ffi::OsStr::new("digests.json")) {
-            continue;
-        }
-        let name = path
-            .file_name()
-            .and_then(std::ffi::OsStr::to_str)
-            .ok_or_else(|| AppError::Evidence("non-UTF-8 evidence name".to_owned()))?;
-        if digests
-            .insert(name.to_owned(), digest_file(&path)?)
-            .is_some()
-        {
-            return Err(AppError::Evidence(format!(
-                "duplicate evidence artifact name {name}"
-            )));
-        }
-    }
-    Ok(digests)
-}
-
-fn digest_file(path: &Path) -> Result<String, AppError> {
-    let mut file = File::open(path)
-        .map_err(|error| AppError::io(format!("failed to open {}", path.display()), error))?;
-    let mut digest = Sha256::new();
-    let mut buffer = vec![0_u8; 64 * 1024];
-    loop {
-        let bytes = file
-            .read(&mut buffer)
-            .map_err(|error| AppError::io(format!("failed to hash {}", path.display()), error))?;
-        if bytes == 0 {
-            break;
-        }
-        digest.update(&buffer[..bytes]);
-    }
-    Ok(hex::encode(digest.finalize()))
-}
-
 fn summary(request: &SealRequest<'_>) -> String {
     let mut text = format!(
         "# Testlab result\n\n- Run: `{}`\n- Scenario: `{}`\n- Subject: `{}`\n- Status: `{:?}`\n",
@@ -241,32 +143,4 @@ fn absolute(root: &Path, path: &Path) -> PathBuf {
     } else {
         root.join(path)
     }
-}
-
-#[cfg(unix)]
-fn make_executable(path: &Path) -> Result<(), AppError> {
-    use std::os::unix::fs::PermissionsExt;
-    let mut permissions = fs::metadata(path)
-        .map_err(|error| AppError::io("failed to inspect reproduction script", error))?
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions)
-        .map_err(|error| AppError::io("failed to mark reproduction script executable", error))
-}
-
-#[cfg(not(unix))]
-fn make_executable(_path: &Path) -> Result<(), AppError> {
-    Ok(())
-}
-
-#[cfg(unix)]
-fn sync_directory(path: &Path) -> Result<(), AppError> {
-    File::open(path)
-        .and_then(|file| file.sync_all())
-        .map_err(|error| AppError::io(format!("failed to sync {}", path.display()), error))
-}
-
-#[cfg(not(unix))]
-fn sync_directory(_path: &Path) -> Result<(), AppError> {
-    Ok(())
 }
