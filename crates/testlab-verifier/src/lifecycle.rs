@@ -51,7 +51,9 @@ pub(crate) fn verify_lifecycle(
                 references(index.clients_shutdown.get(client_id).map(Vec::as_slice)),
                 violations,
             ),
-            ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::Send { .. } => {}
+            ScenarioAction::SetBrokerBehavior { .. }
+            | ScenarioAction::Send { .. }
+            | ScenarioAction::SendBatch { .. } => {}
         }
     }
     if index.command_failures.is_empty() && index.finish_issued() {

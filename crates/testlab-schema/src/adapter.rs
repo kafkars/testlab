@@ -12,6 +12,8 @@ use crate::AdapterId;
 pub enum Capability {
     /// Public producer operations.
     Producer,
+    /// Public batch-producer operations.
+    ProducerBatch,
     /// Explicit close, shutdown, and finish behavior.
     Lifecycle,
     /// Explicit public client readiness probing.

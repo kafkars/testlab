@@ -4,8 +4,8 @@ use std::io::Cursor;
 
 use testlab_broker::RunningBroker;
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSecurity, ByteString, ClientId,
-    CommandEnvelope, CommandId, OperationId, ProducerId, RecordSpec, RunId, ScenarioId,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSecurity, BatchRecord, ByteString,
+    ClientId, CommandEnvelope, CommandId, OperationId, ProducerId, RecordSpec, RunId, ScenarioId,
     TerminalStatus,
 };
 
@@ -76,6 +76,16 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             },
         ),
         command(
+            "cmd-batch",
+            AdapterCommand::SendBatch {
+                producer_id: producer.clone(),
+                operations: vec![BatchRecord {
+                    operation_id: id(OperationId::new("op-batch-1")),
+                    record: record(),
+                }],
+            },
+        ),
+        command(
             "cmd-close",
             AdapterCommand::CloseProducer {
                 producer_id: producer,
@@ -115,6 +125,12 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
                 status: TerminalStatus::Acknowledged,
                 ..
             }
+        )
+    }));
+    assert!(events.iter().any(|event| {
+        matches!(
+            &event.event,
+            AdapterEvent::BatchCompleted { producer_id } if producer_id.as_str() == "producer-1"
         )
     }));
     assert!(matches!(

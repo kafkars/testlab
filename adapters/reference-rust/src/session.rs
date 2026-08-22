@@ -70,18 +70,7 @@ fn dispatch<W: Write>(
     match envelope.command {
         AdapterCommand::Hello {
             broker_endpoints, ..
-        } => {
-            state.hello(broker_endpoints)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::Ready {
-                        descriptor: descriptor()?,
-                    },
-                ),
-            )?;
-        }
+        } => dispatch_hello(state, writer, command_id, broker_endpoints)?,
         AdapterCommand::CreateClient { client_id } => {
             state.create_client(client_id.clone())?;
             emit(
@@ -121,6 +110,10 @@ fn dispatch<W: Write>(
             operation_id,
             record,
         )?,
+        AdapterCommand::SendBatch {
+            producer_id,
+            operations,
+        } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;
             emit(
@@ -160,6 +153,24 @@ fn dispatch<W: Write>(
     Ok(false)
 }
 
+fn dispatch_hello<W: Write>(
+    state: &mut AdapterState,
+    writer: &mut W,
+    command_id: testlab_schema::CommandId,
+    broker_endpoints: Vec<String>,
+) -> Result<(), AdapterError> {
+    state.hello(broker_endpoints)?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::Ready {
+                descriptor: descriptor()?,
+            },
+        ),
+    )
+}
+
 fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
     Ok(AdapterDescriptor {
         id: AdapterId::new("reference-rust")?,
@@ -168,6 +179,7 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         protocol_version: PROTOCOL_VERSION,
         capabilities: BTreeSet::from([
             Capability::Producer,
+            Capability::ProducerBatch,
             Capability::Lifecycle,
             Capability::ClientReadiness,
             Capability::ModelBroker,
@@ -216,6 +228,9 @@ pub enum AdapterError {
     /// Public fixture lifecycle was invalid.
     #[error("adapter state failed: {0}")]
     State(String),
+    /// One batch command did not contain an operation.
+    #[error("adapter batch failed: {0}")]
+    Batch(String),
     /// The harness used an unsupported protocol version.
     #[error("unsupported protocol version {0}")]
     ProtocolVersion(u16),
@@ -237,6 +252,7 @@ impl AdapterError {
             Self::Json(_) => "adapter_json",
             Self::Id(_) => "adapter_identity",
             Self::State(_) => "adapter_state",
+            Self::Batch(_) => "adapter_batch",
             Self::ProtocolVersion(_) => "protocol_version",
             Self::CommandTooLarge => "command_too_large",
             Self::IncompleteCommand => "incomplete_command",

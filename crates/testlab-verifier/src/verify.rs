@@ -41,19 +41,30 @@ fn sends<'a>(
     scenario: &'a Scenario,
     index: &HistoryIndex,
 ) -> BTreeMap<OperationId, &'a RecordSpec> {
-    scenario
-        .steps
-        .iter()
-        .filter(|step| index.action_issued(&step.action))
-        .filter_map(|step| match &step.action {
+    let mut sends = BTreeMap::new();
+    for step in &scenario.steps {
+        if !index.action_issued(&step.action) {
+            continue;
+        }
+        match &step.action {
             ScenarioAction::Send {
                 operation_id,
                 record,
                 ..
-            } => Some((operation_id.clone(), record)),
-            _ => None,
-        })
-        .collect()
+            } => {
+                sends.insert(operation_id.clone(), record);
+            }
+            ScenarioAction::SendBatch { operations, .. } => {
+                sends.extend(
+                    operations
+                        .iter()
+                        .map(|operation| (operation.operation_id.clone(), &operation.record)),
+                );
+            }
+            _ => {}
+        }
+    }
+    sends
 }
 
 fn assertions(scenario: &Scenario) -> BTreeMap<OperationId, &OperationAssertion> {

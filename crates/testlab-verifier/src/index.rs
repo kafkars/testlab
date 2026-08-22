@@ -109,7 +109,7 @@ impl HistoryIndex {
                     AdapterEvent::Ready { descriptor } => {
                         index.ready.push((entry.sequence, descriptor.clone()));
                     }
-                    AdapterEvent::Fatal { .. } => {}
+                    AdapterEvent::BatchCompleted { .. } | AdapterEvent::Fatal { .. } => {}
                 },
                 _ => {}
             }
@@ -134,6 +134,9 @@ impl HistoryIndex {
             ScenarioAction::Send { operation_id, .. } => {
                 self.operations_issued.contains(operation_id)
             }
+            ScenarioAction::SendBatch { operations, .. } => operations
+                .iter()
+                .all(|operation| self.operations_issued.contains(&operation.operation_id)),
             ScenarioAction::Flush { producer_id } => self.flushes_issued.contains(producer_id),
             ScenarioAction::CloseProducer { producer_id } => {
                 self.producers_close_issued.contains(producer_id)
@@ -163,6 +166,13 @@ impl HistoryIndex {
             }
             AdapterCommand::Send { operation_id, .. } => {
                 self.operations_issued.insert(operation_id.clone());
+            }
+            AdapterCommand::SendBatch { operations, .. } => {
+                self.operations_issued.extend(
+                    operations
+                        .iter()
+                        .map(|operation| operation.operation_id.clone()),
+                );
             }
             AdapterCommand::Flush { producer_id } => {
                 self.flushes_issued.insert(producer_id.clone());

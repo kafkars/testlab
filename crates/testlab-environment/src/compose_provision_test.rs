@@ -2,7 +2,9 @@
 
 use std::collections::BTreeMap;
 
-use crate::compose_provision::operation_args;
+use testlab_schema::Scenario;
+
+use crate::compose_provision::{operation_args, topics};
 
 #[test]
 fn operation_records_cluster_replication_factor() {
@@ -24,5 +26,36 @@ fn operation_records_cluster_replication_factor() {
             "--replication-factor",
             "2",
         ]
+    );
+}
+
+#[test]
+fn batch_records_contribute_every_topic_partition() {
+    let scenario: Scenario = toml::from_str(
+        r#"
+schema_version = 3
+id = "producer.batch-topics"
+title = "batch topics"
+description = "batch provisioning fixture"
+timeout_ms = 1000
+requires = ["producer", "producer_batch", "lifecycle"]
+assertions = []
+
+[[steps]]
+id = "batch"
+kind = "send_batch"
+producer_id = "producer-1"
+operations = [
+  { operation_id = "op-1", record = { topic = "orders", partition = 0, sequence = 1 } },
+  { operation_id = "op-2", record = { topic = "orders", partition = 2, sequence = 2 } },
+  { operation_id = "op-3", record = { topic = "audit", partition = 1, sequence = 3 } },
+]
+"#,
+    )
+    .unwrap_or_else(|error| panic!("parse scenario: {error}"));
+
+    assert_eq!(
+        topics(&scenario),
+        BTreeMap::from([("audit".to_owned(), 2), ("orders".to_owned(), 3)])
     );
 }

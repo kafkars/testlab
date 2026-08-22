@@ -49,12 +49,14 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut operations = BTreeSet::new();
     let mut uses_model_broker = false;
     let mut uses_readiness = false;
+    let mut uses_batch = false;
     for step in &scenario.steps {
         if !step_ids.insert(step.id.clone()) {
             problems.push(format!("duplicate step id {}", step.id));
         }
         uses_model_broker |= matches!(&step.action, ScenarioAction::SetBrokerBehavior { .. });
         uses_readiness |= matches!(&step.action, ScenarioAction::AwaitClientReady { .. });
+        uses_batch |= matches!(&step.action, ScenarioAction::SendBatch { .. });
         crate::scenario_action_validation::validate_action(
             &step.action,
             &mut clients,
@@ -65,6 +67,9 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     }
     if !operations.is_empty() && !scenario.requires.contains(&Capability::Producer) {
         problems.push("send steps require the producer capability".to_owned());
+    }
+    if uses_batch && !scenario.requires.contains(&Capability::ProducerBatch) {
+        problems.push("batch-send steps require the producer_batch capability".to_owned());
     }
     if uses_model_broker && !scenario.requires.contains(&Capability::ModelBroker) {
         problems.push("broker-control steps require the model_broker capability".to_owned());

@@ -25,6 +25,9 @@ pub enum AdapterError {
     /// A packaged public Kafkars operation failed.
     #[error("packaged Kafkars operation failed: {0}")]
     Client(kafkars::KafkaError),
+    /// A public batch result did not correspond to its exact input.
+    #[error("packaged Kafkars batch result was invalid: {0}")]
+    BatchResult(String),
     /// The harness used an unsupported protocol version.
     #[error("unsupported protocol version {0}")]
     ProtocolVersion(u16),
@@ -64,6 +67,7 @@ impl AdapterError {
             Self::Bytes(_) => "adapter_record_bytes",
             Self::State(_) => "adapter_state",
             Self::Client(_) => "kafkars_operation",
+            Self::BatchResult(_) => "kafkars_batch_result",
             Self::ProtocolVersion(_) => "protocol_version",
             Self::CommandTooLarge => "command_too_large",
             Self::IncompleteCommand => "incomplete_command",

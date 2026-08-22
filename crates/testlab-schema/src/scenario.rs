@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 2;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 3;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -52,7 +52,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v2.
+/// Scenario action vocabulary for scenario schema v3.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -87,6 +87,13 @@ pub enum ScenarioAction {
         /// Exact logical record.
         record: RecordSpec,
     },
+    /// Offers an ordered record batch through one public call.
+    SendBatch {
+        /// Existing open producer.
+        producer_id: ProducerId,
+        /// Ordered records with stable operation identities.
+        operations: Vec<BatchRecord>,
+    },
     /// Flushes one open producer.
     Flush {
         /// Producer to flush.
@@ -102,6 +109,16 @@ pub enum ScenarioAction {
         /// Client to shut down.
         client_id: ClientId,
     },
+}
+
+/// One identified record within a public batch send.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BatchRecord {
+    /// Stable operation identity.
+    pub operation_id: OperationId,
+    /// Exact logical record.
+    pub record: RecordSpec,
 }
 
 /// One-shot behavior supported by the self-test model broker.

@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use super::{
-    Capability, ClientId, OperationAssertion, OperationId, ProducerId, Scenario, ScenarioAction,
-    ScenarioId, ScenarioStep, StepId, TerminalStatus, VisibilityExpectation,
+    BatchRecord, Capability, ClientId, OperationAssertion, OperationId, ProducerId, Scenario,
+    ScenarioAction, ScenarioId, ScenarioStep, StepId, TerminalStatus, VisibilityExpectation,
 };
 
 fn id<T, E>(result: Result<T, E>) -> T
@@ -17,7 +17,7 @@ where
 #[test]
 fn open_handles_are_rejected() {
     let scenario = Scenario {
-        schema_version: 2,
+        schema_version: 3,
         id: id(ScenarioId::new("lifecycle.open")),
         title: "open".to_owned(),
         description: "open handles".to_owned(),
@@ -39,7 +39,7 @@ fn open_handles_are_rejected() {
 fn rejected_admission_must_not_expect_a_terminal() {
     let operation = id(OperationId::new("op-1"));
     let scenario = Scenario {
-        schema_version: 2,
+        schema_version: 3,
         id: id(ScenarioId::new("producer.bad-assertion")),
         title: "bad assertion".to_owned(),
         description: "rejected with terminal".to_owned(),
@@ -52,6 +52,59 @@ fn rejected_admission_must_not_expect_a_terminal() {
             terminal: Some(TerminalStatus::DefinitelyNotSent),
             visibility: VisibilityExpectation::Absent,
         }],
+    };
+
+    assert!(scenario.validate().is_err());
+}
+
+#[test]
+fn empty_batch_is_rejected() {
+    let client = id(ClientId::new("client-1"));
+    let producer = id(ProducerId::new("producer-1"));
+    let scenario = Scenario {
+        schema_version: 3,
+        id: id(ScenarioId::new("producer.empty-batch")),
+        title: "empty batch".to_owned(),
+        description: "batch requires records".to_owned(),
+        timeout_ms: 1_000,
+        requires: BTreeSet::from([
+            Capability::Producer,
+            Capability::ProducerBatch,
+            Capability::Lifecycle,
+        ]),
+        steps: vec![
+            step(
+                "client",
+                ScenarioAction::CreateClient {
+                    client_id: client.clone(),
+                },
+            ),
+            step(
+                "producer",
+                ScenarioAction::CreateProducer {
+                    client_id: client.clone(),
+                    producer_id: producer.clone(),
+                },
+            ),
+            step(
+                "batch",
+                ScenarioAction::SendBatch {
+                    producer_id: producer.clone(),
+                    operations: Vec::<BatchRecord>::new(),
+                },
+            ),
+            step(
+                "close",
+                ScenarioAction::CloseProducer {
+                    producer_id: producer,
+                },
+            ),
+            step(
+                "shutdown",
+                ScenarioAction::ShutdownClient { client_id: client },
+            ),
+        ],
+        assertions: Vec::new(),
     };
 
     assert!(scenario.validate().is_err());

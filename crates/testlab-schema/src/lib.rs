@@ -48,8 +48,8 @@ pub use qualification_evidence::{
 };
 pub use record::{HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{
-    BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
-    ScenarioError, ScenarioStep, VisibilityExpectation,
+    BatchRecord, BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario,
+    ScenarioAction, ScenarioError, ScenarioStep, VisibilityExpectation,
 };
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};

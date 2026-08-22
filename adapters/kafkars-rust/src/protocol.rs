@@ -76,18 +76,7 @@ fn dispatch<W: Write>(
             broker_endpoints,
             security,
             ..
-        } => {
-            state.hello(broker_endpoints, security)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::Ready {
-                        descriptor: descriptor()?,
-                    },
-                ),
-            )?;
-        }
+        } => dispatch_hello(state, writer, command_id, broker_endpoints, security)?,
         AdapterCommand::CreateClient { client_id } => {
             state.create_client(client_id.clone())?;
             emit(
@@ -127,6 +116,10 @@ fn dispatch<W: Write>(
             operation_id,
             record,
         )?,
+        AdapterCommand::SendBatch {
+            producer_id,
+            operations,
+        } => protocol_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
         AdapterCommand::Flush { producer_id } => {
             state
                 .producer(&producer_id)?
@@ -170,6 +163,25 @@ fn dispatch<W: Write>(
     Ok(false)
 }
 
+fn dispatch_hello<W: Write>(
+    state: &mut AdapterState,
+    writer: &mut W,
+    command_id: testlab_schema::CommandId,
+    broker_endpoints: Vec<String>,
+    security: testlab_schema::AdapterSecurity,
+) -> Result<(), AdapterError> {
+    state.hello(broker_endpoints, security)?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::Ready {
+                descriptor: descriptor()?,
+            },
+        ),
+    )
+}
+
 fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
     Ok(AdapterDescriptor {
         id: AdapterId::new("kafkars-rust")?,
@@ -178,6 +190,7 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         protocol_version: PROTOCOL_VERSION,
         capabilities: BTreeSet::from([
             Capability::Producer,
+            Capability::ProducerBatch,
             Capability::Lifecycle,
             Capability::ClientReadiness,
         ]),

@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v5 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v6 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -23,6 +23,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `await_client_ready`
 - `create_producer`
 - `send`
+- `send_batch`
 - `flush`
 - `close_producer`
 - `shutdown_client`
@@ -40,6 +41,7 @@ boundary.
 - `operation_accepted`
 - `operation_rejected`
 - `operation_terminal`
+- `batch_completed`
 - `flush_completed`
 - `producer_closed`
 - `client_shutdown`
@@ -48,7 +50,10 @@ boundary.
 - `fatal`
 
 A send emits one admission decision. Accepted operations later emit exactly one
-terminal event. Rejected operations emit no terminal.
+terminal event. Rejected operations emit no terminal. A batch emits one
+admission outcome per input operation, one terminal per accepted operation, and
+then `batch_completed`. A batch contains at most 31 records so the complete
+command remains within the bounded event budget.
 
 ## Failure behavior
 
@@ -60,6 +65,6 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v5 is an exact semantic contract. New capabilities may be declared
+Protocol v6 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

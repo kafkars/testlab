@@ -15,7 +15,7 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 5);
+    assert_eq!(summary.scenarios, 6);
     assert_eq!(summary.packs, 2);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 17);

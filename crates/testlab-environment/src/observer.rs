@@ -69,14 +69,21 @@ fn consumer(
 }
 
 fn targets(scenario: &Scenario) -> BTreeSet<(String, i32)> {
-    scenario
-        .steps
-        .iter()
-        .filter_map(|step| match &step.action {
-            ScenarioAction::Send { record, .. } => Some((record.topic.clone(), record.partition)),
-            _ => None,
-        })
-        .collect()
+    let mut targets = BTreeSet::new();
+    for step in &scenario.steps {
+        match &step.action {
+            ScenarioAction::Send { record, .. } => {
+                targets.insert((record.topic.clone(), record.partition));
+            }
+            ScenarioAction::SendBatch { operations, .. } => targets.extend(
+                operations
+                    .iter()
+                    .map(|operation| (operation.record.topic.clone(), operation.record.partition)),
+            ),
+            _ => {}
+        }
+    }
+    targets
 }
 
 fn assignment(

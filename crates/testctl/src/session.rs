@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v5 scenario actions.
+//! One sequential adapter session executes protocol-v6 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -164,6 +164,22 @@ fn execute_step(
                 record: record.clone(),
             },
             ExpectedEvent::SendSettled(operation_id.clone()),
+        ),
+        ScenarioAction::SendBatch {
+            producer_id,
+            operations,
+        } => (
+            AdapterCommand::SendBatch {
+                producer_id: producer_id.clone(),
+                operations: operations.clone(),
+            },
+            ExpectedEvent::BatchCompleted {
+                producer_id: producer_id.clone(),
+                operation_ids: operations
+                    .iter()
+                    .map(|operation| operation.operation_id.clone())
+                    .collect(),
+            },
         ),
         ScenarioAction::Flush { producer_id } => (
             AdapterCommand::Flush {

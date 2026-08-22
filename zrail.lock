@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "b049966675376d07a47872cf08d09980100c6c21354fb8e0ba966bd9571e3c28"
+contract_sha256 = "91e5870a50e8aa2294174da23f5d5197f796f3863aca6d6e4bcef8fec2c7d7b5"
 ratchet = []
 
 [[package]]
@@ -590,7 +590,7 @@ sha256 = "8254d4bf17dca76c9b8ac8d3325b17df253d4056c718e5f8f05f08a8692e8709"
 
 [[gate.input]]
 path = "packs/kafkars-pr.toml"
-sha256 = "5da811d270fd63284cb5a3f0a8372b8d3d0d53a0fd5c75824555c45b2a48e143"
+sha256 = "a052180f65327ed739864ecb83d95f3317c561b68db8cd6e70ce58a77370b267"
 
 [[gate.input]]
 path = "packs/repository-pr.toml"
@@ -613,24 +613,28 @@ path = "rust-toolchain.toml"
 sha256 = "980c9752cb40dca3265ce4e3e31de1c369b469c9837be059b806ea93fe76799d"
 
 [[gate.input]]
+path = "scenarios/kafka/producer-batch.toml"
+sha256 = "acb7512c0c97d81ca1c0a23a72915546085b6221f6b7434cb387950382952a4d"
+
+[[gate.input]]
 path = "scenarios/kafka/producer-partition-routing.toml"
-sha256 = "68c6e886c6d8de284eaf12547c0f2cc6b71fd349e9605be97ac62d91940efc65"
+sha256 = "909f0ea877a38ed433cdcc4ffb5eb0ecc47fd363c6a775f1fbfa0028f16f73e9"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-round-trip.toml"
-sha256 = "5c124e0bdf9b95f3a1202b4d738f49f15e22e26044f05b361e0284c665fc04d1"
+sha256 = "a0a69da4955a99406f7f81dced8198ef53be1f55c8f91b032f3ccc633ffeaa2c"
 
 [[gate.input]]
 path = "scenarios/producer/definite-rejection.toml"
-sha256 = "db398db3ac69b91edc18e638fa65ed84b6990429b48b5199c058838ee0757801"
+sha256 = "1b7a41f364f3e23484a04eac66b4e80809a7e9631397052280ceadb25813e3ef"
 
 [[gate.input]]
 path = "scenarios/producer/lost-response.toml"
-sha256 = "f5641e67b583a9640178d85b82df128393f512c8f8612dac4072ecb76959cb29"
+sha256 = "a66850e6cedc65c56787902c3273ebd327aa62b6b9dd8f22d7835ed33ab2f74c"
 
 [[gate.input]]
 path = "scenarios/producer/round-trip.toml"
-sha256 = "5610f7e1cea8dda1cdff4a64cd6769e76b023749d678ffec3a4527d0f476c2a0"
+sha256 = "0612f3fc136f50f3aebfc90b49f7cf63ec0ea5e14a9d2b1275e7a0c1f8a08b7e"
 
 [[gate.input]]
 path = "scripts/check-rust-lint"

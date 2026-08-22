@@ -6,6 +6,7 @@ use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 
 type ClientStates = BTreeMap<ClientId, bool>;
 type ProducerStates = BTreeMap<ProducerId, (ClientId, bool)>;
+const MAX_BATCH_RECORDS: usize = 31;
 
 pub(crate) fn validate_action(
     action: &ScenarioAction,
@@ -34,13 +35,29 @@ pub(crate) fn validate_action(
             record,
         } => {
             require_open_producer(producer_id, producers, problems);
-            if !operations.insert(operation_id.clone()) {
-                problems.push(format!("duplicate operation id {operation_id}"));
+            validate_operation(operation_id, record, operations, problems);
+        }
+        ScenarioAction::SendBatch {
+            producer_id,
+            operations: batch,
+        } => {
+            require_open_producer(producer_id, producers, problems);
+            if batch.is_empty() {
+                problems.push(format!("producer {producer_id} received an empty batch"));
             }
-            if let Err(error) = record.validate() {
+            if batch.len() > MAX_BATCH_RECORDS {
                 problems.push(format!(
-                    "operation {operation_id} has invalid record: {error}"
+                    "producer {producer_id} batch has {} records, maximum is {MAX_BATCH_RECORDS}",
+                    batch.len()
                 ));
+            }
+            for operation in batch {
+                validate_operation(
+                    &operation.operation_id,
+                    &operation.record,
+                    operations,
+                    problems,
+                );
             }
         }
         ScenarioAction::Flush { producer_id } => {
@@ -52,6 +69,22 @@ pub(crate) fn validate_action(
         ScenarioAction::ShutdownClient { client_id } => {
             shutdown_client(client_id, clients, producers, problems);
         }
+    }
+}
+
+fn validate_operation(
+    operation_id: &OperationId,
+    record: &crate::RecordSpec,
+    operations: &mut BTreeSet<OperationId>,
+    problems: &mut Vec<String>,
+) {
+    if !operations.insert(operation_id.clone()) {
+        problems.push(format!("duplicate operation id {operation_id}"));
+    }
+    if let Err(error) = record.validate() {
+        problems.push(format!(
+            "operation {operation_id} has invalid record: {error}"
+        ));
     }
 }
 

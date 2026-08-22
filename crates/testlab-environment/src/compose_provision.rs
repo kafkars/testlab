@@ -149,18 +149,32 @@ fn prove_idempotent_production(
         .map_err(|(error, _)| format!("idempotent readiness delivery failed: {error}"))
 }
 
-fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
+pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     let mut topics = BTreeMap::<String, i32>::new();
     for step in &scenario.steps {
-        if let ScenarioAction::Send { record, .. } = &step.action {
-            let partitions = record.partition.saturating_add(1);
-            topics
-                .entry(record.topic.clone())
-                .and_modify(|current| *current = (*current).max(partitions))
-                .or_insert(partitions);
+        let records = match &step.action {
+            ScenarioAction::Send { record, .. } => std::slice::from_ref(record),
+            ScenarioAction::SendBatch { operations, .. } => {
+                for operation in operations {
+                    record_topic(&mut topics, &operation.record);
+                }
+                continue;
+            }
+            _ => continue,
+        };
+        for record in records {
+            record_topic(&mut topics, record);
         }
     }
     topics
+}
+
+fn record_topic(topics: &mut BTreeMap<String, i32>, record: &testlab_schema::RecordSpec) {
+    let partitions = record.partition.saturating_add(1);
+    topics
+        .entry(record.topic.clone())
+        .and_modify(|current| *current = (*current).max(partitions))
+        .or_insert(partitions);
 }
 
 pub(super) fn operation_args(

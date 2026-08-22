@@ -3,11 +3,12 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AdapterDescriptor, ClientId, CommandId, OperationId, ProducerId, RecordSpec, RunId, ScenarioId,
+    AdapterDescriptor, BatchRecord, ClientId, CommandId, OperationId, ProducerId, RecordSpec,
+    RunId, ScenarioId,
 };
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 5;
+pub const PROTOCOL_VERSION: u16 = 6;
 
 /// Environment variable carrying an ephemeral TLS certificate authority path.
 pub const TLS_CA_PEM_ENVIRONMENT: &str = "TESTLAB_KAFKA_TLS_CA_PEM";
@@ -29,7 +30,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v5 command envelope.
+    /// Creates one protocol-v6 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -79,6 +80,13 @@ pub enum AdapterCommand {
         operation_id: OperationId,
         /// Exact logical record.
         record: RecordSpec,
+    },
+    /// Offers an ordered record batch through one public producer call.
+    SendBatch {
+        /// Producer receiving the records.
+        producer_id: ProducerId,
+        /// Ordered records with stable operation identities.
+        operations: Vec<BatchRecord>,
     },
     /// Flushes one producer.
     Flush {
@@ -169,7 +177,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v5 event envelope.
+    /// Creates one protocol-v6 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -225,6 +233,11 @@ pub enum AdapterEvent {
         code: Option<String>,
         /// Broker offset when exposed by the public surface.
         offset: Option<i64>,
+    },
+    /// One public batch call emitted every per-operation outcome.
+    BatchCompleted {
+        /// Producer that handled the batch.
+        producer_id: ProducerId,
     },
     /// Producer flush completed.
     FlushCompleted {

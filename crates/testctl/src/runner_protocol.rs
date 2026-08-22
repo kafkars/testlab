@@ -1,4 +1,6 @@
-//! Expected event shapes constrain each sequential protocol-v5 command.
+//! Expected event shapes constrain each sequential protocol-v6 command.
+
+use std::collections::BTreeSet;
 
 use testlab_schema::{AdapterEvent, ClientId, OperationId, ProducerId};
 
@@ -11,6 +13,10 @@ pub(crate) enum ExpectedEvent {
     ClientReady(ClientId),
     ProducerCreated(ProducerId),
     SendSettled(OperationId),
+    BatchCompleted {
+        producer_id: ProducerId,
+        operation_ids: BTreeSet<OperationId>,
+    },
     FlushCompleted(ProducerId),
     ProducerClosed(ProducerId),
     ClientShutdown(ClientId),
@@ -71,6 +77,18 @@ impl ExpectedEvent {
                 AdapterEvent::OperationRejected { operation_id, .. }
                 | AdapterEvent::OperationTerminal { operation_id, .. },
             ) if expected == operation_id => Ok(EventDisposition::Complete),
+            (
+                Self::BatchCompleted { operation_ids, .. },
+                AdapterEvent::OperationAccepted { operation_id }
+                | AdapterEvent::OperationRejected { operation_id, .. }
+                | AdapterEvent::OperationTerminal { operation_id, .. },
+            ) if operation_ids.contains(operation_id) => Ok(EventDisposition::Continue),
+            (
+                Self::BatchCompleted { producer_id, .. },
+                AdapterEvent::BatchCompleted {
+                    producer_id: actual,
+                },
+            ) if producer_id == actual => Ok(EventDisposition::Complete),
             _ if same_event_family(self, event) => Err(RunFailure::protocol(
                 "event_identity_mismatch",
                 format!("event {event:?} does not match expected {self:?}"),
@@ -104,6 +122,13 @@ fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
                 AdapterEvent::OperationAccepted { .. }
                     | AdapterEvent::OperationRejected { .. }
                     | AdapterEvent::OperationTerminal { .. }
+            )
+            | (
+                ExpectedEvent::BatchCompleted { .. },
+                AdapterEvent::OperationAccepted { .. }
+                    | AdapterEvent::OperationRejected { .. }
+                    | AdapterEvent::OperationTerminal { .. }
+                    | AdapterEvent::BatchCompleted { .. }
             )
             | (
                 ExpectedEvent::FlushCompleted(_),
