@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
+use crate::candidate::prepare_kafkars;
 use crate::catalog::Repository;
 use crate::qualification::run_qualification;
 use crate::run_error::AppError;
@@ -84,6 +85,24 @@ enum Command {
         #[arg(long, default_value = "evidence")]
         evidence_dir: PathBuf,
     },
+    /// Packages Kafkars public crates, builds the external adapter, and qualifies them.
+    QualifyKafkars {
+        /// Repository root.
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        /// Kafkars source checkout to package.
+        #[arg(long)]
+        kafkars_root: PathBuf,
+        /// Repository-relative qualification manifest.
+        #[arg(long, default_value = "qualifications/kafkars-pr.toml")]
+        qualification: PathBuf,
+        /// Repository-relative or absolute evidence directory.
+        #[arg(long, default_value = "target/kafkars-candidate-evidence")]
+        evidence_dir: PathBuf,
+        /// Permit Cargo to package an uncommitted Kafkars checkout.
+        #[arg(long)]
+        allow_dirty: bool,
+    },
 }
 
 fn run(cli: Cli) -> Result<bool, AppError> {
@@ -144,6 +163,26 @@ fn run(cli: Cli) -> Result<bool, AppError> {
         } => {
             let repository = Repository::open(&root)?;
             let run = run_qualification(&repository, &qualification, &subject, &evidence_dir)?;
+            println!("{:?} {}", run.status, run.path.display());
+            Ok(run.status == testlab_schema::VerdictStatus::Passed)
+        }
+        Command::QualifyKafkars {
+            root,
+            kafkars_root,
+            qualification,
+            evidence_dir,
+            allow_dirty,
+        } => {
+            let repository = Repository::open(&root)?;
+            repository.load_qualification(&qualification)?;
+            let candidate = prepare_kafkars(&repository, &kafkars_root, allow_dirty)?;
+            eprintln!("prepared {}", candidate.directory.display());
+            let run = run_qualification(
+                &repository,
+                &qualification,
+                &candidate.subject_path,
+                &evidence_dir,
+            )?;
             println!("{:?} {}", run.status, run.path.display());
             Ok(run.status == testlab_schema::VerdictStatus::Passed)
         }

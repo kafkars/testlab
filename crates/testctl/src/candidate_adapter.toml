@@ -1,0 +1,29 @@
+[workspace]
+
+[package]
+name = "testlab-kafkars-candidate-adapter"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+publish = false
+
+[lib]
+name = "testlab_kafkars_adapter"
+path = {adapter_lib}
+
+[[bin]]
+name = "testlab-kafkars-adapter"
+path = {adapter_bin}
+
+[dependencies]
+kafkars = {{ path = {kafkars} }}
+serde_json = "1.0"
+testlab-schema = {{ path = {schema} }}
+thiserror = "2.0"
+
+[patch.crates-io]
+kafka-client-core = {{ path = {core} }}
+kafka-client-engine = {{ path = {engine} }}
+
+[lints.rust]
+unsafe_code = "forbid"

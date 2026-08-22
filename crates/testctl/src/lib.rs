@@ -1,6 +1,8 @@
 //! Testctl owns scenario execution, subject supervision, and sealed evidence.
 
 mod app;
+mod candidate;
+mod candidate_manifest;
 mod catalog;
 mod catalog_io;
 mod evidence;
@@ -22,6 +24,8 @@ mod time;
 pub use app::run_cli;
 pub use run_error::AppError;
 
+#[cfg(test)]
+mod candidate_test;
 #[cfg(test)]
 mod catalog_test;
 #[cfg(test)]

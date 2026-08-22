@@ -41,6 +41,9 @@ pub enum AppError {
     /// A sealed run could not be completed safely.
     #[error("evidence sealing failed: {0}")]
     Evidence(String),
+    /// A packaged client candidate could not be prepared.
+    #[error("candidate preparation failed: {0}")]
+    Candidate(String),
 }
 
 impl AppError {
