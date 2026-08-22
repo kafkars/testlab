@@ -1,50 +1,60 @@
 name: Qualify packaged Kafkars
-description: Package Kafkars and run a fail-closed real-Kafka qualification in testlab
+description: Package Kafkars and run a fail-closed testlab qualification against real Kafka.
 
 inputs:
   kafkars-path:
-    description: Path to the checked-out Kafkars workspace
-    required: false
-    default: .
+    description: Path to the checked-out Kafkars repository.
+    required: true
   qualification:
-    description: Qualification tier, either pr or release
+    description: Pull-request or release qualification tier.
     required: false
     default: pr
   evidence-directory:
-    description: Evidence path, relative to the caller workspace or absolute
+    description: Directory that receives sealed qualification evidence.
     required: false
     default: testlab-evidence
   allow-dirty:
-    description: Permit packaging an uncommitted checkout
+    description: Permit a dirty Kafkars worktree when explicitly set to true.
     required: false
     default: "false"
+
+outputs:
+  evidence-directory:
+    description: Absolute directory containing the sealed evidence.
+    value: ${{ steps.qualify.outputs.evidence-directory }}
 
 runs:
   using: composite
   steps:
-    - name: Install pinned Rust
-      shell: bash
-      run: |
-        rustup toolchain install 1.88.0 --profile minimal
-        rustup default 1.88.0
-    - name: Qualify packaged Kafkars
+    - id: qualify
+      name: Package and qualify Kafkars
       shell: bash
       env:
-        INPUT_ALLOW_DIRTY: ${{ inputs.allow-dirty }}
-        INPUT_EVIDENCE: ${{ inputs.evidence-directory }}
-        INPUT_KAFKARS: ${{ inputs.kafkars-path }}
+        INPUT_KAFKARS_PATH: ${{ inputs.kafkars-path }}
         INPUT_QUALIFICATION: ${{ inputs.qualification }}
+        INPUT_EVIDENCE_DIRECTORY: ${{ inputs.evidence-directory }}
+        INPUT_ALLOW_DIRTY: ${{ inputs.allow-dirty }}
       run: |
-        evidence="$INPUT_EVIDENCE"
-        if [[ "$evidence" != /* ]]; then
-          evidence="$GITHUB_WORKSPACE/$evidence"
-        fi
-        arguments=("$INPUT_KAFKARS" "$INPUT_QUALIFICATION")
-        if [[ "$INPUT_ALLOW_DIRTY" == "true" ]]; then
-          arguments+=(--allow-dirty)
-        elif [[ "$INPUT_ALLOW_DIRTY" != "false" ]]; then
-          echo "allow-dirty must be true or false" >&2
-          exit 2
-        fi
-        TESTLAB_EVIDENCE_DIR="$evidence" \
-          "$GITHUB_ACTION_PATH/scripts/qualify-kafkars-candidate" "${arguments[@]}"
+        set -euo pipefail
+
+        case "$INPUT_KAFKARS_PATH" in
+          /*) kafkars_path="$INPUT_KAFKARS_PATH" ;;
+          *) kafkars_path="$GITHUB_WORKSPACE/$INPUT_KAFKARS_PATH" ;;
+        esac
+        case "$INPUT_EVIDENCE_DIRECTORY" in
+          /*) evidence_directory="$INPUT_EVIDENCE_DIRECTORY" ;;
+          *) evidence_directory="$GITHUB_WORKSPACE/$INPUT_EVIDENCE_DIRECTORY" ;;
+        esac
+        case "$INPUT_ALLOW_DIRTY" in
+          false) dirty_argument=() ;;
+          true) dirty_argument=(--allow-dirty) ;;
+          *)
+            echo "allow-dirty must be true or false" >&2
+            exit 2
+            ;;
+        esac
+
+        echo "evidence-directory=$evidence_directory" >> "$GITHUB_OUTPUT"
+        TESTLAB_EVIDENCE_DIR="$evidence_directory" \
+          "$GITHUB_ACTION_PATH/scripts/qualify-kafkars-candidate" \
+          "$kafkars_path" "$INPUT_QUALIFICATION" "${dirty_argument[@]}"

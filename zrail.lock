@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "d21b600787641f544dd5db4999410ef7f8294868ba3f436a45a85de0d3dca392"
+contract_sha256 = "0f8643fd556fe0c8945907c1e9c84d1b197168fe081563db9ddfc87fd88384cc"
 ratchet = []
 
 [[package]]
@@ -487,6 +487,10 @@ sha256 = "501017f75af05dc4f357589d3d51b767f3e4bec0e5901a42b234051321e74aac"
 [[gate.input]]
 path = "Cargo.toml"
 sha256 = "3814f8908271be93ab73f935eb30fd0812a3a01c86cd734a1ecbe5809c689dee"
+
+[[gate.input]]
+path = "action.yml"
+sha256 = "a58d20814a31c943ef4e7c4d2c8100fa9badd58af5bc2e63e49e08310556281b"
 
 [[gate.input]]
 path = "clippy.toml"
