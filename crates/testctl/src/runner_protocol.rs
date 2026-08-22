@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v10 command.
+//! Expected event shapes constrain each sequential protocol-v11 command.
 
 use std::collections::BTreeSet;
 

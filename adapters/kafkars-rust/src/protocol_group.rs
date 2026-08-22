@@ -6,10 +6,13 @@ use std::pin::pin;
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
-use kafkars::{ConsumerBatch, GroupConsumerRecord};
+use kafkars::{
+    ConsumerBatch, GroupConsumerRecord, GroupMembershipEpoch as PublicGroupMembershipEpoch,
+    RetryAdvice,
+};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, ByteString, CommandId, ConsumedRecord,
-    ConsumerId, HeaderSpec, OperationId,
+    ConsumerId, GroupMembershipEpoch, HeaderSpec, OperationId,
 };
 
 use crate::AdapterError;
@@ -30,8 +33,15 @@ pub(crate) fn dispatch<W: Write>(
             consumer_id,
             group_id,
             topic,
+            protocol,
         } => {
-            state.create_group_consumer(client_id, consumer_id.clone(), group_id, topic)?;
+            state.create_group_consumer(
+                client_id,
+                consumer_id.clone(),
+                group_id,
+                topic,
+                protocol,
+            )?;
             emit(
                 writer,
                 &AdapterEventEnvelope::new(
@@ -98,6 +108,7 @@ fn receive<W: Write>(
         }
         None => (Vec::new(), false),
     };
+    let group_epoch = public_group_epoch(state, consumer_id, deadline)?;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -106,9 +117,38 @@ fn receive<W: Write>(
                 receive_id,
                 records,
                 committed,
+                group_epoch,
             },
         ),
     )
+}
+
+fn public_group_epoch(
+    state: &mut AdapterState,
+    consumer_id: &ConsumerId,
+    deadline: Instant,
+) -> Result<Option<GroupMembershipEpoch>, AdapterError> {
+    loop {
+        match state.group_consumer_mut(consumer_id)?.group_metadata() {
+            Ok(Some(metadata)) => {
+                return Ok(Some(match metadata.membership_epoch() {
+                    PublicGroupMembershipEpoch::Classic { generation_id } => {
+                        GroupMembershipEpoch::Classic { generation_id }
+                    }
+                    PublicGroupMembershipEpoch::Consumer { member_epoch } => {
+                        GroupMembershipEpoch::Consumer { member_epoch }
+                    }
+                }));
+            }
+            Ok(None) => {}
+            Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => {}
+            Err(error) => return Err(AdapterError::Client(error)),
+        }
+        if Instant::now() >= deadline {
+            return Ok(None);
+        }
+        std::thread::sleep(POLL_SLICE);
+    }
 }
 
 fn receive_batch(
@@ -116,17 +156,31 @@ fn receive_batch(
     consumer_id: &ConsumerId,
     deadline: Instant,
 ) -> Result<Option<ConsumerBatch>, AdapterError> {
-    let mut receive = pin!(state.group_consumer_mut(consumer_id)?.recv());
-    let mut context = Context::from_waker(Waker::noop());
-    loop {
-        match receive.as_mut().poll(&mut context) {
-            Poll::Ready(result) => return result.map_err(AdapterError::Client),
-            Poll::Pending => {}
+    if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
+        return Err(AdapterError::Client(error));
+    }
+    let result = {
+        let mut receive = pin!(state.group_consumer_mut(consumer_id)?.recv());
+        let mut context = Context::from_waker(Waker::noop());
+        loop {
+            if let Poll::Ready(result) = receive.as_mut().poll(&mut context) {
+                break Some(result);
+            }
+            if Instant::now() >= deadline {
+                break None;
+            }
+            std::thread::sleep(POLL_SLICE);
         }
-        if Instant::now() >= deadline {
-            return Ok(None);
+    };
+    match result {
+        Some(Ok(None)) => {
+            if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
+                return Err(AdapterError::Client(error));
+            }
+            Ok(None)
         }
-        std::thread::sleep(POLL_SLICE);
+        Some(result) => result.map_err(AdapterError::Client),
+        None => Ok(None),
     }
 }
 

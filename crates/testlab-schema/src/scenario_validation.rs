@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use crate::{
-    Capability, OperationId, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioError,
-    TerminalStatus, VisibilityExpectation,
+    Capability, GroupProtocol, OperationId, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
+    ScenarioError, TerminalStatus, VisibilityExpectation,
 };
 
 pub(crate) fn validate(scenario: &Scenario) -> Result<(), ScenarioError> {
@@ -79,9 +79,10 @@ fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
         | ScenarioAction::AssignBeginning { .. }
         | ScenarioAction::Receive { .. }
         | ScenarioAction::CloseAssignedConsumer { .. } => Some(Capability::AssignedConsumer),
-        ScenarioAction::CreateGroupConsumer { .. }
-        | ScenarioAction::GroupReceive { .. }
-        | ScenarioAction::CloseGroupConsumer { .. } => Some(Capability::ConsumerGroups),
+        ScenarioAction::CreateGroupConsumer { protocol, .. } => Some(match protocol {
+            GroupProtocol::Classic => Capability::ConsumerGroups,
+            GroupProtocol::Consumer => Capability::ConsumerProtocolGroups,
+        }),
         ScenarioAction::CreateTopic { .. } => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
@@ -121,7 +122,14 @@ fn validate_required_capabilities(
     require(
         usage.contains(&Capability::ConsumerGroups),
         Capability::ConsumerGroups,
-        "group-consumer steps require the consumer_groups capability",
+        "classic group-consumer steps require the consumer_groups capability",
+        scenario,
+        problems,
+    );
+    require(
+        usage.contains(&Capability::ConsumerProtocolGroups),
+        Capability::ConsumerProtocolGroups,
+        "KIP-848 group-consumer steps require the consumer_protocol_groups capability",
         scenario,
         problems,
     );

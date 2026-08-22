@@ -186,6 +186,7 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
             Capability::ClientReadiness,
             Capability::AssignedConsumer,
             Capability::ConsumerGroups,
+            Capability::ConsumerProtocolGroups,
             Capability::Admin,
             Capability::Transactions,
         ]),

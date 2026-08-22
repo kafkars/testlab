@@ -8,7 +8,7 @@ use crate::connection_security::resolve;
 use crate::group_consumers::GroupConsumers;
 use crate::transactional_producers::TransactionalProducers;
 use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
-use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
+use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, GroupProtocol, ProducerId};
 
 pub(crate) use crate::state_error::StateError;
 
@@ -176,6 +176,7 @@ impl AdapterState {
         consumer_id: ConsumerId,
         group_id: String,
         topic: String,
+        protocol: GroupProtocol,
     ) -> Result<(), StateError> {
         if self.consumers.contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
@@ -185,7 +186,7 @@ impl AdapterState {
             .get(&client_id)
             .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
         self.group_consumers
-            .create(client, client_id, consumer_id, group_id, topic)
+            .create(client, client_id, consumer_id, group_id, topic, protocol)
     }
 
     pub(crate) fn group_consumer_mut(

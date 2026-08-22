@@ -24,6 +24,8 @@ pub enum Capability {
     AssignedConsumer,
     /// Consumer group operations.
     ConsumerGroups,
+    /// KIP-848 consumer group operations.
+    ConsumerProtocolGroups,
     /// Transactional producer operations.
     Transactions,
     /// Administrative operations.

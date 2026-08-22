@@ -1,9 +1,9 @@
 schema_version = 8
-id = "kafka.classic-group-round-trip"
-title = "packaged classic group consumer receives and commits exact bytes"
-description = "The packaged client produces one record, joins a classic consumer group, returns the exact public record, and commits the checkpoint derived from that batch."
+id = "kafka.consumer-protocol-group-round-trip"
+title = "packaged KIP-848 group consumer receives and commits exact bytes"
+description = "The packaged client joins with the consumer group protocol, returns the exact public record, commits its checkpoint, and exposes a positive KIP-848 member epoch."
 timeout_ms = 120000
-requires = ["producer", "consumer_groups", "lifecycle", "client_readiness"]
+requires = ["producer", "consumer_protocol_groups", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -28,10 +28,10 @@ producer_id = "producer-1"
 operation_id = "op-produced"
 
 [steps.record]
-topic = "testlab-kafkars-classic-group"
+topic = "testlab-kafkars-kip848-group"
 partition = 0
 sequence = 1
-key = { encoding = "hex", data = "0067726f7570ff" }
+key = { encoding = "hex", data = "006b6970383438ff" }
 value = { encoding = "hex", data = "00636f6d6d6974ff" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-produced" } },
@@ -55,9 +55,9 @@ id = "create-group-consumer"
 kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
-group_id = "testlab-classic-group"
-topic = "testlab-kafkars-classic-group"
-protocol = "classic"
+group_id = "testlab-kip848-group"
+topic = "testlab-kafkars-kip848-group"
+protocol = "consumer"
 
 [[steps]]
 id = "receive-and-commit"

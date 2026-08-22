@@ -94,6 +94,7 @@ fn group_receive_completion_requires_commit_event_identity() {
                 receive_id: receive,
                 records: Vec::new(),
                 committed: false,
+                group_epoch: None,
             })
             .unwrap_or_else(|error| panic!("classify group receive: {error}")),
         EventDisposition::Complete

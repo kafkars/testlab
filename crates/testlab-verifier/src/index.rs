@@ -3,8 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::{
-    AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, HistoryEntry, OperationId, ProducerId,
-    ScenarioAction, TerminalStatus, TransactionDisposition,
+    AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, HistoryEntry,
+    OperationId, ProducerId, ScenarioAction, TerminalStatus, TransactionDisposition,
 };
 
 mod recording;
@@ -27,6 +27,7 @@ pub(crate) struct IndexedReceive {
     pub(crate) history_sequence: u64,
     pub(crate) records: Vec<ConsumedRecord>,
     pub(crate) committed: Option<bool>,
+    pub(crate) group_epoch: Option<GroupMembershipEpoch>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

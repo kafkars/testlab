@@ -217,12 +217,14 @@ fn consumer(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> 
             consumer_id,
             group_id,
             topic,
+            protocol,
         } => (
             AdapterCommand::CreateGroupConsumer {
                 client_id: client_id.clone(),
                 consumer_id: consumer_id.clone(),
                 group_id: group_id.clone(),
                 topic: topic.clone(),
+                protocol: *protocol,
             },
             ExpectedEvent::GroupConsumerCreated(consumer_id.clone()),
         ),

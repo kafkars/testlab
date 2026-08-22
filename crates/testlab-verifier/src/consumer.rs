@@ -1,7 +1,8 @@
 //! Consumer verification compares packaged receive bytes to prior scenario sends.
 
 use testlab_schema::{
-    ByteString, ConsumedRecord, OperationId, RecordSpec, Scenario, ScenarioAction, Violation,
+    ByteString, ConsumedRecord, ConsumerId, GroupProtocol, OperationId, RecordSpec, Scenario,
+    ScenarioAction, Violation,
 };
 
 use crate::index::HistoryIndex;
@@ -13,9 +14,11 @@ pub(crate) fn verify_consumers(
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
-        let Some((receive_id, expected_operation_id, group)) = expectation(&step.action) else {
+        let Some((receive_id, expected_operation_id, group_consumer)) = expectation(&step.action)
+        else {
             continue;
         };
+        let group = group_consumer.is_some();
         if !index.action_issued(&step.action) {
             continue;
         }
@@ -47,6 +50,9 @@ pub(crate) fn verify_consumers(
                 vec![format!("history:{}", receive.history_sequence)],
             ));
         }
+        if let Some(consumer_id) = group_consumer {
+            verify_group_protocol(scenario, consumer_id, receive_id, receive, violations);
+        }
         let exact = receive
             .records
             .iter()
@@ -65,19 +71,58 @@ pub(crate) fn verify_consumers(
     }
 }
 
-fn expectation(action: &ScenarioAction) -> Option<(&OperationId, &OperationId, bool)> {
+fn expectation(
+    action: &ScenarioAction,
+) -> Option<(&OperationId, &OperationId, Option<&ConsumerId>)> {
     match action {
         ScenarioAction::Receive {
             receive_id,
             expected_operation_id,
             ..
-        } => Some((receive_id, expected_operation_id, false)),
+        } => Some((receive_id, expected_operation_id, None)),
         ScenarioAction::GroupReceive {
+            consumer_id,
             receive_id,
             expected_operation_id,
             ..
-        } => Some((receive_id, expected_operation_id, true)),
+        } => Some((receive_id, expected_operation_id, Some(consumer_id))),
         _ => None,
+    }
+}
+
+fn verify_group_protocol(
+    scenario: &Scenario,
+    consumer_id: &ConsumerId,
+    receive_id: &OperationId,
+    receive: &crate::index::IndexedReceive,
+    violations: &mut Vec<Violation>,
+) {
+    let expected = scenario.steps.iter().find_map(|step| match &step.action {
+        ScenarioAction::CreateGroupConsumer {
+            consumer_id: created,
+            protocol,
+            ..
+        } if created == consumer_id => Some(*protocol),
+        _ => None,
+    });
+    let matches = expected.is_some_and(|expected| {
+        receive
+            .group_epoch
+            .is_some_and(|epoch| epoch.protocol() == expected && epoch.is_positive())
+    });
+    if !matches {
+        let requested = expected.map_or("unknown", |protocol| match protocol {
+            GroupProtocol::Classic => "classic",
+            GroupProtocol::Consumer => "consumer",
+        });
+        violations.push(violation(
+            "CONS-004",
+            format!(
+                "group receive {receive_id} did not expose a positive {requested} membership epoch"
+            ),
+            Some(receive_id.clone()),
+            vec![format!("history:{}", receive.history_sequence)],
+        ));
     }
 }
 

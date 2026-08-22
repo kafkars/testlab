@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AdapterSecurity, BatchRecord, ClientId, ConsumerId, OperationId, ProducerId, RecordSpec, RunId,
-    ScenarioId, TransactionDisposition,
+    AdapterSecurity, BatchRecord, ClientId, ConsumerId, GroupProtocol, OperationId, ProducerId,
+    RecordSpec, RunId, ScenarioId, TransactionDisposition,
 };
 
 /// Public operation requested from an adapter.
@@ -85,7 +85,7 @@ pub enum AdapterCommand {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
-    /// Registers one classic consumer-group member.
+    /// Registers one consumer-group member with an explicit protocol.
     CreateGroupConsumer {
         /// Owning client.
         client_id: ClientId,
@@ -95,6 +95,8 @@ pub enum AdapterCommand {
         group_id: String,
         /// Subscribed topic.
         topic: String,
+        /// Classic or KIP-848 group protocol.
+        protocol: GroupProtocol,
     },
     /// Receives one group batch and commits its checkpoint.
     GroupReceive {

@@ -12,6 +12,7 @@ mod pack;
 mod protocol;
 mod protocol_command;
 mod protocol_event;
+mod protocol_group;
 mod protocol_security;
 mod qualification;
 mod qualification_evidence;
@@ -45,6 +46,7 @@ pub use pack::{ScenarioPack, ScenarioPackError};
 pub use protocol::{AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION};
 pub use protocol_command::AdapterCommand;
 pub use protocol_event::AdapterEvent;
+pub use protocol_group::{GroupMembershipEpoch, GroupProtocol};
 pub use protocol_security::{
     AdapterSaslMechanism, AdapterSecurity, SASL_PASSWORD_ENVIRONMENT, SASL_USERNAME_ENVIRONMENT,
     TLS_CA_PEM_ENVIRONMENT, TerminalStatus,

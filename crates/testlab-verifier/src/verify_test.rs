@@ -1,8 +1,9 @@
 //! Deterministic verifier tests cover valid admission and delivery truths.
 
 use testlab_schema::{
-    AdapterEvent, ByteString, Capability, ConsumedRecord, ConsumerId, OperationId, ScenarioAction,
-    TerminalStatus, VisibilityExpectation,
+    AdapterEvent, ByteString, Capability, ConsumedRecord, ConsumerId, GroupMembershipEpoch,
+    GroupProtocol, HistoryEntry, OperationId, Scenario, ScenarioAction, TerminalStatus,
+    VisibilityExpectation,
 };
 
 use super::verify;
@@ -165,6 +166,7 @@ fn classic_group_exact_round_trip_requires_commit() {
                 consumer_id: consumer.clone(),
                 group_id: "group-1".to_owned(),
                 topic: "records".to_owned(),
+                protocol: GroupProtocol::Classic,
             },
         ),
         step(
@@ -207,6 +209,7 @@ fn classic_group_exact_round_trip_requires_commit() {
                     headers: Vec::new(),
                 }],
                 committed: true,
+                group_epoch: Some(GroupMembershipEpoch::Classic { generation_id: 1 }),
             },
         ),
         event(
@@ -227,17 +230,43 @@ fn classic_group_exact_round_trip_requires_commit() {
     let verdict = verify(&scenario, &adapter(), &events, &[observation(0, "value")]);
     assert!(verdict.is_passed(), "{verdict:?}");
 
+    assert_group_commit_required(&scenario, &mut events);
+    assert_group_protocol_required(&scenario, &mut events);
+}
+
+fn assert_group_commit_required(scenario: &Scenario, events: &mut [HistoryEntry]) {
     if let testlab_schema::HistoryPayload::AdapterEvent { event } = &mut events[9].payload
         && let AdapterEvent::GroupReceiveCompleted { committed, .. } = &mut event.event
     {
         *committed = false;
     }
-    let verdict = verify(&scenario, &adapter(), &events, &[observation(0, "value")]);
+    let verdict = verify(scenario, &adapter(), events, &[observation(0, "value")]);
     assert!(
         verdict
             .violations
             .iter()
             .any(|violation| violation.contract_id.as_str() == "CONS-003"),
+        "{verdict:?}"
+    );
+}
+
+fn assert_group_protocol_required(scenario: &Scenario, events: &mut [HistoryEntry]) {
+    if let testlab_schema::HistoryPayload::AdapterEvent { event } = &mut events[9].payload
+        && let AdapterEvent::GroupReceiveCompleted {
+            committed,
+            group_epoch,
+            ..
+        } = &mut event.event
+    {
+        *committed = true;
+        *group_epoch = Some(GroupMembershipEpoch::Consumer { member_epoch: 1 });
+    }
+    let verdict = verify(scenario, &adapter(), events, &[observation(0, "value")]);
+    assert!(
+        verdict
+            .violations
+            .iter()
+            .any(|violation| violation.contract_id.as_str() == "CONS-004"),
         "{verdict:?}"
     );
 }

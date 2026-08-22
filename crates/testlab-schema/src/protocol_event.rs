@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, OperationId, ProducerId,
-    TerminalStatus, TransactionDisposition,
+    AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
+    ProducerId, TerminalStatus, TransactionDisposition,
 };
 
 /// Normalized public event emitted by an adapter.
@@ -81,7 +81,7 @@ pub enum AdapterEvent {
         /// Closed consumer.
         consumer_id: ConsumerId,
     },
-    /// One classic consumer-group member registered.
+    /// One consumer-group member registered.
     GroupConsumerCreated {
         /// Created consumer.
         consumer_id: ConsumerId,
@@ -94,8 +94,10 @@ pub enum AdapterEvent {
         records: Vec<ConsumedRecord>,
         /// Whether the assignment-fenced checkpoint committed.
         committed: bool,
+        /// Public group metadata observed after the commit.
+        group_epoch: Option<GroupMembershipEpoch>,
     },
-    /// One classic group consumer closed.
+    /// One group consumer closed.
     GroupConsumerClosed {
         /// Closed consumer.
         consumer_id: ConsumerId,

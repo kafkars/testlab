@@ -19,7 +19,9 @@ impl HistoryIndex {
     }
 
     fn record_event(&mut self, event: &AdapterEvent, sequence: u64) {
-        if self.record_transaction_event(event, sequence) {
+        if self.record_transaction_event(event, sequence)
+            || self.record_consumer_event(event, sequence)
+        {
             return;
         }
         match event {
@@ -49,38 +51,6 @@ impl HistoryIndex {
             }
             AdapterEvent::ProducerCreated { producer_id } => {
                 push(&mut self.producers_created, producer_id.clone(), sequence);
-            }
-            AdapterEvent::AssignedConsumerCreated { consumer_id } => {
-                push(&mut self.consumers_created, consumer_id.clone(), sequence);
-            }
-            AdapterEvent::AssignmentCompleted { consumer_id } => {
-                push(&mut self.assignments, consumer_id.clone(), sequence);
-            }
-            AdapterEvent::ReceiveCompleted {
-                receive_id,
-                records,
-            } => self.record_receive(receive_id, records, None, sequence),
-            AdapterEvent::AssignedConsumerClosed { consumer_id } => {
-                push(&mut self.consumers_closed, consumer_id.clone(), sequence);
-            }
-            AdapterEvent::GroupConsumerCreated { consumer_id } => {
-                push(
-                    &mut self.group_consumers_created,
-                    consumer_id.clone(),
-                    sequence,
-                );
-            }
-            AdapterEvent::GroupReceiveCompleted {
-                receive_id,
-                records,
-                committed,
-            } => self.record_receive(receive_id, records, Some(*committed), sequence),
-            AdapterEvent::GroupConsumerClosed { consumer_id } => {
-                push(
-                    &mut self.group_consumers_closed,
-                    consumer_id.clone(),
-                    sequence,
-                );
             }
             AdapterEvent::TopicCreated {
                 operation_id,
@@ -112,11 +82,60 @@ impl HistoryIndex {
             AdapterEvent::Finished => self.finished.push(sequence),
             AdapterEvent::Ready { descriptor } => self.ready.push((sequence, descriptor.clone())),
             AdapterEvent::BatchCompleted { .. }
+            | AdapterEvent::AssignedConsumerCreated { .. }
+            | AdapterEvent::AssignmentCompleted { .. }
+            | AdapterEvent::ReceiveCompleted { .. }
+            | AdapterEvent::AssignedConsumerClosed { .. }
+            | AdapterEvent::GroupConsumerCreated { .. }
+            | AdapterEvent::GroupReceiveCompleted { .. }
+            | AdapterEvent::GroupConsumerClosed { .. }
             | AdapterEvent::TransactionalProducerCreated { .. }
             | AdapterEvent::TransactionCompleted { .. }
             | AdapterEvent::TransactionalProducerClosed { .. }
             | AdapterEvent::Fatal { .. } => {}
         }
+    }
+
+    fn record_consumer_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
+        match event {
+            AdapterEvent::AssignedConsumerCreated { consumer_id } => {
+                push(&mut self.consumers_created, consumer_id.clone(), sequence);
+            }
+            AdapterEvent::AssignmentCompleted { consumer_id } => {
+                push(&mut self.assignments, consumer_id.clone(), sequence);
+            }
+            AdapterEvent::ReceiveCompleted {
+                receive_id,
+                records,
+            } => self.record_receive(receive_id, records, None, None, sequence),
+            AdapterEvent::AssignedConsumerClosed { consumer_id } => {
+                push(&mut self.consumers_closed, consumer_id.clone(), sequence);
+            }
+            AdapterEvent::GroupConsumerCreated { consumer_id } => push(
+                &mut self.group_consumers_created,
+                consumer_id.clone(),
+                sequence,
+            ),
+            AdapterEvent::GroupReceiveCompleted {
+                receive_id,
+                records,
+                committed,
+                group_epoch,
+            } => self.record_receive(
+                receive_id,
+                records,
+                Some(*committed),
+                *group_epoch,
+                sequence,
+            ),
+            AdapterEvent::GroupConsumerClosed { consumer_id } => push(
+                &mut self.group_consumers_closed,
+                consumer_id.clone(),
+                sequence,
+            ),
+            _ => return false,
+        }
+        true
     }
 
     fn record_transaction_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
@@ -152,6 +171,7 @@ impl HistoryIndex {
         receive_id: &testlab_schema::OperationId,
         records: &[testlab_schema::ConsumedRecord],
         committed: Option<bool>,
+        group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
         sequence: u64,
     ) {
         self.receives
@@ -161,6 +181,7 @@ impl HistoryIndex {
                 history_sequence: sequence,
                 records: records.to_vec(),
                 committed,
+                group_epoch,
             });
     }
 

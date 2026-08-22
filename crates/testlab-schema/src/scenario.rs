@@ -6,12 +6,13 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    BatchRecord, BrokerBehavior, Capability, ClientId, ConsumerId, OperationAssertion, OperationId,
-    ProducerId, RecordSpec, ScenarioId, StepId, TransactionDisposition,
+    BatchRecord, BrokerBehavior, Capability, ClientId, ConsumerId, GroupProtocol,
+    OperationAssertion, OperationId, ProducerId, RecordSpec, ScenarioId, StepId,
+    TransactionDisposition,
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 7;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 8;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -53,7 +54,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v7.
+/// Scenario action vocabulary for scenario schema v8.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -127,7 +128,7 @@ pub enum ScenarioAction {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
-    /// Registers one classic consumer-group member.
+    /// Registers one consumer-group member with an explicit protocol.
     CreateGroupConsumer {
         /// Existing owning client.
         client_id: ClientId,
@@ -137,6 +138,8 @@ pub enum ScenarioAction {
         group_id: String,
         /// Subscribed topic.
         topic: String,
+        /// Classic or KIP-848 group protocol.
+        protocol: GroupProtocol,
     },
     /// Receives one group batch and commits its assignment-fenced checkpoint.
     GroupReceive {

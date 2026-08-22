@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use kafkars::{Client, Consumer, OffsetReset};
-use testlab_schema::{ClientId, ConsumerId};
+use kafkars::{Client, Consumer, ConsumerGroupProtocol, OffsetReset};
+use testlab_schema::{ClientId, ConsumerId, GroupProtocol};
 
 use crate::state::StateError;
 
@@ -29,6 +29,7 @@ impl GroupConsumers {
         consumer_id: ConsumerId,
         group_id: String,
         topic: String,
+        protocol: GroupProtocol,
     ) -> Result<(), StateError> {
         if self.contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
@@ -36,6 +37,10 @@ impl GroupConsumers {
         let consumer = client
             .consumer(group_id)
             .subscribe([topic])
+            .group_protocol(match protocol {
+                GroupProtocol::Classic => ConsumerGroupProtocol::Classic,
+                GroupProtocol::Consumer => ConsumerGroupProtocol::Consumer,
+            })
             .on_missing_offset(OffsetReset::Earliest)
             .membership_start_timeout(OPERATION_TIMEOUT)
             .close_timeout(OPERATION_TIMEOUT)

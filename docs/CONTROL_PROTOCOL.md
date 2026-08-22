@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v10 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v11 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -110,6 +110,12 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v10 is an exact semantic contract. New capabilities may be declared
+Group creation explicitly selects classic or KIP-848 consumer membership. A
+successful group receive reports the public membership epoch observed after its
+assignment-fenced checkpoint commits. The verifier requires that epoch to be
+positive and from the requested protocol family, preventing silent fallback to
+classic membership.
+
+Protocol v11 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

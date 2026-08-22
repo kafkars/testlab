@@ -41,7 +41,8 @@ Testlab may consume public artifacts. It never imports private client state.
 - independent real-Kafka observation through pinned librdkafka;
 - end-to-end scenarios for producer acknowledgment, definite rejection, lost
   response uncertainty, real-Kafka round trips, partition routing, the
-  packaged batch API, and exact directly assigned consumption.
+  packaged batch API, exact directly assigned consumption, classic and KIP-848
+  group membership, public topic administration, and commit/abort transactions.
 
 The model broker is **not Kafka compatibility evidence**. The `kafkars-pr`
 qualification runs the packaged Kafkars adapter against pinned Apache Kafka and
@@ -165,6 +166,8 @@ Retries never overwrite evidence. Every attempt has a new run identity.
 - Every batch preserves ordered per-record admission and delivery evidence.
 - Every direct receive preserves exact public record bytes and must expose its
   expected prior send exactly once.
+- Every group receive commits its public checkpoint and proves a positive
+  membership epoch from the explicitly requested classic or KIP-848 protocol.
 - Every accepted send settles exactly once; rejected sends do not settle later.
 - Acknowledged records are broker-visible exactly once.
 - Definitely-not-sent records are absent.

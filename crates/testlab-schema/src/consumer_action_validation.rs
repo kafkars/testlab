@@ -66,6 +66,7 @@ pub(crate) fn validate(
             consumer_id,
             group_id,
             topic,
+            ..
         } => create_group(
             client_id,
             consumer_id,
