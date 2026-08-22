@@ -207,6 +207,30 @@ kind = "workspace-member"
 directory = "crates/testlab-schema"
 requirement = "0.1.0"
 
+[[package.dependency]]
+alias = "thiserror"
+name = "thiserror"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "2.0"
+
+[[package.dependency]]
+alias = "toml"
+name = "toml"
+kind = "development"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "0.8"
+
 [[package]]
 name = "testlab-reference-adapter"
 
@@ -350,7 +374,7 @@ sha256 = "bcb691b5c93ecea4e8dd92c224daf21f8b30963386367c368e7d68261a555e21"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "4bab6817f112cbb51a1fccfae2a51e3deeea286ec02c9d8a660b653ee7014035"
+sha256 = "a209f90b66b9e4b94c15d0f5818dc7ed78ce2e4a01644055b942a5a8ae6f7543"
 
 [[gate.input]]
 path = "Cargo.toml"

@@ -345,6 +345,8 @@ name = "testlab-environment"
 version = "0.1.0"
 dependencies = [
  "testlab-schema",
+ "thiserror",
+ "toml",
 ]
 
 [[package]]
