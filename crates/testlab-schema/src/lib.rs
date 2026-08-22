@@ -19,6 +19,7 @@ mod receive_action_validation;
 mod record;
 mod scenario;
 mod scenario_action_validation;
+mod scenario_types;
 mod scenario_validation;
 mod subject;
 mod verdict;
@@ -56,9 +57,9 @@ pub use qualification_evidence::{
 };
 pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{
-    BatchRecord, BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario,
-    ScenarioAction, ScenarioError, ScenarioStep, VisibilityExpectation,
+    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioError, ScenarioStep,
 };
+pub use scenario_types::{BatchRecord, BrokerBehavior, OperationAssertion, VisibilityExpectation};
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};
 
