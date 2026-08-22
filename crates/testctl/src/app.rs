@@ -70,8 +70,12 @@ fn run(cli: Cli) -> Result<bool, AppError> {
             let repository = Repository::open(&root)?;
             let summary = repository.validate_all()?;
             println!(
-                "validated {} scenarios, {} packs, {} subjects, and {} contracts",
-                summary.scenarios, summary.packs, summary.subjects, summary.contracts
+                "validated {} scenarios, {} packs, {} subjects, {} environments, and {} contracts",
+                summary.scenarios,
+                summary.packs,
+                summary.subjects,
+                summary.environments,
+                summary.contracts
             );
             Ok(true)
         }

@@ -23,6 +23,7 @@ inputs = [
   "rust-toolchain.toml",
   "clippy.toml",
   "contracts/conformance.toml",
+  "clusters/model-broker.toml",
   "packs/repository-pr.toml",
   "scenarios/producer/definite-rejection.toml",
   "scenarios/producer/lost-response.toml",

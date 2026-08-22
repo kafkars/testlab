@@ -5,7 +5,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::de::DeserializeOwned;
-use testlab_schema::{ContractRegistry, Scenario, ScenarioPack, SubjectManifest};
+use testlab_schema::{
+    ContractRegistry, EnvironmentDriver, EnvironmentManifest, Scenario, ScenarioPack,
+    SubjectManifest,
+};
 use testlab_verifier::known_contract_ids;
 
 use crate::run_error::AppError;
@@ -22,6 +25,7 @@ pub(crate) struct CatalogSummary {
     pub(crate) scenarios: usize,
     pub(crate) packs: usize,
     pub(crate) subjects: usize,
+    pub(crate) environments: usize,
     pub(crate) contracts: usize,
 }
 
@@ -72,10 +76,24 @@ impl Repository {
         Ok((self.relative(&path)?, subject))
     }
 
+    pub(crate) fn load_environment(
+        &self,
+        path: &Path,
+    ) -> Result<(PathBuf, EnvironmentManifest), AppError> {
+        let path = self.resolve_existing(path)?;
+        let environment: EnvironmentManifest = read_toml(&path)?;
+        environment
+            .validate()
+            .map_err(|error| AppError::Catalog(format!("{}: {error}", path.display())))?;
+        self.validate_environment_files(&environment)?;
+        Ok((self.relative(&path)?, environment))
+    }
+
     pub(crate) fn validate_all(&self) -> Result<CatalogSummary, AppError> {
         let scenario_paths = collect_toml(&self.root.join("scenarios"))?;
         let pack_paths = collect_toml(&self.root.join("packs"))?;
         let subject_paths = collect_toml(&self.root.join("subjects"))?;
+        let environment_paths = collect_toml(&self.root.join("clusters"))?;
         let mut scenarios = BTreeMap::new();
         for path in &scenario_paths {
             let (relative, scenario) = self.load_scenario(path)?;
@@ -99,13 +117,44 @@ impl Repository {
             let (relative, subject) = self.load_subject(path)?;
             insert_unique(&mut subjects, subject.id.as_str(), &relative, "subject id")?;
         }
+        let mut environments = BTreeMap::new();
+        for path in &environment_paths {
+            let (relative, environment) = self.load_environment(path)?;
+            insert_unique(
+                &mut environments,
+                environment.id.as_str(),
+                &relative,
+                "environment id",
+            )?;
+        }
         let contracts = self.validate_contracts()?;
         Ok(CatalogSummary {
             scenarios: scenarios.len(),
             packs: packs.len(),
             subjects: subjects.len(),
+            environments: environments.len(),
             contracts,
         })
+    }
+
+    fn validate_environment_files(
+        &self,
+        environment: &EnvironmentManifest,
+    ) -> Result<(), AppError> {
+        let EnvironmentDriver::DockerCompose { compose_files, .. } = &environment.driver else {
+            return Ok(());
+        };
+        for compose_file in compose_files {
+            let path = self.resolve_existing(Path::new(compose_file))?;
+            if !path.is_file() {
+                return Err(AppError::Catalog(format!(
+                    "environment {} Compose path is not a file: {}",
+                    environment.id,
+                    path.display()
+                )));
+            }
+        }
+        Ok(())
     }
 
     fn validate_contracts(&self) -> Result<usize, AppError> {

@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "003159ee6335f717f4efe20f0cf29396811ea7ef35487bdafba773b8e17a77c9"
+contract_sha256 = "e04d892ca4a005cf3e72ea8ee0232ae76334c24c5ca04c8f32c5194378f4d81e"
 ratchet = []
 
 [[package]]
@@ -342,6 +342,10 @@ sha256 = "00e8de2a629ffc7234bb95915f11a9424e1169f23b69c7931facfa8eaa6af482"
 [[gate.input]]
 path = "clippy.toml"
 sha256 = "04c92e3dce7f76bb0340dfce281fe1eb2956cc5dcf1223b3b11bed683c946dd4"
+
+[[gate.input]]
+path = "clusters/model-broker.toml"
+sha256 = "00f5a2e21fccb01f778960c81886300b8faa8bb59ca393cec0c41d53614b0235"
 
 [[gate.input]]
 path = "contracts/conformance.toml"

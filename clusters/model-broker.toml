@@ -1,0 +1,6 @@
+schema_version = 1
+id = "model-broker"
+title = "testlab in-process model broker"
+
+[driver]
+kind = "model_broker"
