@@ -558,7 +558,7 @@ sha256 = "76d711ea17f84b15a9ae16821917f635504c9cef759ee5062df6a6d72d02dffe"
 
 [[gate.input]]
 path = "clusters/apache-kafka/compose/single-plaintext.yml"
-sha256 = "7486f12e767a5412d94c40b5b892b5c678f00c2fcf6a67cfa8c7a6965e405a60"
+sha256 = "92cd5ed118cdafc8321ad2940ec94d97207b066f804cc06e04ee45f267090e3b"
 
 [[gate.input]]
 path = "clusters/apache-kafka/compose/single-sasl.yml"
@@ -570,7 +570,7 @@ sha256 = "5a8f1f811954d5bea223500a7321d067c33280c490135084c259bf38b5c7ae9f"
 
 [[gate.input]]
 path = "clusters/apache-kafka/compose/three-plaintext.yml"
-sha256 = "a073b116bd4cb801a7f2be62dfe6d95a81e91edb8a89904fed2ecdaf20fed72b"
+sha256 = "6b3941706694098206819e58755016d8a600f9046b3a635d8551b062a88384af"
 
 [[gate.input]]
 path = "clusters/apache-kafka/compose/three-sasl.yml"
