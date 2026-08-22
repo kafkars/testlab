@@ -2,6 +2,7 @@
 
 mod broker_client;
 mod session;
+mod session_send;
 mod state;
 
 pub use session::{AdapterError, run_stdio};

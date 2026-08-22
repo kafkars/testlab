@@ -55,7 +55,7 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
         }
         uses_model_broker |= matches!(&step.action, ScenarioAction::SetBrokerBehavior { .. });
         uses_readiness |= matches!(&step.action, ScenarioAction::AwaitClientReady { .. });
-        validate_action(
+        crate::scenario_action_validation::validate_action(
             &step.action,
             &mut clients,
             &mut producers,
@@ -87,140 +87,6 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
         if !shutdown {
             problems.push(format!("client {client} was not shut down"));
         }
-    }
-}
-
-fn validate_action(
-    action: &ScenarioAction,
-    clients: &mut ClientStates,
-    producers: &mut ProducerStates,
-    operations: &mut BTreeSet<OperationId>,
-    problems: &mut Vec<String>,
-) {
-    match action {
-        ScenarioAction::CreateClient { client_id } => {
-            if clients.insert(client_id.clone(), false).is_some() {
-                problems.push(format!("duplicate client id {client_id}"));
-            }
-        }
-        ScenarioAction::AwaitClientReady { client_id } => {
-            require_live_client(client_id, clients, problems);
-        }
-        ScenarioAction::CreateProducer {
-            client_id,
-            producer_id,
-        } => create_producer(client_id, producer_id, clients, producers, problems),
-        ScenarioAction::SetBrokerBehavior { .. } => {}
-        ScenarioAction::Send {
-            producer_id,
-            operation_id,
-            record,
-        } => {
-            require_open_producer(producer_id, producers, problems);
-            if !operations.insert(operation_id.clone()) {
-                problems.push(format!("duplicate operation id {operation_id}"));
-            }
-            if let Err(error) = record.validate() {
-                problems.push(format!(
-                    "operation {operation_id} has invalid record: {error}"
-                ));
-            }
-        }
-        ScenarioAction::Flush { producer_id } => {
-            require_open_producer(producer_id, producers, problems);
-        }
-        ScenarioAction::CloseProducer { producer_id } => {
-            close_producer(producer_id, producers, problems);
-        }
-        ScenarioAction::ShutdownClient { client_id } => {
-            shutdown_client(client_id, clients, producers, problems);
-        }
-    }
-}
-
-fn require_live_client(client_id: &ClientId, clients: &ClientStates, problems: &mut Vec<String>) {
-    match clients.get(client_id) {
-        Some(false) => {}
-        Some(true) => problems.push(format!("client {client_id} was used after shutdown")),
-        None => problems.push(format!("missing client {client_id} was used")),
-    }
-}
-
-fn create_producer(
-    client_id: &ClientId,
-    producer_id: &ProducerId,
-    clients: &ClientStates,
-    producers: &mut ProducerStates,
-    problems: &mut Vec<String>,
-) {
-    match clients.get(client_id) {
-        Some(false) => {}
-        Some(true) => problems.push(format!(
-            "producer {producer_id} uses shut down client {client_id}"
-        )),
-        None => problems.push(format!(
-            "producer {producer_id} uses missing client {client_id}"
-        )),
-    }
-    if producers
-        .insert(producer_id.clone(), (client_id.clone(), false))
-        .is_some()
-    {
-        problems.push(format!("duplicate producer id {producer_id}"));
-    }
-}
-
-fn require_open_producer(
-    producer_id: &ProducerId,
-    producers: &ProducerStates,
-    problems: &mut Vec<String>,
-) {
-    match producers.get(producer_id) {
-        Some((_, false)) => {}
-        Some((_, true)) => {
-            problems.push(format!("producer {producer_id} was used after close"));
-        }
-        None => problems.push(format!("missing producer {producer_id} was used")),
-    }
-}
-
-fn close_producer(
-    producer_id: &ProducerId,
-    producers: &mut ProducerStates,
-    problems: &mut Vec<String>,
-) {
-    match producers.get_mut(producer_id) {
-        Some((_, closed)) if !*closed => *closed = true,
-        Some(_) => {
-            problems.push(format!("producer {producer_id} closed more than once"));
-        }
-        None => problems.push(format!("missing producer {producer_id} was closed")),
-    }
-}
-
-fn shutdown_client(
-    client_id: &ClientId,
-    clients: &mut ClientStates,
-    producers: &ProducerStates,
-    problems: &mut Vec<String>,
-) {
-    let open = producers
-        .iter()
-        .filter(|(_, (owner, closed))| owner == client_id && !closed)
-        .map(|(producer, _)| producer.to_string())
-        .collect::<Vec<_>>();
-    if !open.is_empty() {
-        problems.push(format!(
-            "client {client_id} shut down with open producers {}",
-            open.join(", ")
-        ));
-    }
-    match clients.get_mut(client_id) {
-        Some(shutdown) if !*shutdown => *shutdown = true,
-        Some(_) => {
-            problems.push(format!("client {client_id} shut down more than once"));
-        }
-        None => problems.push(format!("missing client {client_id} was shut down")),
     }
 }
 

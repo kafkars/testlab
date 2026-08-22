@@ -5,11 +5,11 @@ use std::io::{self, BufRead, Read, Write};
 
 use testlab_schema::{
     AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId, Capability,
-    CommandEnvelope, CommandId, OperationId, PROTOCOL_VERSION, ProducerId, RecordSpec,
+    CommandEnvelope, PROTOCOL_VERSION,
 };
 use thiserror::Error;
 
-use crate::broker_client;
+use crate::session_send;
 use crate::state::{AdapterState, StateError};
 
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
@@ -113,7 +113,7 @@ fn dispatch<W: Write>(
             producer_id,
             operation_id,
             record,
-        } => dispatch_send(
+        } => session_send::dispatch_send(
             state,
             writer,
             command_id,
@@ -160,39 +160,6 @@ fn dispatch<W: Write>(
     Ok(false)
 }
 
-fn dispatch_send<W: Write>(
-    state: &AdapterState,
-    writer: &mut W,
-    command_id: CommandId,
-    producer_id: &ProducerId,
-    operation_id: OperationId,
-    record: RecordSpec,
-) -> Result<(), AdapterError> {
-    state.require_producer(producer_id)?;
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(
-            command_id.clone(),
-            AdapterEvent::OperationAccepted {
-                operation_id: operation_id.clone(),
-            },
-        ),
-    )?;
-    let terminal = broker_client::send(state.broker_endpoint()?, operation_id.clone(), record);
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(
-            command_id,
-            AdapterEvent::OperationTerminal {
-                operation_id,
-                status: terminal.status,
-                code: terminal.code,
-                offset: terminal.offset,
-            },
-        ),
-    )
-}
-
 fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
     Ok(AdapterDescriptor {
         id: AdapterId::new("reference-rust")?,
@@ -208,7 +175,10 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
     })
 }
 
-fn emit<W: Write>(writer: &mut W, event: &AdapterEventEnvelope) -> Result<(), AdapterError> {
+pub(crate) fn emit<W: Write>(
+    writer: &mut W,
+    event: &AdapterEventEnvelope,
+) -> Result<(), AdapterError> {
     serde_json::to_writer(&mut *writer, event)?;
     writer.write_all(b"\n")?;
     writer.flush()?;

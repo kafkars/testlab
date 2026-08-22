@@ -12,6 +12,7 @@ mod qualification;
 mod qualification_evidence;
 mod record;
 mod scenario;
+mod scenario_action_validation;
 mod scenario_validation;
 mod subject;
 mod verdict;
