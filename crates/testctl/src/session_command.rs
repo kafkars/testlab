@@ -64,6 +64,9 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::GroupReceive { .. }
         | ScenarioAction::CloseGroupConsumer { .. }) => return consumer(action),
         action @ ScenarioAction::CreateTopic { .. } => return admin(action),
+        action @ (ScenarioAction::CreateTransactionalProducer { .. }
+        | ScenarioAction::ExecuteTransaction { .. }
+        | ScenarioAction::CloseTransactionalProducer { .. }) => return transaction(action),
         ScenarioAction::Flush { producer_id } => (
             AdapterCommand::Flush {
                 producer_id: producer_id.clone(),
@@ -83,6 +86,57 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             ExpectedEvent::ClientShutdown(client_id.clone()),
         ),
         ScenarioAction::SetBrokerBehavior { .. } => return None,
+    };
+    Some(pair)
+}
+
+fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
+    let pair = match action {
+        ScenarioAction::CreateTransactionalProducer {
+            client_id,
+            producer_id,
+            transactional_id,
+            transaction_timeout_ms,
+            initialization_timeout_ms,
+        } => (
+            AdapterCommand::CreateTransactionalProducer {
+                client_id: client_id.clone(),
+                producer_id: producer_id.clone(),
+                transactional_id: transactional_id.clone(),
+                transaction_timeout_ms: *transaction_timeout_ms,
+                initialization_timeout_ms: *initialization_timeout_ms,
+            },
+            ExpectedEvent::TransactionalProducerCreated(producer_id.clone()),
+        ),
+        ScenarioAction::ExecuteTransaction {
+            producer_id,
+            transaction_id,
+            operations,
+            disposition,
+            timeout_ms,
+        } => (
+            AdapterCommand::ExecuteTransaction {
+                producer_id: producer_id.clone(),
+                transaction_id: transaction_id.clone(),
+                operations: operations.clone(),
+                disposition: *disposition,
+                timeout_ms: *timeout_ms,
+            },
+            ExpectedEvent::TransactionCompleted {
+                transaction_id: transaction_id.clone(),
+                operation_ids: operations
+                    .iter()
+                    .map(|operation| operation.operation_id.clone())
+                    .collect(),
+            },
+        ),
+        ScenarioAction::CloseTransactionalProducer { producer_id } => (
+            AdapterCommand::CloseTransactionalProducer {
+                producer_id: producer_id.clone(),
+            },
+            ExpectedEvent::TransactionalProducerClosed(producer_id.clone()),
+        ),
+        _ => return None,
     };
     Some(pair)
 }

@@ -14,7 +14,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
     let producer = id(ProducerId::new("producer-1"));
     let operation = id(OperationId::new("op-1"));
     Scenario {
-        schema_version: 6,
+        schema_version: 7,
         id: id(ScenarioId::new("producer.verifier")),
         title: "verifier".to_owned(),
         description: "verifier fixture".to_owned(),

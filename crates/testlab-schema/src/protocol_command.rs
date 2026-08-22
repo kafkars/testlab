@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AdapterSecurity, BatchRecord, ClientId, ConsumerId, OperationId, ProducerId, RecordSpec, RunId,
-    ScenarioId,
+    ScenarioId, TransactionDisposition,
 };
 
 /// Public operation requested from an adapter.
@@ -124,6 +124,37 @@ pub enum AdapterCommand {
         replication_factor: i16,
         /// Complete public operation bound.
         timeout_ms: u64,
+    },
+    /// Initializes one public transactional producer.
+    CreateTransactionalProducer {
+        /// Owning client.
+        client_id: ClientId,
+        /// Scenario-local transactional producer identity.
+        producer_id: ProducerId,
+        /// Exact Kafka transactional identity.
+        transactional_id: String,
+        /// Broker-side transaction timeout.
+        transaction_timeout_ms: u64,
+        /// Complete public initialization bound.
+        initialization_timeout_ms: u64,
+    },
+    /// Runs one bounded linear public transaction.
+    ExecuteTransaction {
+        /// Existing transactional producer.
+        producer_id: ProducerId,
+        /// Stable transaction operation identity.
+        transaction_id: OperationId,
+        /// Ordered records staged by the transaction.
+        operations: Vec<BatchRecord>,
+        /// Requested public transaction outcome.
+        disposition: TransactionDisposition,
+        /// Complete begin, send, and end bound.
+        timeout_ms: u64,
+    },
+    /// Closes one idle transactional producer.
+    CloseTransactionalProducer {
+        /// Transactional producer to close.
+        producer_id: ProducerId,
     },
     /// Flushes one producer.
     Flush {

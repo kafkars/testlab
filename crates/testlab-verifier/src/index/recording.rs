@@ -4,7 +4,7 @@ use testlab_schema::{AdapterCommand, AdapterEvent, HistoryEntry, HistoryPayload}
 
 use super::{
     HistoryIndex, IndexedCommandFailure, IndexedReceive, IndexedTerminal, IndexedTopicCreation,
-    push,
+    IndexedTransactionCompletion, push,
 };
 
 impl HistoryIndex {
@@ -19,6 +19,9 @@ impl HistoryIndex {
     }
 
     fn record_event(&mut self, event: &AdapterEvent, sequence: u64) {
+        if self.record_transaction_event(event, sequence) {
+            return;
+        }
         match event {
             AdapterEvent::OperationAccepted { operation_id } => {
                 push(&mut self.accepted, operation_id.clone(), sequence);
@@ -108,8 +111,40 @@ impl HistoryIndex {
             }
             AdapterEvent::Finished => self.finished.push(sequence),
             AdapterEvent::Ready { descriptor } => self.ready.push((sequence, descriptor.clone())),
-            AdapterEvent::BatchCompleted { .. } | AdapterEvent::Fatal { .. } => {}
+            AdapterEvent::BatchCompleted { .. }
+            | AdapterEvent::TransactionalProducerCreated { .. }
+            | AdapterEvent::TransactionCompleted { .. }
+            | AdapterEvent::TransactionalProducerClosed { .. }
+            | AdapterEvent::Fatal { .. } => {}
         }
+    }
+
+    fn record_transaction_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
+        match event {
+            AdapterEvent::TransactionalProducerCreated { producer_id } => push(
+                &mut self.transactional_producers_created,
+                producer_id.clone(),
+                sequence,
+            ),
+            AdapterEvent::TransactionCompleted {
+                transaction_id,
+                disposition,
+            } => self
+                .transactions_completed
+                .entry(transaction_id.clone())
+                .or_default()
+                .push(IndexedTransactionCompletion {
+                    history_sequence: sequence,
+                    disposition: *disposition,
+                }),
+            AdapterEvent::TransactionalProducerClosed { producer_id } => push(
+                &mut self.transactional_producers_closed,
+                producer_id.clone(),
+                sequence,
+            ),
+            _ => return false,
+        }
+        true
     }
 
     fn record_receive(
@@ -172,6 +207,18 @@ impl HistoryIndex {
             }
             AdapterCommand::CreateTopic { operation_id, .. } => {
                 self.topics_create_issued.insert(operation_id.clone());
+            }
+            AdapterCommand::CreateTransactionalProducer { producer_id, .. } => {
+                self.transactional_producers_create_issued
+                    .insert(producer_id.clone());
+            }
+            AdapterCommand::ExecuteTransaction { transaction_id, .. } => {
+                self.transactions_execute_issued
+                    .insert(transaction_id.clone());
+            }
+            AdapterCommand::CloseTransactionalProducer { producer_id } => {
+                self.transactional_producers_close_issued
+                    .insert(producer_id.clone());
             }
             AdapterCommand::Flush { producer_id } => {
                 self.flushes_issued.insert(producer_id.clone());

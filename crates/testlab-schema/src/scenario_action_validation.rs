@@ -3,116 +3,112 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::consumer_action_validation::ConsumerStates;
+use crate::transaction_action_validation::{TransactionSends, TransactionStates};
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 
-type ClientStates = BTreeMap<ClientId, bool>;
-type ProducerStates = BTreeMap<ProducerId, (ClientId, bool)>;
+pub(crate) type ClientStates = BTreeMap<ClientId, bool>;
+pub(crate) type ProducerStates = BTreeMap<ProducerId, (ClientId, bool)>;
 const MAX_BATCH_RECORDS: usize = 31;
+
+#[derive(Default)]
+pub(crate) struct ActionStates {
+    pub(crate) clients: ClientStates,
+    pub(crate) producers: ProducerStates,
+    pub(crate) consumers: ConsumerStates,
+    pub(crate) transactions: TransactionStates,
+    pub(crate) operation_ids: BTreeSet<OperationId>,
+    pub(crate) sends: BTreeSet<OperationId>,
+    pub(crate) transaction_sends: TransactionSends,
+}
 
 pub(crate) fn validate_action(
     action: &ScenarioAction,
-    clients: &mut ClientStates,
-    producers: &mut ProducerStates,
-    consumers: &mut ConsumerStates,
-    operation_ids: &mut BTreeSet<OperationId>,
-    sends: &mut BTreeSet<OperationId>,
+    state: &mut ActionStates,
     problems: &mut Vec<String>,
 ) {
     match action {
-        ScenarioAction::CreateClient { client_id } => create_client(client_id, clients, problems),
+        ScenarioAction::CreateClient { client_id } => {
+            create_client(client_id, &mut state.clients, problems);
+        }
         ScenarioAction::AwaitClientReady { client_id } => {
-            require_live_client(client_id, clients, problems);
+            require_live_client(client_id, &state.clients, problems);
         }
         ScenarioAction::CreateProducer {
             client_id,
             producer_id,
-        } => create_producer(client_id, producer_id, clients, producers, problems),
+        } => create_producer(
+            client_id,
+            producer_id,
+            &state.clients,
+            &mut state.producers,
+            &state.transactions,
+            problems,
+        ),
         ScenarioAction::SetBrokerBehavior { .. } => {}
         ScenarioAction::Send {
             producer_id,
             operation_id,
             record,
         } => {
-            require_open_producer(producer_id, producers, problems);
-            validate_operation(operation_id, record, operation_ids, sends, problems);
+            require_open_producer(producer_id, &state.producers, problems);
+            validate_operation(
+                operation_id,
+                record,
+                &mut state.operation_ids,
+                &mut state.sends,
+                problems,
+            );
         }
         ScenarioAction::SendBatch {
             producer_id,
             operations: batch,
         } => {
-            require_open_producer(producer_id, producers, problems);
-            validate_batch(producer_id, batch, operation_ids, sends, problems);
+            require_open_producer(producer_id, &state.producers, problems);
+            validate_batch(
+                producer_id,
+                batch,
+                &mut state.operation_ids,
+                &mut state.sends,
+                problems,
+            );
         }
-        ScenarioAction::CreateAssignedConsumer {
-            client_id,
-            consumer_id,
-        } => crate::consumer_action_validation::create(
-            client_id,
-            consumer_id,
-            clients,
-            consumers,
-            problems,
-        ),
-        ScenarioAction::AssignBeginning {
-            consumer_id,
-            topic,
-            partition,
-        } => crate::consumer_action_validation::assign(
-            consumer_id,
-            topic,
-            *partition,
-            consumers,
-            problems,
-        ),
-        ScenarioAction::Receive {
-            consumer_id,
-            receive_id,
-            expected_operation_id,
-            timeout_ms,
-        }
-        | ScenarioAction::GroupReceive {
-            consumer_id,
-            receive_id,
-            expected_operation_id,
-            timeout_ms,
-        } => crate::receive_action_validation::validate(
-            consumer_id,
-            receive_id,
-            expected_operation_id,
-            *timeout_ms,
-            consumers,
-            &mut (operation_ids, sends),
-            problems,
-        ),
-        ScenarioAction::CreateGroupConsumer {
-            client_id,
-            consumer_id,
-            group_id,
-            topic,
-        } => crate::consumer_action_validation::create_group(
-            client_id,
-            consumer_id,
-            group_id,
-            topic,
-            clients,
-            consumers,
-            problems,
-        ),
-        ScenarioAction::CloseAssignedConsumer { consumer_id }
-        | ScenarioAction::CloseGroupConsumer { consumer_id } => {
-            crate::consumer_action_validation::close(consumer_id, consumers, problems);
+        action @ (ScenarioAction::CreateAssignedConsumer { .. }
+        | ScenarioAction::AssignBeginning { .. }
+        | ScenarioAction::Receive { .. }
+        | ScenarioAction::CloseAssignedConsumer { .. }
+        | ScenarioAction::CreateGroupConsumer { .. }
+        | ScenarioAction::GroupReceive { .. }
+        | ScenarioAction::CloseGroupConsumer { .. }) => {
+            crate::consumer_action_validation::validate(action, state, problems);
         }
         action @ ScenarioAction::CreateTopic { .. } => {
-            crate::admin_action_validation::validate(action, clients, operation_ids, problems);
+            crate::admin_action_validation::validate(
+                action,
+                &state.clients,
+                &mut state.operation_ids,
+                problems,
+            );
+        }
+        action @ (ScenarioAction::CreateTransactionalProducer { .. }
+        | ScenarioAction::ExecuteTransaction { .. }
+        | ScenarioAction::CloseTransactionalProducer { .. }) => {
+            crate::transaction_action_validation::validate(action, state, problems);
         }
         ScenarioAction::Flush { producer_id } => {
-            require_open_producer(producer_id, producers, problems);
+            require_open_producer(producer_id, &state.producers, problems);
         }
         ScenarioAction::CloseProducer { producer_id } => {
-            close_producer(producer_id, producers, problems);
+            close_producer(producer_id, &mut state.producers, problems);
         }
         ScenarioAction::ShutdownClient { client_id } => {
-            shutdown_client(client_id, clients, producers, consumers, problems);
+            shutdown_client(
+                client_id,
+                &mut state.clients,
+                &state.producers,
+                &state.consumers,
+                &state.transactions,
+                problems,
+            );
         }
     }
 }
@@ -181,6 +177,7 @@ fn create_producer(
     producer_id: &ProducerId,
     clients: &ClientStates,
     producers: &mut ProducerStates,
+    transactions: &TransactionStates,
     problems: &mut Vec<String>,
 ) {
     match clients.get(client_id) {
@@ -192,9 +189,10 @@ fn create_producer(
             "producer {producer_id} uses missing client {client_id}"
         )),
     }
-    if producers
-        .insert(producer_id.clone(), (client_id.clone(), false))
-        .is_some()
+    if transactions.contains_key(producer_id)
+        || producers
+            .insert(producer_id.clone(), (client_id.clone(), false))
+            .is_some()
     {
         problems.push(format!("duplicate producer id {producer_id}"));
     }
@@ -233,6 +231,7 @@ fn shutdown_client(
     clients: &mut ClientStates,
     producers: &ProducerStates,
     consumers: &ConsumerStates,
+    transactions: &TransactionStates,
     problems: &mut Vec<String>,
 ) {
     let open = producers
@@ -251,6 +250,14 @@ fn shutdown_client(
         problems.push(format!(
             "client {client_id} shut down with open consumers {}",
             open_consumers.join(", ")
+        ));
+    }
+    let open_transactions =
+        crate::transaction_action_validation::open_for_client(transactions, client_id);
+    if !open_transactions.is_empty() {
+        problems.push(format!(
+            "client {client_id} shut down with open transactional producers {}",
+            open_transactions.join(", ")
         ));
     }
     match clients.get_mut(client_id) {

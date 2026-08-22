@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use crate::{ClientId, ConsumerId, OperationId};
+use crate::{ScenarioAction, scenario_action_validation::ActionStates};
 
 pub(crate) type ConsumerStates = BTreeMap<ConsumerId, ConsumerState>;
 
@@ -11,6 +12,75 @@ pub(crate) struct ConsumerState {
     owner: ClientId,
     assigned: bool,
     closed: bool,
+}
+
+pub(crate) fn validate(
+    action: &ScenarioAction,
+    state: &mut ActionStates,
+    problems: &mut Vec<String>,
+) {
+    match action {
+        ScenarioAction::CreateAssignedConsumer {
+            client_id,
+            consumer_id,
+        } => create(
+            client_id,
+            consumer_id,
+            &state.clients,
+            &mut state.consumers,
+            problems,
+        ),
+        ScenarioAction::AssignBeginning {
+            consumer_id,
+            topic,
+            partition,
+        } => assign(
+            consumer_id,
+            topic,
+            *partition,
+            &mut state.consumers,
+            problems,
+        ),
+        ScenarioAction::Receive {
+            consumer_id,
+            receive_id,
+            expected_operation_id,
+            timeout_ms,
+        }
+        | ScenarioAction::GroupReceive {
+            consumer_id,
+            receive_id,
+            expected_operation_id,
+            timeout_ms,
+        } => crate::receive_action_validation::validate(
+            consumer_id,
+            receive_id,
+            expected_operation_id,
+            *timeout_ms,
+            &mut state.consumers,
+            &mut (&mut state.operation_ids, &mut state.sends),
+            problems,
+        ),
+        ScenarioAction::CreateGroupConsumer {
+            client_id,
+            consumer_id,
+            group_id,
+            topic,
+        } => create_group(
+            client_id,
+            consumer_id,
+            group_id,
+            topic,
+            &state.clients,
+            &mut state.consumers,
+            problems,
+        ),
+        ScenarioAction::CloseAssignedConsumer { consumer_id }
+        | ScenarioAction::CloseGroupConsumer { consumer_id } => {
+            close(consumer_id, &mut state.consumers, problems);
+        }
+        _ => {}
+    }
 }
 
 pub(crate) fn create(

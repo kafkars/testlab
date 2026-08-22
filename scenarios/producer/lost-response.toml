@@ -1,4 +1,4 @@
-schema_version = 6
+schema_version = 7
 id = "producer.lost-response"
 title = "accepted record preserves uncertainty when the response is lost"
 description = "The broker stores one record and closes before responding; the client must report possibly-sent."

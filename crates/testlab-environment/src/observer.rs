@@ -75,7 +75,8 @@ fn targets(scenario: &Scenario) -> BTreeSet<(String, i32)> {
             ScenarioAction::Send { record, .. } => {
                 targets.insert((record.topic.clone(), record.partition));
             }
-            ScenarioAction::SendBatch { operations, .. } => targets.extend(
+            ScenarioAction::SendBatch { operations, .. }
+            | ScenarioAction::ExecuteTransaction { operations, .. } => targets.extend(
                 operations
                     .iter()
                     .map(|operation| (operation.record.topic.clone(), operation.record.partition)),
@@ -145,8 +146,23 @@ fn poll_snapshot(
             Some(Err(error)) if is_transient(&error) => {}
             Some(Err(error)) => return Err(ObserverError::Kafka(error)),
         }
+        advance_positions(consumer, cursors)?;
     }
     Ok(observations)
+}
+
+fn advance_positions(consumer: &BaseConsumer, cursors: &mut Cursors) -> Result<(), ObserverError> {
+    let positions = consumer.position()?;
+    for element in positions.elements() {
+        let Offset::Offset(position) = element.offset() else {
+            continue;
+        };
+        let key = (element.topic().to_owned(), element.partition());
+        if let Some(cursor) = cursors.get_mut(&key) {
+            cursor.next = cursor.next.max(position.min(cursor.high));
+        }
+    }
+    Ok(())
 }
 
 pub(super) fn is_transient(error: &KafkaError) -> bool {

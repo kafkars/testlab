@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, HistoryEntry, OperationId, ProducerId,
-    ScenarioAction, TerminalStatus,
+    ScenarioAction, TerminalStatus, TransactionDisposition,
 };
 
 mod recording;
@@ -35,6 +35,12 @@ pub(crate) struct IndexedTopicCreation {
     pub(crate) topic: String,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedTransactionCompletion {
+    pub(crate) history_sequence: u64,
+    pub(crate) disposition: TransactionDisposition,
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct HistoryIndex {
     has_harness_commands: bool,
@@ -49,6 +55,9 @@ pub(crate) struct HistoryIndex {
     group_consumers_close_issued: BTreeSet<ConsumerId>,
     operations_issued: BTreeSet<OperationId>,
     topics_create_issued: BTreeSet<OperationId>,
+    transactional_producers_create_issued: BTreeSet<ProducerId>,
+    transactions_execute_issued: BTreeSet<OperationId>,
+    transactional_producers_close_issued: BTreeSet<ProducerId>,
     flushes_issued: BTreeSet<ProducerId>,
     producers_close_issued: BTreeSet<ProducerId>,
     clients_shutdown_issued: BTreeSet<ClientId>,
@@ -58,6 +67,9 @@ pub(crate) struct HistoryIndex {
     pub(crate) rejected: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) terminals: BTreeMap<OperationId, Vec<IndexedTerminal>>,
     pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedTopicCreation>>,
+    pub(crate) transactional_producers_created: BTreeMap<ProducerId, Vec<u64>>,
+    pub(crate) transactions_completed: BTreeMap<OperationId, Vec<IndexedTransactionCompletion>>,
+    pub(crate) transactional_producers_closed: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) clients_created: BTreeMap<ClientId, Vec<u64>>,
     pub(crate) clients_ready: BTreeMap<ClientId, Vec<u64>>,
     pub(crate) producers_created: BTreeMap<ProducerId, Vec<u64>>,
@@ -125,6 +137,15 @@ impl HistoryIndex {
             ScenarioAction::CreateTopic { operation_id, .. } => {
                 self.topics_create_issued.contains(operation_id)
             }
+            ScenarioAction::CreateTransactionalProducer { producer_id, .. } => self
+                .transactional_producers_create_issued
+                .contains(producer_id),
+            ScenarioAction::ExecuteTransaction { transaction_id, .. } => {
+                self.transactions_execute_issued.contains(transaction_id)
+            }
+            ScenarioAction::CloseTransactionalProducer { producer_id } => self
+                .transactional_producers_close_issued
+                .contains(producer_id),
             ScenarioAction::Flush { producer_id } => self.flushes_issued.contains(producer_id),
             ScenarioAction::CloseProducer { producer_id } => {
                 self.producers_close_issued.contains(producer_id)

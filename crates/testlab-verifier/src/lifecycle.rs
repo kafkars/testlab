@@ -14,6 +14,9 @@ pub(crate) fn verify_lifecycle(
         if !index.action_issued(&step.action) {
             continue;
         }
+        if verify_transaction_lifecycle(&step.action, index, violations) {
+            continue;
+        }
         match &step.action {
             ScenarioAction::CreateClient { client_id } => check(
                 "LIFE-001",
@@ -96,9 +99,16 @@ pub(crate) fn verify_lifecycle(
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::Receive { .. }
             | ScenarioAction::GroupReceive { .. }
-            | ScenarioAction::CreateTopic { .. } => {}
+            | ScenarioAction::CreateTopic { .. }
+            | ScenarioAction::ExecuteTransaction { .. }
+            | ScenarioAction::CreateTransactionalProducer { .. }
+            | ScenarioAction::CloseTransactionalProducer { .. } => {}
         }
     }
+    verify_finish(index, violations);
+}
+
+fn verify_finish(index: &HistoryIndex, violations: &mut Vec<Violation>) {
     if index.command_failures.is_empty() && index.finish_issued() {
         let evidence = index
             .finished
@@ -107,6 +117,39 @@ pub(crate) fn verify_lifecycle(
             .collect();
         check("LIFE-006", "adapter finish", evidence, violations);
     }
+}
+
+fn verify_transaction_lifecycle(
+    action: &ScenarioAction,
+    index: &HistoryIndex,
+    violations: &mut Vec<Violation>,
+) -> bool {
+    match action {
+        ScenarioAction::CreateTransactionalProducer { producer_id, .. } => check(
+            "LIFE-013",
+            "transactional producer creation",
+            references(
+                index
+                    .transactional_producers_created
+                    .get(producer_id)
+                    .map(Vec::as_slice),
+            ),
+            violations,
+        ),
+        ScenarioAction::CloseTransactionalProducer { producer_id } => check(
+            "LIFE-014",
+            "transactional producer close",
+            references(
+                index
+                    .transactional_producers_closed
+                    .get(producer_id)
+                    .map(Vec::as_slice),
+            ),
+            violations,
+        ),
+        _ => return false,
+    }
+    true
 }
 
 fn check(contract: &str, operation: &str, evidence: Vec<String>, violations: &mut Vec<Violation>) {

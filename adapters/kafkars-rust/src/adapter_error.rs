@@ -34,6 +34,9 @@ pub enum AdapterError {
     /// A public admin batch result did not correspond to its exact input.
     #[error("packaged Kafkars admin result was invalid: {0}")]
     AdminResult(String),
+    /// A transaction command did not match its protocol shape.
+    #[error("packaged Kafkars transaction result was invalid: {0}")]
+    TransactionResult(String),
     /// The harness used an unsupported protocol version.
     #[error("unsupported protocol version {0}")]
     ProtocolVersion(u16),
@@ -76,6 +79,7 @@ impl AdapterError {
             Self::BatchResult(_) => "kafkars_batch_result",
             Self::ConsumerRecord(_) => "kafkars_consumer_record",
             Self::AdminResult(_) => "kafkars_admin_result",
+            Self::TransactionResult(_) => "kafkars_transaction_result",
             Self::ProtocolVersion(_) => "protocol_version",
             Self::CommandTooLarge => "command_too_large",
             Self::IncompleteCommand => "incomplete_command",

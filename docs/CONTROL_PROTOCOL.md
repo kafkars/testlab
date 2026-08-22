@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v9 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v10 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -32,6 +32,9 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `group_receive`
 - `close_group_consumer`
 - `create_topic`
+- `create_transactional_producer`
+- `execute_transaction`
+- `close_transactional_producer`
 - `flush`
 - `close_producer`
 - `shutdown_client`
@@ -58,6 +61,9 @@ boundary.
 - `group_receive_completed`
 - `group_consumer_closed`
 - `topic_created`
+- `transactional_producer_created`
+- `transaction_completed`
+- `transactional_producer_closed`
 - `flush_completed`
 - `producer_closed`
 - `client_shutdown`
@@ -87,6 +93,13 @@ exact per-topic batch outcome. Admin-created scenario topics are deliberately
 excluded from independent environment provisioning, and broker auto-creation is
 disabled, so a later broker-visible producer record proves the topic was usable.
 
+One `execute_transaction` command owns a complete linear begin, ordered send,
+and commit-or-abort sequence because the public transaction token borrows its
+producer until it ends. Each accepted record reports `transaction_staged`, then
+one exact `transaction_completed` event reports the public disposition. The
+independent observer uses `read_committed`: committed records must appear once,
+while aborted records must remain absent.
+
 ## Failure behavior
 
 A normal public client API failure emits one correlated `command_failed` event
@@ -97,6 +110,6 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v9 is an exact semantic contract. New capabilities may be declared
+Protocol v10 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

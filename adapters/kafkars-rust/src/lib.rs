@@ -12,6 +12,9 @@ mod protocol_group;
 mod protocol_lifecycle;
 mod protocol_send;
 mod state;
+mod state_error;
+mod transaction_execute;
+mod transactional_producers;
 
 pub use adapter_error::AdapterError;
 pub use protocol::run_stdio;

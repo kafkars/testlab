@@ -3,13 +3,14 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
+use crate::assigned_consumers::AssignedConsumers;
+use crate::connection_security::resolve;
+use crate::group_consumers::GroupConsumers;
+use crate::transactional_producers::TransactionalProducers;
 use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
 use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
-use thiserror::Error;
 
-use crate::assigned_consumers::AssignedConsumers;
-use crate::connection_security::{SecurityError, resolve};
-use crate::group_consumers::GroupConsumers;
+pub(crate) use crate::state_error::StateError;
 
 const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
 
@@ -21,6 +22,7 @@ pub(crate) struct AdapterState {
     producers: BTreeMap<ProducerId, ProducerOwner>,
     consumers: AssignedConsumers,
     group_consumers: GroupConsumers,
+    transactional_producers: TransactionalProducers,
 }
 
 #[derive(Debug)]
@@ -68,7 +70,9 @@ impl AdapterState {
         client_id: ClientId,
         producer_id: ProducerId,
     ) -> Result<(), StateError> {
-        if self.producers.contains_key(&producer_id) {
+        if self.producers.contains_key(&producer_id)
+            || self.transactional_producers.contains(&producer_id)
+        {
             return Err(StateError::DuplicateProducer(producer_id));
         }
         let client = self
@@ -110,6 +114,45 @@ impl AdapterState {
             .get(producer_id)
             .map(|owner| &owner.producer)
             .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))
+    }
+
+    pub(crate) fn create_transactional_producer(
+        &mut self,
+        client_id: ClientId,
+        producer_id: ProducerId,
+        transactional_id: &str,
+        transaction_timeout: Duration,
+        initialization_timeout: Duration,
+    ) -> Result<(), StateError> {
+        if self.producers.contains_key(&producer_id) {
+            return Err(StateError::DuplicateProducer(producer_id));
+        }
+        let client = self
+            .clients
+            .get(&client_id)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
+        self.transactional_producers.create(
+            client,
+            client_id,
+            producer_id,
+            transactional_id,
+            transaction_timeout,
+            initialization_timeout,
+        )
+    }
+
+    pub(crate) fn transactional_producer_mut(
+        &mut self,
+        producer_id: &ProducerId,
+    ) -> Result<&mut kafkars::TransactionalProducer, StateError> {
+        self.transactional_producers.get_mut(producer_id)
+    }
+
+    pub(crate) fn close_transactional_producer(
+        &mut self,
+        producer_id: &ProducerId,
+    ) -> Result<(), StateError> {
+        self.transactional_producers.close(producer_id)
     }
 
     pub(crate) fn create_assigned_consumer(
@@ -199,7 +242,10 @@ impl AdapterState {
         {
             return Err(StateError::OpenProducer(client_id.clone()));
         }
-        if self.consumers.has_owner(client_id) || self.group_consumers.has_owner(client_id) {
+        if self.consumers.has_owner(client_id)
+            || self.group_consumers.has_owner(client_id)
+            || self.transactional_producers.has_owner(client_id)
+        {
             return Err(StateError::OpenConsumer(client_id.clone()));
         }
         let client = self
@@ -213,6 +259,9 @@ impl AdapterState {
         if !self.producers.is_empty() {
             return Err(StateError::UnclosedProducers);
         }
+        if !self.transactional_producers.is_empty() {
+            return Err(StateError::UnclosedProducers);
+        }
         if !self.consumers.is_empty() || !self.group_consumers.is_empty() {
             return Err(StateError::UnclosedConsumers);
         }
@@ -221,38 +270,4 @@ impl AdapterState {
         }
         Ok(())
     }
-}
-
-#[derive(Debug, Error)]
-pub(crate) enum StateError {
-    #[error("hello must be the first command")]
-    HelloRequired,
-    #[error("hello was received more than once")]
-    DuplicateHello,
-    #[error("client {0} already exists")]
-    DuplicateClient(ClientId),
-    #[error("client {0} does not exist")]
-    MissingClient(ClientId),
-    #[error("producer {0} already exists")]
-    DuplicateProducer(ProducerId),
-    #[error("producer {0} does not exist")]
-    MissingProducer(ProducerId),
-    #[error("consumer {0} already exists")]
-    DuplicateConsumer(ConsumerId),
-    #[error("consumer {0} does not exist")]
-    MissingConsumer(ConsumerId),
-    #[error("client {0} still owns an open producer")]
-    OpenProducer(ClientId),
-    #[error("client {0} still owns an open consumer")]
-    OpenConsumer(ClientId),
-    #[error("adapter finished with open producers")]
-    UnclosedProducers,
-    #[error("adapter finished with open consumers")]
-    UnclosedConsumers,
-    #[error("adapter finished with open clients")]
-    UnclosedClients,
-    #[error("packaged Kafkars operation failed: {0}")]
-    Client(kafkars::KafkaError),
-    #[error("adapter connection security failed: {0}")]
-    Security(#[from] SecurityError),
 }

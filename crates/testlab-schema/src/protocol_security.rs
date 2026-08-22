@@ -64,4 +64,6 @@ pub enum TerminalStatus {
     DefinitelyNotSent,
     /// The client cannot know whether the broker accepted the operation.
     PossiblySent,
+    /// The broker staged the record inside an active transaction.
+    TransactionStaged,
 }

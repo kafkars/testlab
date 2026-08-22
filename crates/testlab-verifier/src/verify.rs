@@ -14,6 +14,7 @@ use crate::index::HistoryIndex;
 use crate::lifecycle::verify_lifecycle;
 use crate::protocol::verify_protocol;
 use crate::support::{observation_references, references, terminal_references, violation};
+use crate::transaction::verify_transactions;
 
 /// Deterministically verifies one validly executed scenario.
 pub fn verify(
@@ -30,6 +31,7 @@ pub fn verify(
     verify_protocol(adapter, &index, &mut violations);
     verify_client_failures(&index, &mut violations);
     verify_admin(scenario, &index, &mut violations);
+    verify_transactions(scenario, &index, observations, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
     crate::observations::verify_unknown(&sends, &observed, &mut violations);
@@ -59,6 +61,13 @@ fn sends<'a>(
                 sends.insert(operation_id.clone(), record);
             }
             ScenarioAction::SendBatch { operations, .. } => {
+                sends.extend(
+                    operations
+                        .iter()
+                        .map(|operation| (operation.operation_id.clone(), &operation.record)),
+                );
+            }
+            ScenarioAction::ExecuteTransaction { operations, .. } => {
                 sends.extend(
                     operations
                         .iter()

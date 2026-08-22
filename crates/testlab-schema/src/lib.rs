@@ -22,6 +22,7 @@ mod scenario_action_validation;
 mod scenario_types;
 mod scenario_validation;
 mod subject;
+mod transaction_action_validation;
 mod verdict;
 
 pub use adapter::{AdapterDescriptor, Capability};
@@ -59,7 +60,9 @@ pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{
     SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioError, ScenarioStep,
 };
-pub use scenario_types::{BatchRecord, BrokerBehavior, OperationAssertion, VisibilityExpectation};
+pub use scenario_types::{
+    BatchRecord, BrokerBehavior, OperationAssertion, TransactionDisposition, VisibilityExpectation,
+};
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};
 

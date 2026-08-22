@@ -9,6 +9,7 @@ mod lifecycle;
 mod observations;
 mod protocol;
 mod support;
+mod transaction;
 mod verify;
 
 pub use contracts::known_contract_ids;
@@ -18,6 +19,8 @@ pub use verify::verify;
 mod admin_test;
 #[cfg(test)]
 mod contract_test;
+#[cfg(test)]
+mod transaction_test;
 #[cfg(test)]
 mod verify_fixture;
 #[cfg(test)]

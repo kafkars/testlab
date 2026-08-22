@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v9. It is not a
+An adapter translates one packaged client surface to protocol v10. It is not a
 runner and not a verifier.
 
 ## Checklist

@@ -7,11 +7,11 @@ use thiserror::Error;
 
 use crate::{
     BatchRecord, BrokerBehavior, Capability, ClientId, ConsumerId, OperationAssertion, OperationId,
-    ProducerId, RecordSpec, ScenarioId, StepId,
+    ProducerId, RecordSpec, ScenarioId, StepId, TransactionDisposition,
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 6;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 7;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -53,7 +53,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v6.
+/// Scenario action vocabulary for scenario schema v7.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -168,6 +168,37 @@ pub enum ScenarioAction {
         replication_factor: i16,
         /// Complete public operation bound.
         timeout_ms: u64,
+    },
+    /// Initializes one uniquely controlled public transactional producer.
+    CreateTransactionalProducer {
+        /// Existing owning client.
+        client_id: ClientId,
+        /// New transactional producer handle identity.
+        producer_id: ProducerId,
+        /// Exact Kafka transactional identity.
+        transactional_id: String,
+        /// Broker-side transaction timeout.
+        transaction_timeout_ms: u64,
+        /// Complete public initialization bound.
+        initialization_timeout_ms: u64,
+    },
+    /// Runs one linear transaction through send and commit or abort.
+    ExecuteTransaction {
+        /// Existing transactional producer.
+        producer_id: ProducerId,
+        /// Stable transaction operation identity.
+        transaction_id: OperationId,
+        /// Ordered transactional records.
+        operations: Vec<BatchRecord>,
+        /// Requested public transaction outcome.
+        disposition: TransactionDisposition,
+        /// Complete begin, send, and end bound.
+        timeout_ms: u64,
+    },
+    /// Closes one idle transactional producer.
+    CloseTransactionalProducer {
+        /// Transactional producer to close.
+        producer_id: ProducerId,
     },
     /// Flushes one open producer.
     Flush {

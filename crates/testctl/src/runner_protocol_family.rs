@@ -63,6 +63,45 @@ pub(super) fn classify_group(
     })
 }
 
+pub(super) fn classify_transaction(
+    expected: &ExpectedEvent,
+    event: &AdapterEvent,
+) -> Option<Result<EventDisposition, RunFailure>> {
+    let matches = match (expected, event) {
+        (
+            ExpectedEvent::TransactionalProducerCreated(expected_id),
+            AdapterEvent::TransactionalProducerCreated {
+                producer_id: actual,
+            },
+        )
+        | (
+            ExpectedEvent::TransactionalProducerClosed(expected_id),
+            AdapterEvent::TransactionalProducerClosed {
+                producer_id: actual,
+            },
+        ) => return Some(identity_result(expected_id == actual, event, expected)),
+        (
+            ExpectedEvent::TransactionCompleted { operation_ids, .. },
+            AdapterEvent::OperationAccepted { operation_id }
+            | AdapterEvent::OperationRejected { operation_id, .. }
+            | AdapterEvent::OperationTerminal { operation_id, .. },
+        ) => operation_ids.contains(operation_id),
+        (
+            ExpectedEvent::TransactionCompleted { transaction_id, .. },
+            AdapterEvent::TransactionCompleted {
+                transaction_id: actual,
+                ..
+            },
+        ) => return Some(identity_result(transaction_id == actual, event, expected)),
+        _ => return None,
+    };
+    Some(if matches {
+        Ok(EventDisposition::Continue)
+    } else {
+        Err(identity_mismatch(event, expected))
+    })
+}
+
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
     matches!(
         (expected, event),
@@ -125,6 +164,21 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
                 AdapterEvent::TopicCreated { .. }
             )
             | (
+                ExpectedEvent::TransactionalProducerCreated(_),
+                AdapterEvent::TransactionalProducerCreated { .. }
+            )
+            | (
+                ExpectedEvent::TransactionCompleted { .. },
+                AdapterEvent::OperationAccepted { .. }
+                    | AdapterEvent::OperationRejected { .. }
+                    | AdapterEvent::OperationTerminal { .. }
+                    | AdapterEvent::TransactionCompleted { .. }
+            )
+            | (
+                ExpectedEvent::TransactionalProducerClosed(_),
+                AdapterEvent::TransactionalProducerClosed { .. }
+            )
+            | (
                 ExpectedEvent::FlushCompleted(_),
                 AdapterEvent::FlushCompleted { .. }
             )
@@ -138,6 +192,18 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
             )
             | (ExpectedEvent::Finished, AdapterEvent::Finished)
     )
+}
+
+fn identity_result(
+    matches: bool,
+    event: &AdapterEvent,
+    expected: &ExpectedEvent,
+) -> Result<EventDisposition, RunFailure> {
+    if matches {
+        Ok(EventDisposition::Complete)
+    } else {
+        Err(identity_mismatch(event, expected))
+    }
 }
 
 fn identity_mismatch(event: &AdapterEvent, expected: &ExpectedEvent) -> RunFailure {

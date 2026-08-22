@@ -1,0 +1,119 @@
+schema_version = 7
+id = "kafka.transaction-commit-abort"
+title = "packaged transactions commit and abort with read-committed isolation"
+description = "One packaged transactional producer commits an exact record, aborts another, and commits a sentinel; the independent read-committed observer must see only both committed records."
+timeout_ms = 120000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-kafkars-transaction-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "commit-record"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-commit-1"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-transaction-committed"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transactions"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "committed" }
+value = { encoding = "hex", data = "00636f6d6d6974746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-committed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "abort-record"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-abort-1"
+disposition = "abort"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-transaction-aborted"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transactions"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "aborted" }
+value = { encoding = "hex", data = "0061626f72746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-aborted" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "commit-sentinel"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-commit-2"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-transaction-sentinel"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transactions"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "sentinel" }
+value = { encoding = "hex", data = "0073656e74696e656cff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-sentinel" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-transaction-committed"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-transaction-aborted"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-transaction-sentinel"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

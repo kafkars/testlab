@@ -2,7 +2,9 @@
 
 use std::collections::BTreeSet;
 
-use testlab_schema::{AdapterEvent, ConsumerId, OperationId, ProducerId, TerminalStatus};
+use testlab_schema::{
+    AdapterEvent, ConsumerId, OperationId, ProducerId, TerminalStatus, TransactionDisposition,
+};
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
 
@@ -111,6 +113,37 @@ fn admin_completion_requires_exact_operation_and_topic() {
             topic: "orders".to_owned(),
         })
         .unwrap_or_else(|error| panic!("classify admin completion: {error}")),
+        EventDisposition::Complete
+    );
+}
+
+#[test]
+fn transaction_waits_for_exact_disposition_identity() {
+    let operation_id = id(OperationId::new("transaction-record-1"));
+    let transaction_id = id(OperationId::new("transaction-1"));
+    let expected = ExpectedEvent::TransactionCompleted {
+        transaction_id: transaction_id.clone(),
+        operation_ids: BTreeSet::from([operation_id.clone()]),
+    };
+
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::OperationTerminal {
+                operation_id,
+                status: TerminalStatus::TransactionStaged,
+                code: None,
+                offset: Some(0),
+            })
+            .unwrap_or_else(|error| panic!("classify transaction stage: {error}")),
+        EventDisposition::Continue
+    );
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::TransactionCompleted {
+                transaction_id,
+                disposition: TransactionDisposition::Abort,
+            })
+            .unwrap_or_else(|error| panic!("classify transaction completion: {error}")),
         EventDisposition::Complete
     );
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, OperationId, ProducerId,
-    TerminalStatus,
+    TerminalStatus, TransactionDisposition,
 };
 
 /// Normalized public event emitted by an adapter.
@@ -106,6 +106,23 @@ pub enum AdapterEvent {
         operation_id: OperationId,
         /// Exact topic reported by the public batch result.
         topic: String,
+    },
+    /// Public transactional producer initialization completed.
+    TransactionalProducerCreated {
+        /// Created transactional producer.
+        producer_id: ProducerId,
+    },
+    /// One public transaction reached an observed terminal disposition.
+    TransactionCompleted {
+        /// Stable transaction operation identity.
+        transaction_id: OperationId,
+        /// Observed commit or abort outcome.
+        disposition: TransactionDisposition,
+    },
+    /// One idle public transactional producer closed.
+    TransactionalProducerClosed {
+        /// Closed transactional producer.
+        producer_id: ProducerId,
     },
     /// Producer flush completed.
     FlushCompleted {

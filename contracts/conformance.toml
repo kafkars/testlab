@@ -25,6 +25,18 @@ statement = "Each requested public topic creation emits exactly one completion n
 category = "admin"
 
 [[contract]]
+id = "TXN-001"
+title = "Transaction disposition settles exactly once"
+statement = "Each requested transaction emits one exact public commit or abort completion."
+category = "transaction"
+
+[[contract]]
+id = "TXN-002"
+title = "Read-committed visibility matches transaction outcome"
+statement = "Committed records are independently visible exactly once and aborted records remain absent."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."
@@ -172,4 +184,16 @@ category = "lifecycle"
 id = "LIFE-012"
 title = "Group consumer close settles exactly once"
 statement = "Each requested classic group-consumer close emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-013"
+title = "Transactional producer creation settles exactly once"
+statement = "Each requested transactional producer initialization emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-014"
+title = "Transactional producer close settles exactly once"
+statement = "Each requested transactional producer close emits exactly one matching event."
 category = "lifecycle"

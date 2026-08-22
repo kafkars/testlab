@@ -30,6 +30,16 @@ pub enum BrokerBehavior {
     CorruptAndAcknowledge,
 }
 
+/// Requested terminal disposition for one public transaction.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TransactionDisposition {
+    /// Makes every staged record visible to read-committed observers.
+    Commit,
+    /// Keeps every staged record invisible to read-committed observers.
+    Abort,
+}
+
 /// Expected public and broker-visible result for one send.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

@@ -110,23 +110,20 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
-        AdapterCommand::CreateAssignedConsumer { .. }
+        command @ (AdapterCommand::CreateAssignedConsumer { .. }
         | AdapterCommand::AssignBeginning { .. }
         | AdapterCommand::Receive { .. }
-        | AdapterCommand::CloseAssignedConsumer { .. } => {
-            return Err(AdapterError::Unsupported(
-                "assigned consumer commands require an assigned_consumer-capable adapter",
-            ));
-        }
-        AdapterCommand::CreateGroupConsumer { .. }
+        | AdapterCommand::CloseAssignedConsumer { .. }
+        | AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
-        | AdapterCommand::CloseGroupConsumer { .. } => {
+        | AdapterCommand::CloseGroupConsumer { .. }
+        | AdapterCommand::CreateTopic { .. }
+        | AdapterCommand::CreateTransactionalProducer { .. }
+        | AdapterCommand::ExecuteTransaction { .. }
+        | AdapterCommand::CloseTransactionalProducer { .. }) => {
             return Err(AdapterError::Unsupported(
-                "group commands require a consumer_groups-capable adapter",
+                crate::session_unsupported::reason(&command),
             ));
-        }
-        AdapterCommand::CreateTopic { .. } => {
-            return Err(AdapterError::Unsupported("admin capability required"));
         }
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;

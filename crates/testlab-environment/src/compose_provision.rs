@@ -159,7 +159,8 @@ pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     for step in &scenario.steps {
         let records = match &step.action {
             ScenarioAction::Send { record, .. } => std::slice::from_ref(record),
-            ScenarioAction::SendBatch { operations, .. } => {
+            ScenarioAction::SendBatch { operations, .. }
+            | ScenarioAction::ExecuteTransaction { operations, .. } => {
                 for operation in operations {
                     record_topic(&mut topics, &admin_topics, &operation.record);
                 }
