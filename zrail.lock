@@ -570,7 +570,7 @@ sha256 = "48b2b5261fedf39caacff045a8440ccfa9de198bec152b1be279aabb99168ba1"
 
 [[gate.input]]
 path = "qualifications/kafkars-release.toml"
-sha256 = "fca293eeaddb9686d328b0400052de139bc511bd88ee20969ef84208e16b90f6"
+sha256 = "61034721160f6bb37a9b563cbd289ba0a3b08b2e681515ff950c35d12b67898c"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"

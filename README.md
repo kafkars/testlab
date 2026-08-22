@@ -33,9 +33,9 @@ Testlab may consume public artifacts. It never imports private client state.
 - zrail policy for 300-line files, facade-only modules, and separate tests;
 - catalog integrity validation through the same public manifest loader used by
   `testctl`;
-- seven immutable Apache Kafka 3.7.2–4.3.1 Compose environments with owned
-  digest pull, inspection, readiness, snapshots, logs, cleanup, and sealed
-  terminal evidence;
+- seven immutable Apache Kafka 3.7.2–4.3.1 versions plus TLS, SASL/PLAIN, and
+  SCRAM-SHA-256/512 environments with owned digest pull, inspection, readiness,
+  snapshots, logs, cleanup, and sealed terminal evidence;
 - fail-closed qualification manifests that aggregate ordered scenario evidence;
 - bounded per-cell repetition so intermittent failures block qualification;
 - independent real-Kafka observation through pinned librdkafka;
@@ -52,15 +52,15 @@ uses a separate librdkafka consumer to verify broker-visible records.
 scripts/check
 scripts/run-reference-qualification
 scripts/run-kafkars-qualification # requires Docker
-scripts/run-kafkars-release-qualification # seven-version release matrix
+scripts/run-kafkars-release-qualification # version and security release matrix
 scripts/qualify-kafkars-candidate ../kafkars pr # packages the checkout first
 ```
 
 The candidate command packages `kafka-client-core`, `kafka-client-engine`, and
 `kafkars`, hashes each `.crate`, extracts them, and builds the external adapter
 only against those extracted packages. Use `release` instead of `pr` for the
-seven-version matrix. Dirty source is rejected unless `--allow-dirty` is the
-third argument.
+seven-version matrix plus TLS, SASL/PLAIN, and both SCRAM mechanisms. Dirty
+source is rejected unless `--allow-dirty` is the third argument.
 
 Kafkars CI can call the same boundary without copying any broker logic:
 

@@ -50,3 +50,31 @@ environment = "clusters/apache-kafka/3.7.2/single-plaintext.toml"
 pack = "packs/kafkars-pr.toml"
 attempts = 1
 gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-tls"
+environment = "clusters/apache-kafka/4.3.1/single-tls.toml"
+pack = "packs/kafkars-pr.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-sasl-plain"
+environment = "clusters/apache-kafka/4.3.1/single-sasl-plain.toml"
+pack = "packs/kafkars-pr.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-scram-sha-256"
+environment = "clusters/apache-kafka/4.3.1/single-scram-sha-256.toml"
+pack = "packs/kafkars-pr.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-scram-sha-512"
+environment = "clusters/apache-kafka/4.3.1/single-scram-sha-512.toml"
+pack = "packs/kafkars-pr.toml"
+attempts = 1
+gating = true
