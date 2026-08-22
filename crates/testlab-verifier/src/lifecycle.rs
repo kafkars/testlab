@@ -11,6 +11,9 @@ pub(crate) fn verify_lifecycle(
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
+        if !index.action_issued(&step.action) {
+            continue;
+        }
         match &step.action {
             ScenarioAction::CreateClient { client_id } => check(
                 "LIFE-001",
@@ -51,12 +54,14 @@ pub(crate) fn verify_lifecycle(
             ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::Send { .. } => {}
         }
     }
-    let evidence = index
-        .finished
-        .iter()
-        .map(|sequence| format!("history:{sequence}"))
-        .collect();
-    check("LIFE-006", "adapter finish", evidence, violations);
+    if index.command_failures.is_empty() && index.finish_issued() {
+        let evidence = index
+            .finished
+            .iter()
+            .map(|sequence| format!("history:{sequence}"))
+            .collect();
+        check("LIFE-006", "adapter finish", evidence, violations);
+    }
 }
 
 fn check(contract: &str, operation: &str, evidence: Vec<String>, violations: &mut Vec<Violation>) {

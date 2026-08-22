@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 2;
+pub const PROTOCOL_VERSION: u16 = 3;
 
 /// One correlated command sent from testctl to an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -22,7 +22,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v2 command envelope.
+    /// Creates one protocol-v3 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -115,7 +115,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v2 event envelope.
+    /// Creates one protocol-v3 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -186,6 +186,13 @@ pub enum AdapterEvent {
     ClientShutdown {
         /// Shut down client.
         client_id: ClientId,
+    },
+    /// One public client command returned a normal API failure.
+    CommandFailed {
+        /// Stable normalized client error code.
+        code: String,
+        /// Bounded public diagnostic retained as evidence.
+        diagnostic: String,
     },
     /// Adapter session settled and may exit.
     Finished,

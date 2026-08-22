@@ -505,7 +505,7 @@ sha256 = "00f5a2e21fccb01f778960c81886300b8faa8bb59ca393cec0c41d53614b0235"
 
 [[gate.input]]
 path = "contracts/conformance.toml"
-sha256 = "f3758c0f4aded5ffc939e24b5b0641a9d69a376f483b8de050ddd8b776c16e69"
+sha256 = "8254d4bf17dca76c9b8ac8d3325b17df253d4056c718e5f8f05f08a8692e8709"
 
 [[gate.input]]
 path = "packs/kafkars-pr.toml"

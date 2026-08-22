@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v2 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v3 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -42,6 +42,7 @@ boundary.
 - `flush_completed`
 - `producer_closed`
 - `client_shutdown`
+- `command_failed`
 - `finished`
 - `fatal`
 
@@ -50,12 +51,14 @@ terminal event. Rejected operations emit no terminal.
 
 ## Failure behavior
 
-An adapter that can still speak the protocol emits one correlated `fatal` event,
-writes bounded context to stderr, and exits nonzero. A crash, malformed stdout,
-wrong version, wrong command ID, or timeout invalidates the run.
+A normal public client API failure emits one correlated `command_failed` event
+and exits successfully. Testctl stops issuing dependent steps, retains an
+independent broker snapshot, and produces valid failing evidence. An adapter or
+protocol failure instead emits `fatal` and exits nonzero. A crash, malformed
+stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v2 is an exact semantic contract. New capabilities may be declared
+Protocol v3 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

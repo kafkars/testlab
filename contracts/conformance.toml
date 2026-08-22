@@ -13,6 +13,12 @@ statement = "A scenario starts only when the adapter handshake contains every ca
 category = "capability"
 
 [[contract]]
+id = "CLIENT-001"
+title = "Public client commands complete successfully"
+statement = "A normalized public client API failure produces valid failing evidence rather than invalid harness evidence."
+category = "client"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

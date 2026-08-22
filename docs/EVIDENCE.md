@@ -41,7 +41,9 @@ the release-facing aggregate pass or fail.
 
 `passed` means valid evidence and no semantic violation.
 
-`failed` means valid evidence with one or more semantic violations.
+`failed` means valid evidence with one or more semantic violations. An
+adapter-reported public client API error is such a violation and remains
+distinguishable from adapter, protocol, process, or environment invalidity.
 
 `invalid` means process, protocol, timeout, capability, environment, broker, or
 harness failure prevents a client claim.

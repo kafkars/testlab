@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v2 command.
+//! Expected event shapes constrain each sequential protocol-v3 command.
 
 use testlab_schema::{AdapterEvent, ClientId, OperationId, ProducerId};
 
@@ -25,6 +25,9 @@ pub(crate) enum EventDisposition {
 
 impl ExpectedEvent {
     pub(crate) fn classify(&self, event: &AdapterEvent) -> Result<EventDisposition, RunFailure> {
+        if matches!(event, AdapterEvent::CommandFailed { .. }) {
+            return Ok(EventDisposition::Complete);
+        }
         match (self, event) {
             (Self::Ready, AdapterEvent::Ready { .. })
             | (Self::Finished, AdapterEvent::Finished) => Ok(EventDisposition::Complete),

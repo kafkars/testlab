@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v2. It is not a
+An adapter translates one packaged client surface to protocol v3. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -11,6 +11,7 @@ runner and not a verifier.
 - Report admission separately from terminal completion.
 - Preserve delivery certainty rather than collapsing failures.
 - Use stable normalized codes and bounded diagnostics.
+- Emit `command_failed` and exit successfully for a normal public API failure.
 - Settle close and shutdown explicitly.
 - Exit nonzero after an unrecoverable `fatal` event.
 - Use no private test-only client APIs.

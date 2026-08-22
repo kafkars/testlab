@@ -7,6 +7,7 @@ use testlab_schema::{
     ScenarioAction, TerminalStatus, Verdict, Violation, VisibilityExpectation,
 };
 
+use crate::client_failure::verify_client_failures;
 use crate::index::HistoryIndex;
 use crate::lifecycle::verify_lifecycle;
 use crate::protocol::verify_protocol;
@@ -20,11 +21,12 @@ pub fn verify(
     observations: &[BrokerObservation],
 ) -> Verdict {
     let index = HistoryIndex::build(history);
-    let sends = sends(scenario);
+    let sends = sends(scenario, &index);
     let assertions = assertions(scenario);
     let observed = observations_by_operation(observations);
     let mut violations = Vec::new();
     verify_protocol(adapter, &index, &mut violations);
+    verify_client_failures(&index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     verify_unknown_observations(&sends, &observed, &mut violations);
     verify_lifecycle(scenario, &index, &mut violations);
@@ -35,10 +37,14 @@ pub fn verify(
     }
 }
 
-fn sends(scenario: &Scenario) -> BTreeMap<OperationId, &RecordSpec> {
+fn sends<'a>(
+    scenario: &'a Scenario,
+    index: &HistoryIndex,
+) -> BTreeMap<OperationId, &'a RecordSpec> {
     scenario
         .steps
         .iter()
+        .filter(|step| index.action_issued(&step.action))
         .filter_map(|step| match &step.action {
             ScenarioAction::Send {
                 operation_id,

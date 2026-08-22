@@ -3,10 +3,10 @@
 use std::collections::BTreeSet;
 
 use testlab_schema::{
-    AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId, BrokerObservation,
-    ByteString, Capability, ClientId, CommandId, HistoryEntry, HistoryPayload, OperationAssertion,
-    OperationId, ProducerId, RecordSpec, Scenario, ScenarioAction, ScenarioId, ScenarioStep,
-    StepId, TerminalStatus, VisibilityExpectation,
+    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId,
+    BrokerObservation, ByteString, Capability, ClientId, CommandEnvelope, CommandId, HistoryEntry,
+    HistoryPayload, OperationAssertion, OperationId, ProducerId, RecordSpec, Scenario,
+    ScenarioAction, ScenarioId, ScenarioStep, StepId, TerminalStatus, VisibilityExpectation,
 };
 
 pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectation) -> Scenario {
@@ -244,12 +244,22 @@ fn step(id_value: &str, action: ScenarioAction) -> ScenarioStep {
     }
 }
 
-fn event(sequence: u64, event: AdapterEvent) -> HistoryEntry {
+pub(crate) fn event(sequence: u64, event: AdapterEvent) -> HistoryEntry {
     HistoryEntry {
         sequence,
         observed_unix_ms: sequence,
         payload: HistoryPayload::AdapterEvent {
             event: AdapterEventEnvelope::new(id(CommandId::new("cmd-fixture")), event),
+        },
+    }
+}
+
+pub(crate) fn command(sequence: u64, command: AdapterCommand) -> HistoryEntry {
+    HistoryEntry {
+        sequence,
+        observed_unix_ms: sequence,
+        payload: HistoryPayload::HarnessCommand {
+            command: CommandEnvelope::new(id(CommandId::new("cmd-fixture")), command),
         },
     }
 }

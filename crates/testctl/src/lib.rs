@@ -31,4 +31,6 @@ mod recorder_test;
 #[cfg(test)]
 mod runner_docker_test;
 #[cfg(test)]
+mod runner_protocol_test;
+#[cfg(test)]
 mod runner_test;

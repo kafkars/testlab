@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v2 scenario actions.
+//! One sequential adapter session executes protocol-v3 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -58,7 +58,7 @@ pub(crate) fn run_adapter_session(
     verify_capabilities(scenario, &descriptor)?;
     *adapter = Some(descriptor);
     for step in &scenario.steps {
-        execute_step(
+        let outcome = execute_step(
             &mut process,
             recorder,
             model_broker,
@@ -66,18 +66,39 @@ pub(crate) fn run_adapter_session(
             &mut protocol,
             &step.action,
         )?;
+        if outcome == StepOutcome::ClientFailed {
+            return settle_process(&mut process, &protocol, recorder, deadline);
+        }
     }
-    protocol.send_and_wait(
+    let finish = protocol.send_and_wait(
         &mut process,
         recorder,
         deadline,
         AdapterCommand::Finish,
         &ExpectedEvent::Finished,
     )?;
+    if matches!(finish.event, AdapterEvent::CommandFailed { .. }) {
+        return settle_process(&mut process, &protocol, recorder, deadline);
+    }
+    settle_process(&mut process, &protocol, recorder, deadline)
+}
+
+fn settle_process(
+    process: &mut AdapterProcess,
+    protocol: &ProtocolSession,
+    recorder: &mut HistoryRecorder,
+    deadline: Deadline,
+) -> Result<(), RunFailure> {
     process.close_input()?;
-    protocol.drain_to_eof(&process, recorder, deadline)?;
+    protocol.drain_to_eof(process, recorder, deadline)?;
     let _stderr = process.wait_success(deadline)?;
     Ok(())
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum StepOutcome {
+    Continue,
+    ClientFailed,
 }
 
 fn execute_step(
@@ -87,7 +108,7 @@ fn execute_step(
     deadline: Deadline,
     protocol: &mut ProtocolSession,
     action: &ScenarioAction,
-) -> Result<(), RunFailure> {
+) -> Result<StepOutcome, RunFailure> {
     let (command, expected) = match action {
         ScenarioAction::CreateClient { client_id } => (
             AdapterCommand::CreateClient {
@@ -125,7 +146,7 @@ fn execute_step(
                 )
             })?;
             recorder.broker_control(*behavior)?;
-            return Ok(());
+            return Ok(StepOutcome::Continue);
         }
         ScenarioAction::Send {
             producer_id,
@@ -158,8 +179,12 @@ fn execute_step(
             ExpectedEvent::ClientShutdown(client_id.clone()),
         ),
     };
-    protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
-    Ok(())
+    let event = protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
+    if matches!(event.event, AdapterEvent::CommandFailed { .. }) {
+        Ok(StepOutcome::ClientFailed)
+    } else {
+        Ok(StepOutcome::Continue)
+    }
 }
 
 fn descriptor_from(event: AdapterEventEnvelope) -> Result<AdapterDescriptor, RunFailure> {

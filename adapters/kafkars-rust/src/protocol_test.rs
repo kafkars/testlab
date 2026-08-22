@@ -2,12 +2,14 @@
 
 use std::io::Cursor;
 
+use kafkars::{ErrorKind, KafkaError};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, ClientId, CommandEnvelope, CommandId,
     RunId, ScenarioId,
 };
 
-use super::protocol::run_session;
+use super::protocol::{emit_client_failure, run_session};
+use crate::AdapterError;
 
 #[test]
 fn public_client_and_producer_lifecycle_settles() {
@@ -58,6 +60,28 @@ fn public_client_and_producer_lifecycle_settles() {
     assert!(matches!(
         events.last().map(|event| &event.event),
         Some(AdapterEvent::Finished)
+    ));
+}
+
+#[test]
+fn public_client_failure_is_a_correlated_normal_event() {
+    let envelope = command("flush", AdapterCommand::Finish);
+    let mut output = Vec::new();
+
+    emit_client_failure(
+        &mut output,
+        envelope,
+        AdapterError::Client(KafkaError::new(ErrorKind::Backpressure, "flush contended")),
+    )
+    .unwrap_or_else(|error| panic!("emit client failure: {error}"));
+
+    let event: AdapterEventEnvelope =
+        serde_json::from_slice(&output).unwrap_or_else(|error| panic!("decode event: {error}"));
+    assert_eq!(event.command_id.as_str(), "flush");
+    assert!(matches!(
+        event.event,
+        AdapterEvent::CommandFailed { code, diagnostic }
+            if code == "backpressure" && diagnostic == "flush contended"
     ));
 }
 

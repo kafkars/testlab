@@ -54,6 +54,9 @@ where
         }
         let finished = match dispatch(&mut state, &mut writer, envelope.clone()) {
             Ok(finished) => finished,
+            Err(error) if error.client_failure().is_some() => {
+                return emit_client_failure(&mut writer, envelope, error);
+            }
             Err(error) => return emit_fatal(&mut writer, envelope, error),
         };
         if finished {
@@ -258,4 +261,28 @@ fn emit_fatal<W: Write>(
     );
     let _ = emit(writer, &event);
     Err(error)
+}
+
+pub(super) fn emit_client_failure<W: Write>(
+    writer: &mut W,
+    envelope: CommandEnvelope,
+    error: AdapterError,
+) -> Result<(), AdapterError> {
+    let Some(client_error) = error.client_failure() else {
+        return Err(error);
+    };
+    eprintln!(
+        "Kafkars command {} failed: {client_error}",
+        envelope.command_id
+    );
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            envelope.command_id,
+            AdapterEvent::CommandFailed {
+                code: normalize::error_code(client_error),
+                diagnostic: client_error.to_string(),
+            },
+        ),
+    )
 }

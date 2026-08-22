@@ -1,11 +1,12 @@
 //! Contract tests force each verifier family to emit its stable identifier.
 
 use testlab_schema::{
-    AdapterEvent, HistoryPayload, OperationId, TerminalStatus, Verdict, VisibilityExpectation,
+    AdapterCommand, AdapterEvent, ClientId, HistoryPayload, OperationId, ProducerId,
+    TerminalStatus, Verdict, VisibilityExpectation,
 };
 
 use super::verify;
-use crate::verify_fixture::{adapter, history, observation, scenario};
+use crate::verify_fixture::{adapter, command, event, history, observation, record, scenario};
 
 type EventPredicate = fn(&AdapterEvent) -> bool;
 
@@ -34,6 +35,76 @@ fn protocol_contracts_detect_duplicate_ready_and_unknown_observation() {
         &[observation(0, "value"), unknown],
     );
     assert_contract(&verdict, "PROTO-002");
+}
+
+#[test]
+fn public_client_failure_is_valid_semantic_evidence() {
+    let scenario = scenario(
+        TerminalStatus::Acknowledged,
+        VisibilityExpectation::ExactlyOnce,
+    );
+    let mut events = history(TerminalStatus::Acknowledged);
+    remove_event(&mut events, is_flush_completed);
+    remove_event(&mut events, is_producer_closed);
+    remove_event(&mut events, is_client_shutdown);
+    remove_event(&mut events, is_finished);
+    let client = client_id("client-1");
+    let producer = producer_id("producer-1");
+    events.extend([
+        command(
+            10,
+            AdapterCommand::CreateClient {
+                client_id: client.clone(),
+            },
+        ),
+        command(
+            11,
+            AdapterCommand::AwaitClientReady {
+                client_id: client.clone(),
+            },
+        ),
+        command(
+            12,
+            AdapterCommand::CreateProducer {
+                client_id: client,
+                producer_id: producer.clone(),
+            },
+        ),
+        command(
+            13,
+            AdapterCommand::Send {
+                producer_id: producer.clone(),
+                operation_id: operation_id("op-1"),
+                record: record("value"),
+            },
+        ),
+        command(
+            14,
+            AdapterCommand::Flush {
+                producer_id: producer,
+            },
+        ),
+    ]);
+    events.push(event(
+        15,
+        AdapterEvent::CommandFailed {
+            code: "backpressure".to_owned(),
+            diagnostic: "flush contended".to_owned(),
+        },
+    ));
+
+    let verdict = verify(&scenario, &adapter(), &events, &[observation(0, "value")]);
+
+    assert_contract(&verdict, "CLIENT-001");
+    assert_contract(&verdict, "LIFE-003");
+    for cascading in ["LIFE-004", "LIFE-005", "LIFE-006"] {
+        assert!(
+            !verdict
+                .violations
+                .iter()
+                .any(|violation| violation.contract_id.as_str() == cascading)
+        );
+    }
 }
 
 #[test]
@@ -174,6 +245,20 @@ fn operation_id(value: &str) -> OperationId {
     match OperationId::new(value) {
         Ok(value) => value,
         Err(error) => panic!("invalid fixture operation id: {error}"),
+    }
+}
+
+fn client_id(value: &str) -> ClientId {
+    match ClientId::new(value) {
+        Ok(value) => value,
+        Err(error) => panic!("invalid fixture client id: {error}"),
+    }
+}
+
+fn producer_id(value: &str) -> ProducerId {
+    match ProducerId::new(value) {
+        Ok(value) => value,
+        Err(error) => panic!("invalid fixture producer id: {error}"),
     }
 }
 

@@ -1,5 +1,6 @@
 //! Pure deterministic verification maps public history and observations to contracts.
 
+mod client_failure;
 mod contracts;
 mod index;
 mod lifecycle;

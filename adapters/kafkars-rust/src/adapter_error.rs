@@ -41,11 +41,21 @@ pub enum AdapterError {
 
 impl From<StateError> for AdapterError {
     fn from(error: StateError) -> Self {
-        Self::State(error.to_string())
+        match error {
+            StateError::Client(error) => Self::Client(error),
+            other => Self::State(other.to_string()),
+        }
     }
 }
 
 impl AdapterError {
+    pub(crate) const fn client_failure(&self) -> Option<&kafkars::KafkaError> {
+        match self {
+            Self::Client(error) => Some(error),
+            _ => None,
+        }
+    }
+
     pub(crate) fn code(&self) -> &'static str {
         match self {
             Self::Io(_) => "adapter_io",
