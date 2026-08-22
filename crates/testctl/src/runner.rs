@@ -5,7 +5,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use testlab_broker::RunningBroker;
 use testlab_schema::{
-    AdapterDescriptor, BrokerObservation, RunId, Scenario, SubjectManifest, Verdict,
+    AdapterDescriptor, BrokerObservation, EnvironmentDriver, EnvironmentManifest, RunId, Scenario,
+    SubjectManifest, Verdict,
 };
 
 use crate::catalog::Repository;
@@ -21,18 +22,24 @@ pub(crate) fn run_scenario(
     repository: &Repository,
     scenario_path: &Path,
     subject_path: &Path,
+    environment_path: &Path,
     evidence_directory: &Path,
 ) -> Result<SealedRun, AppError> {
     repository.validate_all()?;
     let (scenario_path, scenario) = repository.load_scenario(scenario_path)?;
     let (subject_path, subject) = repository.load_subject(subject_path)?;
+    let (environment_path, environment) = repository.load_environment(environment_path)?;
     run_loaded(
         repository,
-        &scenario_path,
-        &scenario,
-        &subject_path,
-        &subject,
-        evidence_directory,
+        LoadedRun {
+            scenario_path: &scenario_path,
+            scenario: &scenario,
+            subject_path: &subject_path,
+            subject: &subject,
+            environment_path: &environment_path,
+            environment: &environment,
+            evidence_directory,
+        },
     )
 }
 
@@ -40,34 +47,53 @@ pub(crate) fn run_pack(
     repository: &Repository,
     pack_path: &Path,
     subject_path: &Path,
+    environment_path: &Path,
     evidence_directory: &Path,
 ) -> Result<Vec<SealedRun>, AppError> {
     repository.validate_all()?;
     let (_, pack) = repository.load_pack(pack_path)?;
     let (subject_path, subject) = repository.load_subject(subject_path)?;
+    let (environment_path, environment) = repository.load_environment(environment_path)?;
     let mut runs = Vec::with_capacity(pack.scenarios.len());
     for scenario_member in &pack.scenarios {
         let (scenario_path, scenario) = repository.load_scenario(Path::new(scenario_member))?;
         runs.push(run_loaded(
             repository,
-            &scenario_path,
-            &scenario,
-            &subject_path,
-            &subject,
-            evidence_directory,
+            LoadedRun {
+                scenario_path: &scenario_path,
+                scenario: &scenario,
+                subject_path: &subject_path,
+                subject: &subject,
+                environment_path: &environment_path,
+                environment: &environment,
+                evidence_directory,
+            },
         )?);
     }
     Ok(runs)
 }
 
-fn run_loaded(
-    repository: &Repository,
-    scenario_path: &Path,
-    scenario: &Scenario,
-    subject_path: &Path,
-    subject: &SubjectManifest,
-    evidence_directory: &Path,
-) -> Result<SealedRun, AppError> {
+#[derive(Clone, Copy, Debug)]
+struct LoadedRun<'a> {
+    scenario_path: &'a Path,
+    scenario: &'a Scenario,
+    subject_path: &'a Path,
+    subject: &'a SubjectManifest,
+    environment_path: &'a Path,
+    environment: &'a EnvironmentManifest,
+    evidence_directory: &'a Path,
+}
+
+fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedRun, AppError> {
+    let LoadedRun {
+        scenario_path,
+        scenario,
+        subject_path,
+        subject,
+        environment_path,
+        environment,
+        evidence_directory,
+    } = request;
     let started_unix_ms = preflight_time()?;
     let run_id = new_run_id(started_unix_ms)?;
     let deadline = Deadline::after_millis(scenario.timeout_ms)
@@ -80,6 +106,7 @@ fn run_loaded(
             repository_root: repository.root(),
             scenario,
             subject,
+            environment,
             run_id: &run_id,
             deadline,
         },
@@ -120,9 +147,11 @@ fn run_loaded(
         evidence_directory,
         scenario_path,
         subject_path,
+        environment_path,
         run_id: &run_id,
         scenario,
         subject,
+        environment,
         adapter: adapter.as_ref(),
         history: &history,
         observations: &observations,
@@ -137,6 +166,7 @@ struct ExecutionRequest<'a> {
     repository_root: &'a Path,
     scenario: &'a Scenario,
     subject: &'a SubjectManifest,
+    environment: &'a EnvironmentManifest,
     run_id: &'a RunId,
     deadline: Deadline,
 }
@@ -151,9 +181,19 @@ fn execute(
         repository_root,
         scenario,
         subject,
+        environment,
         run_id,
         deadline,
     } = request;
+    if !matches!(&environment.driver, EnvironmentDriver::ModelBroker) {
+        return Err(RunFailure::harness(
+            "environment_driver_unsupported",
+            format!(
+                "environment {} requires a driver that testctl does not execute yet",
+                environment.id
+            ),
+        ));
+    }
     let broker = RunningBroker::start().map_err(|error| {
         RunFailure::harness(
             "environment_start_failed",

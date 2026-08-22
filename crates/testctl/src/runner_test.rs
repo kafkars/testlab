@@ -12,6 +12,7 @@ use crate::catalog::Repository;
 use crate::runner::run_scenario;
 
 const SCENARIO: &str = "scenarios/producer/round-trip.toml";
+const ENVIRONMENT: &str = "clusters/model-broker.toml";
 
 #[test]
 fn missing_subject_executable_seals_invalid_evidence() {
@@ -41,6 +42,7 @@ fn missing_subject_executable_seals_invalid_evidence() {
             &repository,
             Path::new(SCENARIO),
             &subject_path,
+            Path::new(ENVIRONMENT),
             &evidence_root,
         ),
         "run invalid subject",
@@ -61,6 +63,7 @@ fn assert_required_artifacts(run: &Path) {
         "manifest.json",
         "scenario.json",
         "subject.json",
+        "environment.json",
         "history.jsonl",
         "broker-observations.jsonl",
         "verdict.json",
@@ -76,6 +79,8 @@ fn assert_required_artifacts(run: &Path) {
 fn assert_invalid_manifest(run: &Path) {
     let manifest: EvidenceManifest = read_json(&run.join("manifest.json"));
     let verdict: Verdict = read_json(&run.join("verdict.json"));
+    assert_eq!(manifest.schema_version, 2);
+    assert_eq!(manifest.environment_id.as_str(), "model-broker");
     assert_eq!(manifest.status, VerdictStatus::Invalid);
     assert!(manifest.adapter.is_none());
     assert_eq!(verdict.status, VerdictStatus::Invalid);

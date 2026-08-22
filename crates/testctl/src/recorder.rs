@@ -5,6 +5,9 @@ use testlab_schema::{
     HistoryEntry, HistoryPayload,
 };
 
+#[cfg(test)]
+use testlab_schema::EnvironmentOperation;
+
 use crate::run_error::RunFailure;
 use crate::time::unix_ms;
 
@@ -29,6 +32,14 @@ impl HistoryRecorder {
 
     pub(crate) fn observation(&mut self, observation: BrokerObservation) -> Result<(), RunFailure> {
         self.push(HistoryPayload::BrokerObservation { observation })
+    }
+
+    #[cfg(test)]
+    pub(crate) fn environment_operation(
+        &mut self,
+        operation: EnvironmentOperation,
+    ) -> Result<(), RunFailure> {
+        self.push(HistoryPayload::EnvironmentOperation { operation })
     }
 
     pub(crate) fn failure(&mut self, error: HarnessError) -> Result<(), RunFailure> {

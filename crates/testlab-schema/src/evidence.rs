@@ -3,9 +3,12 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AdapterDescriptor, AdapterEventEnvelope, BrokerBehavior, CommandEnvelope, OperationId,
-    RecordSpec, RunId, ScenarioId, SubjectId, VerdictStatus,
+    AdapterDescriptor, AdapterEventEnvelope, BrokerBehavior, CommandEnvelope, EnvironmentId,
+    EnvironmentOperationId, OperationId, RecordSpec, RunId, ScenarioId, SubjectId, VerdictStatus,
 };
+
+/// Current sealed evidence manifest version.
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 2;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -59,11 +62,76 @@ pub enum HistoryPayload {
         /// Exact observation.
         observation: BrokerObservation,
     },
+    /// One completed environment terminal operation.
+    EnvironmentOperation {
+        /// Exact correlated environment operation.
+        operation: EnvironmentOperation,
+    },
     /// Harness or environment failure.
     HarnessError {
         /// Stable bounded failure.
         error: HarnessError,
     },
+}
+
+/// One effectful environment operation and its terminal outcome.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct EnvironmentOperation {
+    /// Stable operation identity.
+    pub id: EnvironmentOperationId,
+    /// Semantic operation class.
+    pub kind: EnvironmentOperationKind,
+    /// Executed program name.
+    pub program: String,
+    /// Exact non-secret arguments.
+    pub args: Vec<String>,
+    /// Diagnostic operation start time.
+    pub started_unix_ms: u64,
+    /// Diagnostic operation completion time.
+    pub completed_unix_ms: u64,
+    /// Terminal operation status.
+    pub status: EnvironmentOperationStatus,
+    /// Process exit code when available.
+    pub exit_code: Option<i32>,
+    /// Sealed stdout artifact name when retained.
+    pub stdout_artifact: Option<String>,
+    /// Sealed stderr artifact name when retained.
+    pub stderr_artifact: Option<String>,
+    /// Bounded failure diagnostic when unsuccessful.
+    pub diagnostic: Option<String>,
+}
+
+/// Environment operation classes retained in evidence.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EnvironmentOperationKind {
+    /// Inspect one immutable broker image.
+    ImageInspect,
+    /// Resolve and validate Compose configuration.
+    ComposeConfig,
+    /// Start one isolated Compose project.
+    ComposeUp,
+    /// Probe broker API readiness.
+    Readiness,
+    /// Capture Compose process state.
+    ComposePs,
+    /// Capture broker logs.
+    ComposeLogs,
+    /// Stop the project and remove owned volumes.
+    ComposeDown,
+}
+
+/// Terminal status for one environment operation.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EnvironmentOperationStatus {
+    /// The process completed successfully.
+    Succeeded,
+    /// The process completed unsuccessfully.
+    Failed,
+    /// The harness killed the process at its deadline.
+    TimedOut,
 }
 
 /// Stable invalidity evidence from testctl or an environment.
@@ -88,6 +156,8 @@ pub struct EvidenceManifest {
     pub scenario_id: ScenarioId,
     /// Packaged subject under test.
     pub subject_id: SubjectId,
+    /// Independently controlled environment used by the run.
+    pub environment_id: EnvironmentId,
     /// Start time in Unix milliseconds.
     pub started_unix_ms: u64,
     /// Completion time in Unix milliseconds.

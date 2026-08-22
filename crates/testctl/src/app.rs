@@ -43,6 +43,9 @@ enum Command {
         /// Repository-relative subject manifest.
         #[arg(long)]
         subject: PathBuf,
+        /// Repository-relative environment manifest.
+        #[arg(long, default_value = "clusters/model-broker.toml")]
+        environment: PathBuf,
         /// Repository-relative or absolute evidence directory.
         #[arg(long, default_value = "evidence")]
         evidence_dir: PathBuf,
@@ -58,6 +61,9 @@ enum Command {
         /// Repository-relative subject manifest.
         #[arg(long)]
         subject: PathBuf,
+        /// Repository-relative environment manifest.
+        #[arg(long, default_value = "clusters/model-broker.toml")]
+        environment: PathBuf,
         /// Repository-relative or absolute evidence directory.
         #[arg(long, default_value = "evidence")]
         evidence_dir: PathBuf,
@@ -84,10 +90,17 @@ fn run(cli: Cli) -> Result<bool, AppError> {
             root,
             scenario,
             subject,
+            environment,
             evidence_dir,
         } => {
             let repository = Repository::open(&root)?;
-            let run = run_scenario(&repository, &scenario, &subject, &evidence_dir)?;
+            let run = run_scenario(
+                &repository,
+                &scenario,
+                &subject,
+                &environment,
+                &evidence_dir,
+            )?;
             println!("{:?} {}", run.verdict.status, run.path.display());
             Ok(run.verdict.is_passed())
         }
@@ -95,10 +108,11 @@ fn run(cli: Cli) -> Result<bool, AppError> {
             root,
             pack,
             subject,
+            environment,
             evidence_dir,
         } => {
             let repository = Repository::open(&root)?;
-            let runs = run_pack(&repository, &pack, &subject, &evidence_dir)?;
+            let runs = run_pack(&repository, &pack, &subject, &environment, &evidence_dir)?;
             let mut passed = true;
             for run in runs {
                 println!("{:?} {}", run.verdict.status, run.path.display());

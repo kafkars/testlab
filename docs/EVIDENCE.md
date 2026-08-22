@@ -10,6 +10,7 @@ digests exist.
 - `manifest.json`
 - `scenario.json`
 - `subject.json`
+- `environment.json`
 - `adapter.json` after a successful handshake
 - `history.jsonl`
 - `broker-observations.jsonl`
@@ -17,6 +18,10 @@ digests exist.
 - `summary.md`
 - `reproduction.sh`
 - `digests.json`
+
+Evidence schema v2 records the exact environment identity in `manifest.json`.
+Every effectful environment terminal operation carries a stable identity in
+`history.jsonl`; retained stdout and stderr are named by that operation.
 
 ## Status
 

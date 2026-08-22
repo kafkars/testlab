@@ -120,6 +120,10 @@ identifier!(
     "Stable identity for one independently controlled test environment."
 );
 identifier!(
+    EnvironmentOperationId,
+    "Stable identity for one effectful environment terminal operation."
+);
+identifier!(
     OperationId,
     "Scenario-local identity for one public operation."
 );

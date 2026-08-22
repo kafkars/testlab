@@ -23,11 +23,13 @@ pub use environment::{
     EnvironmentError, EnvironmentManifest, SecurityProfile, TransportSecurity,
 };
 pub use evidence::{
-    BrokerObservation, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
+    BrokerObservation, EVIDENCE_SCHEMA_VERSION, EnvironmentOperation, EnvironmentOperationKind,
+    EnvironmentOperationStatus, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
 };
 pub use ids::{
-    AdapterId, CellId, ClientId, CommandId, ContractId, EnvironmentId, IdError, OperationId,
-    PackId, ProducerId, QualificationId, RunId, ScenarioId, StepId, SubjectId,
+    AdapterId, CellId, ClientId, CommandId, ContractId, EnvironmentId, EnvironmentOperationId,
+    IdError, OperationId, PackId, ProducerId, QualificationId, RunId, ScenarioId, StepId,
+    SubjectId,
 };
 pub use pack::{ScenarioPack, ScenarioPackError};
 pub use protocol::{

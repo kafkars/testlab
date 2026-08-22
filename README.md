@@ -67,6 +67,7 @@ evidence/run-.../
 ├── adapter.json
 ├── broker-observations.jsonl
 ├── digests.json
+├── environment.json
 ├── history.jsonl
 ├── manifest.json
 ├── reproduction.sh

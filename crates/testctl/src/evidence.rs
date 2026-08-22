@@ -4,8 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use testlab_schema::{
-    AdapterDescriptor, BrokerObservation, EvidenceManifest, HistoryEntry, RunId, Scenario,
-    SubjectManifest, Verdict,
+    AdapterDescriptor, BrokerObservation, EVIDENCE_SCHEMA_VERSION, EnvironmentManifest,
+    EvidenceManifest, HistoryEntry, RunId, Scenario, SubjectManifest, Verdict,
 };
 
 use crate::evidence_io::{
@@ -19,9 +19,11 @@ pub(crate) struct SealRequest<'a> {
     pub(crate) evidence_directory: &'a Path,
     pub(crate) scenario_path: &'a Path,
     pub(crate) subject_path: &'a Path,
+    pub(crate) environment_path: &'a Path,
     pub(crate) run_id: &'a RunId,
     pub(crate) scenario: &'a Scenario,
     pub(crate) subject: &'a SubjectManifest,
+    pub(crate) environment: &'a EnvironmentManifest,
     pub(crate) adapter: Option<&'a AdapterDescriptor>,
     pub(crate) history: &'a [HistoryEntry],
     pub(crate) observations: &'a [BrokerObservation],
@@ -74,10 +76,11 @@ pub(crate) fn seal(request: &SealRequest<'_>) -> Result<SealedRun, AppError> {
 
 fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), AppError> {
     let manifest = EvidenceManifest {
-        schema_version: 1,
+        schema_version: EVIDENCE_SCHEMA_VERSION,
         run_id: request.run_id.clone(),
         scenario_id: request.scenario.id.clone(),
         subject_id: request.subject.id.clone(),
+        environment_id: request.environment.id.clone(),
         started_unix_ms: request.started_unix_ms,
         completed_unix_ms: request.completed_unix_ms,
         adapter: request.adapter.cloned(),
@@ -86,6 +89,7 @@ fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), Ap
     write_json(directory, "manifest.json", &manifest)?;
     write_json(directory, "scenario.json", request.scenario)?;
     write_json(directory, "subject.json", request.subject)?;
+    write_json(directory, "environment.json", request.environment)?;
     if let Some(adapter) = request.adapter {
         write_json(directory, "adapter.json", adapter)?;
     }
@@ -106,8 +110,12 @@ fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), Ap
 
 fn summary(request: &SealRequest<'_>) -> String {
     let mut text = format!(
-        "# Testlab result\n\n- Run: `{}`\n- Scenario: `{}`\n- Subject: `{}`\n- Status: `{:?}`\n",
-        request.run_id, request.scenario.id, request.subject.id, request.verdict.status
+        "# Testlab result\n\n- Run: `{}`\n- Scenario: `{}`\n- Subject: `{}`\n- Environment: `{}`\n- Status: `{:?}`\n",
+        request.run_id,
+        request.scenario.id,
+        request.subject.id,
+        request.environment.id,
+        request.verdict.status
     );
     if request.verdict.violations.is_empty() {
         text.push_str("\nNo deterministic contract violations.\n");
@@ -128,8 +136,9 @@ fn reproduction(request: &SealRequest<'_>) -> String {
     let root = shell_quote(&request.repository_root.display().to_string());
     let scenario = shell_quote(&request.scenario_path.display().to_string());
     let subject = shell_quote(&request.subject_path.display().to_string());
+    let environment = shell_quote(&request.environment_path.display().to_string());
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root={root}\nexec \"$repo_root/target/debug/testctl\" run --root \"$repo_root\" --scenario {scenario} --subject {subject} --evidence-dir \"$repo_root/evidence\"\n"
+        "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root={root}\nexec \"$repo_root/target/debug/testctl\" run --root \"$repo_root\" --scenario {scenario} --subject {subject} --environment {environment} --evidence-dir \"$repo_root/evidence\"\n"
     )
 }
 
