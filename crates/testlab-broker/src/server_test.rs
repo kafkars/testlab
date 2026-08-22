@@ -43,12 +43,19 @@ fn exchange(broker: &RunningBroker) -> Result<Option<ModelBrokerResponse>, Strin
 #[test]
 fn acknowledgment_is_observed_once() {
     let broker = RunningBroker::start().unwrap_or_else(|error| panic!("start broker: {error}"));
-    let response = exchange(&broker).unwrap_or_else(|error| panic!("exchange: {error}"));
+    let response = exchange(&broker);
 
-    assert!(matches!(
-        response.map(|value| value.status),
-        Some(ModelBrokerResponseStatus::Acknowledged)
-    ));
+    assert!(
+        matches!(
+            &response,
+            Ok(Some(ModelBrokerResponse {
+                status: ModelBrokerResponseStatus::Acknowledged,
+                ..
+            }))
+        ),
+        "unexpected response {response:?}; broker failure: {:?}",
+        broker.failure()
+    );
     assert_eq!(
         broker
             .observations()
@@ -65,7 +72,8 @@ fn accepted_request_can_lose_its_response() {
         .set_next_behavior(BrokerBehavior::AcceptAndDropResponse)
         .unwrap_or_else(|error| panic!("set behavior: {error}"));
 
-    assert_eq!(exchange(&broker).ok(), Some(None));
+    let response = exchange(&broker);
+    assert_eq!(response, Ok(None), "broker failure: {:?}", broker.failure());
     assert_eq!(
         broker
             .observations()

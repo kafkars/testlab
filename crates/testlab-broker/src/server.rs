@@ -75,7 +75,6 @@ impl RunningBroker {
 
     fn stop_and_join(&mut self) -> Result<(), BrokerError> {
         self.stop.store(true, Ordering::Release);
-        let _ = TcpStream::connect(&self.endpoint);
         if let Some(thread) = self.thread.take() {
             thread.join().map_err(|_| BrokerError::ThreadPanicked)?;
         }
@@ -121,12 +120,13 @@ fn handle_connection(
     mut stream: TcpStream,
     state: &Arc<Mutex<BrokerState>>,
 ) -> Result<(), BrokerError> {
+    stream.set_nonblocking(false)?;
     stream.set_read_timeout(Some(IO_TIMEOUT))?;
     stream.set_write_timeout(Some(IO_TIMEOUT))?;
-    let reader_stream = stream.try_clone()?;
-    let mut reader = BufReader::new(reader_stream).take(MAX_REQUEST_READ);
+    let mut reader = BufReader::new(&mut stream).take(MAX_REQUEST_READ);
     let mut line = String::new();
     let bytes = reader.read_line(&mut line)?;
+    drop(reader);
     if bytes == 0 {
         return Ok(());
     }
