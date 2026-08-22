@@ -57,13 +57,13 @@ fn lifecycle_retries_readiness_and_retains_cleanup_evidence() {
     let setup = environment.start(Duration::from_secs(2));
 
     assert!(setup.succeeded(), "setup failure: {:?}", setup.failure);
-    assert_eq!(setup.operations.len(), 5);
+    assert_eq!(setup.operations.len(), 6);
     assert_eq!(
-        setup.operations[3].status,
+        setup.operations[4].status,
         EnvironmentOperationStatus::Failed
     );
     assert_eq!(
-        setup.operations[4].status,
+        setup.operations[5].status,
         EnvironmentOperationStatus::Succeeded
     );
     assert_unique_operation_ids(&setup.operations);
@@ -89,6 +89,7 @@ fn lifecycle_retries_readiness_and_retains_cleanup_evidence() {
         ]
     );
     let log = fixture.log();
+    assert!(log.contains("pull apache/kafka@sha256:"));
     assert!(log.contains("image inspect apache/kafka@sha256:"));
     assert!(log.contains("down --volumes --remove-orphans"));
 }

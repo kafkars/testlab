@@ -34,7 +34,8 @@ Testlab may consume public artifacts. It never imports private client state.
 - catalog integrity validation through the same public manifest loader used by
   `testctl`;
 - an immutable Apache Kafka 4.3.1 Compose environment with owned readiness,
-  snapshots, logs, cleanup, and sealed terminal evidence;
+  digest pull, inspection, readiness, snapshots, logs, cleanup, and sealed
+  terminal evidence;
 - fail-closed qualification manifests that aggregate ordered scenario evidence;
 - bounded per-cell repetition so intermittent failures block qualification;
 - independent real-Kafka observation through pinned librdkafka;

@@ -19,9 +19,11 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v2 records the exact environment identity in `manifest.json`.
+Evidence schema v3 records the exact environment identity in `manifest.json`.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
+Docker environments pull and then inspect the declared digest as separate
+operations before Compose receives the image reference.
 Real-Kafka runs also record one `broker_observe` operation. Its librdkafka
 snapshot uses broker watermarks and emits structured observations with exact
 partition, offset, key, value, and ordered header bytes.

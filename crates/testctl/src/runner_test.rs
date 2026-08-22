@@ -6,7 +6,9 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use sha2::{Digest, Sha256};
-use testlab_schema::{EvidenceManifest, HistoryEntry, HistoryPayload, Verdict, VerdictStatus};
+use testlab_schema::{
+    EVIDENCE_SCHEMA_VERSION, EvidenceManifest, HistoryEntry, HistoryPayload, Verdict, VerdictStatus,
+};
 
 use crate::catalog::Repository;
 use crate::runner::run_scenario;
@@ -79,7 +81,7 @@ fn assert_required_artifacts(run: &Path) {
 fn assert_invalid_manifest(run: &Path) {
     let manifest: EvidenceManifest = read_json(&run.join("manifest.json"));
     let verdict: Verdict = read_json(&run.join("verdict.json"));
-    assert_eq!(manifest.schema_version, 2);
+    assert_eq!(manifest.schema_version, EVIDENCE_SCHEMA_VERSION);
     assert_eq!(manifest.environment_id.as_str(), "model-broker");
     assert_eq!(manifest.status, VerdictStatus::Invalid);
     assert!(manifest.adapter.is_none());

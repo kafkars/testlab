@@ -10,6 +10,15 @@ pub(super) struct CommandSpec {
     pub(super) stderr_artifact: String,
 }
 
+pub(super) fn image_pull(image: &str) -> CommandSpec {
+    CommandSpec {
+        kind: EnvironmentOperationKind::ImagePull,
+        args: vec!["pull".to_owned(), image.to_owned()],
+        stdout_artifact: "image-pull.txt".to_owned(),
+        stderr_artifact: "image-pull.stderr.txt".to_owned(),
+    }
+}
+
 pub(super) fn image_inspect(image: &str) -> CommandSpec {
     CommandSpec {
         kind: EnvironmentOperationKind::ImageInspect,

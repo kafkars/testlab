@@ -143,6 +143,9 @@ impl DockerComposeEnvironment {
             return phase;
         };
         let image = self.environment[0].1.clone();
+        if !self.required(&mut phase, compose_command::image_pull(&image), deadline) {
+            return phase;
+        }
         if !self.required(&mut phase, compose_command::image_inspect(&image), deadline) {
             return phase;
         }
