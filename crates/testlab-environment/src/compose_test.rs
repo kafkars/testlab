@@ -1,7 +1,6 @@
 //! Compose lifecycle tests use an external fake to prove ordering and cleanup.
 
 use std::fs;
-use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
@@ -24,13 +23,6 @@ fn checked_in_kafka_starts_becomes_ready_and_cleans_up() {
         .unwrap_or_else(|error| panic!("read checked environment: {error}"));
     let manifest: EnvironmentManifest = toml::from_str(&source)
         .unwrap_or_else(|error| panic!("parse checked environment: {error}"));
-    let listener = TcpListener::bind(("127.0.0.1", 0))
-        .unwrap_or_else(|error| panic!("allocate host port: {error}"));
-    let host_port = listener
-        .local_addr()
-        .unwrap_or_else(|error| panic!("read allocated host port: {error}"))
-        .port();
-    drop(listener);
     let run_id = RunId::new(format!("run-docker-{}", std::process::id()))
         .unwrap_or_else(|error| panic!("Docker run id: {error}"));
     let mut environment = DockerComposeEnvironment::new(ComposeRequest {
@@ -38,7 +30,6 @@ fn checked_in_kafka_starts_becomes_ready_and_cleans_up() {
         environment: &manifest,
         run_id: &run_id,
         started_unix_ms: 1,
-        host_port,
     })
     .unwrap_or_else(|error| panic!("create Docker environment: {error}"));
 
@@ -167,9 +158,9 @@ impl Fixture {
                 environment: &self.manifest,
                 run_id: &self.run_id,
                 started_unix_ms: 1,
-                host_port: 29092,
             },
             self.program.clone(),
+            29092,
         )
         .unwrap_or_else(|error| panic!("create Compose environment: {error}"))
     }

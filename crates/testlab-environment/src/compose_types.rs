@@ -18,8 +18,6 @@ pub struct ComposeRequest<'a> {
     pub run_id: &'a RunId,
     /// Wall-clock run start supplied by the harness.
     pub started_unix_ms: u64,
-    /// Loopback port allocated for the client-facing broker listener.
-    pub host_port: u16,
 }
 
 /// One retained byte artifact from an environment operation.

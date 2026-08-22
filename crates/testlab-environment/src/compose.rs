@@ -1,6 +1,7 @@
 //! Docker Compose lifecycle owns immutable setup, readiness, snapshots, and cleanup.
 
 use std::fmt::{Debug, Formatter};
+use std::net::TcpListener;
 use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -28,6 +29,7 @@ pub struct DockerComposeEnvironment {
     broker_services: Vec<String>,
     client_port: u16,
     host_port: u16,
+    port_reservation: Option<TcpListener>,
     started_unix_ms: u64,
     started: Instant,
     next_operation: u32,
@@ -49,22 +51,48 @@ impl Debug for DockerComposeEnvironment {
 impl DockerComposeEnvironment {
     /// Resolves an immutable manifest into a side-effect-free lifecycle owner.
     pub fn new(request: ComposeRequest<'_>) -> Result<Self, ComposeFailure> {
-        Self::with_program(request, PathBuf::from("docker"))
+        let reservation = TcpListener::bind(("127.0.0.1", 0)).map_err(|error| {
+            ComposeFailure::new(
+                "environment_host_port_unavailable",
+                format!("failed to reserve a loopback port: {error}"),
+            )
+        })?;
+        let host_port = reservation
+            .local_addr()
+            .map_err(|error| {
+                ComposeFailure::new(
+                    "environment_host_port_unavailable",
+                    format!("failed to inspect the loopback reservation: {error}"),
+                )
+            })?
+            .port();
+        Self::with_program(
+            request,
+            PathBuf::from("docker"),
+            host_port,
+            Some(reservation),
+        )
     }
 
     #[cfg(test)]
     pub(crate) fn new_with_program(
         request: ComposeRequest<'_>,
         program: PathBuf,
+        host_port: u16,
     ) -> Result<Self, ComposeFailure> {
-        Self::with_program(request, program)
+        Self::with_program(request, program, host_port, None)
     }
 
-    fn with_program(request: ComposeRequest<'_>, program: PathBuf) -> Result<Self, ComposeFailure> {
+    fn with_program(
+        request: ComposeRequest<'_>,
+        program: PathBuf,
+        host_port: u16,
+        port_reservation: Option<TcpListener>,
+    ) -> Result<Self, ComposeFailure> {
         request.environment.validate().map_err(|error| {
             ComposeFailure::new("environment_manifest_invalid", error.to_string())
         })?;
-        if request.host_port == 0 {
+        if host_port == 0 {
             return Err(ComposeFailure::new(
                 "environment_host_port_invalid",
                 "host port must be greater than zero",
@@ -92,11 +120,12 @@ impl DockerComposeEnvironment {
             prefix,
             environment: vec![
                 ("IMAGE".to_owned(), image.clone()),
-                ("KAFKA_HOST_PORT".to_owned(), request.host_port.to_string()),
+                ("KAFKA_HOST_PORT".to_owned(), host_port.to_string()),
             ],
             broker_services: broker_services.clone(),
             client_port: *client_port,
-            host_port: request.host_port,
+            host_port,
+            port_reservation,
             started_unix_ms: request.started_unix_ms,
             started: Instant::now(),
             next_operation: 0,
@@ -123,6 +152,7 @@ impl DockerComposeEnvironment {
         if !self.required(&mut phase, compose_command::config(&self.prefix), deadline) {
             return phase;
         }
+        drop(self.port_reservation.take());
         self.up_attempted = true;
         if !self.required(&mut phase, compose_command::up(&self.prefix), deadline) {
             return phase;
