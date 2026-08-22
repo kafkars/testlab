@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "5a0fac6f31fe9d4b1674fc3560a8c9172c4ce411a8fec003ddbaf4f1de2e8a5c"
+contract_sha256 = "d21b600787641f544dd5db4999410ef7f8294868ba3f436a45a85de0d3dca392"
 ratchet = []
 
 [[package]]
@@ -671,6 +671,10 @@ sha256 = "09440d6ce0e3b073f26db9eac1e7625e0169288ebb5e66e7ffc7e29702db4977"
 [[gate.input]]
 path = "scripts/portable-environment"
 sha256 = "272d53c89045c5ffe977a4cc9fe47cce957ef09a6e607cafacd0e6bd836bd7f0"
+
+[[gate.input]]
+path = "scripts/qualify-kafkars-candidate"
+sha256 = "b01d3fe14f697b3b7ea6c2b5e75aa7c1793f4c2342c6bdffa93b77c9299b76b4"
 
 [[gate.input]]
 path = "scripts/run-kafkars-qualification"

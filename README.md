@@ -60,9 +60,12 @@ scripts/qualify-kafkars-candidate ../kafkars pr # packages the checkout first
 
 The candidate command packages `kafka-client-core`, `kafka-client-engine`, and
 `kafkars`, hashes each `.crate`, extracts them, and builds the external adapter
-only against those extracted packages. Use `release` instead of `pr` for the
-seven-version matrix plus TLS, SASL/PLAIN, and both SCRAM mechanisms. Dirty
-source is rejected unless `--allow-dirty` is the third argument.
+only against those extracted packages. Before packaging, it invokes the
+candidate's fail-closed sibling bootstrap, which materializes and attests the
+exact driver and wire revisions declared by Kafkars. Use `release` instead of
+`pr` for the seven-version matrix plus TLS, SASL/PLAIN, and both SCRAM
+mechanisms. Dirty source is rejected unless `--allow-dirty` is the third
+argument.
 
 Kafkars CI can call the same boundary without copying any broker logic:
 

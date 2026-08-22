@@ -66,6 +66,7 @@ inputs = [
   "qualifications/kafkars-release.toml",
   "scripts/run-kafkars-qualification",
   "scripts/run-kafkars-release-qualification",
+  "scripts/qualify-kafkars-candidate",
   "subjects/reference-rust.toml",
   "subjects/kafkars-rust.toml",
 ]
