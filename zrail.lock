@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "65100e2350a243249907f7e41080acc47581ed5571daec43fc5448c47e47acee"
+contract_sha256 = "5501b7d058f3c42279b90fea586753f6bb81e07777d7dd1ee247f2519f8bade1"
 ratchet = []
 
 [[package]]
@@ -191,6 +191,23 @@ kind = "registry"
 requirement = "2.0"
 
 [[package]]
+name = "testlab-environment"
+
+[[package.dependency]]
+alias = "testlab-schema"
+name = "testlab-schema"
+crate_root = "testlab_schema"
+kind = "normal"
+scope = "internal"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "workspace-member"
+directory = "crates/testlab-schema"
+requirement = "0.1.0"
+
+[[package]]
 name = "testlab-reference-adapter"
 
 [[package.dependency]]
@@ -333,11 +350,11 @@ sha256 = "bcb691b5c93ecea4e8dd92c224daf21f8b30963386367c368e7d68261a555e21"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "c9a81b8d3a4c391e0ad9dacd504990139f95327784b0e15347a645d324730ae7"
+sha256 = "4bab6817f112cbb51a1fccfae2a51e3deeea286ec02c9d8a660b653ee7014035"
 
 [[gate.input]]
 path = "Cargo.toml"
-sha256 = "00e8de2a629ffc7234bb95915f11a9424e1169f23b69c7931facfa8eaa6af482"
+sha256 = "22cdcce36498c1bf1f602ad4f0ab834a972e3fe71a2e9e4654235bae878cd552"
 
 [[gate.input]]
 path = "clippy.toml"

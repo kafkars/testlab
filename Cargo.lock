@@ -341,6 +341,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "testlab-environment"
+version = "0.1.0"
+dependencies = [
+ "testlab-schema",
+]
+
+[[package]]
 name = "testlab-reference-adapter"
 version = "0.1.0"
 dependencies = [

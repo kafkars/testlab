@@ -2,7 +2,7 @@ schema = 1
 adapters = ["rust"]
 
 [repository]
-roots = ["adapters/reference-rust", "crates/testctl", "crates/testlab-broker", "crates/testlab-schema", "crates/testlab-verifier"]
+roots = ["adapters/reference-rust", "crates/testctl", "crates/testlab-broker", "crates/testlab-environment", "crates/testlab-schema", "crates/testlab-verifier"]
 exclude = []
 workspace_members = "exact"
 nested_git = "deny"
@@ -106,7 +106,7 @@ external = "locked"
 
 [[layer]]
 name = "environment"
-packages = ["testlab-broker"]
+packages = ["testlab-broker", "testlab-environment"]
 may_depend_on = ["schema"]
 reason = "The independent model environment records broker-visible observations."
 

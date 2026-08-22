@@ -3,6 +3,7 @@ members = [
   "adapters/reference-rust",
   "crates/testctl",
   "crates/testlab-broker",
+  "crates/testlab-environment",
   "crates/testlab-schema",
   "crates/testlab-verifier",
 ]
@@ -10,6 +11,7 @@ default-members = [
   "adapters/reference-rust",
   "crates/testctl",
   "crates/testlab-broker",
+  "crates/testlab-environment",
   "crates/testlab-schema",
   "crates/testlab-verifier",
 ]
@@ -29,6 +31,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
 testlab-broker = { version = "0.1.0", path = "crates/testlab-broker" }
+testlab-environment = { version = "0.1.0", path = "crates/testlab-environment" }
 testlab-schema = { version = "0.1.0", path = "crates/testlab-schema" }
 testlab-verifier = { version = "0.1.0", path = "crates/testlab-verifier" }
 thiserror = "2.0"
