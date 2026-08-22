@@ -32,6 +32,14 @@ impl ByteString {
         }
     }
 
+    /// Encodes exact bytes as lowercase hexadecimal.
+    pub fn hex(value: impl AsRef<[u8]>) -> Self {
+        Self {
+            encoding: ByteEncoding::Hex,
+            data: hex::encode(value),
+        }
+    }
+
     /// Decodes the portable representation.
     pub fn decode(&self) -> Result<Vec<u8>, ByteStringError> {
         match self.encoding {

@@ -10,6 +10,7 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::normalize;
+use crate::protocol_consumer;
 use crate::protocol_send;
 use crate::state::AdapterState;
 
@@ -120,6 +121,12 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => protocol_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
+        command @ (AdapterCommand::CreateAssignedConsumer { .. }
+        | AdapterCommand::AssignBeginning { .. }
+        | AdapterCommand::Receive { .. }
+        | AdapterCommand::CloseAssignedConsumer { .. }) => {
+            protocol_consumer::dispatch(state, writer, command_id, command)?;
+        }
         AdapterCommand::Flush { producer_id } => {
             state
                 .producer(&producer_id)?
@@ -193,6 +200,7 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
             Capability::ProducerBatch,
             Capability::Lifecycle,
             Capability::ClientReadiness,
+            Capability::AssignedConsumer,
         ]),
     })
 }

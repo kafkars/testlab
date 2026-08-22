@@ -1,4 +1,4 @@
-schema_version = 3
+schema_version = 4
 id = "producer.round-trip"
 title = "acknowledged record is visible exactly once"
 description = "One accepted send settles once and the independent broker observation matches exactly."

@@ -8,6 +8,7 @@ use testlab_schema::{
 };
 
 use crate::client_failure::verify_client_failures;
+use crate::consumer::verify_consumers;
 use crate::index::HistoryIndex;
 use crate::lifecycle::verify_lifecycle;
 use crate::protocol::verify_protocol;
@@ -28,6 +29,7 @@ pub fn verify(
     verify_protocol(adapter, &index, &mut violations);
     verify_client_failures(&index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
+    verify_consumers(scenario, &index, &mut violations);
     verify_unknown_observations(&sends, &observed, &mut violations);
     verify_lifecycle(scenario, &index, &mut violations);
     if violations.is_empty() {

@@ -1,8 +1,8 @@
-//! Expected event shapes constrain each sequential protocol-v6 command.
+//! Expected event shapes constrain each sequential protocol-v7 command.
 
 use std::collections::BTreeSet;
 
-use testlab_schema::{AdapterEvent, ClientId, OperationId, ProducerId};
+use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
 
 use crate::run_error::RunFailure;
 
@@ -17,6 +17,10 @@ pub(crate) enum ExpectedEvent {
         producer_id: ProducerId,
         operation_ids: BTreeSet<OperationId>,
     },
+    AssignedConsumerCreated(ConsumerId),
+    AssignmentCompleted(ConsumerId),
+    ReceiveCompleted(OperationId),
+    AssignedConsumerClosed(ConsumerId),
     FlushCompleted(ProducerId),
     ProducerClosed(ProducerId),
     ClientShutdown(ClientId),
@@ -89,6 +93,30 @@ impl ExpectedEvent {
                     producer_id: actual,
                 },
             ) if producer_id == actual => Ok(EventDisposition::Complete),
+            (
+                Self::AssignedConsumerCreated(expected),
+                AdapterEvent::AssignedConsumerCreated {
+                    consumer_id: actual,
+                },
+            ) if expected == actual => Ok(EventDisposition::Complete),
+            (
+                Self::AssignmentCompleted(expected),
+                AdapterEvent::AssignmentCompleted {
+                    consumer_id: actual,
+                },
+            ) if expected == actual => Ok(EventDisposition::Complete),
+            (
+                Self::ReceiveCompleted(expected),
+                AdapterEvent::ReceiveCompleted {
+                    receive_id: actual, ..
+                },
+            ) if expected == actual => Ok(EventDisposition::Complete),
+            (
+                Self::AssignedConsumerClosed(expected),
+                AdapterEvent::AssignedConsumerClosed {
+                    consumer_id: actual,
+                },
+            ) if expected == actual => Ok(EventDisposition::Complete),
             _ if same_event_family(self, event) => Err(RunFailure::protocol(
                 "event_identity_mismatch",
                 format!("event {event:?} does not match expected {self:?}"),
@@ -129,6 +157,22 @@ fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
                     | AdapterEvent::OperationRejected { .. }
                     | AdapterEvent::OperationTerminal { .. }
                     | AdapterEvent::BatchCompleted { .. }
+            )
+            | (
+                ExpectedEvent::AssignedConsumerCreated(_),
+                AdapterEvent::AssignedConsumerCreated { .. }
+            )
+            | (
+                ExpectedEvent::AssignmentCompleted(_),
+                AdapterEvent::AssignmentCompleted { .. }
+            )
+            | (
+                ExpectedEvent::ReceiveCompleted(_),
+                AdapterEvent::ReceiveCompleted { .. }
+            )
+            | (
+                ExpectedEvent::AssignedConsumerClosed(_),
+                AdapterEvent::AssignedConsumerClosed { .. }
             )
             | (
                 ExpectedEvent::FlushCompleted(_),

@@ -33,6 +33,18 @@ pub(crate) fn verify_lifecycle(
                 references(index.producers_created.get(producer_id).map(Vec::as_slice)),
                 violations,
             ),
+            ScenarioAction::CreateAssignedConsumer { consumer_id, .. } => check(
+                "LIFE-008",
+                "assigned consumer creation",
+                references(index.consumers_created.get(consumer_id).map(Vec::as_slice)),
+                violations,
+            ),
+            ScenarioAction::AssignBeginning { consumer_id, .. } => check(
+                "LIFE-009",
+                "direct assignment",
+                references(index.assignments.get(consumer_id).map(Vec::as_slice)),
+                violations,
+            ),
             ScenarioAction::Flush { producer_id } => check(
                 "LIFE-003",
                 "producer flush",
@@ -45,6 +57,12 @@ pub(crate) fn verify_lifecycle(
                 references(index.producers_closed.get(producer_id).map(Vec::as_slice)),
                 violations,
             ),
+            ScenarioAction::CloseAssignedConsumer { consumer_id } => check(
+                "LIFE-010",
+                "assigned consumer close",
+                references(index.consumers_closed.get(consumer_id).map(Vec::as_slice)),
+                violations,
+            ),
             ScenarioAction::ShutdownClient { client_id } => check(
                 "LIFE-005",
                 "client shutdown",
@@ -53,7 +71,8 @@ pub(crate) fn verify_lifecycle(
             ),
             ScenarioAction::SetBrokerBehavior { .. }
             | ScenarioAction::Send { .. }
-            | ScenarioAction::SendBatch { .. } => {}
+            | ScenarioAction::SendBatch { .. }
+            | ScenarioAction::Receive { .. } => {}
         }
     }
     if index.command_failures.is_empty() && index.finish_issued() {

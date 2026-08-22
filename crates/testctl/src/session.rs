@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v6 scenario actions.
+//! One sequential adapter session executes protocol-v7 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -114,92 +114,28 @@ fn execute_step(
     protocol: &mut ProtocolSession,
     action: &ScenarioAction,
 ) -> Result<StepOutcome, RunFailure> {
-    let (command, expected) = match action {
-        ScenarioAction::CreateClient { client_id } => (
-            AdapterCommand::CreateClient {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientCreated(client_id.clone()),
-        ),
-        ScenarioAction::AwaitClientReady { client_id } => (
-            AdapterCommand::AwaitClientReady {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientReady(client_id.clone()),
-        ),
-        ScenarioAction::CreateProducer {
-            client_id,
-            producer_id,
-        } => (
-            AdapterCommand::CreateProducer {
-                client_id: client_id.clone(),
-                producer_id: producer_id.clone(),
-            },
-            ExpectedEvent::ProducerCreated(producer_id.clone()),
-        ),
-        ScenarioAction::SetBrokerBehavior { behavior } => {
-            let Some(broker) = model_broker else {
-                return Err(RunFailure::harness(
-                    "environment_control_unsupported",
-                    "scenario requested model-broker control from a real Kafka environment",
-                ));
-            };
-            broker.set_next_behavior(*behavior).map_err(|error| {
-                RunFailure::harness(
-                    "environment_control_failed",
-                    format!("failed to control model broker: {error}"),
-                )
-            })?;
-            recorder.broker_control(*behavior)?;
-            return Ok(StepOutcome::Continue);
-        }
-        ScenarioAction::Send {
-            producer_id,
-            operation_id,
-            record,
-        } => (
-            AdapterCommand::Send {
-                producer_id: producer_id.clone(),
-                operation_id: operation_id.clone(),
-                record: record.clone(),
-            },
-            ExpectedEvent::SendSettled(operation_id.clone()),
-        ),
-        ScenarioAction::SendBatch {
-            producer_id,
-            operations,
-        } => (
-            AdapterCommand::SendBatch {
-                producer_id: producer_id.clone(),
-                operations: operations.clone(),
-            },
-            ExpectedEvent::BatchCompleted {
-                producer_id: producer_id.clone(),
-                operation_ids: operations
-                    .iter()
-                    .map(|operation| operation.operation_id.clone())
-                    .collect(),
-            },
-        ),
-        ScenarioAction::Flush { producer_id } => (
-            AdapterCommand::Flush {
-                producer_id: producer_id.clone(),
-            },
-            ExpectedEvent::FlushCompleted(producer_id.clone()),
-        ),
-        ScenarioAction::CloseProducer { producer_id } => (
-            AdapterCommand::CloseProducer {
-                producer_id: producer_id.clone(),
-            },
-            ExpectedEvent::ProducerClosed(producer_id.clone()),
-        ),
-        ScenarioAction::ShutdownClient { client_id } => (
-            AdapterCommand::ShutdownClient {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientShutdown(client_id.clone()),
-        ),
-    };
+    if let ScenarioAction::SetBrokerBehavior { behavior } = action {
+        let Some(broker) = model_broker else {
+            return Err(RunFailure::harness(
+                "environment_control_unsupported",
+                "scenario requested model-broker control from a real Kafka environment",
+            ));
+        };
+        broker.set_next_behavior(*behavior).map_err(|error| {
+            RunFailure::harness(
+                "environment_control_failed",
+                format!("failed to control model broker: {error}"),
+            )
+        })?;
+        recorder.broker_control(*behavior)?;
+        return Ok(StepOutcome::Continue);
+    }
+    let (command, expected) = crate::session_command::translate(action).ok_or_else(|| {
+        RunFailure::harness(
+            "action_translation_failed",
+            "non-environment scenario action had no adapter translation",
+        )
+    })?;
     let event = protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
     if matches!(event.event, AdapterEvent::CommandFailed { .. }) {
         Ok(StepOutcome::ClientFailed)

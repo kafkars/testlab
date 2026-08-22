@@ -3,13 +3,14 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use kafkars::{Client, Producer, Security};
-use testlab_schema::{AdapterSecurity, ClientId, ProducerId};
+use kafkars::{AssignedConsumer, Client, Producer, Security, StartPosition, TopicPartition};
+use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
 use thiserror::Error;
 
 use crate::connection_security::{SecurityError, resolve};
 
 const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
+const CONSUMER_OPERATION_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
@@ -17,12 +18,19 @@ pub(crate) struct AdapterState {
     security: Option<Security>,
     clients: BTreeMap<ClientId, Client>,
     producers: BTreeMap<ProducerId, ProducerOwner>,
+    consumers: BTreeMap<ConsumerId, ConsumerOwner>,
 }
 
 #[derive(Debug)]
 struct ProducerOwner {
     client_id: ClientId,
     producer: Producer,
+}
+
+#[derive(Debug)]
+struct ConsumerOwner {
+    client_id: ClientId,
+    consumer: AssignedConsumer,
 }
 
 impl AdapterState {
@@ -102,6 +110,70 @@ impl AdapterState {
             .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))
     }
 
+    pub(crate) fn create_assigned_consumer(
+        &mut self,
+        client_id: ClientId,
+        consumer_id: ConsumerId,
+    ) -> Result<(), StateError> {
+        if self.consumers.contains_key(&consumer_id) {
+            return Err(StateError::DuplicateConsumer(consumer_id));
+        }
+        let client = self
+            .clients
+            .get(&client_id)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
+        let consumer = client
+            .assigned_consumer()
+            .build()
+            .map_err(|error| StateError::Client(error.into_parts().1))?;
+        self.consumers.insert(
+            consumer_id,
+            ConsumerOwner {
+                client_id,
+                consumer,
+            },
+        );
+        Ok(())
+    }
+
+    pub(crate) fn assign_beginning(
+        &mut self,
+        consumer_id: &ConsumerId,
+        topic: String,
+        partition: i32,
+    ) -> Result<(), StateError> {
+        self.consumer_mut(consumer_id)?
+            .try_replace_assignment(
+                [TopicPartition::new(topic, partition).start_at(StartPosition::Beginning)],
+                CONSUMER_OPERATION_TIMEOUT,
+            )
+            .map_err(StateError::Client)?;
+        Ok(())
+    }
+
+    pub(crate) fn consumer_mut(
+        &mut self,
+        consumer_id: &ConsumerId,
+    ) -> Result<&mut AssignedConsumer, StateError> {
+        self.consumers
+            .get_mut(consumer_id)
+            .map(|owner| &mut owner.consumer)
+            .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))
+    }
+
+    pub(crate) fn close_assigned_consumer(
+        &mut self,
+        consumer_id: &ConsumerId,
+    ) -> Result<(), StateError> {
+        self.consumer_mut(consumer_id)?
+            .try_close()
+            .map_err(StateError::Client)?
+            .wait()
+            .map_err(StateError::Client)?;
+        self.consumers.remove(consumer_id);
+        Ok(())
+    }
+
     pub(crate) fn close_producer(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {
         let owner = self
             .producers
@@ -118,6 +190,13 @@ impl AdapterState {
         {
             return Err(StateError::OpenProducer(client_id.clone()));
         }
+        if self
+            .consumers
+            .values()
+            .any(|owner| &owner.client_id == client_id)
+        {
+            return Err(StateError::OpenConsumer(client_id.clone()));
+        }
         let client = self
             .clients
             .remove(client_id)
@@ -128,6 +207,9 @@ impl AdapterState {
     pub(crate) fn finish(&self) -> Result<(), StateError> {
         if !self.producers.is_empty() {
             return Err(StateError::UnclosedProducers);
+        }
+        if !self.consumers.is_empty() {
+            return Err(StateError::UnclosedConsumers);
         }
         if !self.clients.is_empty() {
             return Err(StateError::UnclosedClients);
@@ -150,10 +232,18 @@ pub(crate) enum StateError {
     DuplicateProducer(ProducerId),
     #[error("producer {0} does not exist")]
     MissingProducer(ProducerId),
+    #[error("consumer {0} already exists")]
+    DuplicateConsumer(ConsumerId),
+    #[error("consumer {0} does not exist")]
+    MissingConsumer(ConsumerId),
     #[error("client {0} still owns an open producer")]
     OpenProducer(ClientId),
+    #[error("client {0} still owns an open consumer")]
+    OpenConsumer(ClientId),
     #[error("adapter finished with open producers")]
     UnclosedProducers,
+    #[error("adapter finished with open consumers")]
+    UnclosedConsumers,
     #[error("adapter finished with open clients")]
     UnclosedClients,
     #[error("packaged Kafkars operation failed: {0}")]

@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use testlab_schema::{AdapterEvent, OperationId, ProducerId, TerminalStatus};
+use testlab_schema::{AdapterEvent, ConsumerId, OperationId, ProducerId, TerminalStatus};
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
 
@@ -55,6 +55,31 @@ fn batch_waits_for_explicit_completion_after_known_operation_events() {
             })
             .unwrap_or_else(|error| panic!("completed batch: {error}")),
         EventDisposition::Complete
+    );
+}
+
+#[test]
+fn receive_completion_requires_the_exact_receive_identity() {
+    let receive = id(OperationId::new("receive-1"));
+    let expected = ExpectedEvent::ReceiveCompleted(receive.clone());
+
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::ReceiveCompleted {
+                receive_id: receive,
+                records: Vec::new(),
+            })
+            .unwrap_or_else(|error| panic!("classify receive: {error}")),
+        EventDisposition::Complete
+    );
+
+    let consumer = id(ConsumerId::new("consumer-1"));
+    assert!(
+        ExpectedEvent::AssignedConsumerClosed(consumer.clone())
+            .classify(&AdapterEvent::AssignedConsumerClosed {
+                consumer_id: consumer,
+            })
+            .is_ok()
     );
 }
 

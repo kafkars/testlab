@@ -14,7 +14,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
     let producer = id(ProducerId::new("producer-1"));
     let operation = id(OperationId::new("op-1"));
     Scenario {
-        schema_version: 3,
+        schema_version: 4,
         id: id(ScenarioId::new("producer.verifier")),
         title: "verifier".to_owned(),
         description: "verifier fixture".to_owned(),
@@ -23,6 +23,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
             Capability::Producer,
             Capability::Lifecycle,
             Capability::ClientReadiness,
+            Capability::AssignedConsumer,
             Capability::ModelBroker,
         ]),
         steps: vec![
@@ -237,7 +238,7 @@ pub(crate) fn observation(index: u64, value: &str) -> BrokerObservation {
     }
 }
 
-fn step(id_value: &str, action: ScenarioAction) -> ScenarioStep {
+pub(crate) fn step(id_value: &str, action: ScenarioAction) -> ScenarioStep {
     ScenarioStep {
         id: id(StepId::new(id_value)),
         action,

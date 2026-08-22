@@ -33,7 +33,7 @@ fn operation_records_cluster_replication_factor() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 3
+schema_version = 4
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"

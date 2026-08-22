@@ -19,6 +19,7 @@ mod runner;
 mod runner_environment;
 mod runner_protocol;
 mod session;
+mod session_command;
 mod time;
 
 pub use app::run_cli;

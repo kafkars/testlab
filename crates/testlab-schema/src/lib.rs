@@ -2,12 +2,14 @@
 
 mod adapter;
 mod bytes;
+mod consumer_action_validation;
 mod contract;
 mod environment;
 mod evidence;
 mod ids;
 mod pack;
 mod protocol;
+mod protocol_security;
 mod qualification;
 mod qualification_evidence;
 mod record;
@@ -29,14 +31,16 @@ pub use evidence::{
     EnvironmentOperationStatus, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
 };
 pub use ids::{
-    AdapterId, CellId, ClientId, CommandId, ContractId, EnvironmentId, EnvironmentOperationId,
-    IdError, OperationId, PackId, ProducerId, QualificationId, RunId, ScenarioId, StepId,
-    SubjectId,
+    AdapterId, CellId, ClientId, CommandId, ConsumerId, ContractId, EnvironmentId,
+    EnvironmentOperationId, IdError, OperationId, PackId, ProducerId, QualificationId, RunId,
+    ScenarioId, StepId, SubjectId,
 };
 pub use pack::{ScenarioPack, ScenarioPackError};
 pub use protocol::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSaslMechanism, AdapterSecurity,
-    CommandEnvelope, PROTOCOL_VERSION, SASL_PASSWORD_ENVIRONMENT, SASL_USERNAME_ENVIRONMENT,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
+};
+pub use protocol_security::{
+    AdapterSaslMechanism, AdapterSecurity, SASL_PASSWORD_ENVIRONMENT, SASL_USERNAME_ENVIRONMENT,
     TLS_CA_PEM_ENVIRONMENT, TerminalStatus,
 };
 pub use qualification::{
@@ -46,7 +50,7 @@ pub use qualification_evidence::{
     QUALIFICATION_EVIDENCE_SCHEMA_VERSION, QualificationCellEvidence, QualificationEvidenceError,
     QualificationEvidenceManifest, QualificationRunEvidence,
 };
-pub use record::{HeaderSpec, RecordError, RecordSpec};
+pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{
     BatchRecord, BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario,
     ScenarioAction, ScenarioError, ScenarioStep, VisibilityExpectation,

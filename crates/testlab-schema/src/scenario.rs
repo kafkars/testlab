@@ -6,11 +6,12 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    Capability, ClientId, OperationId, ProducerId, RecordSpec, ScenarioId, StepId, TerminalStatus,
+    Capability, ClientId, ConsumerId, OperationId, ProducerId, RecordSpec, ScenarioId, StepId,
+    TerminalStatus,
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 3;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 4;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -52,7 +53,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v3.
+/// Scenario action vocabulary for scenario schema v4.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -93,6 +94,38 @@ pub enum ScenarioAction {
         producer_id: ProducerId,
         /// Ordered records with stable operation identities.
         operations: Vec<BatchRecord>,
+    },
+    /// Claims one directly assigned public consumer.
+    CreateAssignedConsumer {
+        /// Existing owning client.
+        client_id: ClientId,
+        /// New consumer identity.
+        consumer_id: ConsumerId,
+    },
+    /// Replaces one consumer's assignment at the beginning of one partition.
+    AssignBeginning {
+        /// Existing open consumer.
+        consumer_id: ConsumerId,
+        /// Exact topic.
+        topic: String,
+        /// Exact partition.
+        partition: i32,
+    },
+    /// Bounded receive that must expose one previously sent exact record.
+    Receive {
+        /// Existing assigned consumer.
+        consumer_id: ConsumerId,
+        /// Stable identity for the receive operation.
+        receive_id: OperationId,
+        /// Producer operation whose record must appear exactly once.
+        expected_operation_id: OperationId,
+        /// Adapter-side public observation bound.
+        timeout_ms: u64,
+    },
+    /// Closes one directly assigned consumer.
+    CloseAssignedConsumer {
+        /// Consumer to close.
+        consumer_id: ConsumerId,
     },
     /// Flushes one open producer.
     Flush {

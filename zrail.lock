@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "91e5870a50e8aa2294174da23f5d5197f796f3863aca6d6e4bcef8fec2c7d7b5"
+contract_sha256 = "a9e6b857a02f2490f6fd622baae5805fdfd20ad9dd4ab8aecc020b40bf7029a4"
 ratchet = []
 
 [[package]]
@@ -586,11 +586,11 @@ sha256 = "00f5a2e21fccb01f778960c81886300b8faa8bb59ca393cec0c41d53614b0235"
 
 [[gate.input]]
 path = "contracts/conformance.toml"
-sha256 = "8254d4bf17dca76c9b8ac8d3325b17df253d4056c718e5f8f05f08a8692e8709"
+sha256 = "dbe60bea322c38bc9f859564dd8f3fea689f589b23c89525823a632e7612dc23"
 
 [[gate.input]]
 path = "packs/kafkars-pr.toml"
-sha256 = "a052180f65327ed739864ecb83d95f3317c561b68db8cd6e70ce58a77370b267"
+sha256 = "514099a8234968f8b11b6099b83a70f191a63b2f4ea7388f69f1f57a6488fe05"
 
 [[gate.input]]
 path = "packs/repository-pr.toml"
@@ -613,28 +613,32 @@ path = "rust-toolchain.toml"
 sha256 = "980c9752cb40dca3265ce4e3e31de1c369b469c9837be059b806ea93fe76799d"
 
 [[gate.input]]
+path = "scenarios/kafka/assigned-consumer-round-trip.toml"
+sha256 = "9763d9591bf68a2b2cfe34d48eb76ddde1570c2a4a21459e520dc250ad824f8d"
+
+[[gate.input]]
 path = "scenarios/kafka/producer-batch.toml"
-sha256 = "acb7512c0c97d81ca1c0a23a72915546085b6221f6b7434cb387950382952a4d"
+sha256 = "c69685fae322da20e9ded70dfffd1e57a63ce5b1ededcbe5cf5d5299f7c39891"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-partition-routing.toml"
-sha256 = "909f0ea877a38ed433cdcc4ffb5eb0ecc47fd363c6a775f1fbfa0028f16f73e9"
+sha256 = "f47fcf2becd43e1a4a4fd77670c2056d674463efce878b19704a4f929c5f67a2"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-round-trip.toml"
-sha256 = "a0a69da4955a99406f7f81dced8198ef53be1f55c8f91b032f3ccc633ffeaa2c"
+sha256 = "f4329328babe47b008acfd376a1c7df9b29a899d05ecf461a60042a1d9e88752"
 
 [[gate.input]]
 path = "scenarios/producer/definite-rejection.toml"
-sha256 = "1b7a41f364f3e23484a04eac66b4e80809a7e9631397052280ceadb25813e3ef"
+sha256 = "3ead3419d798749942709fadcebd0dd8546a785ea741401fac020b309c61d37a"
 
 [[gate.input]]
 path = "scenarios/producer/lost-response.toml"
-sha256 = "a66850e6cedc65c56787902c3273ebd327aa62b6b9dd8f22d7835ed33ab2f74c"
+sha256 = "429ea0fccebea4708c972c52525090773ea0aab2de8f98fb9aadbfde44d06769"
 
 [[gate.input]]
 path = "scenarios/producer/round-trip.toml"
-sha256 = "0612f3fc136f50f3aebfc90b49f7cf63ec0ea5e14a9d2b1275e7a0c1f8a08b7e"
+sha256 = "353c2e9e636f1f4eb0cc56d10de5e0b422dde8b2394f96bf87c0af748e881bc9"
 
 [[gate.input]]
 path = "scripts/check-rust-lint"

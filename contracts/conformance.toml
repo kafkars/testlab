@@ -79,6 +79,18 @@ statement = "The observation count satisfies the scenario visibility expectation
 category = "producer"
 
 [[contract]]
+id = "CONS-001"
+title = "Consumer receive settles exactly once"
+statement = "Each requested bounded receive emits exactly one matching completion."
+category = "consumer"
+
+[[contract]]
+id = "CONS-002"
+title = "Consumer returns the exact produced record"
+statement = "A direct consumer receive exposes the expected produced topic, partition, key, value, and ordered headers exactly once."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-001"
 title = "Client creation settles exactly once"
 statement = "Each requested client creation emits exactly one matching event."
@@ -118,4 +130,22 @@ category = "lifecycle"
 id = "LIFE-007"
 title = "Client readiness settles exactly once"
 statement = "Each requested public client readiness probe emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-008"
+title = "Assigned consumer creation settles exactly once"
+statement = "Each requested assigned-consumer creation emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-009"
+title = "Direct assignment settles exactly once"
+statement = "Each requested direct assignment emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-010"
+title = "Assigned consumer close settles exactly once"
+statement = "Each requested assigned-consumer close emits exactly one matching event."
 category = "lifecycle"

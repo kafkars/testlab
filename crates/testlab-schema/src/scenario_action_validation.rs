@@ -2,6 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::consumer_action_validation::ConsumerStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 
 type ClientStates = BTreeMap<ClientId, bool>;
@@ -12,7 +13,9 @@ pub(crate) fn validate_action(
     action: &ScenarioAction,
     clients: &mut ClientStates,
     producers: &mut ProducerStates,
-    operations: &mut BTreeSet<OperationId>,
+    consumers: &mut ConsumerStates,
+    operation_ids: &mut BTreeSet<OperationId>,
+    sends: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
     match action {
@@ -35,30 +38,59 @@ pub(crate) fn validate_action(
             record,
         } => {
             require_open_producer(producer_id, producers, problems);
-            validate_operation(operation_id, record, operations, problems);
+            validate_operation(operation_id, record, operation_ids, sends, problems);
         }
         ScenarioAction::SendBatch {
             producer_id,
             operations: batch,
         } => {
             require_open_producer(producer_id, producers, problems);
-            if batch.is_empty() {
-                problems.push(format!("producer {producer_id} received an empty batch"));
-            }
-            if batch.len() > MAX_BATCH_RECORDS {
-                problems.push(format!(
-                    "producer {producer_id} batch has {} records, maximum is {MAX_BATCH_RECORDS}",
-                    batch.len()
-                ));
-            }
-            for operation in batch {
-                validate_operation(
-                    &operation.operation_id,
-                    &operation.record,
-                    operations,
-                    problems,
-                );
-            }
+            validate_batch(producer_id, batch, operation_ids, sends, problems);
+        }
+        ScenarioAction::CreateAssignedConsumer {
+            client_id,
+            consumer_id,
+        } => crate::consumer_action_validation::create(
+            client_id,
+            consumer_id,
+            clients,
+            consumers,
+            problems,
+        ),
+        ScenarioAction::AssignBeginning {
+            consumer_id,
+            topic,
+            partition,
+        } => crate::consumer_action_validation::assign(
+            consumer_id,
+            topic,
+            *partition,
+            consumers,
+            problems,
+        ),
+        ScenarioAction::Receive {
+            consumer_id,
+            receive_id,
+            expected_operation_id,
+            timeout_ms,
+        } => {
+            crate::consumer_action_validation::receive(
+                consumer_id,
+                receive_id,
+                *timeout_ms,
+                consumers,
+                problems,
+            );
+            validate_receive_identity(
+                receive_id,
+                expected_operation_id,
+                operation_ids,
+                sends,
+                problems,
+            );
+        }
+        ScenarioAction::CloseAssignedConsumer { consumer_id } => {
+            crate::consumer_action_validation::close(consumer_id, consumers, problems);
         }
         ScenarioAction::Flush { producer_id } => {
             require_open_producer(producer_id, producers, problems);
@@ -67,20 +99,66 @@ pub(crate) fn validate_action(
             close_producer(producer_id, producers, problems);
         }
         ScenarioAction::ShutdownClient { client_id } => {
-            shutdown_client(client_id, clients, producers, problems);
+            shutdown_client(client_id, clients, producers, consumers, problems);
         }
+    }
+}
+
+fn validate_batch(
+    producer_id: &ProducerId,
+    batch: &[crate::BatchRecord],
+    operation_ids: &mut BTreeSet<OperationId>,
+    sends: &mut BTreeSet<OperationId>,
+    problems: &mut Vec<String>,
+) {
+    if batch.is_empty() {
+        problems.push(format!("producer {producer_id} received an empty batch"));
+    }
+    if batch.len() > MAX_BATCH_RECORDS {
+        problems.push(format!(
+            "producer {producer_id} batch has {} records, maximum is {MAX_BATCH_RECORDS}",
+            batch.len()
+        ));
+    }
+    for operation in batch {
+        validate_operation(
+            &operation.operation_id,
+            &operation.record,
+            operation_ids,
+            sends,
+            problems,
+        );
+    }
+}
+
+fn validate_receive_identity(
+    receive_id: &OperationId,
+    expected_operation_id: &OperationId,
+    operation_ids: &mut BTreeSet<OperationId>,
+    sends: &BTreeSet<OperationId>,
+    problems: &mut Vec<String>,
+) {
+    if !operation_ids.insert(receive_id.clone()) {
+        problems.push(format!("duplicate operation id {receive_id}"));
+    }
+    if !sends.contains(expected_operation_id) {
+        problems.push(format!(
+            "receive {receive_id} expects missing prior send {expected_operation_id}"
+        ));
     }
 }
 
 fn validate_operation(
     operation_id: &OperationId,
     record: &crate::RecordSpec,
-    operations: &mut BTreeSet<OperationId>,
+    operation_ids: &mut BTreeSet<OperationId>,
+    sends: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
-    if !operations.insert(operation_id.clone()) {
+    if !operation_ids.insert(operation_id.clone()) {
         problems.push(format!("duplicate operation id {operation_id}"));
     }
+    sends.insert(operation_id.clone());
     if let Err(error) = record.validate() {
         problems.push(format!(
             "operation {operation_id} has invalid record: {error}"
@@ -152,6 +230,7 @@ fn shutdown_client(
     client_id: &ClientId,
     clients: &mut ClientStates,
     producers: &ProducerStates,
+    consumers: &ConsumerStates,
     problems: &mut Vec<String>,
 ) {
     let open = producers
@@ -163,6 +242,13 @@ fn shutdown_client(
         problems.push(format!(
             "client {client_id} shut down with open producers {}",
             open.join(", ")
+        ));
+    }
+    let open_consumers = crate::consumer_action_validation::open_for_client(consumers, client_id);
+    if !open_consumers.is_empty() {
+        problems.push(format!(
+            "client {client_id} shut down with open consumers {}",
+            open_consumers.join(", ")
         ));
     }
     match clients.get_mut(client_id) {

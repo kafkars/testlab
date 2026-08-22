@@ -37,6 +37,26 @@ pub struct RecordSpec {
     pub headers: Vec<HeaderSpec>,
 }
 
+/// One exact record observed through a packaged consumer API.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConsumedRecord {
+    /// Kafka topic returned by the client.
+    pub topic: String,
+    /// Kafka partition returned by the client.
+    pub partition: i32,
+    /// Absolute Kafka log offset returned by the client.
+    pub offset: i64,
+    /// Kafka timestamp when exposed by the client.
+    pub timestamp_millis: Option<i64>,
+    /// Nullable exact key bytes.
+    pub key: Option<ByteString>,
+    /// Nullable exact value bytes.
+    pub value: Option<ByteString>,
+    /// Ordered, duplicate-preserving headers.
+    pub headers: Vec<HeaderSpec>,
+}
+
 impl RecordSpec {
     /// Validates portable Kafka record constraints used by testlab.
     pub fn validate(&self) -> Result<(), RecordError> {

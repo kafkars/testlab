@@ -4,6 +4,7 @@ mod adapter_error;
 mod connection_security;
 mod normalize;
 mod protocol;
+mod protocol_consumer;
 mod protocol_send;
 mod state;
 

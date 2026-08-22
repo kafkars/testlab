@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v6 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v7 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -24,6 +24,10 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_producer`
 - `send`
 - `send_batch`
+- `create_assigned_consumer`
+- `assign_beginning`
+- `receive`
+- `close_assigned_consumer`
 - `flush`
 - `close_producer`
 - `shutdown_client`
@@ -42,6 +46,10 @@ boundary.
 - `operation_rejected`
 - `operation_terminal`
 - `batch_completed`
+- `assigned_consumer_created`
+- `assignment_completed`
+- `receive_completed`
+- `assigned_consumer_closed`
 - `flush_completed`
 - `producer_closed`
 - `client_shutdown`
@@ -55,6 +63,11 @@ admission outcome per input operation, one terminal per accepted operation, and
 then `batch_completed`. A batch contains at most 31 records so the complete
 command remains within the bounded event budget.
 
+A bounded receive polls the packaged consumer's public receive future and emits
+the exact records it observed. An empty completion means no public record
+arrived before the declared receive deadline; the verifier treats a missing
+expected record as a client failure, not manufactured success.
+
 ## Failure behavior
 
 A normal public client API failure emits one correlated `command_failed` event
@@ -65,6 +78,6 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v6 is an exact semantic contract. New capabilities may be declared
+Protocol v7 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

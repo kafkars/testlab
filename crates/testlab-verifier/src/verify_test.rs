@@ -1,9 +1,14 @@
 //! Deterministic verifier tests cover valid admission and delivery truths.
 
-use testlab_schema::{TerminalStatus, VisibilityExpectation};
+use testlab_schema::{
+    AdapterEvent, ByteString, Capability, ConsumedRecord, ConsumerId, OperationId, ScenarioAction,
+    TerminalStatus, VisibilityExpectation,
+};
 
 use super::verify;
-use crate::verify_fixture::{adapter, history, observation, rejected_history, scenario};
+use crate::verify_fixture::{
+    adapter, event, history, observation, rejected_history, scenario, step,
+};
 
 #[test]
 fn explicit_admission_rejection_passes_without_a_terminal() {
@@ -47,4 +52,104 @@ fn lost_response_preserves_possibly_sent_truth() {
     );
 
     assert!(verdict.is_passed());
+}
+
+#[test]
+fn assigned_consumer_exact_round_trip_passes() {
+    let mut scenario = scenario(
+        TerminalStatus::Acknowledged,
+        VisibilityExpectation::ExactlyOnce,
+    );
+    scenario.requires.insert(Capability::AssignedConsumer);
+    let shutdown = scenario.steps.remove(6);
+    let consumer = id(ConsumerId::new("consumer-1"));
+    let receive = id(OperationId::new("receive-1"));
+    scenario.steps.extend([
+        step(
+            "consumer",
+            ScenarioAction::CreateAssignedConsumer {
+                client_id: id(testlab_schema::ClientId::new("client-1")),
+                consumer_id: consumer.clone(),
+            },
+        ),
+        step(
+            "assign",
+            ScenarioAction::AssignBeginning {
+                consumer_id: consumer.clone(),
+                topic: "records".to_owned(),
+                partition: 0,
+            },
+        ),
+        step(
+            "receive",
+            ScenarioAction::Receive {
+                consumer_id: consumer.clone(),
+                receive_id: receive.clone(),
+                expected_operation_id: id(OperationId::new("op-1")),
+                timeout_ms: 1_000,
+            },
+        ),
+        step(
+            "consumer-close",
+            ScenarioAction::CloseAssignedConsumer {
+                consumer_id: consumer.clone(),
+            },
+        ),
+    ]);
+    scenario.steps.push(shutdown);
+    let mut history = history(TerminalStatus::Acknowledged);
+    history.truncate(8);
+    history.extend([
+        event(
+            8,
+            AdapterEvent::AssignedConsumerCreated {
+                consumer_id: consumer.clone(),
+            },
+        ),
+        event(
+            9,
+            AdapterEvent::AssignmentCompleted {
+                consumer_id: consumer.clone(),
+            },
+        ),
+        event(
+            10,
+            AdapterEvent::ReceiveCompleted {
+                receive_id: receive,
+                records: vec![ConsumedRecord {
+                    topic: "records".to_owned(),
+                    partition: 0,
+                    offset: 0,
+                    timestamp_millis: None,
+                    key: None,
+                    value: Some(ByteString::hex(b"value")),
+                    headers: Vec::new(),
+                }],
+            },
+        ),
+        event(
+            11,
+            AdapterEvent::AssignedConsumerClosed {
+                consumer_id: consumer,
+            },
+        ),
+        event(
+            12,
+            AdapterEvent::ClientShutdown {
+                client_id: id(testlab_schema::ClientId::new("client-1")),
+            },
+        ),
+        event(13, AdapterEvent::Finished),
+    ]);
+
+    let verdict = verify(&scenario, &adapter(), &history, &[observation(0, "value")]);
+
+    assert!(verdict.is_passed(), "{verdict:?}");
+}
+
+fn id<T, E>(result: Result<T, E>) -> T
+where
+    E: std::fmt::Display,
+{
+    result.unwrap_or_else(|error| panic!("fixture id: {error}"))
 }

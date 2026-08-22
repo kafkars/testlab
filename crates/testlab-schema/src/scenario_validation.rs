@@ -46,10 +46,13 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut step_ids = BTreeSet::new();
     let mut clients = ClientStates::new();
     let mut producers = ProducerStates::new();
-    let mut operations = BTreeSet::new();
+    let mut consumers = crate::consumer_action_validation::ConsumerStates::new();
+    let mut operation_ids = BTreeSet::new();
+    let mut sends = BTreeSet::new();
     let mut uses_model_broker = false;
     let mut uses_readiness = false;
     let mut uses_batch = false;
+    let mut uses_consumer = false;
     for step in &scenario.steps {
         if !step_ids.insert(step.id.clone()) {
             problems.push(format!("duplicate step id {}", step.id));
@@ -57,19 +60,32 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
         uses_model_broker |= matches!(&step.action, ScenarioAction::SetBrokerBehavior { .. });
         uses_readiness |= matches!(&step.action, ScenarioAction::AwaitClientReady { .. });
         uses_batch |= matches!(&step.action, ScenarioAction::SendBatch { .. });
+        uses_consumer |= matches!(
+            &step.action,
+            ScenarioAction::CreateAssignedConsumer { .. }
+                | ScenarioAction::AssignBeginning { .. }
+                | ScenarioAction::Receive { .. }
+                | ScenarioAction::CloseAssignedConsumer { .. }
+        );
         crate::scenario_action_validation::validate_action(
             &step.action,
             &mut clients,
             &mut producers,
-            &mut operations,
+            &mut consumers,
+            &mut operation_ids,
+            &mut sends,
             problems,
         );
     }
-    if !operations.is_empty() && !scenario.requires.contains(&Capability::Producer) {
+    if !sends.is_empty() && !scenario.requires.contains(&Capability::Producer) {
         problems.push("send steps require the producer capability".to_owned());
     }
     if uses_batch && !scenario.requires.contains(&Capability::ProducerBatch) {
         problems.push("batch-send steps require the producer_batch capability".to_owned());
+    }
+    if uses_consumer && !scenario.requires.contains(&Capability::AssignedConsumer) {
+        problems
+            .push("assigned-consumer steps require the assigned_consumer capability".to_owned());
     }
     if uses_model_broker && !scenario.requires.contains(&Capability::ModelBroker) {
         problems.push("broker-control steps require the model_broker capability".to_owned());
@@ -77,16 +93,19 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     if uses_readiness && !scenario.requires.contains(&Capability::ClientReadiness) {
         problems.push("client readiness steps require the client_readiness capability".to_owned());
     }
-    if (!clients.is_empty() || !producers.is_empty())
+    if (!clients.is_empty() || !producers.is_empty() || !consumers.is_empty())
         && !scenario.requires.contains(&Capability::Lifecycle)
     {
         problems.push("handle steps require the lifecycle capability".to_owned());
     }
-    validate_assertions(scenario, &operations, problems);
+    validate_assertions(scenario, &sends, problems);
     for (producer, (_, closed)) in producers {
         if !closed {
             problems.push(format!("producer {producer} was not closed"));
         }
+    }
+    for consumer in crate::consumer_action_validation::unclosed(consumers) {
+        problems.push(format!("consumer {consumer} was not closed"));
     }
     for (client, shutdown) in clients {
         if !shutdown {

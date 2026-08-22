@@ -116,6 +116,10 @@ identifier!(ClientId, "Scenario-local identity for one client handle.");
 identifier!(CommandId, "Correlation identity for one harness command.");
 identifier!(ContractId, "Stable identity for one conformance contract.");
 identifier!(
+    ConsumerId,
+    "Scenario-local identity for one consumer handle."
+);
+identifier!(
     EnvironmentId,
     "Stable identity for one independently controlled test environment."
 );

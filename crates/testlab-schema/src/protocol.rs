@@ -2,20 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::protocol_security::{AdapterSecurity, TerminalStatus};
 use crate::{
-    AdapterDescriptor, BatchRecord, ClientId, CommandId, OperationId, ProducerId, RecordSpec,
-    RunId, ScenarioId,
+    AdapterDescriptor, BatchRecord, ClientId, CommandId, ConsumedRecord, ConsumerId, OperationId,
+    ProducerId, RecordSpec, RunId, ScenarioId,
 };
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 6;
-
-/// Environment variable carrying an ephemeral TLS certificate authority path.
-pub const TLS_CA_PEM_ENVIRONMENT: &str = "TESTLAB_KAFKA_TLS_CA_PEM";
-/// Environment variable carrying the ephemeral SASL username.
-pub const SASL_USERNAME_ENVIRONMENT: &str = "TESTLAB_KAFKA_SASL_USERNAME";
-/// Environment variable carrying the ephemeral SASL password.
-pub const SASL_PASSWORD_ENVIRONMENT: &str = "TESTLAB_KAFKA_SASL_PASSWORD";
+pub const PROTOCOL_VERSION: u16 = 7;
 
 /// One correlated command sent from testctl to an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -30,7 +24,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v6 command envelope.
+    /// Creates one protocol-v7 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -88,6 +82,36 @@ pub enum AdapterCommand {
         /// Ordered records with stable operation identities.
         operations: Vec<BatchRecord>,
     },
+    /// Claims one directly assigned consumer handle.
+    CreateAssignedConsumer {
+        /// Owning client.
+        client_id: ClientId,
+        /// Scenario-local consumer identity.
+        consumer_id: ConsumerId,
+    },
+    /// Assigns one consumer at the beginning of one partition.
+    AssignBeginning {
+        /// Existing consumer.
+        consumer_id: ConsumerId,
+        /// Exact topic.
+        topic: String,
+        /// Exact partition.
+        partition: i32,
+    },
+    /// Observes public consumer batches for a bounded duration.
+    Receive {
+        /// Existing assigned consumer.
+        consumer_id: ConsumerId,
+        /// Stable receive operation identity.
+        receive_id: OperationId,
+        /// Maximum public observation duration.
+        timeout_ms: u64,
+    },
+    /// Closes one directly assigned consumer.
+    CloseAssignedConsumer {
+        /// Consumer to close.
+        consumer_id: ConsumerId,
+    },
     /// Flushes one producer.
     Flush {
         /// Producer to flush.
@@ -107,63 +131,6 @@ pub enum AdapterCommand {
     Finish,
 }
 
-/// Adapter connection security without embedding secret values in history.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum AdapterSecurity {
-    /// Plain TCP without authentication.
-    Plaintext,
-    /// TLS with one environment-provided PEM trust bundle.
-    TlsCustom {
-        /// Name of the adapter environment variable containing the PEM path.
-        ca_pem_environment: String,
-    },
-    /// SASL over plain TCP.
-    SaslPlaintext {
-        /// SASL mechanism.
-        mechanism: AdapterSaslMechanism,
-        /// Name of the adapter environment variable containing the username.
-        username_environment: String,
-        /// Name of the adapter environment variable containing the password.
-        password_environment: String,
-    },
-    /// SASL over TLS.
-    SaslTls {
-        /// Name of the adapter environment variable containing the PEM path.
-        ca_pem_environment: String,
-        /// SASL mechanism.
-        mechanism: AdapterSaslMechanism,
-        /// Name of the adapter environment variable containing the username.
-        username_environment: String,
-        /// Name of the adapter environment variable containing the password.
-        password_environment: String,
-    },
-}
-
-/// SASL mechanism selected by an environment.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AdapterSaslMechanism {
-    /// SASL/PLAIN.
-    Plain,
-    /// SCRAM-SHA-256.
-    ScramSha256,
-    /// SCRAM-SHA-512.
-    ScramSha512,
-}
-
-/// Normalized terminal delivery certainty.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TerminalStatus {
-    /// The client reports a broker acknowledgment.
-    Acknowledged,
-    /// The client knows the broker could not have accepted the operation.
-    DefinitelyNotSent,
-    /// The client cannot know whether the broker accepted the operation.
-    PossiblySent,
-}
-
 /// One correlated event emitted by an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AdapterEventEnvelope {
@@ -177,7 +144,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v6 event envelope.
+    /// Creates one protocol-v7 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -238,6 +205,28 @@ pub enum AdapterEvent {
     BatchCompleted {
         /// Producer that handled the batch.
         producer_id: ProducerId,
+    },
+    /// One directly assigned consumer was claimed.
+    AssignedConsumerCreated {
+        /// Created consumer.
+        consumer_id: ConsumerId,
+    },
+    /// One direct assignment replacement completed.
+    AssignmentCompleted {
+        /// Assigned consumer.
+        consumer_id: ConsumerId,
+    },
+    /// One bounded receive observation completed.
+    ReceiveCompleted {
+        /// Stable receive operation identity.
+        receive_id: OperationId,
+        /// Exact records returned through the public API.
+        records: Vec<ConsumedRecord>,
+    },
+    /// One directly assigned consumer closed.
+    AssignedConsumerClosed {
+        /// Closed consumer.
+        consumer_id: ConsumerId,
     },
     /// Producer flush completed.
     FlushCompleted {

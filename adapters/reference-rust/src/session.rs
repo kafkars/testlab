@@ -114,6 +114,14 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
+        AdapterCommand::CreateAssignedConsumer { .. }
+        | AdapterCommand::AssignBeginning { .. }
+        | AdapterCommand::Receive { .. }
+        | AdapterCommand::CloseAssignedConsumer { .. } => {
+            return Err(AdapterError::Unsupported(
+                "assigned consumer commands require an assigned_consumer-capable adapter",
+            ));
+        }
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;
             emit(
@@ -231,6 +239,9 @@ pub enum AdapterError {
     /// One batch command did not contain an operation.
     #[error("adapter batch failed: {0}")]
     Batch(String),
+    /// A command reached a capability this adapter does not declare.
+    #[error("unsupported adapter command: {0}")]
+    Unsupported(&'static str),
     /// The harness used an unsupported protocol version.
     #[error("unsupported protocol version {0}")]
     ProtocolVersion(u16),
@@ -253,6 +264,7 @@ impl AdapterError {
             Self::Id(_) => "adapter_identity",
             Self::State(_) => "adapter_state",
             Self::Batch(_) => "adapter_batch",
+            Self::Unsupported(_) => "adapter_unsupported",
             Self::ProtocolVersion(_) => "protocol_version",
             Self::CommandTooLarge => "command_too_large",
             Self::IncompleteCommand => "incomplete_command",

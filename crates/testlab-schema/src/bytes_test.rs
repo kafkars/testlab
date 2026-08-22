@@ -13,6 +13,14 @@ fn hexadecimal_data_decodes_exactly() {
 }
 
 #[test]
+fn exact_bytes_encode_as_lowercase_hexadecimal() {
+    let value = ByteString::hex([0, 10, 255]);
+
+    assert_eq!(value.encoding, ByteEncoding::Hex);
+    assert_eq!(value.data, "000aff");
+}
+
+#[test]
 fn empty_bytes_remain_distinct_from_record_null() {
     let value = ByteString::utf8("");
 

@@ -39,9 +39,9 @@ Testlab may consume public artifacts. It never imports private client state.
 - fail-closed qualification manifests that aggregate ordered scenario evidence;
 - bounded per-cell repetition so intermittent failures block qualification;
 - independent real-Kafka observation through pinned librdkafka;
-- end-to-end producer scenarios for acknowledgment, definite rejection, lost
-  response uncertainty, real-Kafka round trips, partition routing, and the
-  packaged batch API.
+- end-to-end scenarios for producer acknowledgment, definite rejection, lost
+  response uncertainty, real-Kafka round trips, partition routing, the
+  packaged batch API, and exact directly assigned consumption.
 
 The model broker is **not Kafka compatibility evidence**. The `kafkars-pr`
 qualification runs the packaged Kafkars adapter against pinned Apache Kafka and
@@ -163,6 +163,8 @@ Retries never overwrite evidence. Every attempt has a new run identity.
 
 - Every send emits exactly one accepted or rejected admission decision.
 - Every batch preserves ordered per-record admission and delivery evidence.
+- Every direct receive preserves exact public record bytes and must expose its
+  expected prior send exactly once.
 - Every accepted send settles exactly once; rejected sends do not settle later.
 - Acknowledged records are broker-visible exactly once.
 - Definitely-not-sent records are absent.

@@ -16,6 +16,8 @@ pub fn known_contract_ids() -> &'static [&'static str] {
         "PROD-006",
         "PROD-007",
         "PROD-008",
+        "CONS-001",
+        "CONS-002",
         "LIFE-001",
         "LIFE-002",
         "LIFE-003",
@@ -23,5 +25,8 @@ pub fn known_contract_ids() -> &'static [&'static str] {
         "LIFE-005",
         "LIFE-006",
         "LIFE-007",
+        "LIFE-008",
+        "LIFE-009",
+        "LIFE-010",
     ]
 }
