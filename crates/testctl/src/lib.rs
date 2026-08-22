@@ -2,6 +2,7 @@
 
 mod app;
 mod catalog;
+mod catalog_io;
 mod evidence;
 mod process;
 mod process_io;
