@@ -54,6 +54,7 @@ inputs = [
   "scenarios/producer/lost-response.toml",
   "scenarios/producer/round-trip.toml",
   "scenarios/kafka/producer-round-trip.toml",
+  "scenarios/kafka/producer-partition-routing.toml",
   "packs/kafkars-pr.toml",
   "qualifications/kafkars-pr.toml",
   "qualifications/kafkars-release.toml",
