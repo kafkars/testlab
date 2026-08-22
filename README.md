@@ -68,6 +68,9 @@ exact driver and wire revisions declared by Kafkars. Use `release` instead of
 mechanisms. Dirty source is rejected unless `--allow-dirty` is the third
 argument.
 
+The release matrix uses a classic-only pack for Kafka 3.7–3.9, so unsupported
+KIP-848 behavior cannot create a false legacy-broker release failure.
+
 Kafkars CI can call the same boundary without copying any broker logic:
 
 ```yaml

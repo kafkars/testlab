@@ -33,21 +33,21 @@ gating = true
 [[cells]]
 id = "apache-kafka-3-9-2-plaintext"
 environment = "clusters/apache-kafka/3.9.2/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-classic.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-3-8-1-plaintext"
 environment = "clusters/apache-kafka/3.8.1/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-classic.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-3-7-2-plaintext"
 environment = "clusters/apache-kafka/3.7.2/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-classic.toml"
 attempts = 1
 gating = true
 
