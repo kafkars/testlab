@@ -108,6 +108,10 @@ macro_rules! identifier {
 }
 
 identifier!(AdapterId, "Stable identity for one adapter implementation.");
+identifier!(
+    CellId,
+    "Stable identity for one qualification environment and scenario pairing."
+);
 identifier!(ClientId, "Scenario-local identity for one client handle.");
 identifier!(CommandId, "Correlation identity for one harness command.");
 identifier!(ContractId, "Stable identity for one conformance contract.");
@@ -125,6 +129,10 @@ identifier!(
     "Scenario-local identity for one producer handle."
 );
 identifier!(RunId, "Unique identity for one testlab attempt.");
+identifier!(
+    QualificationId,
+    "Stable identity for one complete qualification evidence set."
+);
 identifier!(ScenarioId, "Stable identity for one scenario definition.");
 identifier!(StepId, "Stable identity for one ordered scenario step.");
 identifier!(

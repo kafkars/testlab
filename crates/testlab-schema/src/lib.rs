@@ -8,6 +8,7 @@ mod evidence;
 mod ids;
 mod pack;
 mod protocol;
+mod qualification;
 mod record;
 mod scenario;
 mod scenario_validation;
@@ -25,13 +26,16 @@ pub use evidence::{
     BrokerObservation, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
 };
 pub use ids::{
-    AdapterId, ClientId, CommandId, ContractId, EnvironmentId, IdError, OperationId, PackId,
-    ProducerId, RunId, ScenarioId, StepId, SubjectId,
+    AdapterId, CellId, ClientId, CommandId, ContractId, EnvironmentId, IdError, OperationId,
+    PackId, ProducerId, QualificationId, RunId, ScenarioId, StepId, SubjectId,
 };
 pub use pack::{ScenarioPack, ScenarioPackError};
 pub use protocol::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
     TerminalStatus,
+};
+pub use qualification::{
+    QUALIFICATION_SCHEMA_VERSION, QualificationCell, QualificationError, QualificationManifest,
 };
 pub use record::{HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{
@@ -47,6 +51,8 @@ mod bytes_test;
 mod environment_test;
 #[cfg(test)]
 mod ids_test;
+#[cfg(test)]
+mod qualification_test;
 #[cfg(test)]
 mod record_test;
 #[cfg(test)]
