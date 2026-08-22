@@ -36,6 +36,16 @@ pub struct QualificationEvidenceManifest {
 }
 
 impl QualificationEvidenceManifest {
+    /// Derives the release-facing status from gating cell evidence.
+    pub fn aggregate_status(cells: &[QualificationCellEvidence]) -> VerdictStatus {
+        aggregate(
+            cells
+                .iter()
+                .filter(|cell| cell.gating)
+                .map(|cell| cell.status),
+        )
+    }
+
     /// Validates identities, evidence paths, and deterministic aggregation.
     pub fn validate(&self) -> Result<(), QualificationEvidenceError> {
         if self.schema_version != QUALIFICATION_EVIDENCE_SCHEMA_VERSION {
@@ -83,7 +93,7 @@ impl QualificationEvidenceManifest {
                 });
             }
         }
-        let expected = aggregate_cells(&self.cells);
+        let expected = Self::aggregate_status(&self.cells);
         if self.status != expected {
             return Err(QualificationEvidenceError::StatusMismatch {
                 expected,
@@ -112,6 +122,13 @@ pub struct QualificationCellEvidence {
     pub runs: Vec<QualificationRunEvidence>,
 }
 
+impl QualificationCellEvidence {
+    /// Derives one cell status from its ordered scenario run verdicts.
+    pub fn aggregate_status(runs: &[QualificationRunEvidence]) -> VerdictStatus {
+        aggregate(runs.iter().map(|run| run.status))
+    }
+}
+
 /// One scenario run referenced by qualification evidence.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -127,16 +144,7 @@ pub struct QualificationRunEvidence {
 }
 
 fn aggregate_runs(runs: &[QualificationRunEvidence]) -> VerdictStatus {
-    aggregate(runs.iter().map(|run| run.status))
-}
-
-fn aggregate_cells(cells: &[QualificationCellEvidence]) -> VerdictStatus {
-    aggregate(
-        cells
-            .iter()
-            .filter(|cell| cell.gating)
-            .map(|cell| cell.status),
-    )
+    QualificationCellEvidence::aggregate_status(runs)
 }
 
 fn aggregate(statuses: impl Iterator<Item = VerdictStatus>) -> VerdictStatus {

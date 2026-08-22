@@ -1,19 +1,17 @@
 //! Scenario execution keeps adapter claims, broker truth, and invalidity distinct.
 
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
 
 use testlab_environment::ComposeArtifact;
-use testlab_schema::{EnvironmentManifest, RunId, Scenario, SubjectManifest, Verdict};
+use testlab_schema::{EnvironmentManifest, Scenario, SubjectManifest, Verdict};
 
 use crate::catalog::Repository;
 use crate::evidence::{SealRequest, SealedRun, seal};
+use crate::identity::new_run_id;
 use crate::recorder::HistoryRecorder;
 use crate::run_error::{AppError, RunFailure};
 use crate::runner_environment::{EnvironmentExecutionRequest, execute_environment};
 use crate::time::{Deadline, unix_ms};
-
-static RUN_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 pub(crate) fn run_scenario(
     repository: &Repository,
@@ -92,7 +90,7 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
         evidence_directory,
     } = request;
     let started_unix_ms = preflight_time()?;
-    let run_id = new_run_id(started_unix_ms)?;
+    let run_id = new_run_id("run", started_unix_ms)?;
     let deadline = Deadline::after_millis(scenario.timeout_ms)
         .map_err(|error| AppError::Catalog(error.to_string()))?;
     let mut recorder = HistoryRecorder::default();
@@ -163,17 +161,4 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
 
 fn preflight_time() -> Result<u64, AppError> {
     unix_ms().map_err(|error| AppError::Catalog(error.to_string()))
-}
-
-fn new_run_id(started_unix_ms: u64) -> Result<RunId, AppError> {
-    let sequence = RUN_SEQUENCE
-        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
-            value.checked_add(1)
-        })
-        .map_err(|_| AppError::Catalog("run identity counter overflowed".to_owned()))?;
-    RunId::new(format!(
-        "run-{started_unix_ms}-{}-{sequence}",
-        std::process::id()
-    ))
-    .map_err(|error| AppError::Catalog(format!("generated invalid run id: {error}")))
 }

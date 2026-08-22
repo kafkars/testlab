@@ -32,18 +32,21 @@ Testlab may consume public artifacts. It never imports private client state.
 - zrail policy for 300-line files, facade-only modules, and separate tests;
 - catalog integrity validation through the same public manifest loader used by
   `testctl`;
+- an immutable Apache Kafka 4.3.1 Compose environment with owned readiness,
+  snapshots, logs, cleanup, and sealed terminal evidence;
+- fail-closed qualification manifests that aggregate ordered scenario evidence;
 - three end-to-end scenarios: acknowledgment, definite rejection, and a lost
   response that must remain `possibly_sent`.
 
-The model broker is **not Kafka compatibility evidence**. The next implementation
-batch adds the real `kafkars-rust` adapter, a Kafka-protocol adversary, and a
-pinned real-cluster lane.
+The model broker is **not Kafka compatibility evidence**. Testlab can now own a
+pinned real Kafka lifecycle, but a Kafka client compatibility claim additionally
+requires the packaged `kafkars-rust` adapter and independent Kafka observation.
 
 ## Quick start
 
 ```bash
 scripts/check
-scripts/run-reference-pack
+scripts/run-reference-qualification
 ```
 
 Or:
@@ -53,12 +56,15 @@ cargo build -p testctl -p testlab-reference-adapter
 
 target/debug/testctl validate --root .
 
-target/debug/testctl run-pack \
+target/debug/testctl qualify \
   --root . \
-  --pack packs/repository-pr.toml \
+  --qualification qualifications/repository-pr.toml \
   --subject subjects/reference-rust.toml \
   --evidence-dir evidence
 ```
+
+The command prints exactly one release-facing status and evidence path. Every
+qualification cell and scenario run remains inspectable beneath that directory.
 
 A run seals a directory like:
 
@@ -75,6 +81,19 @@ evidence/run-.../
 ├── subject.json
 ├── summary.md
 └── verdict.json
+```
+
+A qualification seals a recursively digested tree:
+
+```text
+evidence/qualification-.../
+├── cells/<cell-id>/<run-id>/...
+├── digests.json
+├── manifest.json
+├── qualification.json
+├── reproduction.sh
+├── subject.json
+└── summary.md
 ```
 
 ## Adapter boundary

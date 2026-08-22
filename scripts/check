@@ -6,4 +6,4 @@ zrail check
 "$repo_root/scripts/check-rust-lint"
 "$repo_root/scripts/check-rust-test"
 "$repo_root/scripts/check-scenarios"
-"$repo_root/scripts/run-reference-pack"
+"$repo_root/scripts/run-reference-qualification"

@@ -37,6 +37,8 @@ pub(crate) struct SealRequest<'a> {
 #[derive(Clone, Debug)]
 pub(crate) struct SealedRun {
     pub(crate) path: PathBuf,
+    pub(crate) run_id: RunId,
+    pub(crate) scenario_id: testlab_schema::ScenarioId,
     pub(crate) verdict: Verdict,
 }
 
@@ -72,6 +74,8 @@ pub(crate) fn seal(request: &SealRequest<'_>) -> Result<SealedRun, AppError> {
     sync_directory(&evidence_root)?;
     Ok(SealedRun {
         path: final_path,
+        run_id: request.run_id.clone(),
+        scenario_id: request.scenario.id.clone(),
         verdict: request.verdict.clone(),
     })
 }

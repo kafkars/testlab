@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 use crate::catalog::Repository;
+use crate::qualification::run_qualification;
 use crate::run_error::AppError;
 use crate::runner::{run_pack, run_scenario};
 
@@ -68,6 +69,21 @@ enum Command {
         #[arg(long, default_value = "evidence")]
         evidence_dir: PathBuf,
     },
+    /// Runs every cell in one reviewed qualification manifest.
+    Qualify {
+        /// Repository root.
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        /// Repository-relative qualification manifest.
+        #[arg(long)]
+        qualification: PathBuf,
+        /// Repository-relative packaged subject manifest.
+        #[arg(long)]
+        subject: PathBuf,
+        /// Repository-relative or absolute evidence directory.
+        #[arg(long, default_value = "evidence")]
+        evidence_dir: PathBuf,
+    },
 }
 
 fn run(cli: Cli) -> Result<bool, AppError> {
@@ -119,6 +135,17 @@ fn run(cli: Cli) -> Result<bool, AppError> {
                 passed &= run.verdict.is_passed();
             }
             Ok(passed)
+        }
+        Command::Qualify {
+            root,
+            qualification,
+            subject,
+            evidence_dir,
+        } => {
+            let repository = Repository::open(&root)?;
+            let run = run_qualification(&repository, &qualification, &subject, &evidence_dir)?;
+            println!("{:?} {}", run.status, run.path.display());
+            Ok(run.status == testlab_schema::VerdictStatus::Passed)
         }
     }
 }

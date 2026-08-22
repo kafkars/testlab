@@ -82,6 +82,75 @@ pub(crate) fn digest_directory(directory: &Path) -> Result<BTreeMap<String, Stri
     Ok(digests)
 }
 
+pub(crate) fn digest_tree(directory: &Path) -> Result<BTreeMap<String, String>, AppError> {
+    let mut files = Vec::new();
+    collect_files(directory, &mut files)?;
+    files.sort();
+    let mut digests = BTreeMap::new();
+    for path in files {
+        let relative = path.strip_prefix(directory).map_err(|error| {
+            AppError::Evidence(format!("failed to relativize {}: {error}", path.display()))
+        })?;
+        if relative == Path::new("digests.json") {
+            continue;
+        }
+        let name = portable_path(relative)?;
+        digests.insert(name, digest_file(&path)?);
+    }
+    Ok(digests)
+}
+
+pub(crate) fn sync_tree_directories(directory: &Path) -> Result<(), AppError> {
+    let mut directories = fs::read_dir(directory)
+        .map_err(|error| AppError::io(format!("failed to list {}", directory.display()), error))?
+        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+    directories.sort();
+    for child in directories {
+        sync_tree_directories(&child)?;
+    }
+    sync_directory(directory)
+}
+
+fn collect_files(directory: &Path, files: &mut Vec<std::path::PathBuf>) -> Result<(), AppError> {
+    let mut entries = fs::read_dir(directory)
+        .map_err(|error| AppError::io(format!("failed to list {}", directory.display()), error))?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| AppError::io("failed to inspect qualification evidence", error))?;
+    entries.sort();
+    for path in entries {
+        if path.is_dir() {
+            collect_files(&path, files)?;
+        } else if path.is_file() {
+            files.push(path);
+        } else {
+            return Err(AppError::Evidence(format!(
+                "unsupported qualification evidence entry {}",
+                path.display()
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn portable_path(path: &Path) -> Result<String, AppError> {
+    let mut components = Vec::new();
+    for component in path.components() {
+        let std::path::Component::Normal(value) = component else {
+            return Err(AppError::Evidence(format!(
+                "non-portable qualification evidence path {}",
+                path.display()
+            )));
+        };
+        components.push(value.to_str().ok_or_else(|| {
+            AppError::Evidence(format!("non-UTF-8 evidence path {}", path.display()))
+        })?);
+    }
+    Ok(components.join("/"))
+}
+
 fn create_new(path: &Path) -> Result<File, AppError> {
     OpenOptions::new()
         .write(true)

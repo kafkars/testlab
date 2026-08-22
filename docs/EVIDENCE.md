@@ -23,6 +23,17 @@ Evidence schema v2 records the exact environment identity in `manifest.json`.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 
+## Qualification evidence
+
+`testctl qualify` creates one `<qualification-run-id>.partial` tree, executes
+every reviewed environment/pack cell into `cells/<cell-id>/<run-id>`, derives
+cell and top-level status from the sealed run verdicts, recursively digests the
+complete tree, and only then publishes the qualification directory.
+
+At least one cell must be gating. For gating cells, `invalid` outranks `failed`
+and `failed` outranks `passed`. Non-gating cells remain visible but cannot make
+the release-facing aggregate pass or fail.
+
 ## Status
 
 `passed` means valid evidence and no semantic violation.

@@ -5,9 +5,12 @@ mod catalog;
 mod catalog_io;
 mod evidence;
 mod evidence_io;
+mod identity;
 mod process;
 mod process_io;
 mod protocol_session;
+mod qualification;
+mod qualification_evidence;
 mod recorder;
 mod run_error;
 mod runner;
@@ -21,6 +24,8 @@ pub use run_error::AppError;
 
 #[cfg(test)]
 mod catalog_test;
+#[cfg(test)]
+mod qualification_test;
 #[cfg(test)]
 mod recorder_test;
 #[cfg(test)]

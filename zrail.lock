@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "5501b7d058f3c42279b90fea586753f6bb81e07777d7dd1ee247f2519f8bade1"
+contract_sha256 = "69c41ca6352970815bf9fe96c090177efbf64af47c739cd7a165c4e7f7fb548c"
 ratchet = []
 
 [[package]]
@@ -384,7 +384,7 @@ requirement = "0.1.0"
 [[gate]]
 name = "check"
 path = "scripts/check"
-sha256 = "bcb691b5c93ecea4e8dd92c224daf21f8b30963386367c368e7d68261a555e21"
+sha256 = "e0ec30a08049199550c9f13bdc389abbc6bf61daead2754b76de20bc08028475"
 
 [[gate.input]]
 path = "Cargo.lock"
@@ -453,6 +453,10 @@ sha256 = "a3390d85d24dddbc24b18ecea418246f4a7f5fd39266ac04de81e353535ed9ad"
 [[gate.input]]
 path = "scripts/run-reference-pack"
 sha256 = "b9e3b444bf84a2c7b2725ebb4ab1dbd34ee49d4954021e3c4408723ee222ca03"
+
+[[gate.input]]
+path = "scripts/run-reference-qualification"
+sha256 = "f2545333e416cbaa3ced5aa9dc0743c64645ada114d775f0bb430c7b48af30b7"
 
 [[gate.input]]
 path = "subjects/reference-rust.toml"

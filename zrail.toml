@@ -18,6 +18,7 @@ inputs = [
   "scripts/check-rust-test",
   "scripts/check-scenarios",
   "scripts/run-reference-pack",
+  "scripts/run-reference-qualification",
   "Cargo.toml",
   "Cargo.lock",
   "rust-toolchain.toml",
