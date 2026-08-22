@@ -5,6 +5,7 @@ mod consumer;
 mod contracts;
 mod index;
 mod lifecycle;
+mod observations;
 mod protocol;
 mod support;
 mod verify;

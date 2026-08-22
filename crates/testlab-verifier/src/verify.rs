@@ -30,7 +30,7 @@ pub fn verify(
     verify_client_failures(&index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
-    verify_unknown_observations(&sends, &observed, &mut violations);
+    crate::observations::verify_unknown(&sends, &observed, &mut violations);
     verify_lifecycle(scenario, &index, &mut violations);
     if violations.is_empty() {
         Verdict::passed()
@@ -276,23 +276,5 @@ fn verify_integrity(
                 vec![format!("broker-observation:{}", observation.observation)],
             ));
         }
-    }
-}
-
-fn verify_unknown_observations(
-    sends: &BTreeMap<OperationId, &RecordSpec>,
-    observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
-    violations: &mut Vec<Violation>,
-) {
-    for operation in observed
-        .keys()
-        .filter(|operation| !sends.contains_key(*operation))
-    {
-        violations.push(violation(
-            "PROTO-002",
-            "broker observed an operation absent from the scenario".to_owned(),
-            Some(operation.clone()),
-            observation_references(observed.get(operation).map(Vec::as_slice)),
-        ));
     }
 }
