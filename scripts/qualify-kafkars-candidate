@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$repository_root/scripts/portable-environment"
 if [[ $# -lt 1 || $# -gt 3 ]]; then
   echo "usage: scripts/qualify-kafkars-candidate <kafkars-checkout> [pr|release] [--allow-dirty]" >&2
   exit 2

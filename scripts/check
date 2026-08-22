@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+source "$repo_root/scripts/portable-environment"
 cd "$repo_root"
 zrail check
 "$repo_root/scripts/check-rust-lint"

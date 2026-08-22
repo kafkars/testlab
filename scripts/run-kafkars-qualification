@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$repository_root/scripts/portable-environment"
 evidence_directory="${TESTLAB_EVIDENCE_DIR:-${repository_root}/target/kafkars-qualification-evidence}"
 
 cd "${repository_root}"

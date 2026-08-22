@@ -175,6 +175,10 @@ fn canonical_directory(path: &Path, label: &str) -> Result<PathBuf, AppError> {
 }
 
 fn run(command: &mut Command, label: &str) -> Result<(), AppError> {
+    command
+        .env("LANG", "C")
+        .env("LC_ALL", "C")
+        .env("LC_CTYPE", "C");
     let status = command
         .status()
         .map_err(|error| AppError::io(format!("failed to {label}"), error))?;
