@@ -63,6 +63,28 @@ pub(crate) fn verify_lifecycle(
                 references(index.consumers_closed.get(consumer_id).map(Vec::as_slice)),
                 violations,
             ),
+            ScenarioAction::CreateGroupConsumer { consumer_id, .. } => check(
+                "LIFE-011",
+                "group consumer creation",
+                references(
+                    index
+                        .group_consumers_created
+                        .get(consumer_id)
+                        .map(Vec::as_slice),
+                ),
+                violations,
+            ),
+            ScenarioAction::CloseGroupConsumer { consumer_id } => check(
+                "LIFE-012",
+                "group consumer close",
+                references(
+                    index
+                        .group_consumers_closed
+                        .get(consumer_id)
+                        .map(Vec::as_slice),
+                ),
+                violations,
+            ),
             ScenarioAction::ShutdownClient { client_id } => check(
                 "LIFE-005",
                 "client shutdown",
@@ -72,7 +94,8 @@ pub(crate) fn verify_lifecycle(
             ScenarioAction::SetBrokerBehavior { .. }
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
-            | ScenarioAction::Receive { .. } => {}
+            | ScenarioAction::Receive { .. }
+            | ScenarioAction::GroupReceive { .. } => {}
         }
     }
     if index.command_failures.is_empty() && index.finish_issued() {

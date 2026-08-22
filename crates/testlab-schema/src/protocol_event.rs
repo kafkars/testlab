@@ -81,6 +81,25 @@ pub enum AdapterEvent {
         /// Closed consumer.
         consumer_id: ConsumerId,
     },
+    /// One classic consumer-group member registered.
+    GroupConsumerCreated {
+        /// Created consumer.
+        consumer_id: ConsumerId,
+    },
+    /// One group batch observation and checkpoint attempt completed.
+    GroupReceiveCompleted {
+        /// Stable receive operation identity.
+        receive_id: OperationId,
+        /// Exact records returned through the public API.
+        records: Vec<ConsumedRecord>,
+        /// Whether the assignment-fenced checkpoint committed.
+        committed: bool,
+    },
+    /// One classic group consumer closed.
+    GroupConsumerClosed {
+        /// Closed consumer.
+        consumer_id: ConsumerId,
+    },
     /// Producer flush completed.
     FlushCompleted {
         /// Flushed producer.

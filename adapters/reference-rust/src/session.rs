@@ -122,6 +122,13 @@ fn dispatch<W: Write>(
                 "assigned consumer commands require an assigned_consumer-capable adapter",
             ));
         }
+        AdapterCommand::CreateGroupConsumer { .. }
+        | AdapterCommand::GroupReceive { .. }
+        | AdapterCommand::CloseGroupConsumer { .. } => {
+            return Err(AdapterError::Unsupported(
+                "group commands require a consumer_groups-capable adapter",
+            ));
+        }
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;
             emit(

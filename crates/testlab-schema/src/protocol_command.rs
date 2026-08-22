@@ -85,6 +85,31 @@ pub enum AdapterCommand {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
+    /// Registers one classic consumer-group member.
+    CreateGroupConsumer {
+        /// Owning client.
+        client_id: ClientId,
+        /// Scenario-local consumer identity.
+        consumer_id: ConsumerId,
+        /// Exact Kafka group identity.
+        group_id: String,
+        /// Subscribed topic.
+        topic: String,
+    },
+    /// Receives one group batch and commits its checkpoint.
+    GroupReceive {
+        /// Existing group consumer.
+        consumer_id: ConsumerId,
+        /// Stable receive operation identity.
+        receive_id: OperationId,
+        /// Maximum public observation duration.
+        timeout_ms: u64,
+    },
+    /// Closes one classic group consumer.
+    CloseGroupConsumer {
+        /// Consumer to close.
+        consumer_id: ConsumerId,
+    },
     /// Flushes one producer.
     Flush {
         /// Producer to flush.

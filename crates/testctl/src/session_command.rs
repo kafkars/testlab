@@ -59,7 +59,10 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         action @ (ScenarioAction::CreateAssignedConsumer { .. }
         | ScenarioAction::AssignBeginning { .. }
         | ScenarioAction::Receive { .. }
-        | ScenarioAction::CloseAssignedConsumer { .. }) => return consumer(action),
+        | ScenarioAction::CloseAssignedConsumer { .. }
+        | ScenarioAction::CreateGroupConsumer { .. }
+        | ScenarioAction::GroupReceive { .. }
+        | ScenarioAction::CloseGroupConsumer { .. }) => return consumer(action),
         ScenarioAction::Flush { producer_id } => (
             AdapterCommand::Flush {
                 producer_id: producer_id.clone(),
@@ -125,6 +128,39 @@ fn consumer(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> 
                 consumer_id: consumer_id.clone(),
             },
             ExpectedEvent::AssignedConsumerClosed(consumer_id.clone()),
+        ),
+        ScenarioAction::CreateGroupConsumer {
+            client_id,
+            consumer_id,
+            group_id,
+            topic,
+        } => (
+            AdapterCommand::CreateGroupConsumer {
+                client_id: client_id.clone(),
+                consumer_id: consumer_id.clone(),
+                group_id: group_id.clone(),
+                topic: topic.clone(),
+            },
+            ExpectedEvent::GroupConsumerCreated(consumer_id.clone()),
+        ),
+        ScenarioAction::GroupReceive {
+            consumer_id,
+            receive_id,
+            timeout_ms,
+            ..
+        } => (
+            AdapterCommand::GroupReceive {
+                consumer_id: consumer_id.clone(),
+                receive_id: receive_id.clone(),
+                timeout_ms: *timeout_ms,
+            },
+            ExpectedEvent::GroupReceiveCompleted(receive_id.clone()),
+        ),
+        ScenarioAction::CloseGroupConsumer { consumer_id } => (
+            AdapterCommand::CloseGroupConsumer {
+                consumer_id: consumer_id.clone(),
+            },
+            ExpectedEvent::GroupConsumerClosed(consumer_id.clone()),
         ),
         _ => return None,
     };

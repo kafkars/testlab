@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v7 command.
+//! Expected event shapes constrain each sequential protocol-v8 command.
 
 use std::collections::BTreeSet;
 
@@ -21,6 +21,9 @@ pub(crate) enum ExpectedEvent {
     AssignmentCompleted(ConsumerId),
     ReceiveCompleted(OperationId),
     AssignedConsumerClosed(ConsumerId),
+    GroupConsumerCreated(ConsumerId),
+    GroupReceiveCompleted(OperationId),
+    GroupConsumerClosed(ConsumerId),
     FlushCompleted(ProducerId),
     ProducerClosed(ProducerId),
     ClientShutdown(ClientId),
@@ -37,6 +40,9 @@ impl ExpectedEvent {
     pub(crate) fn classify(&self, event: &AdapterEvent) -> Result<EventDisposition, RunFailure> {
         if matches!(event, AdapterEvent::CommandFailed { .. }) {
             return Ok(EventDisposition::Complete);
+        }
+        if let Some(disposition) = classify_group(self, event) {
+            return disposition;
         }
         match (self, event) {
             (Self::Ready, AdapterEvent::Ready { .. })
@@ -129,6 +135,41 @@ impl ExpectedEvent {
     }
 }
 
+fn classify_group(
+    expected: &ExpectedEvent,
+    event: &AdapterEvent,
+) -> Option<Result<EventDisposition, RunFailure>> {
+    let identity_matches = match (expected, event) {
+        (
+            ExpectedEvent::GroupConsumerCreated(expected),
+            AdapterEvent::GroupConsumerCreated {
+                consumer_id: actual,
+            },
+        )
+        | (
+            ExpectedEvent::GroupConsumerClosed(expected),
+            AdapterEvent::GroupConsumerClosed {
+                consumer_id: actual,
+            },
+        ) => expected == actual,
+        (
+            ExpectedEvent::GroupReceiveCompleted(expected),
+            AdapterEvent::GroupReceiveCompleted {
+                receive_id: actual, ..
+            },
+        ) => expected == actual,
+        _ => return None,
+    };
+    Some(if identity_matches {
+        Ok(EventDisposition::Complete)
+    } else {
+        Err(RunFailure::protocol(
+            "event_identity_mismatch",
+            format!("event {event:?} does not match expected {expected:?}"),
+        ))
+    })
+}
+
 fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
     matches!(
         (expected, event),
@@ -173,6 +214,18 @@ fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
             | (
                 ExpectedEvent::AssignedConsumerClosed(_),
                 AdapterEvent::AssignedConsumerClosed { .. }
+            )
+            | (
+                ExpectedEvent::GroupConsumerCreated(_),
+                AdapterEvent::GroupConsumerCreated { .. }
+            )
+            | (
+                ExpectedEvent::GroupReceiveCompleted(_),
+                AdapterEvent::GroupReceiveCompleted { .. }
+            )
+            | (
+                ExpectedEvent::GroupConsumerClosed(_),
+                AdapterEvent::GroupConsumerClosed { .. }
             )
             | (
                 ExpectedEvent::FlushCompleted(_),

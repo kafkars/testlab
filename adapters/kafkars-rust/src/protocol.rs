@@ -11,6 +11,8 @@ use testlab_schema::{
 use crate::AdapterError;
 use crate::normalize;
 use crate::protocol_consumer;
+use crate::protocol_group;
+use crate::protocol_lifecycle;
 use crate::protocol_send;
 use crate::state::AdapterState;
 
@@ -127,44 +129,16 @@ fn dispatch<W: Write>(
         | AdapterCommand::CloseAssignedConsumer { .. }) => {
             protocol_consumer::dispatch(state, writer, command_id, command)?;
         }
-        AdapterCommand::Flush { producer_id } => {
-            state
-                .producer(&producer_id)?
-                .flush()
-                .wait()
-                .map_err(AdapterError::Client)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::FlushCompleted { producer_id },
-                ),
-            )?;
+        command @ (AdapterCommand::CreateGroupConsumer { .. }
+        | AdapterCommand::GroupReceive { .. }
+        | AdapterCommand::CloseGroupConsumer { .. }) => {
+            protocol_group::dispatch(state, writer, command_id, command)?;
         }
-        AdapterCommand::CloseProducer { producer_id } => {
-            state.close_producer(&producer_id)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::ProducerClosed { producer_id },
-                ),
-            )?;
-        }
-        AdapterCommand::ShutdownClient { client_id } => {
-            state.shutdown_client(&client_id)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientShutdown { client_id }),
-            )?;
-        }
-        AdapterCommand::Finish => {
-            state.finish()?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::Finished),
-            )?;
-            return Ok(true);
+        command @ (AdapterCommand::Flush { .. }
+        | AdapterCommand::CloseProducer { .. }
+        | AdapterCommand::ShutdownClient { .. }
+        | AdapterCommand::Finish) => {
+            return protocol_lifecycle::dispatch(state, writer, command_id, command);
         }
     }
     Ok(false)
@@ -201,6 +175,7 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
             Capability::Lifecycle,
             Capability::ClientReadiness,
             Capability::AssignedConsumer,
+            Capability::ConsumerGroups,
         ]),
     })
 }

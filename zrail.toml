@@ -57,6 +57,7 @@ inputs = [
   "scenarios/kafka/producer-partition-routing.toml",
   "scenarios/kafka/producer-batch.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/classic-group-round-trip.toml",
   "packs/kafkars-pr.toml",
   "qualifications/kafkars-pr.toml",
   "qualifications/kafkars-release.toml",

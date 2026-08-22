@@ -87,7 +87,13 @@ category = "consumer"
 [[contract]]
 id = "CONS-002"
 title = "Consumer returns the exact produced record"
-statement = "A direct consumer receive exposes the expected produced topic, partition, key, value, and ordered headers exactly once."
+statement = "A consumer receive exposes the expected produced topic, partition, key, value, and ordered headers exactly once."
+category = "consumer"
+
+[[contract]]
+id = "CONS-003"
+title = "Group receive commits its exact checkpoint"
+statement = "A successful group receive commits the assignment-fenced checkpoint derived from its exact public batch."
 category = "consumer"
 
 [[contract]]
@@ -148,4 +154,16 @@ category = "lifecycle"
 id = "LIFE-010"
 title = "Assigned consumer close settles exactly once"
 statement = "Each requested assigned-consumer close emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-011"
+title = "Group consumer creation settles exactly once"
+statement = "Each requested classic group-consumer registration emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-012"
+title = "Group consumer close settles exactly once"
+statement = "Each requested classic group-consumer close emits exactly one matching event."
 category = "lifecycle"

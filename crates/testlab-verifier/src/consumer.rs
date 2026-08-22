@@ -13,19 +13,17 @@ pub(crate) fn verify_consumers(
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
-        let ScenarioAction::Receive {
-            receive_id,
-            expected_operation_id,
-            ..
-        } = &step.action
-        else {
+        let Some((receive_id, expected_operation_id, group)) = expectation(&step.action) else {
             continue;
         };
         if !index.action_issued(&step.action) {
             continue;
         }
         let receives = index.receives.get(receive_id);
-        if receives.map_or(0, Vec::len) != 1 {
+        let matching_kind = receives
+            .and_then(|values| values.first())
+            .is_some_and(|receive| receive.committed.is_some() == group);
+        if receives.map_or(0, Vec::len) != 1 || !matching_kind {
             violations.push(violation(
                 "CONS-001",
                 format!(
@@ -41,6 +39,14 @@ pub(crate) fn verify_consumers(
             continue;
         };
         let receive = &receives.map_or(&[][..], Vec::as_slice)[0];
+        if group && receive.committed != Some(true) {
+            violations.push(violation(
+                "CONS-003",
+                format!("group receive {receive_id} did not commit its checkpoint"),
+                Some(receive_id.clone()),
+                vec![format!("history:{}", receive.history_sequence)],
+            ));
+        }
         let exact = receive
             .records
             .iter()
@@ -56,6 +62,22 @@ pub(crate) fn verify_consumers(
                 vec![format!("history:{}", receive.history_sequence)],
             ));
         }
+    }
+}
+
+fn expectation(action: &ScenarioAction) -> Option<(&OperationId, &OperationId, bool)> {
+    match action {
+        ScenarioAction::Receive {
+            receive_id,
+            expected_operation_id,
+            ..
+        } => Some((receive_id, expected_operation_id, false)),
+        ScenarioAction::GroupReceive {
+            receive_id,
+            expected_operation_id,
+            ..
+        } => Some((receive_id, expected_operation_id, true)),
+        _ => None,
     }
 }
 

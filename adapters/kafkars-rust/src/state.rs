@@ -3,12 +3,13 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use kafkars::{AssignedConsumer, Client, Producer, Security};
+use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
 use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
 use thiserror::Error;
 
 use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::{SecurityError, resolve};
+use crate::group_consumers::GroupConsumers;
 
 const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
 
@@ -19,6 +20,7 @@ pub(crate) struct AdapterState {
     clients: BTreeMap<ClientId, Client>,
     producers: BTreeMap<ProducerId, ProducerOwner>,
     consumers: AssignedConsumers,
+    group_consumers: GroupConsumers,
 }
 
 #[derive(Debug)]
@@ -109,11 +111,46 @@ impl AdapterState {
         client_id: ClientId,
         consumer_id: ConsumerId,
     ) -> Result<(), StateError> {
+        if self.group_consumers.contains(&consumer_id) {
+            return Err(StateError::DuplicateConsumer(consumer_id));
+        }
         let client = self
             .clients
             .get(&client_id)
             .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
         self.consumers.create(client, client_id, consumer_id)
+    }
+
+    pub(crate) fn create_group_consumer(
+        &mut self,
+        client_id: ClientId,
+        consumer_id: ConsumerId,
+        group_id: String,
+        topic: String,
+    ) -> Result<(), StateError> {
+        if self.consumers.contains(&consumer_id) {
+            return Err(StateError::DuplicateConsumer(consumer_id));
+        }
+        let client = self
+            .clients
+            .get(&client_id)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
+        self.group_consumers
+            .create(client, client_id, consumer_id, group_id, topic)
+    }
+
+    pub(crate) fn group_consumer_mut(
+        &mut self,
+        consumer_id: &ConsumerId,
+    ) -> Result<&mut Consumer, StateError> {
+        self.group_consumers.get_mut(consumer_id)
+    }
+
+    pub(crate) fn close_group_consumer(
+        &mut self,
+        consumer_id: &ConsumerId,
+    ) -> Result<(), StateError> {
+        self.group_consumers.close(consumer_id)
     }
 
     pub(crate) fn assign_beginning(
@@ -156,7 +193,7 @@ impl AdapterState {
         {
             return Err(StateError::OpenProducer(client_id.clone()));
         }
-        if self.consumers.has_owner(client_id) {
+        if self.consumers.has_owner(client_id) || self.group_consumers.has_owner(client_id) {
             return Err(StateError::OpenConsumer(client_id.clone()));
         }
         let client = self
@@ -170,7 +207,7 @@ impl AdapterState {
         if !self.producers.is_empty() {
             return Err(StateError::UnclosedProducers);
         }
-        if !self.consumers.is_empty() {
+        if !self.consumers.is_empty() || !self.group_consumers.is_empty() {
             return Err(StateError::UnclosedConsumers);
         }
         if !self.clients.is_empty() {

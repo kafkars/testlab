@@ -65,6 +65,23 @@ pub(crate) fn assign(
     }
 }
 
+pub(crate) fn create_group(
+    client_id: &ClientId,
+    consumer_id: &ConsumerId,
+    group_id: &str,
+    topic: &str,
+    clients: &BTreeMap<ClientId, bool>,
+    consumers: &mut ConsumerStates,
+    problems: &mut Vec<String>,
+) {
+    create(client_id, consumer_id, clients, consumers, problems);
+    if let Some(state) = consumers.get_mut(consumer_id) {
+        state.assigned = true;
+    }
+    validate_name(consumer_id, "group", group_id, 255, problems);
+    validate_name(consumer_id, "topic", topic, 249, problems);
+}
+
 pub(crate) fn receive(
     consumer_id: &ConsumerId,
     receive_id: &OperationId,
@@ -124,5 +141,17 @@ fn open<'a>(
             problems.push(format!("missing consumer {consumer_id} was used"));
             None
         }
+    }
+}
+
+fn validate_name(
+    consumer_id: &ConsumerId,
+    kind: &str,
+    value: &str,
+    maximum: usize,
+    problems: &mut Vec<String>,
+) {
+    if value.is_empty() || value.len() > maximum {
+        problems.push(format!("consumer {consumer_id} has invalid {kind}"));
     }
 }

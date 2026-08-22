@@ -52,7 +52,8 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut uses_model_broker = false;
     let mut uses_readiness = false;
     let mut uses_batch = false;
-    let mut uses_consumer = false;
+    let mut uses_assigned_consumer = false;
+    let mut uses_group_consumer = false;
     for step in &scenario.steps {
         if !step_ids.insert(step.id.clone()) {
             problems.push(format!("duplicate step id {}", step.id));
@@ -60,12 +61,18 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
         uses_model_broker |= matches!(&step.action, ScenarioAction::SetBrokerBehavior { .. });
         uses_readiness |= matches!(&step.action, ScenarioAction::AwaitClientReady { .. });
         uses_batch |= matches!(&step.action, ScenarioAction::SendBatch { .. });
-        uses_consumer |= matches!(
+        uses_assigned_consumer |= matches!(
             &step.action,
             ScenarioAction::CreateAssignedConsumer { .. }
                 | ScenarioAction::AssignBeginning { .. }
                 | ScenarioAction::Receive { .. }
                 | ScenarioAction::CloseAssignedConsumer { .. }
+        );
+        uses_group_consumer |= matches!(
+            &step.action,
+            ScenarioAction::CreateGroupConsumer { .. }
+                | ScenarioAction::GroupReceive { .. }
+                | ScenarioAction::CloseGroupConsumer { .. }
         );
         crate::scenario_action_validation::validate_action(
             &step.action,
@@ -83,9 +90,12 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     if uses_batch && !scenario.requires.contains(&Capability::ProducerBatch) {
         problems.push("batch-send steps require the producer_batch capability".to_owned());
     }
-    if uses_consumer && !scenario.requires.contains(&Capability::AssignedConsumer) {
+    if uses_assigned_consumer && !scenario.requires.contains(&Capability::AssignedConsumer) {
         problems
             .push("assigned-consumer steps require the assigned_consumer capability".to_owned());
+    }
+    if uses_group_consumer && !scenario.requires.contains(&Capability::ConsumerGroups) {
+        problems.push("group-consumer steps require the consumer_groups capability".to_owned());
     }
     if uses_model_broker && !scenario.requires.contains(&Capability::ModelBroker) {
         problems.push("broker-control steps require the model_broker capability".to_owned());

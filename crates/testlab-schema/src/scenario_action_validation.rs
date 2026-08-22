@@ -73,23 +73,37 @@ pub(crate) fn validate_action(
             receive_id,
             expected_operation_id,
             timeout_ms,
-        } => {
-            crate::consumer_action_validation::receive(
-                consumer_id,
-                receive_id,
-                *timeout_ms,
-                consumers,
-                problems,
-            );
-            validate_receive_identity(
-                receive_id,
-                expected_operation_id,
-                operation_ids,
-                sends,
-                problems,
-            );
         }
-        ScenarioAction::CloseAssignedConsumer { consumer_id } => {
+        | ScenarioAction::GroupReceive {
+            consumer_id,
+            receive_id,
+            expected_operation_id,
+            timeout_ms,
+        } => crate::receive_action_validation::validate(
+            consumer_id,
+            receive_id,
+            expected_operation_id,
+            *timeout_ms,
+            consumers,
+            &mut (operation_ids, sends),
+            problems,
+        ),
+        ScenarioAction::CreateGroupConsumer {
+            client_id,
+            consumer_id,
+            group_id,
+            topic,
+        } => crate::consumer_action_validation::create_group(
+            client_id,
+            consumer_id,
+            group_id,
+            topic,
+            clients,
+            consumers,
+            problems,
+        ),
+        ScenarioAction::CloseAssignedConsumer { consumer_id }
+        | ScenarioAction::CloseGroupConsumer { consumer_id } => {
             crate::consumer_action_validation::close(consumer_id, consumers, problems);
         }
         ScenarioAction::Flush { producer_id } => {
@@ -128,23 +142,6 @@ fn validate_batch(
             sends,
             problems,
         );
-    }
-}
-
-fn validate_receive_identity(
-    receive_id: &OperationId,
-    expected_operation_id: &OperationId,
-    operation_ids: &mut BTreeSet<OperationId>,
-    sends: &BTreeSet<OperationId>,
-    problems: &mut Vec<String>,
-) {
-    if !operation_ids.insert(receive_id.clone()) {
-        problems.push(format!("duplicate operation id {receive_id}"));
-    }
-    if !sends.contains(expected_operation_id) {
-        problems.push(format!(
-            "receive {receive_id} expects missing prior send {expected_operation_id}"
-        ));
     }
 }
 

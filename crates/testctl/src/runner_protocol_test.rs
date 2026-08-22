@@ -83,6 +83,21 @@ fn receive_completion_requires_the_exact_receive_identity() {
     );
 }
 
+#[test]
+fn group_receive_completion_requires_commit_event_identity() {
+    let receive = id(OperationId::new("receive-group-1"));
+    assert_eq!(
+        ExpectedEvent::GroupReceiveCompleted(receive.clone())
+            .classify(&AdapterEvent::GroupReceiveCompleted {
+                receive_id: receive,
+                records: Vec::new(),
+                committed: false,
+            })
+            .unwrap_or_else(|error| panic!("classify group receive: {error}")),
+        EventDisposition::Complete
+    );
+}
+
 fn id<T, E>(result: Result<T, E>) -> T
 where
     E: std::fmt::Display,

@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 4;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 5;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -53,7 +53,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v4.
+/// Scenario action vocabulary for scenario schema v5.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -124,6 +124,33 @@ pub enum ScenarioAction {
     },
     /// Closes one directly assigned consumer.
     CloseAssignedConsumer {
+        /// Consumer to close.
+        consumer_id: ConsumerId,
+    },
+    /// Registers one classic consumer-group member.
+    CreateGroupConsumer {
+        /// Existing owning client.
+        client_id: ClientId,
+        /// New consumer identity.
+        consumer_id: ConsumerId,
+        /// Exact Kafka group identity.
+        group_id: String,
+        /// Subscribed topic.
+        topic: String,
+    },
+    /// Receives one group batch and commits its assignment-fenced checkpoint.
+    GroupReceive {
+        /// Existing group consumer.
+        consumer_id: ConsumerId,
+        /// Stable receive operation identity.
+        receive_id: OperationId,
+        /// Producer operation whose record must appear exactly once.
+        expected_operation_id: OperationId,
+        /// Adapter-side public observation bound.
+        timeout_ms: u64,
+    },
+    /// Closes one classic group consumer.
+    CloseGroupConsumer {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },

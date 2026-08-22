@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v7 scenario actions.
+//! One sequential adapter session executes protocol-v8 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;

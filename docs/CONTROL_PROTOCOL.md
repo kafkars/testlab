@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v7 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v8 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -28,6 +28,9 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `assign_beginning`
 - `receive`
 - `close_assigned_consumer`
+- `create_group_consumer`
+- `group_receive`
+- `close_group_consumer`
 - `flush`
 - `close_producer`
 - `shutdown_client`
@@ -50,6 +53,9 @@ boundary.
 - `assignment_completed`
 - `receive_completed`
 - `assigned_consumer_closed`
+- `group_consumer_created`
+- `group_receive_completed`
+- `group_consumer_closed`
 - `flush_completed`
 - `producer_closed`
 - `client_shutdown`
@@ -68,6 +74,12 @@ the exact records it observed. An empty completion means no public record
 arrived before the declared receive deadline; the verifier treats a missing
 expected record as a client failure, not manufactured success.
 
+A group receive additionally consumes the exact public batch into its
+assignment-fenced checkpoint and attempts a bounded public commit. Its
+completion reports both the exact records and whether that checkpoint committed;
+the deterministic verifier requires both the expected record and a successful
+commit.
+
 ## Failure behavior
 
 A normal public client API failure emits one correlated `command_failed` event
@@ -78,6 +90,6 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v7 is an exact semantic contract. New capabilities may be declared
+Protocol v8 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

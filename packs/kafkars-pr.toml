@@ -6,4 +6,5 @@ scenarios = [
   "scenarios/kafka/producer-partition-routing.toml",
   "scenarios/kafka/producer-batch.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/classic-group-round-trip.toml",
 ]

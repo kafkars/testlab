@@ -14,6 +14,7 @@ mod protocol_event;
 mod protocol_security;
 mod qualification;
 mod qualification_evidence;
+mod receive_action_validation;
 mod record;
 mod scenario;
 mod scenario_action_validation;
