@@ -1,0 +1,14 @@
+[package]
+name = "testlab-verifier"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Deterministic black-box conformance verifier for kafkars testlab"
+
+[dependencies]
+testlab-schema.workspace = true
+
+[lints]
+workspace = true

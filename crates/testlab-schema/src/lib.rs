@@ -1,0 +1,46 @@
+//! Versioned data contracts shared across the testlab trust boundary.
+
+mod adapter;
+mod bytes;
+mod contract;
+mod evidence;
+mod ids;
+mod pack;
+mod protocol;
+mod record;
+mod scenario;
+mod scenario_validation;
+mod subject;
+mod verdict;
+
+pub use adapter::{AdapterDescriptor, Capability};
+pub use bytes::{ByteEncoding, ByteString, ByteStringError};
+pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
+pub use evidence::{
+    BrokerObservation, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
+};
+pub use ids::{
+    AdapterId, ClientId, CommandId, ContractId, IdError, OperationId, PackId, ProducerId, RunId,
+    ScenarioId, StepId, SubjectId,
+};
+pub use pack::{ScenarioPack, ScenarioPackError};
+pub use protocol::{
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
+    TerminalStatus,
+};
+pub use record::{HeaderSpec, RecordError, RecordSpec};
+pub use scenario::{
+    BrokerBehavior, OperationAssertion, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
+    ScenarioError, ScenarioStep, VisibilityExpectation,
+};
+pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectError, SubjectManifest};
+pub use verdict::{Verdict, VerdictStatus, Violation};
+
+#[cfg(test)]
+mod bytes_test;
+#[cfg(test)]
+mod ids_test;
+#[cfg(test)]
+mod record_test;
+#[cfg(test)]
+mod scenario_test;

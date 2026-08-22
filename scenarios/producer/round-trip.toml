@@ -1,0 +1,56 @@
+schema_version = 1
+id = "producer.round-trip"
+title = "acknowledged record is visible exactly once"
+description = "One accepted send settles once and the independent broker observation matches exactly."
+timeout_ms = 5000
+requires = ["producer", "lifecycle", "model_broker"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "ack-next"
+kind = "set_broker_behavior"
+behavior = "acknowledge"
+
+[[steps]]
+id = "send-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-1"
+
+[steps.record]
+topic = "testlab-records"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "key-1" }
+value = { encoding = "utf8", data = "value-1" }
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - run: scripts/check-architecture
+
+  rust-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - run: scripts/check-rust-lint
+
+  rust-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - run: scripts/check-rust-test
+
+  repository-selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - run: scripts/check-scenarios
+      - run: scripts/run-reference-pack
+      - name: Upload sealed evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-evidence
+          path: target/reference-evidence
+          if-no-files-found: error
+
+  quality-gate:
+    if: ${{ always() }}
+    needs: [architecture, rust-lint, rust-test, repository-selftest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every evidence lane
+        env:
+          ARCHITECTURE: ${{ needs.architecture.result }}
+          LINT: ${{ needs.rust-lint.result }}
+          TEST: ${{ needs.rust-test.result }}
+          SELFTEST: ${{ needs.repository-selftest.result }}
+        run: |
+          test "$ARCHITECTURE" = success
+          test "$LINT" = success
+          test "$TEST" = success
+          test "$SELFTEST" = success

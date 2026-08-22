@@ -1,0 +1,6 @@
+schema_version = 1
+id = "reference-rust"
+display_name = "testlab reference Rust adapter"
+command = "target/debug/testlab-reference-adapter"
+args = []
+working_directory = "."

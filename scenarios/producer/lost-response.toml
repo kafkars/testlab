@@ -1,0 +1,56 @@
+schema_version = 1
+id = "producer.lost-response"
+title = "accepted record preserves uncertainty when the response is lost"
+description = "The broker stores one record and closes before responding; the client must report possibly-sent."
+timeout_ms = 5000
+requires = ["producer", "lifecycle", "model_broker"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "drop-next-response"
+kind = "set_broker_behavior"
+behavior = "accept_and_drop_response"
+
+[[steps]]
+id = "send-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-1"
+
+[steps.record]
+topic = "testlab-records"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "key-2" }
+value = { encoding = "utf8", data = "value-2" }
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-1"
+accepted = true
+terminal = "possibly_sent"
+visibility = "exactly_once"

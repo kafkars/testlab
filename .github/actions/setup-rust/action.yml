@@ -1,0 +1,10 @@
+name: setup pinned Rust
+description: install the repository toolchain and components
+runs:
+  using: composite
+  steps:
+    - name: Install Rust
+      shell: bash
+      run: |
+        rustup toolchain install 1.88.0 --profile minimal --component clippy,rustfmt
+        rustup default 1.88.0

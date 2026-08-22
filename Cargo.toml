@@ -1,0 +1,58 @@
+[workspace]
+members = [
+  "adapters/reference-rust",
+  "crates/testctl",
+  "crates/testlab-broker",
+  "crates/testlab-schema",
+  "crates/testlab-verifier",
+]
+default-members = [
+  "adapters/reference-rust",
+  "crates/testctl",
+  "crates/testlab-broker",
+  "crates/testlab-schema",
+  "crates/testlab-verifier",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+repository = "https://github.com/kafkars/testlab"
+
+[workspace.dependencies]
+clap = { version = "4.5", features = ["derive"] }
+hex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+testlab-broker = { version = "0.1.0", path = "crates/testlab-broker" }
+testlab-schema = { version = "0.1.0", path = "crates/testlab-schema" }
+testlab-verifier = { version = "0.1.0", path = "crates/testlab-verifier" }
+thiserror = "2.0"
+toml = "0.8"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+unreachable_pub = "warn"
+unused_lifetimes = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+dbg_macro = "deny"
+expect_used = "deny"
+todo = "deny"
+unimplemented = "deny"
+unwrap_used = "deny"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+return_self_not_must_use = "allow"
+similar_names = "allow"
+unnecessary_wraps = "allow"

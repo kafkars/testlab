@@ -1,0 +1,51 @@
+schema_version = 1
+id = "producer.definite-rejection"
+title = "definitely-not-sent record is absent"
+description = "The broker rejects before persistence and the client must preserve definite non-delivery."
+timeout_ms = 5000
+requires = ["producer", "lifecycle", "model_broker"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "reject-next"
+kind = "set_broker_behavior"
+behavior = "reject"
+
+[[steps]]
+id = "send-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-1"
+
+[steps.record]
+topic = "testlab-records"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "key-3" }
+value = { encoding = "utf8", data = "value-3" }
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-1"
+accepted = true
+terminal = "definitely_not_sent"
+visibility = "absent"

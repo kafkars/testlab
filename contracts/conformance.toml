@@ -1,0 +1,109 @@
+schema = 1
+
+[[contract]]
+id = "HARNESS-001"
+title = "The run is valid before it supports a claim"
+statement = "A process, protocol, environment, timeout, broker, or harness failure produces invalid evidence rather than a client pass or fail."
+category = "validity"
+
+[[contract]]
+id = "CAP-001"
+title = "The adapter declares every required capability"
+statement = "A scenario starts only when the adapter handshake contains every capability required by the scenario."
+category = "capability"
+
+[[contract]]
+id = "PROTO-001"
+title = "Adapter messages are correlated and versioned"
+statement = "Every adapter event uses the current protocol version and exact command identity that caused it."
+category = "protocol"
+
+[[contract]]
+id = "PROTO-002"
+title = "External observations belong to declared operations"
+statement = "The environment never reports a record for an operation absent from the scenario."
+category = "protocol"
+
+[[contract]]
+id = "PROD-001"
+title = "Producer admission matches the scenario"
+statement = "Each send emits exactly one accepted or rejected decision matching the scenario."
+category = "producer"
+
+[[contract]]
+id = "PROD-002"
+title = "Every accepted send settles exactly once"
+statement = "Each accepted producer operation reaches one and only one terminal outcome."
+category = "producer"
+
+[[contract]]
+id = "PROD-003"
+title = "Acknowledgment is broker-visible exactly once"
+statement = "An acknowledged operation has exactly one matching independent observation."
+category = "producer"
+
+[[contract]]
+id = "PROD-004"
+title = "Definitely-not-sent operations are absent"
+statement = "A definitely-not-sent operation has no matching broker observation."
+category = "producer"
+
+[[contract]]
+id = "PROD-005"
+title = "Possibly-sent never permits duplicates"
+statement = "A possibly-sent operation has at most one matching broker observation."
+category = "producer"
+
+[[contract]]
+id = "PROD-006"
+title = "Broker-visible records preserve exact bytes"
+statement = "Every observation and its recorded digest match the canonical scenario record digest."
+category = "producer"
+
+[[contract]]
+id = "PROD-007"
+title = "Terminal certainty matches the scenario"
+statement = "The normalized terminal status equals the scenario expectation."
+category = "producer"
+
+[[contract]]
+id = "PROD-008"
+title = "Broker visibility matches the scenario"
+statement = "The observation count satisfies the scenario visibility expectation."
+category = "producer"
+
+[[contract]]
+id = "LIFE-001"
+title = "Client creation settles exactly once"
+statement = "Each requested client creation emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-002"
+title = "Producer creation settles exactly once"
+statement = "Each requested producer creation emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-003"
+title = "Producer flush settles exactly once"
+statement = "Each requested producer flush emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-004"
+title = "Producer close settles exactly once"
+statement = "Each requested producer close emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-005"
+title = "Client shutdown settles exactly once"
+statement = "Each requested client shutdown emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-006"
+title = "Adapter finish settles exactly once"
+statement = "A complete scenario emits exactly one finished event before process exit."
+category = "lifecycle"

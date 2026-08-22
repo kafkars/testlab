@@ -1,0 +1,8 @@
+schema_version = 1
+id = "repository-pr"
+title = "testlab repository pull-request self-test"
+scenarios = [
+  "scenarios/producer/round-trip.toml",
+  "scenarios/producer/lost-response.toml",
+  "scenarios/producer/definite-rejection.toml",
+]

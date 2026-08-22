@@ -1,0 +1,146 @@
+schema = 1
+adapters = ["rust"]
+
+[repository]
+roots = ["adapters/reference-rust", "crates/testctl", "crates/testlab-broker", "crates/testlab-schema", "crates/testlab-verifier"]
+exclude = []
+workspace_members = "exact"
+nested_git = "deny"
+submodules = "deny"
+symlinks = "inside"
+
+[[gate]]
+name = "check"
+kind = "local"
+path = "scripts/check"
+inputs = [
+  "scripts/check-rust-lint",
+  "scripts/check-rust-test",
+  "scripts/check-scenarios",
+  "scripts/run-reference-pack",
+  "Cargo.toml",
+  "Cargo.lock",
+  "rust-toolchain.toml",
+  "clippy.toml",
+  "contracts/conformance.toml",
+  "packs/repository-pr.toml",
+  "scenarios/producer/definite-rejection.toml",
+  "scenarios/producer/lost-response.toml",
+  "scenarios/producer/round-trip.toml",
+  "subjects/reference-rust.toml",
+]
+reason = "The canonical local gate qualifies structure, code, catalogs, and black-box evidence."
+
+[[invariant]]
+id = "VERDICT-01"
+title = "Verdicts remain deterministic over declared intent and independently observed history"
+status = "enforced"
+document = "ARCHITECTURE.md#2-trust-boundaries"
+evidence = [
+  "rust-test:crates/testlab-verifier/src/verify_test.rs::acknowledged_exact_record_passes",
+  "gate:check",
+]
+
+[dependencies]
+mode = "locked"
+unassigned_packages = "deny"
+cycles = "deny"
+
+[source.rust]
+module_docs = "required"
+facades = "declarative"
+entrypoints = "allow"
+tests = "sibling"
+
+[source.rust.macros]
+mode = "allow"
+
+[[source.rust.item_macros]]
+path = "crates/testlab-schema/src/ids.rs"
+name = "identifier"
+reason = "The local macro expands strongly typed identifiers without creating source edges."
+
+[source.rust.hygiene]
+unsafe = "deny"
+lint_suppressions = "reasoned"
+deny_methods = ["unwrap", "expect"]
+deny_macros = ["todo", "unimplemented", "dbg"]
+
+[source.rust.size.facade]
+target = 300
+hard = 300
+
+[source.rust.size.implementation]
+target = 300
+hard = 300
+
+[source.rust.size.test]
+target = 300
+hard = 300
+
+[source.rust.size.auxiliary]
+target = 300
+hard = 300
+
+[[layer]]
+name = "schema"
+packages = ["testlab-schema"]
+may_depend_on = []
+reason = "Versioned protocol and evidence types are the bottom of the workspace graph."
+
+[layer.dependencies]
+external = "locked"
+
+[[layer]]
+name = "verifier"
+packages = ["testlab-verifier"]
+may_depend_on = ["schema"]
+reason = "Deterministic verdict logic consumes schemas without acquiring effects."
+
+[layer.dependencies]
+external = "locked"
+
+[[layer]]
+name = "environment"
+packages = ["testlab-broker"]
+may_depend_on = ["schema"]
+reason = "The independent model environment records broker-visible observations."
+
+[layer.dependencies]
+external = "locked"
+
+[[layer]]
+name = "adapter"
+packages = ["testlab-reference-adapter"]
+may_depend_on = ["schema", "environment"]
+reason = "The reference adapter translates the public process protocol into environment effects."
+
+[layer.dependencies]
+external = "locked"
+
+[[layer]]
+name = "harness"
+packages = ["testctl"]
+may_depend_on = ["schema", "verifier", "environment"]
+reason = "The control plane owns process lifetime, execution, verification, and evidence sealing."
+
+[layer.dependencies]
+external = "locked"
+
+[[scope]]
+name = "deterministic-verifier-boundary"
+include = ["crates/testlab-verifier/src/**"]
+exclude = ["crates/testlab-verifier/src/**/*_test.rs", "crates/testlab-verifier/src/verify_fixture.rs"]
+reason = "Authoritative verdict logic remains independent from process control, I/O, time, and environment state."
+
+[scope.symbols]
+deny = ["std::env", "std::fs", "std::net", "std::process", "std::thread", "std::time"]
+
+[[scope]]
+name = "schema-boundary"
+include = ["crates/testlab-schema/src/**"]
+exclude = ["crates/testlab-schema/src/**/*_test.rs"]
+reason = "Versioned schemas validate caller-supplied data without acquiring external effects."
+
+[scope.symbols]
+deny = ["std::env", "std::fs", "std::net", "std::process", "std::thread"]

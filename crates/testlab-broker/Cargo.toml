@@ -1,0 +1,17 @@
+[package]
+name = "testlab-broker"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Independent model-broker fixture for kafkars testlab self-tests"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+testlab-schema.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
