@@ -1,0 +1,50 @@
+name: Qualify packaged Kafkars
+description: Package Kafkars and run a fail-closed real-Kafka qualification in testlab
+
+inputs:
+  kafkars-path:
+    description: Path to the checked-out Kafkars workspace
+    required: false
+    default: .
+  qualification:
+    description: Qualification tier, either pr or release
+    required: false
+    default: pr
+  evidence-directory:
+    description: Evidence path, relative to the caller workspace or absolute
+    required: false
+    default: testlab-evidence
+  allow-dirty:
+    description: Permit packaging an uncommitted checkout
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Install pinned Rust
+      shell: bash
+      run: |
+        rustup toolchain install 1.88.0 --profile minimal
+        rustup default 1.88.0
+    - name: Qualify packaged Kafkars
+      shell: bash
+      env:
+        INPUT_ALLOW_DIRTY: ${{ inputs.allow-dirty }}
+        INPUT_EVIDENCE: ${{ inputs.evidence-directory }}
+        INPUT_KAFKARS: ${{ inputs.kafkars-path }}
+        INPUT_QUALIFICATION: ${{ inputs.qualification }}
+      run: |
+        evidence="$INPUT_EVIDENCE"
+        if [[ "$evidence" != /* ]]; then
+          evidence="$GITHUB_WORKSPACE/$evidence"
+        fi
+        arguments=("$INPUT_KAFKARS" "$INPUT_QUALIFICATION")
+        if [[ "$INPUT_ALLOW_DIRTY" == "true" ]]; then
+          arguments+=(--allow-dirty)
+        elif [[ "$INPUT_ALLOW_DIRTY" != "false" ]]; then
+          echo "allow-dirty must be true or false" >&2
+          exit 2
+        fi
+        TESTLAB_EVIDENCE_DIR="$evidence" \
+          "$GITHUB_ACTION_PATH/scripts/qualify-kafkars-candidate" "${arguments[@]}"

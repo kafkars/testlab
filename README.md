@@ -53,7 +53,33 @@ scripts/check
 scripts/run-reference-qualification
 scripts/run-kafkars-qualification # requires Docker
 scripts/run-kafkars-release-qualification # seven-version release matrix
+scripts/qualify-kafkars-candidate ../kafkars pr # packages the checkout first
 ```
+
+The candidate command packages `kafka-client-core`, `kafka-client-engine`, and
+`kafkars`, hashes each `.crate`, extracts them, and builds the external adapter
+only against those extracted packages. Use `release` instead of `pr` for the
+seven-version matrix. Dirty source is rejected unless `--allow-dirty` is the
+third argument.
+
+Kafkars CI can call the same boundary without copying any broker logic:
+
+```yaml
+- uses: kafkars/testlab@<full-testlab-commit-sha>
+  with:
+    kafkars-path: ${{ github.workspace }}
+    qualification: pr
+    evidence-directory: testlab-evidence
+- if: ${{ always() }}
+  uses: actions/upload-artifact@v4
+  with:
+    name: testlab-evidence
+    path: testlab-evidence
+```
+
+The workflow only selects a qualification tier. Testlab owns Kafka image
+digests, Docker lifecycle, scenario repetition, independent observation, and
+the release-facing verdict.
 
 Or:
 

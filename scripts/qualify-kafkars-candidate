@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ $# -lt 1 || $# -gt 3 ]]; then
+  echo "usage: scripts/qualify-kafkars-candidate <kafkars-checkout> [pr|release] [--allow-dirty]" >&2
+  exit 2
+fi
+
+kafkars_root="$1"
+qualification_name="${2:-pr}"
+allow_dirty="${3:-}"
+case "$qualification_name" in
+  pr)
+    qualification="qualifications/kafkars-pr.toml"
+    ;;
+  release)
+    qualification="qualifications/kafkars-release.toml"
+    ;;
+  *)
+    echo "qualification must be pr or release: $qualification_name" >&2
+    exit 2
+    ;;
+esac
+if [[ -n "$allow_dirty" && "$allow_dirty" != "--allow-dirty" ]]; then
+  echo "third argument must be --allow-dirty" >&2
+  exit 2
+fi
+if [[ ! -f "$kafkars_root/Cargo.toml" ]]; then
+  echo "missing Kafkars workspace manifest: $kafkars_root/Cargo.toml" >&2
+  exit 2
+fi
+
+evidence_directory="${TESTLAB_EVIDENCE_DIR:-${repository_root}/target/kafkars-candidate-${qualification_name}-evidence}"
+arguments=(
+  qualify-kafkars
+  --root "$repository_root"
+  --kafkars-root "$kafkars_root"
+  --qualification "$qualification"
+  --evidence-dir "$evidence_directory"
+)
+if [[ "$allow_dirty" == "--allow-dirty" ]]; then
+  arguments+=(--allow-dirty)
+fi
+
+cd "$repository_root"
+cargo build -p testctl
+exec target/debug/testctl "${arguments[@]}"
