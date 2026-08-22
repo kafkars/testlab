@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 id = "repository-pr"
 title = "testlab repository pull-request qualification"
 
@@ -6,4 +6,5 @@ title = "testlab repository pull-request qualification"
 id = "reference-model-broker"
 environment = "clusters/model-broker.toml"
 pack = "packs/repository-pr.toml"
+attempts = 1
 gating = true

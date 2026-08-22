@@ -9,7 +9,9 @@ use thiserror::Error;
 use crate::{CellId, QualificationId};
 
 /// Current qualification manifest version.
-pub const QUALIFICATION_SCHEMA_VERSION: u16 = 1;
+pub const QUALIFICATION_SCHEMA_VERSION: u16 = 2;
+
+const MAX_CELL_ATTEMPTS: u16 = 100;
 
 /// One complete and reviewable qualification evidence set.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -43,6 +45,13 @@ impl QualificationManifest {
         let mut identities = BTreeSet::new();
         let mut pairings = BTreeSet::new();
         for cell in &self.cells {
+            if !(1..=MAX_CELL_ATTEMPTS).contains(&cell.attempts) {
+                return Err(QualificationError::AttemptsOutOfRange {
+                    cell: cell.id.clone(),
+                    attempts: cell.attempts,
+                    maximum: MAX_CELL_ATTEMPTS,
+                });
+            }
             validate_catalog_path(&cell.environment, "clusters")?;
             validate_catalog_path(&cell.pack, "packs")?;
             if !identities.insert(cell.id.as_str()) {
@@ -69,6 +78,8 @@ pub struct QualificationCell {
     pub environment: String,
     /// Repository-relative scenario-pack manifest path.
     pub pack: String,
+    /// Number of independent executions of the complete scenario pack.
+    pub attempts: u16,
     /// Whether a valid failed verdict blocks qualification.
     pub gating: bool,
 }
@@ -111,6 +122,16 @@ pub enum QualificationError {
     /// No cell could affect the qualification verdict.
     #[error("qualification must contain at least one gating cell")]
     NoGatingCells,
+    /// One cell requested no attempts or an unbounded amount of work.
+    #[error("qualification cell {cell} attempts {attempts} must be between 1 and {maximum}")]
+    AttemptsOutOfRange {
+        /// Cell with the invalid repetition count.
+        cell: CellId,
+        /// Requested repetitions.
+        attempts: u16,
+        /// Harness limit.
+        maximum: u16,
+    },
     /// One cell identity appeared twice.
     #[error("duplicate qualification cell id {0}")]
     DuplicateCellId(CellId),

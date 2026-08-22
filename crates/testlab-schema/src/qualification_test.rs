@@ -48,9 +48,20 @@ fn qualification_requires_a_gating_cell() {
     assert_eq!(manifest.validate(), Err(QualificationError::NoGatingCells));
 }
 
+#[test]
+fn qualification_rejects_zero_attempts() {
+    let mut manifest = qualification();
+    manifest.cells[0].attempts = 0;
+
+    assert!(matches!(
+        manifest.validate(),
+        Err(QualificationError::AttemptsOutOfRange { attempts: 0, .. })
+    ));
+}
+
 fn qualification() -> QualificationManifest {
     QualificationManifest {
-        schema_version: 1,
+        schema_version: 2,
         id: QualificationId::new("kafkars-pr")
             .unwrap_or_else(|error| panic!("fixture qualification id: {error}")),
         title: "Kafkars pull-request qualification".to_owned(),
@@ -58,6 +69,7 @@ fn qualification() -> QualificationManifest {
             id: cell_id("kafka-4.3.1-plaintext"),
             environment: "clusters/apache-kafka/4.3.1/three-plaintext.toml".to_owned(),
             pack: "packs/kafka-full.toml".to_owned(),
+            attempts: 2,
             gating: true,
         }],
     }

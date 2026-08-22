@@ -32,6 +32,8 @@ partition, offset, key, value, and ordered header bytes.
 every reviewed environment/pack cell into `cells/<cell-id>/<run-id>`, derives
 cell and top-level status from the sealed run verdicts, recursively digests the
 complete tree, and only then publishes the qualification directory.
+Cells declare a bounded attempt count. Every scenario run records its one-based
+attempt ordinal, and any failed or invalid repetition contributes to the cell.
 
 At least one cell must be gating. For gating cells, `invalid` outranks `failed`
 and `failed` outranks `passed`. Non-gating cells remain visible but cannot make

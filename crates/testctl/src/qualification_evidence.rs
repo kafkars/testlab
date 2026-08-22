@@ -120,10 +120,11 @@ fn summary(manifest: &QualificationEvidenceManifest) -> Result<String, AppError>
     for cell in &manifest.cells {
         writeln!(
             &mut text,
-            "\n- `{}`: `{:?}` (gating: {}, runs: {})\n",
+            "\n- `{}`: `{:?}` (gating: {}, attempts: {}, runs: {})\n",
             cell.cell_id,
             cell.status,
             cell.gating,
+            cell.attempts,
             cell.runs.len()
         )
         .map_err(|error| AppError::Evidence(format!("failed to render summary: {error}")))?;

@@ -46,9 +46,43 @@ fn manufactured_pass_is_rejected() {
     );
 }
 
+#[test]
+fn every_declared_attempt_requires_evidence() {
+    let mut evidence = fixture();
+    evidence.cells[0].attempts = 2;
+
+    assert_eq!(
+        evidence.validate(),
+        Err(QualificationEvidenceError::AttemptMissing {
+            cell: cell_id("gating"),
+            attempt: 2,
+        })
+    );
+}
+
+#[test]
+fn one_failed_attempt_fails_the_cell() {
+    let mut evidence = fixture();
+    let mut second = evidence.cells[0].runs[0].clone();
+    second.attempt = 2;
+    second.run_id = run_id("scenario-run-2");
+    second.status = VerdictStatus::Failed;
+    second.evidence_path = "cells/gating/scenario-run-2".to_owned();
+    evidence.cells[0].attempts = 2;
+    evidence.cells[0].runs.push(second);
+    evidence.cells[0].status = VerdictStatus::Failed;
+    evidence.status = VerdictStatus::Failed;
+
+    assert_eq!(evidence.validate(), Ok(()));
+    assert_eq!(
+        QualificationCellEvidence::aggregate_status(&evidence.cells[0].runs),
+        VerdictStatus::Failed
+    );
+}
+
 fn fixture() -> QualificationEvidenceManifest {
     QualificationEvidenceManifest {
-        schema_version: 1,
+        schema_version: 2,
         run_id: run_id("qualification-run-1"),
         qualification_id: QualificationId::new("repository-pr")
             .unwrap_or_else(|error| panic!("qualification id: {error}")),
@@ -63,9 +97,11 @@ fn fixture() -> QualificationEvidenceManifest {
                 .unwrap_or_else(|error| panic!("environment id: {error}")),
             pack_id: PackId::new("repository-pr")
                 .unwrap_or_else(|error| panic!("pack id: {error}")),
+            attempts: 1,
             gating: true,
             status: VerdictStatus::Passed,
             runs: vec![QualificationRunEvidence {
+                attempt: 1,
                 run_id: run_id("scenario-run-1"),
                 scenario_id: ScenarioId::new("producer.round-trip")
                     .unwrap_or_else(|error| panic!("scenario id: {error}")),

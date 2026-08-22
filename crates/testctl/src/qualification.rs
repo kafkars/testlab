@@ -38,27 +38,29 @@ pub(crate) fn run_qualification(
         let (_, environment) = repository.load_environment(Path::new(&cell.environment))?;
         let (_, pack) = repository.load_pack(Path::new(&cell.pack))?;
         let cell_directory = evidence.cell_directory(cell.id.as_str())?;
-        let sealed_runs = run_pack(
-            repository,
-            Path::new(&cell.pack),
-            &subject_path,
-            Path::new(&cell.environment),
-            &cell_directory,
-        )?;
-        let runs = sealed_runs
-            .into_iter()
-            .map(|run| QualificationRunEvidence {
+        let mut runs = Vec::new();
+        for attempt in 1..=cell.attempts {
+            let sealed_runs = run_pack(
+                repository,
+                Path::new(&cell.pack),
+                &subject_path,
+                Path::new(&cell.environment),
+                &cell_directory,
+            )?;
+            runs.extend(sealed_runs.into_iter().map(|run| QualificationRunEvidence {
+                attempt,
                 evidence_path: format!("cells/{}/{}", cell.id, run.run_id),
                 run_id: run.run_id,
                 scenario_id: run.scenario_id,
                 status: run.verdict.status,
-            })
-            .collect::<Vec<_>>();
+            }));
+        }
         let status = QualificationCellEvidence::aggregate_status(&runs);
         cells.push(QualificationCellEvidence {
             cell_id: cell.id.clone(),
             environment_id: environment.id,
             pack_id: pack.id,
+            attempts: cell.attempts,
             gating: cell.gating,
             status,
             runs,

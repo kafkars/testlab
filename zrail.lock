@@ -517,11 +517,11 @@ sha256 = "3676bbfceb360dfa064ad63e3f9d95d714f825f2878e421699f13c9553eda62e"
 
 [[gate.input]]
 path = "qualifications/kafkars-pr.toml"
-sha256 = "0490e4eea1bf88d83ba7ddff72a264a83840c19c4b0fdb3eda17c9a0a662a91d"
+sha256 = "48b2b5261fedf39caacff045a8440ccfa9de198bec152b1be279aabb99168ba1"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"
-sha256 = "3522c11852683dc1c45eb9ea0442e113e15973fa83ceebb9dcdf946d3094ea70"
+sha256 = "49db8f0e9256bdf9cd1beeee676c9829438e6f94f63d701a2f580cf0b354e798"
 
 [[gate.input]]
 path = "rust-toolchain.toml"

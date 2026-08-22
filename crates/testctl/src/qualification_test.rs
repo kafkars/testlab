@@ -51,8 +51,10 @@ fn missing_subject_qualifies_as_a_complete_invalid_evidence_set() {
     let manifest: QualificationEvidenceManifest = read_json(&run.path.join("manifest.json"));
     assert_eq!(manifest.validate(), Ok(()));
     assert_eq!(manifest.cells.len(), 1);
+    assert_eq!(manifest.cells[0].attempts, 1);
     assert_eq!(manifest.cells[0].runs.len(), 3);
     for scenario in &manifest.cells[0].runs {
+        assert_eq!(scenario.attempt, 1);
         assert_eq!(scenario.status, VerdictStatus::Invalid);
         assert!(run.path.join(&scenario.evidence_path).is_dir());
     }

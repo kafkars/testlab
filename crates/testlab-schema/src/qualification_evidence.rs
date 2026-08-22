@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Current qualification evidence manifest version.
-pub const QUALIFICATION_EVIDENCE_SCHEMA_VERSION: u16 = 1;
+pub const QUALIFICATION_EVIDENCE_SCHEMA_VERSION: u16 = 2;
 
 /// One sealed and deterministically aggregated qualification attempt.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -70,7 +70,21 @@ impl QualificationEvidenceManifest {
             if cell.runs.is_empty() {
                 return Err(QualificationEvidenceError::RunsEmpty(cell.cell_id.clone()));
             }
+            if cell.attempts == 0 {
+                return Err(QualificationEvidenceError::AttemptsEmpty(
+                    cell.cell_id.clone(),
+                ));
+            }
+            let mut attempts_seen = BTreeSet::new();
             for run in &cell.runs {
+                if run.attempt == 0 || run.attempt > cell.attempts {
+                    return Err(QualificationEvidenceError::RunAttemptOutOfRange {
+                        cell: cell.cell_id.clone(),
+                        attempt: run.attempt,
+                        attempts: cell.attempts,
+                    });
+                }
+                attempts_seen.insert(run.attempt);
                 validate_path(&run.evidence_path)?;
                 let expected_path = format!("cells/{}/{}", cell.cell_id, run.run_id);
                 if run.evidence_path != expected_path {
@@ -82,6 +96,14 @@ impl QualificationEvidenceManifest {
                 }
                 if !run_ids.insert(run.run_id.as_str()) {
                     return Err(QualificationEvidenceError::DuplicateRun(run.run_id.clone()));
+                }
+            }
+            for attempt in 1..=cell.attempts {
+                if !attempts_seen.contains(&attempt) {
+                    return Err(QualificationEvidenceError::AttemptMissing {
+                        cell: cell.cell_id.clone(),
+                        attempt,
+                    });
                 }
             }
             let expected = aggregate_runs(&cell.runs);
@@ -114,6 +136,8 @@ pub struct QualificationCellEvidence {
     pub environment_id: EnvironmentId,
     /// Exact scenario pack identity used by the cell.
     pub pack_id: PackId,
+    /// Declared number of independent pack executions.
+    pub attempts: u16,
     /// Whether this cell contributes to the aggregate status.
     pub gating: bool,
     /// Aggregate status derived from this cell's scenario runs.
@@ -133,6 +157,8 @@ impl QualificationCellEvidence {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct QualificationRunEvidence {
+    /// One-based execution ordinal within the qualification cell.
+    pub attempt: u16,
     /// Sealed scenario run identity.
     pub run_id: RunId,
     /// Scenario identity from the sealed evidence manifest.
@@ -200,6 +226,27 @@ pub enum QualificationEvidenceError {
     /// A cell contained no scenario runs.
     #[error("qualification evidence cell {0} contains no runs")]
     RunsEmpty(CellId),
+    /// One cell declared no execution attempts.
+    #[error("qualification evidence cell {0} declares no attempts")]
+    AttemptsEmpty(CellId),
+    /// One run referenced an attempt outside the cell's declared range.
+    #[error("qualification cell {cell} run attempt {attempt} exceeds declared attempts {attempts}")]
+    RunAttemptOutOfRange {
+        /// Cell containing the run.
+        cell: CellId,
+        /// Run attempt ordinal.
+        attempt: u16,
+        /// Declared cell attempts.
+        attempts: u16,
+    },
+    /// A declared attempt had no sealed scenario evidence.
+    #[error("qualification evidence cell {cell} is missing attempt {attempt}")]
+    AttemptMissing {
+        /// Cell missing evidence.
+        cell: CellId,
+        /// Missing one-based attempt ordinal.
+        attempt: u16,
+    },
     /// A scenario run identity appeared more than once.
     #[error("duplicate qualification evidence run {0}")]
     DuplicateRun(RunId),
