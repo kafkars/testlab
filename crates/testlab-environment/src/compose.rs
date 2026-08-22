@@ -6,14 +6,11 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use testlab_schema::{EnvironmentDriver, EnvironmentOperationId, RunId};
+use testlab_schema::{EnvironmentDriver, RunId};
 
 use crate::compose_command::{self, CommandSpec};
-use crate::compose_support::{
-    compose_prefix, elapsed_unix_ms, failure_code, project_name, remaining,
-};
+use crate::compose_support::{compose_prefix, failure_code, project_name, remaining};
 use crate::compose_types::{ComposeFailure, ComposePhase, ComposeRequest};
-use crate::{TerminalOutput, TerminalRequest, run_terminal};
 
 const READINESS_ATTEMPT_MAX: Duration = Duration::from_secs(5);
 const READINESS_RETRY_DELAY: Duration = Duration::from_millis(250);
@@ -21,18 +18,18 @@ const READINESS_RETRY_DELAY: Duration = Duration::from_millis(250);
 /// One isolated Compose project that must be explicitly finished for evidence.
 #[must_use = "call finish so owned containers, networks, and volumes are removed"]
 pub struct DockerComposeEnvironment {
-    repository_root: PathBuf,
-    run_id: RunId,
-    program: PathBuf,
+    pub(super) repository_root: PathBuf,
+    pub(super) run_id: RunId,
+    pub(super) program: PathBuf,
     prefix: Vec<String>,
-    environment: Vec<(String, String)>,
+    pub(super) environment: Vec<(String, String)>,
     broker_services: Vec<String>,
     client_port: u16,
     host_port: u16,
     port_reservation: Option<TcpListener>,
-    started_unix_ms: u64,
-    started: Instant,
-    next_operation: u32,
+    pub(super) started_unix_ms: u64,
+    pub(super) started: Instant,
+    pub(super) next_operation: u32,
     up_attempted: bool,
 }
 
@@ -260,38 +257,5 @@ impl DockerComposeEnvironment {
                 return false;
             };
         }
-    }
-
-    fn execute(
-        &mut self,
-        spec: CommandSpec,
-        timeout: Duration,
-    ) -> Result<TerminalOutput, ComposeFailure> {
-        let id = self.operation_id()?;
-        Ok(run_terminal(TerminalRequest {
-            id,
-            kind: spec.kind,
-            program: self.program.display().to_string(),
-            args: spec.args,
-            current_directory: self.repository_root.clone(),
-            environment: self.environment.clone(),
-            started_unix_ms: elapsed_unix_ms(self.started_unix_ms, self.started.elapsed()),
-            timeout,
-            stdout_artifact: Some(spec.stdout_artifact),
-            stderr_artifact: Some(spec.stderr_artifact),
-        }))
-    }
-
-    fn operation_id(&mut self) -> Result<EnvironmentOperationId, ComposeFailure> {
-        let sequence = self.next_operation;
-        self.next_operation = self.next_operation.checked_add(1).ok_or_else(|| {
-            ComposeFailure::new(
-                "environment_operation_overflow",
-                "operation sequence overflowed",
-            )
-        })?;
-        EnvironmentOperationId::new(format!("{}:environment:{sequence:05}", self.run_id)).map_err(
-            |error| ComposeFailure::new("environment_operation_id_invalid", error.to_string()),
-        )
     }
 }
