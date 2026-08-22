@@ -2,10 +2,12 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::candidate::find_archive;
 use crate::candidate_manifest::{PackageArtifact, adapter_manifest, bundle_digest};
+
+static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 #[test]
 fn one_exact_package_archive_is_discovered() {
@@ -81,14 +83,11 @@ fn artifacts() -> Vec<PackageArtifact> {
 }
 
 fn fixture_directory() -> PathBuf {
-    let elapsed = must(
-        SystemTime::now().duration_since(UNIX_EPOCH),
-        "read system time",
-    );
+    let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
     std::env::temp_dir().join(format!(
         "testlab-candidate-test-{}-{}",
         std::process::id(),
-        elapsed.as_nanos()
+        sequence
     ))
 }
 
