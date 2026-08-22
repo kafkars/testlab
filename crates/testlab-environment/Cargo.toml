@@ -8,6 +8,8 @@ repository.workspace = true
 description = "Owned external environment effects for kafkars testlab"
 
 [dependencies]
+hex.workspace = true
+rdkafka.workspace = true
 testlab-schema.workspace = true
 thiserror.workspace = true
 

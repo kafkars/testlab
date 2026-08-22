@@ -208,6 +208,31 @@ requirement = "2.0"
 name = "testlab-environment"
 
 [[package.dependency]]
+alias = "hex"
+name = "hex"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "0.4"
+
+[[package.dependency]]
+alias = "rdkafka"
+name = "rdkafka"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = false
+features = ["cmake-build"]
+
+[package.dependency.source]
+kind = "registry"
+requirement = "=0.39.0"
+
+[[package.dependency]]
 alias = "testlab-schema"
 name = "testlab-schema"
 crate_root = "testlab_schema"
@@ -441,11 +466,11 @@ sha256 = "e0ec30a08049199550c9f13bdc389abbc6bf61daead2754b76de20bc08028475"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "7e76f33486c7d80b7013e8ac040aad7cbf1be66f488464f74e004497030cfe5d"
+sha256 = "b4281b56d4bce172ce5c5a85e484cbd6051b45c09d0e175f1ba8d83092f75783"
 
 [[gate.input]]
 path = "Cargo.toml"
-sha256 = "cfcea17d89e87b91efa3a526ba642602962a066152cffbd91f57b28eed6720a5"
+sha256 = "3c3cbd19e8d9d46bf98fe46caa56b631878225370823669ba4572aa3985dde3c"
 
 [[gate.input]]
 path = "clippy.toml"

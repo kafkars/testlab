@@ -114,6 +114,8 @@ pub enum EnvironmentOperationKind {
     ComposeUp,
     /// Probe broker API readiness.
     Readiness,
+    /// Snapshot broker-visible records with an independent client.
+    BrokerObserve,
     /// Capture Compose process state.
     ComposePs,
     /// Capture broker logs.

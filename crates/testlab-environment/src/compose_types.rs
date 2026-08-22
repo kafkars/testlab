@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use testlab_schema::{EnvironmentManifest, EnvironmentOperation, RunId};
+use testlab_schema::{BrokerObservation, EnvironmentManifest, EnvironmentOperation, RunId};
 use thiserror::Error;
 
 use crate::TerminalOutput;
@@ -38,6 +38,15 @@ pub struct ComposePhase {
     pub artifacts: Vec<ComposeArtifact>,
     /// First required operation failure, when present.
     pub failure: Option<ComposeFailure>,
+}
+
+/// One independent broker snapshot and its terminal environment evidence.
+#[derive(Clone, Debug, Default)]
+pub struct ComposeObservation {
+    /// Observer operation outcome.
+    pub phase: ComposePhase,
+    /// Exact records visible at the captured broker watermarks.
+    pub observations: Vec<BrokerObservation>,
 }
 
 impl ComposePhase {
