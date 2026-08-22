@@ -1,7 +1,7 @@
 //! Environment-owned client security keeps secrets out of protocol history.
 
 use std::fmt::{Debug, Formatter};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use rdkafka::ClientConfig;
 use testlab_schema::{
@@ -157,6 +157,10 @@ impl ClientSecurity {
             Authentication::ScramSha512 => Some("SCRAM-SHA-512"),
             Authentication::None | Authentication::Plain => None,
         }
+    }
+
+    pub(super) fn ca_pem_path(&self) -> Option<PathBuf> {
+        self.ca_pem.as_deref().map(PathBuf::from)
     }
 }
 

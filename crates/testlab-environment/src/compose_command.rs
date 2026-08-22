@@ -1,5 +1,7 @@
 //! Compose command construction keeps effect descriptions portable and reviewable.
 
+use std::path::Path;
+
 use testlab_schema::EnvironmentOperationKind;
 
 #[derive(Clone, Debug)]
@@ -99,6 +101,20 @@ pub(super) fn scram_setup(
         ],
         "security-setup.txt".to_owned(),
         "security-setup.stderr.txt".to_owned(),
+    )
+}
+
+pub(super) fn copy_tls_ca(prefix: &[String], service: &str, destination: &Path) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerSecuritySetup,
+        prefix,
+        vec![
+            "cp".to_owned(),
+            format!("{service}:/etc/kafka/secrets/ca.pem"),
+            destination.display().to_string(),
+        ],
+        "security-ca-copy.txt".to_owned(),
+        "security-ca-copy.stderr.txt".to_owned(),
     )
 }
 

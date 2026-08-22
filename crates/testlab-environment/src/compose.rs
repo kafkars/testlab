@@ -22,11 +22,11 @@ pub struct DockerComposeEnvironment {
     pub(super) repository_root: PathBuf,
     pub(super) run_id: RunId,
     pub(super) program: PathBuf,
-    prefix: Vec<String>,
+    pub(super) prefix: Vec<String>,
     pub(super) environment: Vec<(String, String)>,
     pub(super) client_security: ClientSecurity,
-    broker_services: Vec<String>,
-    client_port: u16,
+    pub(super) broker_services: Vec<String>,
+    pub(super) client_port: u16,
     host_port: u16,
     port_reservation: Option<TcpListener>,
     pub(super) started_unix_ms: u64,
@@ -183,19 +183,8 @@ impl DockerComposeEnvironment {
                 return phase;
             }
         }
-        if let Some(mechanism) = self.client_security.scram_mechanism() {
-            let Some(service) = self.broker_services.first().cloned() else {
-                phase.fail(
-                    "environment_security_setup_failed",
-                    "broker service missing",
-                );
-                return phase;
-            };
-            let spec =
-                compose_command::scram_setup(&self.prefix, &service, self.client_port, mechanism);
-            if !self.required(&mut phase, spec, deadline) {
-                return phase;
-            }
+        if !self.prepare_client_security(&mut phase, deadline) {
+            return phase;
         }
         phase
     }
@@ -242,7 +231,12 @@ impl DockerComposeEnvironment {
         phase
     }
 
-    fn required(&mut self, phase: &mut ComposePhase, spec: CommandSpec, deadline: Instant) -> bool {
+    pub(super) fn required(
+        &mut self,
+        phase: &mut ComposePhase,
+        spec: CommandSpec,
+        deadline: Instant,
+    ) -> bool {
         let code = failure_code(spec.kind);
         match self.execute(spec, remaining(deadline)) {
             Ok(output) => {

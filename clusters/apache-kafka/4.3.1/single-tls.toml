@@ -1,0 +1,22 @@
+schema_version = 1
+id = "apache-kafka-4.3.1-single-tls"
+title = "Apache Kafka 4.3.1 single-broker custom-root TLS"
+
+[driver]
+kind = "docker_compose"
+image = "apache/kafka@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837"
+cluster_size = 1
+compose_files = [
+  "clusters/apache-kafka/compose/single-plaintext.yml",
+  "clusters/apache-kafka/compose/single-tls.yml",
+]
+broker_services = ["broker"]
+client_port = 19092
+
+[driver.broker]
+implementation = "apache-kafka"
+version = "4.3.1"
+
+[driver.security]
+transport = "tls_custom"
+authentication = "none"

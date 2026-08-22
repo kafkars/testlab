@@ -137,6 +137,31 @@ fn scram_setup_is_correlated_without_recording_the_password() {
     assert!(operation.args.join(" ").contains("$TESTLAB_SCRAM_PASSWORD"));
 }
 
+#[test]
+fn tls_ca_copy_is_a_correlated_security_operation() {
+    let fixture = Fixture::with_security(
+        false,
+        SecurityProfile {
+            transport: TransportSecurity::TlsCustom,
+            authentication: Authentication::None,
+        },
+    );
+    let mut environment = fixture.environment();
+
+    let setup = environment.start(Duration::from_secs(2));
+    let _cleanup = environment.finish(Duration::from_secs(2));
+
+    let operation = setup
+        .operations
+        .iter()
+        .find(|operation| operation.kind == EnvironmentOperationKind::BrokerSecuritySetup)
+        .unwrap_or_else(|| panic!("missing TLS CA copy operation"));
+    let args = operation.args.join(" ");
+    assert!(args.contains("cp broker:/etc/kafka/secrets/ca.pem"));
+    assert!(args.contains("target/testlab-security/run-compose-"));
+    assert!(!args.contains("ca.key"));
+}
+
 fn assert_unique_operation_ids(operations: &[testlab_schema::EnvironmentOperation]) {
     for (index, operation) in operations.iter().enumerate() {
         assert!(
@@ -160,6 +185,16 @@ impl Fixture {
     }
 
     fn with_authentication(fail_up: bool, authentication: Authentication) -> Self {
+        Self::with_security(
+            fail_up,
+            SecurityProfile {
+                transport: TransportSecurity::Plaintext,
+                authentication,
+            },
+        )
+    }
+
+    fn with_security(fail_up: bool, security: SecurityProfile) -> Self {
         let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
         let root =
             std::env::temp_dir().join(format!("testlab-compose-{}-{sequence}", std::process::id()));
@@ -172,7 +207,7 @@ impl Fixture {
         Self {
             root,
             program,
-            manifest: manifest(authentication),
+            manifest: manifest(security),
             run_id: RunId::new(format!("run-compose-{sequence}"))
                 .unwrap_or_else(|error| panic!("fixture run id: {error}")),
         }
@@ -204,7 +239,7 @@ impl Drop for Fixture {
     }
 }
 
-fn manifest(authentication: Authentication) -> EnvironmentManifest {
+fn manifest(security: SecurityProfile) -> EnvironmentManifest {
     EnvironmentManifest {
         schema_version: 1,
         id: EnvironmentId::new("apache-kafka-test")
@@ -217,10 +252,7 @@ fn manifest(authentication: Authentication) -> EnvironmentManifest {
             },
             image: format!("apache/kafka@sha256:{}", "a".repeat(64)),
             cluster_size: 1,
-            security: SecurityProfile {
-                transport: TransportSecurity::Plaintext,
-                authentication,
-            },
+            security,
             compose_files: vec!["clusters/kafka.yml".to_owned()],
             broker_services: vec!["broker".to_owned()],
             client_port: 9092,
