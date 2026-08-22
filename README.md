@@ -78,8 +78,8 @@ Kafkars CI can call the same boundary without copying any broker logic:
 ```
 
 The workflow only selects a qualification tier. Testlab owns Kafka image
-digests, Docker lifecycle, scenario repetition, independent observation, and
-the release-facing verdict.
+digests, single- and three-broker security topologies, Docker lifecycle,
+scenario repetition, independent observation, and the release-facing verdict.
 
 Or:
 

@@ -59,22 +59,22 @@ attempts = 1
 gating = true
 
 [[cells]]
-id = "apache-kafka-4-3-1-sasl-plain"
-environment = "clusters/apache-kafka/4.3.1/single-sasl-plain.toml"
+id = "apache-kafka-4-3-1-three-sasl-plain"
+environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
 pack = "packs/kafkars-pr.toml"
 attempts = 1
 gating = true
 
 [[cells]]
-id = "apache-kafka-4-3-1-scram-sha-256"
-environment = "clusters/apache-kafka/4.3.1/single-scram-sha-256.toml"
+id = "apache-kafka-4-3-1-three-scram-sha-256"
+environment = "clusters/apache-kafka/4.3.1/three-scram-sha-256.toml"
 pack = "packs/kafkars-pr.toml"
 attempts = 1
 gating = true
 
 [[cells]]
-id = "apache-kafka-4-3-1-scram-sha-512"
-environment = "clusters/apache-kafka/4.3.1/single-scram-sha-512.toml"
+id = "apache-kafka-4-3-1-three-scram-sha-512"
+environment = "clusters/apache-kafka/4.3.1/three-scram-sha-512.toml"
 pack = "packs/kafkars-pr.toml"
 attempts = 1
 gating = true
