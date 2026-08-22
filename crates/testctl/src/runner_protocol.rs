@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v1 command.
+//! Expected event shapes constrain each sequential protocol-v2 command.
 
 use testlab_schema::{AdapterEvent, ClientId, OperationId, ProducerId};
 
@@ -8,6 +8,7 @@ use crate::run_error::RunFailure;
 pub(crate) enum ExpectedEvent {
     Ready,
     ClientCreated(ClientId),
+    ClientReady(ClientId),
     ProducerCreated(ProducerId),
     SendSettled(OperationId),
     FlushCompleted(ProducerId),
@@ -28,6 +29,11 @@ impl ExpectedEvent {
             (Self::Ready, AdapterEvent::Ready { .. })
             | (Self::Finished, AdapterEvent::Finished) => Ok(EventDisposition::Complete),
             (Self::ClientCreated(expected), AdapterEvent::ClientCreated { client_id })
+                if expected == client_id =>
+            {
+                Ok(EventDisposition::Complete)
+            }
+            (Self::ClientReady(expected), AdapterEvent::ClientReady { client_id })
                 if expected == client_id =>
             {
                 Ok(EventDisposition::Complete)
@@ -78,6 +84,10 @@ fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
     matches!(
         (expected, event),
         (ExpectedEvent::Ready, AdapterEvent::Ready { .. })
+            | (
+                ExpectedEvent::ClientReady(_),
+                AdapterEvent::ClientReady { .. }
+            )
             | (
                 ExpectedEvent::ClientCreated(_),
                 AdapterEvent::ClientCreated { .. }

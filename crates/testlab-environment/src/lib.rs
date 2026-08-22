@@ -4,6 +4,7 @@ mod compose;
 mod compose_command;
 mod compose_execute;
 mod compose_observe;
+mod compose_provision;
 mod compose_support;
 mod compose_types;
 mod observer;

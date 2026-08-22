@@ -32,6 +32,10 @@ inputs = [
   "scenarios/producer/definite-rejection.toml",
   "scenarios/producer/lost-response.toml",
   "scenarios/producer/round-trip.toml",
+  "scenarios/kafka/producer-round-trip.toml",
+  "packs/kafkars-pr.toml",
+  "qualifications/kafkars-pr.toml",
+  "scripts/run-kafkars-qualification",
   "subjects/reference-rust.toml",
   "subjects/kafkars-rust.toml",
 ]

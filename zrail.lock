@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "706ff9af021ccbe8a21ba857cb4d2cdc4feb7638a08f3943419fe3ab6750ccea"
+contract_sha256 = "25a26e9f429fc35f9224a88bfceef277f0d0a2ede7b77b4ebf97f4f00301a3ad"
 ratchet = []
 
 [[package]]
@@ -208,6 +208,18 @@ requirement = "2.0"
 name = "testlab-environment"
 
 [[package.dependency]]
+alias = "futures-executor"
+name = "futures-executor"
+kind = "normal"
+scope = "external"
+optional = false
+default_features = true
+
+[package.dependency.source]
+kind = "registry"
+requirement = "=0.3.34"
+
+[[package.dependency]]
 alias = "hex"
 name = "hex"
 kind = "normal"
@@ -226,7 +238,10 @@ kind = "normal"
 scope = "external"
 optional = false
 default_features = false
-features = ["cmake-build"]
+features = [
+    "cmake-build",
+    "naive-runtime",
+]
 
 [package.dependency.source]
 kind = "registry"
@@ -466,11 +481,11 @@ sha256 = "e0ec30a08049199550c9f13bdc389abbc6bf61daead2754b76de20bc08028475"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "b4281b56d4bce172ce5c5a85e484cbd6051b45c09d0e175f1ba8d83092f75783"
+sha256 = "ece4a0410b271d8043afc62976005b8c0c089936be38647415a1a0d05fec8996"
 
 [[gate.input]]
 path = "Cargo.toml"
-sha256 = "3c3cbd19e8d9d46bf98fe46caa56b631878225370823669ba4572aa3985dde3c"
+sha256 = "8f690b4d271ba4fce2807be3c45a419fa6f82aba2f8a09540312e49e1d4a6a61"
 
 [[gate.input]]
 path = "clippy.toml"
@@ -490,11 +505,19 @@ sha256 = "00f5a2e21fccb01f778960c81886300b8faa8bb59ca393cec0c41d53614b0235"
 
 [[gate.input]]
 path = "contracts/conformance.toml"
-sha256 = "666b17d764036a4e2d96e254557ccb88cd1184d3c6933bbf82e070051695e0d1"
+sha256 = "f3758c0f4aded5ffc939e24b5b0641a9d69a376f483b8de050ddd8b776c16e69"
+
+[[gate.input]]
+path = "packs/kafkars-pr.toml"
+sha256 = "7d40a74151cc178e941ce84a848fba3a748ce6b8468d75b148531d6b018f0f5f"
 
 [[gate.input]]
 path = "packs/repository-pr.toml"
 sha256 = "3676bbfceb360dfa064ad63e3f9d95d714f825f2878e421699f13c9553eda62e"
+
+[[gate.input]]
+path = "qualifications/kafkars-pr.toml"
+sha256 = "0490e4eea1bf88d83ba7ddff72a264a83840c19c4b0fdb3eda17c9a0a662a91d"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"
@@ -505,16 +528,20 @@ path = "rust-toolchain.toml"
 sha256 = "980c9752cb40dca3265ce4e3e31de1c369b469c9837be059b806ea93fe76799d"
 
 [[gate.input]]
+path = "scenarios/kafka/producer-round-trip.toml"
+sha256 = "5c124e0bdf9b95f3a1202b4d738f49f15e22e26044f05b361e0284c665fc04d1"
+
+[[gate.input]]
 path = "scenarios/producer/definite-rejection.toml"
-sha256 = "72ad8a065a18398db954408b5f30a44ca030171ea304edaebc6b4fcff52d889a"
+sha256 = "db398db3ac69b91edc18e638fa65ed84b6990429b48b5199c058838ee0757801"
 
 [[gate.input]]
 path = "scenarios/producer/lost-response.toml"
-sha256 = "051b8f3ce6742c648df6f2dd201b0466a7bd219a7e1f186875801c5b72067cef"
+sha256 = "f5641e67b583a9640178d85b82df128393f512c8f8612dac4072ecb76959cb29"
 
 [[gate.input]]
 path = "scenarios/producer/round-trip.toml"
-sha256 = "0917e2eb53099a1aaeb19d57291641c631de025138373ab071877b1a12533d4c"
+sha256 = "5610f7e1cea8dda1cdff4a64cd6769e76b023749d678ffec3a4527d0f476c2a0"
 
 [[gate.input]]
 path = "scripts/check-rust-lint"
@@ -527,6 +554,10 @@ sha256 = "7c90e74284999b9114eddc42abb9f71bf9e9657926c4f900573ca8ee3739a942"
 [[gate.input]]
 path = "scripts/check-scenarios"
 sha256 = "a3390d85d24dddbc24b18ecea418246f4a7f5fd39266ac04de81e353535ed9ad"
+
+[[gate.input]]
+path = "scripts/run-kafkars-qualification"
+sha256 = "7b2751df8a60fbbbe76f3c3f7fe42fe170cb65aaca9f1991e14ba392177a19d7"
 
 [[gate.input]]
 path = "scripts/run-reference-pack"

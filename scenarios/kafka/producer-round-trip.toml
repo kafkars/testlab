@@ -1,9 +1,9 @@
 schema_version = 2
-id = "producer.round-trip"
-title = "acknowledged record is visible exactly once"
-description = "One accepted send settles once and the independent broker observation matches exactly."
-timeout_ms = 5000
-requires = ["producer", "lifecycle", "client_readiness", "model_broker"]
+id = "kafka.producer-round-trip"
+title = "packaged producer record is independently visible"
+description = "One packaged-client send is acknowledged and independently observed once with exact Kafka bytes."
+timeout_ms = 60000
+requires = ["producer", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -22,22 +22,23 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "ack-next"
-kind = "set_broker_behavior"
-behavior = "acknowledge"
-
-[[steps]]
 id = "send-record"
 kind = "send"
 producer_id = "producer-1"
 operation_id = "op-1"
 
 [steps.record]
-topic = "testlab-records"
+topic = "testlab-kafkars-round-trip"
 partition = 0
 sequence = 1
-key = { encoding = "utf8", data = "key-1" }
-value = { encoding = "utf8", data = "value-1" }
+key = { encoding = "hex", data = "006b6579ff" }
+value = { encoding = "hex", data = "0076616c7565ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+  { name = "binary", value = { encoding = "hex", data = "00ff" } },
+  { name = "nullable" },
+]
 
 [[steps]]
 id = "flush-producer"

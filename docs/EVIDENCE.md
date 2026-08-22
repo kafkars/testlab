@@ -22,6 +22,9 @@ digests exist.
 Evidence schema v2 records the exact environment identity in `manifest.json`.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
+Real-Kafka runs also record one `broker_observe` operation. Its librdkafka
+snapshot uses broker watermarks and emits structured observations with exact
+partition, offset, key, value, and ordered header bytes.
 
 ## Qualification evidence
 

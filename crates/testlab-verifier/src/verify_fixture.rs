@@ -14,7 +14,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
     let producer = id(ProducerId::new("producer-1"));
     let operation = id(OperationId::new("op-1"));
     Scenario {
-        schema_version: 1,
+        schema_version: 2,
         id: id(ScenarioId::new("producer.verifier")),
         title: "verifier".to_owned(),
         description: "verifier fixture".to_owned(),
@@ -22,12 +22,19 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
         requires: BTreeSet::from([
             Capability::Producer,
             Capability::Lifecycle,
+            Capability::ClientReadiness,
             Capability::ModelBroker,
         ]),
         steps: vec![
             step(
                 "client",
                 ScenarioAction::CreateClient {
+                    client_id: client.clone(),
+                },
+            ),
+            step(
+                "ready",
+                ScenarioAction::AwaitClientReady {
                     client_id: client.clone(),
                 },
             ),
@@ -88,10 +95,11 @@ pub(crate) fn adapter() -> AdapterDescriptor {
         id: id(AdapterId::new("reference-rust")),
         implementation: "fixture".to_owned(),
         version: "0.1.0".to_owned(),
-        protocol_version: 1,
+        protocol_version: testlab_schema::PROTOCOL_VERSION,
         capabilities: BTreeSet::from([
             Capability::Producer,
             Capability::Lifecycle,
+            Capability::ClientReadiness,
             Capability::ModelBroker,
         ]),
     }
@@ -116,18 +124,24 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
         ),
         event(
             2,
+            AdapterEvent::ClientReady {
+                client_id: client.clone(),
+            },
+        ),
+        event(
+            3,
             AdapterEvent::ProducerCreated {
                 producer_id: producer.clone(),
             },
         ),
         event(
-            3,
+            4,
             AdapterEvent::OperationAccepted {
                 operation_id: operation.clone(),
             },
         ),
         event(
-            4,
+            5,
             AdapterEvent::OperationTerminal {
                 operation_id: operation,
                 status,
@@ -136,19 +150,19 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
             },
         ),
         event(
-            5,
+            6,
             AdapterEvent::FlushCompleted {
                 producer_id: producer.clone(),
             },
         ),
         event(
-            6,
+            7,
             AdapterEvent::ProducerClosed {
                 producer_id: producer,
             },
         ),
-        event(7, AdapterEvent::ClientShutdown { client_id: client }),
-        event(8, AdapterEvent::Finished),
+        event(8, AdapterEvent::ClientShutdown { client_id: client }),
+        event(9, AdapterEvent::Finished),
     ]
 }
 
@@ -170,31 +184,37 @@ pub(crate) fn rejected_history() -> Vec<HistoryEntry> {
         ),
         event(
             2,
+            AdapterEvent::ClientReady {
+                client_id: client.clone(),
+            },
+        ),
+        event(
+            3,
             AdapterEvent::ProducerCreated {
                 producer_id: producer.clone(),
             },
         ),
         event(
-            3,
+            4,
             AdapterEvent::OperationRejected {
                 operation_id: id(OperationId::new("op-1")),
                 code: "queue_full".to_owned(),
             },
         ),
         event(
-            4,
+            5,
             AdapterEvent::FlushCompleted {
                 producer_id: producer.clone(),
             },
         ),
         event(
-            5,
+            6,
             AdapterEvent::ProducerClosed {
                 producer_id: producer,
             },
         ),
-        event(6, AdapterEvent::ClientShutdown { client_id: client }),
-        event(7, AdapterEvent::Finished),
+        event(7, AdapterEvent::ClientShutdown { client_id: client }),
+        event(8, AdapterEvent::Finished),
     ]
 }
 

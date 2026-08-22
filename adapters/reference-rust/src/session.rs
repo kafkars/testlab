@@ -89,6 +89,13 @@ fn dispatch<W: Write>(
                 &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientCreated { client_id }),
             )?;
         }
+        AdapterCommand::AwaitClientReady { client_id } => {
+            state.require_client(&client_id)?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
+            )?;
+        }
         AdapterCommand::CreateProducer {
             client_id,
             producer_id,
@@ -195,6 +202,7 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         capabilities: BTreeSet::from([
             Capability::Producer,
             Capability::Lifecycle,
+            Capability::ClientReadiness,
             Capability::ModelBroker,
         ]),
     })

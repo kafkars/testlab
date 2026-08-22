@@ -18,6 +18,12 @@ pub(crate) fn verify_lifecycle(
                 references(index.clients_created.get(client_id).map(Vec::as_slice)),
                 violations,
             ),
+            ScenarioAction::AwaitClientReady { client_id } => check(
+                "LIFE-007",
+                "client readiness",
+                references(index.clients_ready.get(client_id).map(Vec::as_slice)),
+                violations,
+            ),
             ScenarioAction::CreateProducer { producer_id, .. } => check(
                 "LIFE-002",
                 "producer creation",

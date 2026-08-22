@@ -107,3 +107,9 @@ id = "LIFE-006"
 title = "Adapter finish settles exactly once"
 statement = "A complete scenario emits exactly one finished event before process exit."
 category = "lifecycle"
+
+[[contract]]
+id = "LIFE-007"
+title = "Client readiness settles exactly once"
+statement = "Each requested public client readiness probe emits exactly one matching event."
+category = "lifecycle"

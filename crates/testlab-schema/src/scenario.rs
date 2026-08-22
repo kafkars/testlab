@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 1;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 2;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -52,13 +52,18 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for protocol v1.
+/// Scenario action vocabulary for protocol v2.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
     /// Creates one public client.
     CreateClient {
         /// New client identity.
+        client_id: ClientId,
+    },
+    /// Waits for one explicit public client readiness probe.
+    AwaitClientReady {
+        /// Existing live client.
         client_id: ClientId,
     },
     /// Creates one public producer.

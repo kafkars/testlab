@@ -14,6 +14,8 @@ pub enum Capability {
     Producer,
     /// Explicit close, shutdown, and finish behavior.
     Lifecycle,
+    /// Explicit public client readiness probing.
+    ClientReadiness,
     /// Testlab's self-test model broker transport.
     ModelBroker,
     /// Assigned-partition consumer operations.

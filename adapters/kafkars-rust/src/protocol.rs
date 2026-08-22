@@ -90,6 +90,13 @@ fn dispatch<W: Write>(
                 &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientCreated { client_id }),
             )?;
         }
+        AdapterCommand::AwaitClientReady { client_id } => {
+            state.await_client_ready(&client_id)?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
+            )?;
+        }
         AdapterCommand::CreateProducer {
             client_id,
             producer_id,
@@ -222,7 +229,11 @@ fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         implementation: "packaged kafkars Rust client".to_owned(),
         version: "0.0.1".to_owned(),
         protocol_version: PROTOCOL_VERSION,
-        capabilities: BTreeSet::from([Capability::Producer, Capability::Lifecycle]),
+        capabilities: BTreeSet::from([
+            Capability::Producer,
+            Capability::Lifecycle,
+            Capability::ClientReadiness,
+        ]),
     })
 }
 

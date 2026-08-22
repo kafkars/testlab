@@ -5,7 +5,8 @@ use std::time::Duration;
 
 use testlab_broker::RunningBroker;
 use testlab_environment::{
-    ComposeArtifact, ComposeFailure, ComposePhase, ComposeRequest, DockerComposeEnvironment,
+    ComposeArtifact, ComposeFailure, ComposeObservation, ComposePhase, ComposeRequest,
+    DockerComposeEnvironment,
 };
 use testlab_schema::{
     AdapterDescriptor, BrokerObservation, EnvironmentDriver, EnvironmentManifest, RunId, Scenario,
@@ -39,7 +40,7 @@ pub(crate) fn execute_environment(
     match &request.environment.driver {
         EnvironmentDriver::ModelBroker => execute_model(request, recorder, adapter, observations),
         EnvironmentDriver::DockerCompose { .. } => {
-            execute_compose(request, recorder, adapter, artifacts)
+            execute_compose(request, recorder, adapter, observations, artifacts)
         }
     }
 }
@@ -101,6 +102,7 @@ fn execute_compose(
     request: EnvironmentExecutionRequest<'_>,
     recorder: &mut HistoryRecorder,
     adapter: &mut Option<AdapterDescriptor>,
+    observations: &mut Vec<BrokerObservation>,
     artifacts: &mut Vec<ComposeArtifact>,
 ) -> Result<(), RunFailure> {
     let work_deadline = request.deadline.reserving(CLEANUP_RESERVE)?;
@@ -113,8 +115,17 @@ fn execute_compose(
     .map_err(|error| compose_failure(&error))?;
     let setup = environment.start(work_deadline.remaining()?);
     let setup_result = record_phase(setup, recorder, artifacts);
+    let provision = if setup_result.is_ok() {
+        environment.provision(
+            request.scenario,
+            work_deadline.remaining().unwrap_or(Duration::ZERO),
+        )
+    } else {
+        ComposePhase::default()
+    };
+    let provision_result = record_phase(provision, recorder, artifacts);
     let endpoint = environment.endpoint();
-    let session_result = if setup_result.is_ok() {
+    let session_result = if setup_result.is_ok() && provision_result.is_ok() {
         run_adapter_session(
             SessionRequest {
                 repository_root: request.repository_root,
@@ -131,12 +142,42 @@ fn execute_compose(
     } else {
         Ok(())
     };
+    let observation = if setup_result.is_ok() && provision_result.is_ok() && adapter.is_some() {
+        environment.observe(
+            request.scenario,
+            work_deadline.remaining().unwrap_or(Duration::ZERO),
+        )
+    } else {
+        ComposeObservation::default()
+    };
+    let observation_result =
+        record_compose_observation(observation, recorder, observations, artifacts);
     let cleanup_timeout = request.deadline.remaining().unwrap_or(Duration::ZERO);
     let cleanup = environment.finish(cleanup_timeout);
     let cleanup_result = record_phase(cleanup, recorder, artifacts);
     setup_result?;
+    provision_result?;
     session_result?;
+    observation_result?;
     cleanup_result
+}
+
+fn record_compose_observation(
+    snapshot: ComposeObservation,
+    recorder: &mut HistoryRecorder,
+    observations: &mut Vec<BrokerObservation>,
+    artifacts: &mut Vec<ComposeArtifact>,
+) -> Result<(), RunFailure> {
+    let ComposeObservation {
+        phase,
+        observations: captured,
+    } = snapshot;
+    let phase_result = record_phase(phase, recorder, artifacts);
+    for observation in &captured {
+        recorder.observation(observation.clone())?;
+    }
+    observations.clone_from(&captured);
+    phase_result
 }
 
 fn record_phase(

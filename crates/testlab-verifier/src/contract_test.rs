@@ -127,8 +127,9 @@ fn lifecycle_contracts_detect_every_missing_completion() {
         TerminalStatus::Acknowledged,
         VisibilityExpectation::ExactlyOnce,
     );
-    let cases: [(&str, EventPredicate); 6] = [
+    let cases: [(&str, EventPredicate); 7] = [
         ("LIFE-001", is_client_created),
+        ("LIFE-007", is_client_ready),
         ("LIFE-002", is_producer_created),
         ("LIFE-003", is_flush_completed),
         ("LIFE-004", is_producer_closed),
@@ -178,6 +179,10 @@ fn operation_id(value: &str) -> OperationId {
 
 fn is_client_created(event: &AdapterEvent) -> bool {
     matches!(event, AdapterEvent::ClientCreated { .. })
+}
+
+fn is_client_ready(event: &AdapterEvent) -> bool {
+    matches!(event, AdapterEvent::ClientReady { .. })
 }
 
 fn is_producer_created(event: &AdapterEvent) -> bool {

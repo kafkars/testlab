@@ -8,6 +8,7 @@ use rdkafka::consumer::{BaseConsumer, Consumer};
 use rdkafka::error::KafkaError;
 use rdkafka::message::{Headers, Message};
 use rdkafka::topic_partition_list::{Offset, TopicPartitionList};
+use rdkafka::types::RDKafkaErrorCode;
 use testlab_schema::{BrokerObservation, RunId, Scenario, ScenarioAction};
 
 use crate::observer_error::ObserverError;
@@ -127,10 +128,22 @@ fn poll_snapshot(
                 }
             }
             Some(Err(KafkaError::PartitionEOF(_))) | None => {}
+            Some(Err(error)) if is_transient(&error) => {}
             Some(Err(error)) => return Err(ObserverError::Kafka(error)),
         }
     }
     Ok(observations)
+}
+
+pub(super) fn is_transient(error: &KafkaError) -> bool {
+    matches!(
+        error,
+        KafkaError::MessageConsumption(
+            RDKafkaErrorCode::BrokerTransportFailure
+                | RDKafkaErrorCode::AllBrokersDown
+                | RDKafkaErrorCode::OperationTimedOut
+        )
+    )
 }
 
 fn normalize_message(

@@ -1,7 +1,10 @@
 //! Observer normalization tests prove exact bytes and required correlation metadata.
 
+use rdkafka::error::KafkaError;
+use rdkafka::types::RDKafkaErrorCode;
 use testlab_schema::ByteEncoding;
 
+use crate::observer::is_transient;
 use crate::observer_record::{CapturedRecord, normalize};
 
 #[test]
@@ -60,4 +63,14 @@ fn duplicate_operation_identity_is_invalid_observer_evidence() {
     );
 
     assert!(result.is_err());
+}
+
+#[test]
+fn only_bounded_consumer_startup_errors_are_retried() {
+    assert!(is_transient(&KafkaError::MessageConsumption(
+        RDKafkaErrorCode::BrokerTransportFailure,
+    )));
+    assert!(!is_transient(&KafkaError::MessageConsumption(
+        RDKafkaErrorCode::TopicAuthorizationFailed,
+    )));
 }

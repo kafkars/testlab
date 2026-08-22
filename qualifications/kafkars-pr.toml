@@ -1,0 +1,9 @@
+schema_version = 1
+id = "kafkars-pr"
+title = "packaged Kafkars pull-request qualification"
+
+[[cells]]
+id = "apache-kafka-4-3-1-plaintext"
+environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
+pack = "packs/kafkars-pr.toml"
+gating = true

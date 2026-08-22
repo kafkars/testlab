@@ -53,6 +53,12 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             },
         ),
         command(
+            "cmd-ready",
+            AdapterCommand::AwaitClientReady {
+                client_id: client.clone(),
+            },
+        ),
+        command(
             "cmd-producer",
             AdapterCommand::CreateProducer {
                 client_id: client.clone(),

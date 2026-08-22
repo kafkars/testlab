@@ -48,11 +48,13 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut producers = ProducerStates::new();
     let mut operations = BTreeSet::new();
     let mut uses_model_broker = false;
+    let mut uses_readiness = false;
     for step in &scenario.steps {
         if !step_ids.insert(step.id.clone()) {
             problems.push(format!("duplicate step id {}", step.id));
         }
         uses_model_broker |= matches!(&step.action, ScenarioAction::SetBrokerBehavior { .. });
+        uses_readiness |= matches!(&step.action, ScenarioAction::AwaitClientReady { .. });
         validate_action(
             &step.action,
             &mut clients,
@@ -66,6 +68,9 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     }
     if uses_model_broker && !scenario.requires.contains(&Capability::ModelBroker) {
         problems.push("broker-control steps require the model_broker capability".to_owned());
+    }
+    if uses_readiness && !scenario.requires.contains(&Capability::ClientReadiness) {
+        problems.push("client readiness steps require the client_readiness capability".to_owned());
     }
     if (!clients.is_empty() || !producers.is_empty())
         && !scenario.requires.contains(&Capability::Lifecycle)
@@ -98,6 +103,9 @@ fn validate_action(
                 problems.push(format!("duplicate client id {client_id}"));
             }
         }
+        ScenarioAction::AwaitClientReady { client_id } => {
+            require_live_client(client_id, clients, problems);
+        }
         ScenarioAction::CreateProducer {
             client_id,
             producer_id,
@@ -127,6 +135,14 @@ fn validate_action(
         ScenarioAction::ShutdownClient { client_id } => {
             shutdown_client(client_id, clients, producers, problems);
         }
+    }
+}
+
+fn require_live_client(client_id: &ClientId, clients: &ClientStates, problems: &mut Vec<String>) {
+    match clients.get(client_id) {
+        Some(false) => {}
+        Some(true) => problems.push(format!("client {client_id} was used after shutdown")),
+        None => problems.push(format!("missing client {client_id} was used")),
     }
 }
 

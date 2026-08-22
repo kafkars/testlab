@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v1 scenario actions.
+//! One sequential adapter session executes protocol-v2 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -94,6 +94,12 @@ fn execute_step(
                 client_id: client_id.clone(),
             },
             ExpectedEvent::ClientCreated(client_id.clone()),
+        ),
+        ScenarioAction::AwaitClientReady { client_id } => (
+            AdapterCommand::AwaitClientReady {
+                client_id: client_id.clone(),
+            },
+            ExpectedEvent::ClientReady(client_id.clone()),
         ),
         ScenarioAction::CreateProducer {
             client_id,

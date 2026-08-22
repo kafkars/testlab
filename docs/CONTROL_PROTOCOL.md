@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v1 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v2 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -19,6 +19,7 @@ capabilities.
 
 - `hello`
 - `create_client`
+- `await_client_ready`
 - `create_producer`
 - `send`
 - `flush`
@@ -33,6 +34,7 @@ boundary.
 
 - `ready`
 - `client_created`
+- `client_ready`
 - `producer_created`
 - `operation_accepted`
 - `operation_rejected`
@@ -54,6 +56,6 @@ wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v1 is an exact semantic contract. New capabilities may be declared
+Protocol v2 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -113,6 +113,7 @@ fn assert_lifecycle_history(run: &Path) {
         EnvironmentOperationKind::ComposeConfig,
         EnvironmentOperationKind::ComposeUp,
         EnvironmentOperationKind::Readiness,
+        EnvironmentOperationKind::BrokerProvision,
         EnvironmentOperationKind::ComposePs,
         EnvironmentOperationKind::ComposeLogs,
         EnvironmentOperationKind::ComposeDown,

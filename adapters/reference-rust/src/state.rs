@@ -53,6 +53,14 @@ impl AdapterState {
         Ok(())
     }
 
+    pub(crate) fn require_client(&self, client_id: &ClientId) -> Result<(), StateError> {
+        if self.clients.contains(client_id) {
+            Ok(())
+        } else {
+            Err(StateError::MissingClient(client_id.clone()))
+        }
+    }
+
     pub(crate) fn require_producer(&self, producer_id: &ProducerId) -> Result<(), StateError> {
         if self.producers.contains_key(producer_id) {
             Ok(())

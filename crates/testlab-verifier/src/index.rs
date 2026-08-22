@@ -20,6 +20,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) rejected: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) terminals: BTreeMap<OperationId, Vec<IndexedTerminal>>,
     pub(crate) clients_created: BTreeMap<ClientId, Vec<u64>>,
+    pub(crate) clients_ready: BTreeMap<ClientId, Vec<u64>>,
     pub(crate) producers_created: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) flushes: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) producers_closed: BTreeMap<ProducerId, Vec<u64>>,
@@ -58,6 +59,9 @@ impl HistoryIndex {
                     client_id.clone(),
                     entry.sequence,
                 ),
+                AdapterEvent::ClientReady { client_id } => {
+                    push(&mut index.clients_ready, client_id.clone(), entry.sequence);
+                }
                 AdapterEvent::ProducerCreated { producer_id } => push(
                     &mut index.producers_created,
                     producer_id.clone(),

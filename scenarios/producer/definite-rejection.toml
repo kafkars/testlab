@@ -1,13 +1,18 @@
-schema_version = 1
+schema_version = 2
 id = "producer.definite-rejection"
 title = "definitely-not-sent record is absent"
 description = "The broker rejects before persistence and the client must preserve definite non-delivery."
 timeout_ms = 5000
-requires = ["producer", "lifecycle", "model_broker"]
+requires = ["producer", "lifecycle", "client_readiness", "model_broker"]
 
 [[steps]]
 id = "create-client"
 kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
 client_id = "client-1"
 
 [[steps]]

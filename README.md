@@ -28,6 +28,7 @@ Testlab may consume public artifacts. It never imports private client state.
 - deterministic producer and lifecycle verification;
 - an independent model broker used only to self-test the harness;
 - a reference Rust adapter;
+- an exact packaged `kafkars 0.0.1` adapter;
 - atomic evidence sealing with SHA-256 digests and replay commands;
 - zrail policy for 300-line files, facade-only modules, and separate tests;
 - catalog integrity validation through the same public manifest loader used by
@@ -35,18 +36,20 @@ Testlab may consume public artifacts. It never imports private client state.
 - an immutable Apache Kafka 4.3.1 Compose environment with owned readiness,
   snapshots, logs, cleanup, and sealed terminal evidence;
 - fail-closed qualification manifests that aggregate ordered scenario evidence;
+- independent real-Kafka observation through pinned librdkafka;
 - three end-to-end scenarios: acknowledgment, definite rejection, and a lost
   response that must remain `possibly_sent`.
 
-The model broker is **not Kafka compatibility evidence**. Testlab can now own a
-pinned real Kafka lifecycle, but a Kafka client compatibility claim additionally
-requires the packaged `kafkars-rust` adapter and independent Kafka observation.
+The model broker is **not Kafka compatibility evidence**. The `kafkars-pr`
+qualification runs the packaged Kafkars adapter against pinned Apache Kafka and
+uses a separate librdkafka consumer to verify broker-visible records.
 
 ## Quick start
 
 ```bash
 scripts/check
 scripts/run-reference-qualification
+scripts/run-kafkars-qualification # requires Docker
 ```
 
 Or:
@@ -113,6 +116,10 @@ Adapters receive commands on stdin and emit normalized events on stdout. The
 process boundary catches packaging, ABI, loader, shutdown, crash, and runtime
 behavior that an in-process Rust trait would hide.
 
+The Kafka observer is environment-owned and uses librdkafka, not Kafkars. Real
+Kafka scenarios carry `testlab-operation-id` and `testlab-sequence` headers so
+observations remain correlated and exact without trusting adapter claims.
+
 ## Verdicts
 
 - **passed** — valid evidence and every deterministic contract held;
@@ -131,8 +138,8 @@ Retries never overwrite evidence. Every attempt has a new run identity.
 - Possibly-sent records are visible zero or one times, never twice.
 - Broker-visible bytes and the environment-reported digest are independently
   recomputed and checked.
-- Client, producer, flush, close, shutdown, and finish events settle exactly
-  once.
+- Client creation, readiness, producer creation, flush, close, shutdown, and
+  finish events settle exactly once.
 
 The registry lives in `contracts/conformance.toml`.
 

@@ -1,13 +1,18 @@
-schema_version = 1
+schema_version = 2
 id = "producer.lost-response"
 title = "accepted record preserves uncertainty when the response is lost"
 description = "The broker stores one record and closes before responding; the client must report possibly-sent."
 timeout_ms = 5000
-requires = ["producer", "lifecycle", "model_broker"]
+requires = ["producer", "lifecycle", "client_readiness", "model_broker"]
 
 [[steps]]
 id = "create-client"
 kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
 client_id = "client-1"
 
 [[steps]]

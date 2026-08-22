@@ -1,0 +1,6 @@
+schema_version = 1
+id = "kafkars-pr"
+title = "packaged Kafkars pull-request qualification"
+scenarios = [
+  "scenarios/kafka/producer-round-trip.toml",
+]

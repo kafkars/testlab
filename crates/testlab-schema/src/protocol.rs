@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 1;
+pub const PROTOCOL_VERSION: u16 = 2;
 
 /// One correlated command sent from testctl to an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -22,7 +22,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v1 command envelope.
+    /// Creates one protocol-v2 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -48,6 +48,11 @@ pub enum AdapterCommand {
     /// Creates one public client handle.
     CreateClient {
         /// Scenario-local client identity.
+        client_id: ClientId,
+    },
+    /// Waits for one public client readiness probe.
+    AwaitClientReady {
+        /// Existing client identity.
         client_id: ClientId,
     },
     /// Creates one public producer handle.
@@ -110,7 +115,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v1 event envelope.
+    /// Creates one protocol-v2 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -132,6 +137,11 @@ pub enum AdapterEvent {
     /// Public client construction completed.
     ClientCreated {
         /// Created client.
+        client_id: ClientId,
+    },
+    /// Public client readiness completed.
+    ClientReady {
+        /// Ready client.
         client_id: ClientId,
     },
     /// Public producer construction completed.
