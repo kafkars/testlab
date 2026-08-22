@@ -110,6 +110,21 @@ pub enum AdapterCommand {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
+    /// Creates one Kafka topic through the public admin surface.
+    CreateTopic {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Positive partition count.
+        partitions: i32,
+        /// Positive replication factor.
+        replication_factor: i16,
+        /// Complete public operation bound.
+        timeout_ms: u64,
+    },
     /// Flushes one producer.
     Flush {
         /// Producer to flush.

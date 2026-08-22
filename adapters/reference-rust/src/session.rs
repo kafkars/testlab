@@ -79,11 +79,7 @@ fn dispatch<W: Write>(
             )?;
         }
         AdapterCommand::AwaitClientReady { client_id } => {
-            state.require_client(&client_id)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
-            )?;
+            dispatch_client_ready(state, writer, command_id, client_id)?;
         }
         AdapterCommand::CreateProducer {
             client_id,
@@ -128,6 +124,9 @@ fn dispatch<W: Write>(
             return Err(AdapterError::Unsupported(
                 "group commands require a consumer_groups-capable adapter",
             ));
+        }
+        AdapterCommand::CreateTopic { .. } => {
+            return Err(AdapterError::Unsupported("admin capability required"));
         }
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;
@@ -183,6 +182,19 @@ fn dispatch_hello<W: Write>(
                 descriptor: descriptor()?,
             },
         ),
+    )
+}
+
+fn dispatch_client_ready<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: testlab_schema::CommandId,
+    client_id: testlab_schema::ClientId,
+) -> Result<(), AdapterError> {
+    state.require_client(&client_id)?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
     )
 }
 

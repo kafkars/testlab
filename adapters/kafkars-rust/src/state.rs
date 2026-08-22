@@ -99,6 +99,12 @@ impl AdapterState {
             .map_err(StateError::Client)
     }
 
+    pub(crate) fn client(&self, client_id: &ClientId) -> Result<&Client, StateError> {
+        self.clients
+            .get(client_id)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))
+    }
+
     pub(crate) fn producer(&self, producer_id: &ProducerId) -> Result<&Producer, StateError> {
         self.producers
             .get(producer_id)

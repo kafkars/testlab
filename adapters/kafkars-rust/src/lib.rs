@@ -6,6 +6,7 @@ mod connection_security;
 mod group_consumers;
 mod normalize;
 mod protocol;
+mod protocol_admin;
 mod protocol_consumer;
 mod protocol_group;
 mod protocol_lifecycle;

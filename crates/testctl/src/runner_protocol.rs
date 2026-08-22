@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v8 command.
+//! Expected event shapes constrain each sequential protocol-v9 command.
 
 use std::collections::BTreeSet;
 
@@ -24,6 +24,10 @@ pub(crate) enum ExpectedEvent {
     GroupConsumerCreated(ConsumerId),
     GroupReceiveCompleted(OperationId),
     GroupConsumerClosed(ConsumerId),
+    TopicCreated {
+        operation_id: OperationId,
+        topic: String,
+    },
     FlushCompleted(ProducerId),
     ProducerClosed(ProducerId),
     ClientShutdown(ClientId),
@@ -42,6 +46,9 @@ impl ExpectedEvent {
             return Ok(EventDisposition::Complete);
         }
         if let Some(disposition) = classify_group(self, event) {
+            return disposition;
+        }
+        if let Some(disposition) = classify_admin(self, event) {
             return disposition;
         }
         match (self, event) {
@@ -135,6 +142,35 @@ impl ExpectedEvent {
     }
 }
 
+fn classify_admin(
+    expected: &ExpectedEvent,
+    event: &AdapterEvent,
+) -> Option<Result<EventDisposition, RunFailure>> {
+    let (
+        ExpectedEvent::TopicCreated {
+            operation_id: expected_operation,
+            topic: expected_topic,
+        },
+        AdapterEvent::TopicCreated {
+            operation_id: actual_operation,
+            topic: actual_topic,
+        },
+    ) = (expected, event)
+    else {
+        return None;
+    };
+    Some(
+        if expected_operation == actual_operation && expected_topic == actual_topic {
+            Ok(EventDisposition::Complete)
+        } else {
+            Err(RunFailure::protocol(
+                "event_identity_mismatch",
+                format!("event {event:?} does not match expected {expected:?}"),
+            ))
+        },
+    )
+}
+
 fn classify_group(
     expected: &ExpectedEvent,
     event: &AdapterEvent,
@@ -226,6 +262,10 @@ fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
             | (
                 ExpectedEvent::GroupConsumerClosed(_),
                 AdapterEvent::GroupConsumerClosed { .. }
+            )
+            | (
+                ExpectedEvent::TopicCreated { .. },
+                AdapterEvent::TopicCreated { .. }
             )
             | (
                 ExpectedEvent::FlushCompleted(_),

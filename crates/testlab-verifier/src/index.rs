@@ -29,6 +29,12 @@ pub(crate) struct IndexedReceive {
     pub(crate) committed: Option<bool>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedTopicCreation {
+    pub(crate) history_sequence: u64,
+    pub(crate) topic: String,
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct HistoryIndex {
     has_harness_commands: bool,
@@ -42,6 +48,7 @@ pub(crate) struct HistoryIndex {
     group_consumers_create_issued: BTreeSet<ConsumerId>,
     group_consumers_close_issued: BTreeSet<ConsumerId>,
     operations_issued: BTreeSet<OperationId>,
+    topics_create_issued: BTreeSet<OperationId>,
     flushes_issued: BTreeSet<ProducerId>,
     producers_close_issued: BTreeSet<ProducerId>,
     clients_shutdown_issued: BTreeSet<ClientId>,
@@ -50,6 +57,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) accepted: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) rejected: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) terminals: BTreeMap<OperationId, Vec<IndexedTerminal>>,
+    pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedTopicCreation>>,
     pub(crate) clients_created: BTreeMap<ClientId, Vec<u64>>,
     pub(crate) clients_ready: BTreeMap<ClientId, Vec<u64>>,
     pub(crate) producers_created: BTreeMap<ProducerId, Vec<u64>>,
@@ -113,6 +121,9 @@ impl HistoryIndex {
             }
             ScenarioAction::CloseGroupConsumer { consumer_id } => {
                 self.group_consumers_close_issued.contains(consumer_id)
+            }
+            ScenarioAction::CreateTopic { operation_id, .. } => {
+                self.topics_create_issued.contains(operation_id)
             }
             ScenarioAction::Flush { producer_id } => self.flushes_issued.contains(producer_id),
             ScenarioAction::CloseProducer { producer_id } => {

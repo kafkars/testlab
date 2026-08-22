@@ -54,6 +54,7 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut uses_batch = false;
     let mut uses_assigned_consumer = false;
     let mut uses_group_consumer = false;
+    let mut uses_admin = false;
     for step in &scenario.steps {
         if !step_ids.insert(step.id.clone()) {
             problems.push(format!("duplicate step id {}", step.id));
@@ -74,6 +75,7 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
                 | ScenarioAction::GroupReceive { .. }
                 | ScenarioAction::CloseGroupConsumer { .. }
         );
+        uses_admin |= matches!(&step.action, ScenarioAction::CreateTopic { .. });
         crate::scenario_action_validation::validate_action(
             &step.action,
             &mut clients,
@@ -96,6 +98,9 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     }
     if uses_group_consumer && !scenario.requires.contains(&Capability::ConsumerGroups) {
         problems.push("group-consumer steps require the consumer_groups capability".to_owned());
+    }
+    if uses_admin && !scenario.requires.contains(&Capability::Admin) {
+        problems.push("admin steps require the admin capability".to_owned());
     }
     if uses_model_broker && !scenario.requires.contains(&Capability::ModelBroker) {
         problems.push("broker-control steps require the model_broker capability".to_owned());

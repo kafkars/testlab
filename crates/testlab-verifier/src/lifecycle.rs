@@ -95,7 +95,8 @@ pub(crate) fn verify_lifecycle(
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::Receive { .. }
-            | ScenarioAction::GroupReceive { .. } => {}
+            | ScenarioAction::GroupReceive { .. }
+            | ScenarioAction::CreateTopic { .. } => {}
         }
     }
     if index.command_failures.is_empty() && index.finish_issued() {

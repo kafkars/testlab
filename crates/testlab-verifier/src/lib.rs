@@ -1,5 +1,6 @@
 //! Pure deterministic verification maps public history and observations to contracts.
 
+mod admin;
 mod client_failure;
 mod consumer;
 mod contracts;
@@ -13,6 +14,8 @@ mod verify;
 pub use contracts::known_contract_ids;
 pub use verify::verify;
 
+#[cfg(test)]
+mod admin_test;
 #[cfg(test)]
 mod contract_test;
 #[cfg(test)]

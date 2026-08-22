@@ -17,7 +17,7 @@ where
 #[test]
 fn open_handles_are_rejected() {
     let scenario = Scenario {
-        schema_version: 5,
+        schema_version: 6,
         id: id(ScenarioId::new("lifecycle.open")),
         title: "open".to_owned(),
         description: "open handles".to_owned(),
@@ -39,7 +39,7 @@ fn open_handles_are_rejected() {
 fn rejected_admission_must_not_expect_a_terminal() {
     let operation = id(OperationId::new("op-1"));
     let scenario = Scenario {
-        schema_version: 5,
+        schema_version: 6,
         id: id(ScenarioId::new("producer.bad-assertion")),
         title: "bad assertion".to_owned(),
         description: "rejected with terminal".to_owned(),
@@ -62,7 +62,7 @@ fn empty_batch_is_rejected() {
     let client = id(ClientId::new("client-1"));
     let producer = id(ProducerId::new("producer-1"));
     let scenario = Scenario {
-        schema_version: 5,
+        schema_version: 6,
         id: id(ScenarioId::new("producer.empty-batch")),
         title: "empty batch".to_owned(),
         description: "batch requires records".to_owned(),

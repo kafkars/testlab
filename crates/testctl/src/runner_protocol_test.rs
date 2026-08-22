@@ -98,6 +98,23 @@ fn group_receive_completion_requires_commit_event_identity() {
     );
 }
 
+#[test]
+fn admin_completion_requires_exact_operation_and_topic() {
+    let operation_id = id(OperationId::new("admin-create-1"));
+    assert_eq!(
+        ExpectedEvent::TopicCreated {
+            operation_id: operation_id.clone(),
+            topic: "orders".to_owned(),
+        }
+        .classify(&AdapterEvent::TopicCreated {
+            operation_id,
+            topic: "orders".to_owned(),
+        })
+        .unwrap_or_else(|error| panic!("classify admin completion: {error}")),
+        EventDisposition::Complete
+    );
+}
+
 fn id<T, E>(result: Result<T, E>) -> T
 where
     E: std::fmt::Display,

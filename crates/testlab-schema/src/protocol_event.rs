@@ -100,6 +100,13 @@ pub enum AdapterEvent {
         /// Closed consumer.
         consumer_id: ConsumerId,
     },
+    /// One public admin topic creation completed successfully.
+    TopicCreated {
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact topic reported by the public batch result.
+        topic: String,
+    },
     /// Producer flush completed.
     FlushCompleted {
         /// Flushed producer.

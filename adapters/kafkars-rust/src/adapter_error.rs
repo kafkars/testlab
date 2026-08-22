@@ -31,6 +31,9 @@ pub enum AdapterError {
     /// A public consumer record could not fit the portable protocol shape.
     #[error("packaged Kafkars consumer record was invalid: {0}")]
     ConsumerRecord(String),
+    /// A public admin batch result did not correspond to its exact input.
+    #[error("packaged Kafkars admin result was invalid: {0}")]
+    AdminResult(String),
     /// The harness used an unsupported protocol version.
     #[error("unsupported protocol version {0}")]
     ProtocolVersion(u16),
@@ -72,6 +75,7 @@ impl AdapterError {
             Self::Client(_) => "kafkars_operation",
             Self::BatchResult(_) => "kafkars_batch_result",
             Self::ConsumerRecord(_) => "kafkars_consumer_record",
+            Self::AdminResult(_) => "kafkars_admin_result",
             Self::ProtocolVersion(_) => "protocol_version",
             Self::CommandTooLarge => "command_too_large",
             Self::IncompleteCommand => "incomplete_command",

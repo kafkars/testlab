@@ -1,6 +1,7 @@
 //! Versioned data contracts shared across the testlab trust boundary.
 
 mod adapter;
+mod admin_action_validation;
 mod bytes;
 mod consumer_action_validation;
 mod contract;

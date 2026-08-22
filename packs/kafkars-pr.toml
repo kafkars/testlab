@@ -7,4 +7,5 @@ scenarios = [
   "scenarios/kafka/producer-batch.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
   "scenarios/kafka/classic-group-round-trip.toml",
+  "scenarios/kafka/admin-create-topic.toml",
 ]

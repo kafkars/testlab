@@ -19,11 +19,7 @@ pub(crate) fn validate_action(
     problems: &mut Vec<String>,
 ) {
     match action {
-        ScenarioAction::CreateClient { client_id } => {
-            if clients.insert(client_id.clone(), false).is_some() {
-                problems.push(format!("duplicate client id {client_id}"));
-            }
-        }
+        ScenarioAction::CreateClient { client_id } => create_client(client_id, clients, problems),
         ScenarioAction::AwaitClientReady { client_id } => {
             require_live_client(client_id, clients, problems);
         }
@@ -106,6 +102,9 @@ pub(crate) fn validate_action(
         | ScenarioAction::CloseGroupConsumer { consumer_id } => {
             crate::consumer_action_validation::close(consumer_id, consumers, problems);
         }
+        action @ ScenarioAction::CreateTopic { .. } => {
+            crate::admin_action_validation::validate(action, clients, operation_ids, problems);
+        }
         ScenarioAction::Flush { producer_id } => {
             require_open_producer(producer_id, producers, problems);
         }
@@ -115,6 +114,12 @@ pub(crate) fn validate_action(
         ScenarioAction::ShutdownClient { client_id } => {
             shutdown_client(client_id, clients, producers, consumers, problems);
         }
+    }
+}
+
+fn create_client(client_id: &ClientId, clients: &mut ClientStates, problems: &mut Vec<String>) {
+    if clients.insert(client_id.clone(), false).is_some() {
+        problems.push(format!("duplicate client id {client_id}"));
     }
 }
 

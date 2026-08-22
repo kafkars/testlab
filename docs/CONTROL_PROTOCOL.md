@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v8 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v9 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -31,6 +31,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_group_consumer`
 - `group_receive`
 - `close_group_consumer`
+- `create_topic`
 - `flush`
 - `close_producer`
 - `shutdown_client`
@@ -56,6 +57,7 @@ boundary.
 - `group_consumer_created`
 - `group_receive_completed`
 - `group_consumer_closed`
+- `topic_created`
 - `flush_completed`
 - `producer_closed`
 - `client_shutdown`
@@ -80,6 +82,11 @@ completion reports both the exact records and whether that checkpoint committed;
 the deterministic verifier requires both the expected record and a successful
 commit.
 
+Topic creation uses the packaged client's public admin handle and returns one
+exact per-topic batch outcome. Admin-created scenario topics are deliberately
+excluded from independent environment provisioning, and broker auto-creation is
+disabled, so a later broker-visible producer record proves the topic was usable.
+
 ## Failure behavior
 
 A normal public client API failure emits one correlated `command_failed` event
@@ -90,6 +97,6 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v8 is an exact semantic contract. New capabilities may be declared
+Protocol v9 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

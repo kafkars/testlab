@@ -2,7 +2,10 @@
 
 use testlab_schema::{AdapterCommand, AdapterEvent, HistoryEntry, HistoryPayload};
 
-use super::{HistoryIndex, IndexedCommandFailure, IndexedReceive, IndexedTerminal, push};
+use super::{
+    HistoryIndex, IndexedCommandFailure, IndexedReceive, IndexedTerminal, IndexedTopicCreation,
+    push,
+};
 
 impl HistoryIndex {
     pub(super) fn record(&mut self, entry: &HistoryEntry) {
@@ -76,6 +79,17 @@ impl HistoryIndex {
                     sequence,
                 );
             }
+            AdapterEvent::TopicCreated {
+                operation_id,
+                topic,
+            } => self
+                .topics_created
+                .entry(operation_id.clone())
+                .or_default()
+                .push(IndexedTopicCreation {
+                    history_sequence: sequence,
+                    topic: topic.clone(),
+                }),
             AdapterEvent::FlushCompleted { producer_id } => {
                 push(&mut self.flushes, producer_id.clone(), sequence);
             }
@@ -155,6 +169,9 @@ impl HistoryIndex {
             AdapterCommand::CloseGroupConsumer { consumer_id } => {
                 self.group_consumers_close_issued
                     .insert(consumer_id.clone());
+            }
+            AdapterCommand::CreateTopic { operation_id, .. } => {
+                self.topics_create_issued.insert(operation_id.clone());
             }
             AdapterCommand::Flush { producer_id } => {
                 self.flushes_issued.insert(producer_id.clone());

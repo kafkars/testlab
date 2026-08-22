@@ -7,6 +7,7 @@ use testlab_schema::{
     ScenarioAction, TerminalStatus, Verdict, Violation, VisibilityExpectation,
 };
 
+use crate::admin::verify_admin;
 use crate::client_failure::verify_client_failures;
 use crate::consumer::verify_consumers;
 use crate::index::HistoryIndex;
@@ -28,6 +29,7 @@ pub fn verify(
     let mut violations = Vec::new();
     verify_protocol(adapter, &index, &mut violations);
     verify_client_failures(&index, &mut violations);
+    verify_admin(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
     crate::observations::verify_unknown(&sends, &observed, &mut violations);

@@ -19,6 +19,12 @@ statement = "A normalized public client API failure produces valid failing evide
 category = "client"
 
 [[contract]]
+id = "ADMIN-001"
+title = "Admin topic creation settles exactly once"
+statement = "Each requested public topic creation emits exactly one completion naming the exact operation and topic."
+category = "admin"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

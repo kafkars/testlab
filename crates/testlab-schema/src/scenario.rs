@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 5;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 6;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -53,7 +53,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v5.
+/// Scenario action vocabulary for scenario schema v6.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -153,6 +153,21 @@ pub enum ScenarioAction {
     CloseGroupConsumer {
         /// Consumer to close.
         consumer_id: ConsumerId,
+    },
+    /// Creates one topic through the packaged client's public admin surface.
+    CreateTopic {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Positive partition count.
+        partitions: i32,
+        /// Positive replication factor.
+        replication_factor: i16,
+        /// Complete public operation bound.
+        timeout_ms: u64,
     },
     /// Flushes one open producer.
     Flush {

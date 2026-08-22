@@ -1,6 +1,6 @@
 //! Compose provisioning creates declared topics through an independent Kafka admin.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::time::{Duration, Instant};
 
 use futures_executor::block_on;
@@ -21,12 +21,9 @@ use crate::security::ClientSecurity;
 const READINESS_TOPIC: &str = "testlab-environment-readiness";
 
 impl DockerComposeEnvironment {
-    /// Creates every scenario topic with enough partitions for declared records.
+    /// Creates harness-owned topics and proves the broker accepts idempotent production.
     pub fn provision(&mut self, scenario: &Scenario, timeout: Duration) -> ComposePhase {
         let topics = topics(scenario);
-        if topics.is_empty() {
-            return ComposePhase::default();
-        }
         let mut phase = ComposePhase::default();
         let id = match self.operation_id() {
             Ok(id) => id,
@@ -151,25 +148,40 @@ fn prove_idempotent_production(
 
 pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     let mut topics = BTreeMap::<String, i32>::new();
+    let admin_topics = scenario
+        .steps
+        .iter()
+        .filter_map(|step| match &step.action {
+            ScenarioAction::CreateTopic { topic, .. } => Some(topic.clone()),
+            _ => None,
+        })
+        .collect::<BTreeSet<_>>();
     for step in &scenario.steps {
         let records = match &step.action {
             ScenarioAction::Send { record, .. } => std::slice::from_ref(record),
             ScenarioAction::SendBatch { operations, .. } => {
                 for operation in operations {
-                    record_topic(&mut topics, &operation.record);
+                    record_topic(&mut topics, &admin_topics, &operation.record);
                 }
                 continue;
             }
             _ => continue,
         };
         for record in records {
-            record_topic(&mut topics, record);
+            record_topic(&mut topics, &admin_topics, record);
         }
     }
     topics
 }
 
-fn record_topic(topics: &mut BTreeMap<String, i32>, record: &testlab_schema::RecordSpec) {
+fn record_topic(
+    topics: &mut BTreeMap<String, i32>,
+    admin_topics: &BTreeSet<String>,
+    record: &testlab_schema::RecordSpec,
+) {
+    if admin_topics.contains(&record.topic) {
+        return;
+    }
     let partitions = record.partition.saturating_add(1);
     topics
         .entry(record.topic.clone())
