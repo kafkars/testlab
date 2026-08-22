@@ -97,17 +97,24 @@ impl ClientSecurity {
     pub(super) fn compose_environment(
         &self,
         image: &str,
-        host_port: u16,
+        host_ports: &[u16],
         tls_directory: Option<&Path>,
     ) -> Vec<(String, String)> {
+        let first_host_port = host_ports.first().copied().unwrap_or_default();
         let mut environment = vec![
             ("IMAGE".to_owned(), image.to_owned()),
-            ("KAFKA_HOST_PORT".to_owned(), host_port.to_string()),
+            ("KAFKA_HOST_PORT".to_owned(), first_host_port.to_string()),
             (
                 "KAFKA_EXTERNAL_PROTOCOL".to_owned(),
                 self.external_protocol().to_owned(),
             ),
         ];
+        environment.extend(
+            host_ports
+                .iter()
+                .enumerate()
+                .map(|(index, port)| (format!("KAFKA_HOST_PORT_{}", index + 1), port.to_string())),
+        );
         if let Some(directory) = tls_directory {
             environment.push(("KAFKA_TLS_DIR".to_owned(), directory.display().to_string()));
         }

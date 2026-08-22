@@ -1,7 +1,6 @@
 //! Docker Compose lifecycle owns immutable setup, readiness, snapshots, and cleanup.
 
 use std::fmt::{Debug, Formatter};
-use std::net::TcpListener;
 use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -9,6 +8,7 @@ use std::time::{Duration, Instant};
 use testlab_schema::{AdapterSecurity, EnvironmentDriver, RunId, TransportSecurity};
 
 use crate::compose_command::{self, CommandSpec};
+use crate::compose_ports::HostPorts;
 use crate::compose_support::{compose_prefix, failure_code, project_name, remaining};
 use crate::compose_types::{ComposeFailure, ComposePhase, ComposeRequest};
 use crate::security::ClientSecurity;
@@ -27,8 +27,8 @@ pub struct DockerComposeEnvironment {
     pub(super) client_security: ClientSecurity,
     pub(super) broker_services: Vec<String>,
     pub(super) client_port: u16,
-    host_port: u16,
-    port_reservation: Option<TcpListener>,
+    pub(super) cluster_size: u16,
+    host_ports: HostPorts,
     pub(super) started_unix_ms: u64,
     pub(super) started: Instant,
     pub(super) next_operation: u32,
@@ -41,7 +41,7 @@ impl Debug for DockerComposeEnvironment {
             .debug_struct("DockerComposeEnvironment")
             .field("run_id", &self.run_id)
             .field("project", &self.prefix.get(2))
-            .field("host_port", &self.host_port)
+            .field("host_ports", &self.host_ports.as_slice())
             .field("up_attempted", &self.up_attempted)
             .finish_non_exhaustive()
     }
@@ -50,27 +50,20 @@ impl Debug for DockerComposeEnvironment {
 impl DockerComposeEnvironment {
     /// Resolves an immutable manifest into a side-effect-free lifecycle owner.
     pub fn new(request: ComposeRequest<'_>) -> Result<Self, ComposeFailure> {
-        let reservation = TcpListener::bind(("127.0.0.1", 0)).map_err(|error| {
-            ComposeFailure::new(
-                "environment_host_port_unavailable",
-                format!("failed to reserve a loopback port: {error}"),
-            )
+        request.environment.validate().map_err(|error| {
+            ComposeFailure::new("environment_manifest_invalid", error.to_string())
         })?;
-        let host_port = reservation
-            .local_addr()
-            .map_err(|error| {
-                ComposeFailure::new(
-                    "environment_host_port_unavailable",
-                    format!("failed to inspect the loopback reservation: {error}"),
-                )
-            })?
-            .port();
-        Self::with_program(
-            request,
-            PathBuf::from("docker"),
-            host_port,
-            Some(reservation),
-        )
+        let EnvironmentDriver::DockerCompose {
+            broker_services, ..
+        } = &request.environment.driver
+        else {
+            return Err(ComposeFailure::new(
+                "environment_driver_invalid",
+                "environment does not use the Docker Compose driver",
+            ));
+        };
+        let host_ports = HostPorts::reserve(broker_services.len())?;
+        Self::with_program(request, PathBuf::from("docker"), host_ports)
     }
 
     #[cfg(test)]
@@ -79,26 +72,26 @@ impl DockerComposeEnvironment {
         program: PathBuf,
         host_port: u16,
     ) -> Result<Self, ComposeFailure> {
-        Self::with_program(request, program, host_port, None)
+        let count = match &request.environment.driver {
+            EnvironmentDriver::DockerCompose {
+                broker_services, ..
+            } => broker_services.len(),
+            EnvironmentDriver::ModelBroker => 0,
+        };
+        Self::with_program(request, program, HostPorts::fixed(host_port, count)?)
     }
 
     fn with_program(
         request: ComposeRequest<'_>,
         program: PathBuf,
-        host_port: u16,
-        port_reservation: Option<TcpListener>,
+        host_ports: HostPorts,
     ) -> Result<Self, ComposeFailure> {
         request.environment.validate().map_err(|error| {
             ComposeFailure::new("environment_manifest_invalid", error.to_string())
         })?;
-        if host_port == 0 {
-            return Err(ComposeFailure::new(
-                "environment_host_port_invalid",
-                "host port must be greater than zero",
-            ));
-        }
         let EnvironmentDriver::DockerCompose {
             image,
+            cluster_size,
             security,
             compose_files,
             broker_services,
@@ -121,8 +114,11 @@ impl DockerComposeEnvironment {
         });
         let ca_pem = security_directory.as_ref().map(|path| path.join("ca.pem"));
         let client_security = ClientSecurity::new(*security, ca_pem.as_deref())?;
-        let environment =
-            client_security.compose_environment(image, host_port, security_directory.as_deref());
+        let environment = client_security.compose_environment(
+            image,
+            host_ports.as_slice(),
+            security_directory.as_deref(),
+        );
         Ok(Self {
             repository_root: request.repository_root.to_path_buf(),
             run_id: request.run_id.clone(),
@@ -132,8 +128,8 @@ impl DockerComposeEnvironment {
             client_security,
             broker_services: broker_services.clone(),
             client_port: *client_port,
-            host_port,
-            port_reservation,
+            cluster_size: *cluster_size,
+            host_ports,
             started_unix_ms: request.started_unix_ms,
             started: Instant::now(),
             next_operation: 0,
@@ -143,7 +139,12 @@ impl DockerComposeEnvironment {
 
     /// Returns the loopback bootstrap endpoint advertised to the adapter.
     pub fn endpoint(&self) -> String {
-        format!("127.0.0.1:{}", self.host_port)
+        self.host_ports.endpoint()
+    }
+
+    /// Returns every independently reachable bootstrap endpoint in broker order.
+    pub fn endpoints(&self) -> Vec<String> {
+        self.host_ports.endpoints()
     }
 
     /// Returns the non-secret connection policy sent in the adapter handshake.
@@ -173,7 +174,7 @@ impl DockerComposeEnvironment {
         if !self.required(&mut phase, compose_command::config(&self.prefix), deadline) {
             return phase;
         }
-        drop(self.port_reservation.take());
+        self.host_ports.release();
         self.up_attempted = true;
         if !self.required(&mut phase, compose_command::up(&self.prefix), deadline) {
             return phase;

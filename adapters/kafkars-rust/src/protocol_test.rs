@@ -21,10 +21,7 @@ fn public_client_and_producer_lifecycle_settles() {
                 run_id: RunId::new("run-1").unwrap_or_else(|error| panic!("run id: {error}")),
                 scenario_id: ScenarioId::new("producer.real")
                     .unwrap_or_else(|error| panic!("scenario id: {error}")),
-                broker_endpoints: vec![
-                    "127.0.0.1:1".to_owned(),
-                    "127.0.0.1:2".to_owned(),
-                ],
+                broker_endpoints: vec!["127.0.0.1:1".to_owned(), "127.0.0.1:2".to_owned()],
                 security: AdapterSecurity::Plaintext,
             },
         ),

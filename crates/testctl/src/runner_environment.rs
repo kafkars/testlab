@@ -127,7 +127,7 @@ fn execute_compose(
         ComposePhase::default()
     };
     let provision_result = record_phase(provision, recorder, artifacts);
-    let broker_endpoints = [environment.endpoint()];
+    let broker_endpoints = environment.endpoints();
     let adapter_security = environment.adapter_security();
     let adapter_environment = environment.adapter_environment();
     let session_result = if setup_result.is_ok() && provision_result.is_ok() {

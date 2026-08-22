@@ -78,3 +78,10 @@ environment = "clusters/apache-kafka/4.3.1/single-scram-sha-512.toml"
 pack = "packs/kafkars-pr.toml"
 attempts = 1
 gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-three-plaintext"
+environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
+pack = "packs/kafkars-pr.toml"
+attempts = 1
+gating = true

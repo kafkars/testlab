@@ -36,12 +36,14 @@ impl DockerComposeEnvironment {
             }
         };
         let endpoint = self.endpoint();
+        let replication_factor = i32::from(self.cluster_size);
         let operation_started = Instant::now();
         let started_unix_ms = elapsed_unix_ms(self.started_unix_ms, self.started.elapsed());
         let result = provision(
             &endpoint,
             &self.run_id.to_string(),
             &topics,
+            replication_factor,
             timeout,
             &self.client_security,
         );
@@ -63,7 +65,7 @@ impl DockerComposeEnvironment {
             id,
             kind: EnvironmentOperationKind::BrokerProvision,
             program: format!("librdkafka/{librdkafka_version}"),
-            args: operation_args(&endpoint, &topics),
+            args: operation_args(&endpoint, &topics, replication_factor),
             started_unix_ms,
             completed_unix_ms,
             status,
@@ -80,6 +82,7 @@ fn provision(
     endpoint: &str,
     run_id: &str,
     topics: &BTreeMap<String, i32>,
+    replication_factor: i32,
     timeout: Duration,
     security: &ClientSecurity,
 ) -> Result<(), String> {
@@ -92,11 +95,17 @@ fn provision(
         config.create().map_err(|error| error.to_string())?;
     let requests = topics
         .iter()
-        .map(|(topic, partitions)| NewTopic::new(topic, *partitions, TopicReplication::Fixed(1)))
+        .map(|(topic, partitions)| {
+            NewTopic::new(
+                topic,
+                *partitions,
+                TopicReplication::Fixed(replication_factor),
+            )
+        })
         .chain(std::iter::once(NewTopic::new(
             READINESS_TOPIC,
             1,
-            TopicReplication::Fixed(1),
+            TopicReplication::Fixed(replication_factor),
         )))
         .collect::<Vec<_>>();
     let options = AdminOptions::new()
@@ -154,7 +163,11 @@ fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     topics
 }
 
-fn operation_args(endpoint: &str, topics: &BTreeMap<String, i32>) -> Vec<String> {
+pub(super) fn operation_args(
+    endpoint: &str,
+    topics: &BTreeMap<String, i32>,
+    replication_factor: i32,
+) -> Vec<String> {
     let mut args = vec![
         "--bootstrap-server".to_owned(),
         endpoint.to_owned(),
@@ -168,7 +181,7 @@ fn operation_args(endpoint: &str, topics: &BTreeMap<String, i32>) -> Vec<String>
             "--partitions".to_owned(),
             partitions.to_string(),
             "--replication-factor".to_owned(),
-            "1".to_owned(),
+            replication_factor.to_string(),
         ]);
     }
     args

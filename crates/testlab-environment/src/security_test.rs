@@ -59,6 +59,17 @@ fn tls_requires_and_references_a_ca_path() {
     ));
 }
 
+#[test]
+fn compose_receives_one_named_host_port_per_broker() {
+    let security = must(ClientSecurity::new(profile(Authentication::None), None));
+
+    let environment = security.compose_environment("image@sha256:digest", &[19_091, 19_092], None);
+
+    assert!(environment.contains(&("KAFKA_HOST_PORT".to_owned(), "19091".to_owned())));
+    assert!(environment.contains(&("KAFKA_HOST_PORT_1".to_owned(), "19091".to_owned())));
+    assert!(environment.contains(&("KAFKA_HOST_PORT_2".to_owned(), "19092".to_owned())));
+}
+
 fn profile(authentication: Authentication) -> SecurityProfile {
     SecurityProfile {
         transport: TransportSecurity::Plaintext,

@@ -4,6 +4,7 @@ mod compose;
 mod compose_command;
 mod compose_execute;
 mod compose_observe;
+mod compose_ports;
 mod compose_provision;
 mod compose_security;
 mod compose_support;
@@ -21,6 +22,10 @@ pub use compose_types::{
 };
 pub use terminal::{TerminalOutput, TerminalRequest, run_terminal};
 
+#[cfg(test)]
+mod compose_ports_test;
+#[cfg(test)]
+mod compose_provision_test;
 #[cfg(test)]
 mod compose_test;
 #[cfg(test)]
