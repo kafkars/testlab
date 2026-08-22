@@ -5,8 +5,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use testlab_schema::{
-    ContractRegistry, EnvironmentDriver, EnvironmentManifest, Scenario, ScenarioPack,
-    SubjectManifest,
+    ContractRegistry, EnvironmentDriver, EnvironmentManifest, QualificationManifest, Scenario,
+    ScenarioPack, SubjectManifest,
 };
 use testlab_verifier::known_contract_ids;
 
@@ -24,6 +24,7 @@ pub(crate) struct CatalogSummary {
     pub(crate) packs: usize,
     pub(crate) subjects: usize,
     pub(crate) environments: usize,
+    pub(crate) qualifications: usize,
     pub(crate) contracts: usize,
 }
 
@@ -87,11 +88,28 @@ impl Repository {
         Ok((self.relative(&path)?, environment))
     }
 
+    pub(crate) fn load_qualification(
+        &self,
+        path: &Path,
+    ) -> Result<(PathBuf, QualificationManifest), AppError> {
+        let path = self.resolve_existing(path)?;
+        let qualification: QualificationManifest = read_toml(&path)?;
+        qualification
+            .validate()
+            .map_err(|error| AppError::Catalog(format!("{}: {error}", path.display())))?;
+        for cell in &qualification.cells {
+            self.load_environment(Path::new(&cell.environment))?;
+            self.load_pack(Path::new(&cell.pack))?;
+        }
+        Ok((self.relative(&path)?, qualification))
+    }
+
     pub(crate) fn validate_all(&self) -> Result<CatalogSummary, AppError> {
         let scenario_paths = collect_toml(&self.root.join("scenarios"))?;
         let pack_paths = collect_toml(&self.root.join("packs"))?;
         let subject_paths = collect_toml(&self.root.join("subjects"))?;
         let environment_paths = collect_toml(&self.root.join("clusters"))?;
+        let qualification_paths = collect_toml(&self.root.join("qualifications"))?;
         let mut scenarios = BTreeMap::new();
         for path in &scenario_paths {
             let (relative, scenario) = self.load_scenario(path)?;
@@ -125,12 +143,23 @@ impl Repository {
                 "environment id",
             )?;
         }
+        let mut qualifications = BTreeMap::new();
+        for path in &qualification_paths {
+            let (relative, qualification) = self.load_qualification(path)?;
+            insert_unique(
+                &mut qualifications,
+                qualification.id.as_str(),
+                &relative,
+                "qualification id",
+            )?;
+        }
         let contracts = self.validate_contracts()?;
         Ok(CatalogSummary {
             scenarios: scenarios.len(),
             packs: packs.len(),
             subjects: subjects.len(),
             environments: environments.len(),
+            qualifications: qualifications.len(),
             contracts,
         })
     }

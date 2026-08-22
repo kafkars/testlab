@@ -25,6 +25,7 @@ inputs = [
   "contracts/conformance.toml",
   "clusters/model-broker.toml",
   "packs/repository-pr.toml",
+  "qualifications/repository-pr.toml",
   "scenarios/producer/definite-rejection.toml",
   "scenarios/producer/lost-response.toml",
   "scenarios/producer/round-trip.toml",

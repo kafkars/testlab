@@ -1,0 +1,9 @@
+schema_version = 1
+id = "repository-pr"
+title = "testlab repository pull-request qualification"
+
+[[cells]]
+id = "reference-model-broker"
+environment = "clusters/model-broker.toml"
+pack = "packs/repository-pr.toml"
+gating = true

@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "e04d892ca4a005cf3e72ea8ee0232ae76334c24c5ca04c8f32c5194378f4d81e"
+contract_sha256 = "86e36741f3255932a003fc1a2bc60c766100e55263d307a62b2d2b9c59b55de4"
 ratchet = []
 
 [[package]]
@@ -354,6 +354,10 @@ sha256 = "666b17d764036a4e2d96e254557ccb88cd1184d3c6933bbf82e070051695e0d1"
 [[gate.input]]
 path = "packs/repository-pr.toml"
 sha256 = "3676bbfceb360dfa064ad63e3f9d95d714f825f2878e421699f13c9553eda62e"
+
+[[gate.input]]
+path = "qualifications/repository-pr.toml"
+sha256 = "3522c11852683dc1c45eb9ea0442e113e15973fa83ceebb9dcdf946d3094ea70"
 
 [[gate.input]]
 path = "rust-toolchain.toml"
