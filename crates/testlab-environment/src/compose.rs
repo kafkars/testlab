@@ -6,11 +6,12 @@ use std::path::PathBuf;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use testlab_schema::{EnvironmentDriver, RunId};
+use testlab_schema::{AdapterSecurity, EnvironmentDriver, RunId, TransportSecurity};
 
 use crate::compose_command::{self, CommandSpec};
 use crate::compose_support::{compose_prefix, failure_code, project_name, remaining};
 use crate::compose_types::{ComposeFailure, ComposePhase, ComposeRequest};
+use crate::security::ClientSecurity;
 
 const READINESS_ATTEMPT_MAX: Duration = Duration::from_secs(5);
 const READINESS_RETRY_DELAY: Duration = Duration::from_millis(250);
@@ -23,6 +24,7 @@ pub struct DockerComposeEnvironment {
     pub(super) program: PathBuf,
     prefix: Vec<String>,
     pub(super) environment: Vec<(String, String)>,
+    pub(super) client_security: ClientSecurity,
     broker_services: Vec<String>,
     client_port: u16,
     host_port: u16,
@@ -97,6 +99,7 @@ impl DockerComposeEnvironment {
         }
         let EnvironmentDriver::DockerCompose {
             image,
+            security,
             compose_files,
             broker_services,
             client_port,
@@ -110,15 +113,29 @@ impl DockerComposeEnvironment {
         };
         let project = project_name(request.run_id);
         let prefix = compose_prefix(&project, compose_files);
+        let security_directory = (security.transport == TransportSecurity::TlsCustom).then(|| {
+            request
+                .repository_root
+                .join("target/testlab-security")
+                .join(request.run_id.as_str())
+        });
+        let ca_pem = security_directory.as_ref().map(|path| path.join("ca.pem"));
+        let client_security = ClientSecurity::new(*security, ca_pem.as_deref())?;
+        let environment = client_security.compose_environment(
+            image,
+            host_port,
+            security_directory.as_deref(),
+            &request
+                .repository_root
+                .join("clusters/apache-kafka/security/sasl"),
+        );
         Ok(Self {
             repository_root: request.repository_root.to_path_buf(),
             run_id: request.run_id.clone(),
             program,
             prefix,
-            environment: vec![
-                ("IMAGE".to_owned(), image.clone()),
-                ("KAFKA_HOST_PORT".to_owned(), host_port.to_string()),
-            ],
+            environment,
+            client_security,
             broker_services: broker_services.clone(),
             client_port: *client_port,
             host_port,
@@ -133,6 +150,16 @@ impl DockerComposeEnvironment {
     /// Returns the loopback bootstrap endpoint advertised to the adapter.
     pub fn endpoint(&self) -> String {
         format!("127.0.0.1:{}", self.host_port)
+    }
+
+    /// Returns the non-secret connection policy sent in the adapter handshake.
+    pub fn adapter_security(&self) -> AdapterSecurity {
+        self.client_security.adapter_security()
+    }
+
+    /// Returns ephemeral secret values passed only in the adapter process environment.
+    pub fn adapter_environment(&self) -> Vec<(String, String)> {
+        self.client_security.adapter_environment()
     }
 
     /// Starts the pinned image and waits for every declared broker service.

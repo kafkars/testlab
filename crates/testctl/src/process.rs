@@ -28,6 +28,7 @@ impl AdapterProcess {
     pub(crate) fn spawn(
         repository_root: &Path,
         subject: &SubjectManifest,
+        runtime_environment: &[(String, String)],
     ) -> Result<Self, RunFailure> {
         let executable = resolve_executable(repository_root, &subject.command)?;
         let working_directory =
@@ -40,7 +41,7 @@ impl AdapterProcess {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .env_clear();
-        configure_environment(&mut command, subject)?;
+        configure_environment(&mut command, subject, runtime_environment)?;
         let mut child = command.spawn().map_err(|error| {
             RunFailure::harness(
                 "subject_spawn_failed",
@@ -245,6 +246,7 @@ fn resolve_working_directory(root: &Path, configured: Option<&str>) -> Result<Pa
 fn configure_environment(
     command: &mut Command,
     subject: &SubjectManifest,
+    runtime_environment: &[(String, String)],
 ) -> Result<(), RunFailure> {
     #[cfg(windows)]
     for name in ["SYSTEMROOT", "WINDIR"] {
@@ -262,6 +264,15 @@ fn configure_environment(
                 format!("required pass-through environment variable {name} is unset"),
             )
         })?;
+        command.env(name, value);
+    }
+    for (name, value) in runtime_environment {
+        if subject.environment.contains_key(name) || subject.pass_environment.contains(name) {
+            return Err(RunFailure::harness(
+                "subject_environment_reserved",
+                format!("subject attempted to override environment-owned variable {name}"),
+            ));
+        }
         command.env(name, value);
     }
     Ok(())

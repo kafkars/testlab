@@ -33,6 +33,7 @@ impl DockerComposeEnvironment {
             run_id: &self.run_id,
             scenario,
             timeout,
+            security: &self.client_security,
         });
         let completed_unix_ms = elapsed_unix_ms(started_unix_ms, operation_started.elapsed());
         let (status, diagnostic, observations) = match result {

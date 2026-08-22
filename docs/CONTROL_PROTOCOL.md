@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v3 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v4 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -11,9 +11,10 @@ Protocol v3 is UTF-8 JSON Lines over stdin and stdout.
 
 ## Handshake
 
-Testctl sends `hello` with run ID, scenario ID, and environment endpoint. The
-adapter replies `ready` with implementation identity, version, and exact
-capabilities.
+Testctl sends `hello` with run ID, scenario ID, environment endpoint, and a
+non-secret security policy. TLS and SASL secrets are referenced by environment
+variable name and passed only in the adapter process environment. The adapter
+replies `ready` with implementation identity, version, and exact capabilities.
 
 ## Commands
 
@@ -59,6 +60,6 @@ stdout, wrong version, wrong command ID, or timeout invalidates the run.
 
 ## Evolution
 
-Protocol v3 is an exact semantic contract. New capabilities may be declared
+Protocol v4 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -9,8 +9,8 @@ use testlab_environment::{
     DockerComposeEnvironment,
 };
 use testlab_schema::{
-    AdapterDescriptor, BrokerObservation, EnvironmentDriver, EnvironmentManifest, RunId, Scenario,
-    SubjectManifest,
+    AdapterDescriptor, AdapterSecurity, BrokerObservation, EnvironmentDriver, EnvironmentManifest,
+    RunId, Scenario, SubjectManifest,
 };
 
 use crate::recorder::HistoryRecorder;
@@ -65,6 +65,8 @@ fn execute_model(
             run_id: request.run_id,
             deadline: request.deadline,
             broker_endpoint: broker.endpoint(),
+            security: AdapterSecurity::Plaintext,
+            adapter_environment: &[],
             model_broker: Some(&broker),
         },
         recorder,
@@ -125,6 +127,8 @@ fn execute_compose(
     };
     let provision_result = record_phase(provision, recorder, artifacts);
     let endpoint = environment.endpoint();
+    let adapter_security = environment.adapter_security();
+    let adapter_environment = environment.adapter_environment();
     let session_result = if setup_result.is_ok() && provision_result.is_ok() {
         run_adapter_session(
             SessionRequest {
@@ -134,6 +138,8 @@ fn execute_compose(
                 run_id: request.run_id,
                 deadline: work_deadline,
                 broker_endpoint: &endpoint,
+                security: adapter_security,
+                adapter_environment: &adapter_environment,
                 model_broker: None,
             },
             recorder,

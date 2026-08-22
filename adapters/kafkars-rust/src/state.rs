@@ -3,15 +3,18 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use kafkars::{Client, Producer};
-use testlab_schema::{ClientId, ProducerId};
+use kafkars::{Client, Producer, Security};
+use testlab_schema::{AdapterSecurity, ClientId, ProducerId};
 use thiserror::Error;
+
+use crate::connection_security::{SecurityError, resolve};
 
 const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
     broker_endpoint: Option<String>,
+    security: Option<Security>,
     clients: BTreeMap<ClientId, Client>,
     producers: BTreeMap<ProducerId, ProducerOwner>,
 }
@@ -23,10 +26,17 @@ struct ProducerOwner {
 }
 
 impl AdapterState {
-    pub(crate) fn hello(&mut self, endpoint: String) -> Result<(), StateError> {
-        if self.broker_endpoint.replace(endpoint).is_some() {
+    pub(crate) fn hello(
+        &mut self,
+        endpoint: String,
+        security: AdapterSecurity,
+    ) -> Result<(), StateError> {
+        if self.broker_endpoint.is_some() {
             return Err(StateError::DuplicateHello);
         }
+        let security = resolve(security)?;
+        self.broker_endpoint = Some(endpoint);
+        self.security = Some(security);
         Ok(())
     }
 
@@ -35,12 +45,14 @@ impl AdapterState {
             .broker_endpoint
             .as_deref()
             .ok_or(StateError::HelloRequired)?;
+        let security = self.security.clone().ok_or(StateError::HelloRequired)?;
         if self.clients.contains_key(&client_id) {
             return Err(StateError::DuplicateClient(client_id));
         }
         let client = Client::builder()
             .bootstrap_servers([endpoint])
             .client_id(client_id.as_str())
+            .security(security)
             .build()
             .map_err(StateError::Client)?;
         self.clients.insert(client_id, client);
@@ -146,4 +158,6 @@ pub(crate) enum StateError {
     UnclosedClients,
     #[error("packaged Kafkars operation failed: {0}")]
     Client(kafkars::KafkaError),
+    #[error("adapter connection security failed: {0}")]
+    Security(#[from] SecurityError),
 }

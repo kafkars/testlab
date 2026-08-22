@@ -4,8 +4,9 @@ use std::io::Cursor;
 
 use testlab_broker::RunningBroker;
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, ByteString, ClientId, CommandEnvelope,
-    CommandId, OperationId, ProducerId, RecordSpec, RunId, ScenarioId, TerminalStatus,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSecurity, ByteString, ClientId,
+    CommandEnvelope, CommandId, OperationId, ProducerId, RecordSpec, RunId, ScenarioId,
+    TerminalStatus,
 };
 
 use super::session::run_session;
@@ -44,6 +45,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
                 run_id: id(RunId::new("run-1")),
                 scenario_id: id(ScenarioId::new("producer.round-trip")),
                 broker_endpoint: broker.endpoint().to_owned(),
+                security: AdapterSecurity::Plaintext,
             },
         ),
         command(

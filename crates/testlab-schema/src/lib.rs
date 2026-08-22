@@ -34,8 +34,9 @@ pub use ids::{
 };
 pub use pack::{ScenarioPack, ScenarioPackError};
 pub use protocol::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
-    TerminalStatus,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSaslMechanism, AdapterSecurity,
+    CommandEnvelope, PROTOCOL_VERSION, SASL_PASSWORD_ENVIRONMENT, SASL_USERNAME_ENVIRONMENT,
+    TLS_CA_PEM_ENVIRONMENT, TerminalStatus,
 };
 pub use qualification::{
     QUALIFICATION_SCHEMA_VERSION, QualificationCell, QualificationError, QualificationManifest,

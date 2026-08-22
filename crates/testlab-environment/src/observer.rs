@@ -13,6 +13,7 @@ use testlab_schema::{BrokerObservation, RunId, Scenario, ScenarioAction};
 
 use crate::observer_error::ObserverError;
 use crate::observer_record::{CapturedRecord, normalize};
+use crate::security::ClientSecurity;
 
 const POLL_SLICE: Duration = Duration::from_millis(100);
 
@@ -22,6 +23,7 @@ pub(super) struct ObserverRequest<'a> {
     pub(super) run_id: &'a RunId,
     pub(super) scenario: &'a Scenario,
     pub(super) timeout: Duration,
+    pub(super) security: &'a ClientSecurity,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -44,21 +46,26 @@ pub(super) fn capture(
     let deadline = Instant::now()
         .checked_add(request.timeout)
         .ok_or(ObserverError::DeadlineOverflow)?;
-    let consumer = consumer(request.endpoint, request.run_id)?;
+    let consumer = consumer(request.endpoint, request.run_id, request.security)?;
     let (assignment, mut cursors) = assignment(&consumer, targets, deadline)?;
     consumer.assign(&assignment)?;
     poll_snapshot(&consumer, &mut cursors, deadline)
 }
 
-fn consumer(endpoint: &str, run_id: &RunId) -> Result<BaseConsumer, ObserverError> {
-    ClientConfig::new()
+fn consumer(
+    endpoint: &str,
+    run_id: &RunId,
+    security: &ClientSecurity,
+) -> Result<BaseConsumer, ObserverError> {
+    let mut config = ClientConfig::new();
+    config
         .set("bootstrap.servers", endpoint)
         .set("group.id", format!("testlab-observer-{run_id}"))
         .set("enable.auto.commit", "false")
         .set("enable.partition.eof", "true")
-        .set("isolation.level", "read_committed")
-        .create()
-        .map_err(ObserverError::Kafka)
+        .set("isolation.level", "read_committed");
+    security.configure(&mut config);
+    config.create().map_err(ObserverError::Kafka)
 }
 
 fn targets(scenario: &Scenario) -> BTreeSet<(String, i32)> {

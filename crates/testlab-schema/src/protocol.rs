@@ -7,7 +7,14 @@ use crate::{
 };
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 3;
+pub const PROTOCOL_VERSION: u16 = 4;
+
+/// Environment variable carrying an ephemeral TLS certificate authority path.
+pub const TLS_CA_PEM_ENVIRONMENT: &str = "TESTLAB_KAFKA_TLS_CA_PEM";
+/// Environment variable carrying the ephemeral SASL username.
+pub const SASL_USERNAME_ENVIRONMENT: &str = "TESTLAB_KAFKA_SASL_USERNAME";
+/// Environment variable carrying the ephemeral SASL password.
+pub const SASL_PASSWORD_ENVIRONMENT: &str = "TESTLAB_KAFKA_SASL_PASSWORD";
 
 /// One correlated command sent from testctl to an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -22,7 +29,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v3 command envelope.
+    /// Creates one protocol-v4 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -44,6 +51,8 @@ pub enum AdapterCommand {
         scenario_id: ScenarioId,
         /// Broker or test-peer endpoint selected by testctl.
         broker_endpoint: String,
+        /// Non-secret connection policy and secret environment references.
+        security: AdapterSecurity,
     },
     /// Creates one public client handle.
     CreateClient {
@@ -90,6 +99,51 @@ pub enum AdapterCommand {
     Finish,
 }
 
+/// Adapter connection security without embedding secret values in history.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum AdapterSecurity {
+    /// Plain TCP without authentication.
+    Plaintext,
+    /// TLS with one environment-provided PEM trust bundle.
+    TlsCustom {
+        /// Name of the adapter environment variable containing the PEM path.
+        ca_pem_environment: String,
+    },
+    /// SASL over plain TCP.
+    SaslPlaintext {
+        /// SASL mechanism.
+        mechanism: AdapterSaslMechanism,
+        /// Name of the adapter environment variable containing the username.
+        username_environment: String,
+        /// Name of the adapter environment variable containing the password.
+        password_environment: String,
+    },
+    /// SASL over TLS.
+    SaslTls {
+        /// Name of the adapter environment variable containing the PEM path.
+        ca_pem_environment: String,
+        /// SASL mechanism.
+        mechanism: AdapterSaslMechanism,
+        /// Name of the adapter environment variable containing the username.
+        username_environment: String,
+        /// Name of the adapter environment variable containing the password.
+        password_environment: String,
+    },
+}
+
+/// SASL mechanism selected by an environment.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AdapterSaslMechanism {
+    /// SASL/PLAIN.
+    Plain,
+    /// SCRAM-SHA-256.
+    ScramSha256,
+    /// SCRAM-SHA-512.
+    ScramSha512,
+}
+
 /// Normalized terminal delivery certainty.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -115,7 +169,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v3 event envelope.
+    /// Creates one protocol-v4 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,

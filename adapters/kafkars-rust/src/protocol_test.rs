@@ -4,8 +4,8 @@ use std::io::Cursor;
 
 use kafkars::{ErrorKind, KafkaError};
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, ClientId, CommandEnvelope, CommandId,
-    RunId, ScenarioId,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSecurity, ClientId, CommandEnvelope,
+    CommandId, RunId, ScenarioId,
 };
 
 use super::protocol::{emit_client_failure, run_session};
@@ -22,6 +22,7 @@ fn public_client_and_producer_lifecycle_settles() {
                 scenario_id: ScenarioId::new("producer.real")
                     .unwrap_or_else(|error| panic!("scenario id: {error}")),
                 broker_endpoint: "127.0.0.1:1".to_owned(),
+                security: AdapterSecurity::Plaintext,
             },
         ),
         command(

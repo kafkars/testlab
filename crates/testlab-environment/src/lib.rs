@@ -10,6 +10,7 @@ mod compose_types;
 mod observer;
 mod observer_error;
 mod observer_record;
+mod security;
 mod terminal;
 mod terminal_capture;
 
@@ -23,5 +24,7 @@ pub use terminal::{TerminalOutput, TerminalRequest, run_terminal};
 mod compose_test;
 #[cfg(test)]
 mod observer_test;
+#[cfg(test)]
+mod security_test;
 #[cfg(test)]
 mod terminal_test;

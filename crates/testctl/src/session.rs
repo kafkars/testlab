@@ -1,12 +1,12 @@
-//! One sequential adapter session executes protocol-v3 scenario actions.
+//! One sequential adapter session executes protocol-v4 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
 
 use testlab_broker::RunningBroker;
 use testlab_schema::{
-    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, PROTOCOL_VERSION, RunId,
-    Scenario, ScenarioAction, SubjectManifest,
+    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterSecurity,
+    PROTOCOL_VERSION, RunId, Scenario, ScenarioAction, SubjectManifest,
 };
 
 use crate::process::AdapterProcess;
@@ -16,7 +16,7 @@ use crate::run_error::RunFailure;
 use crate::runner_protocol::ExpectedEvent;
 use crate::time::Deadline;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct SessionRequest<'a> {
     pub(crate) repository_root: &'a Path,
     pub(crate) scenario: &'a Scenario,
@@ -24,6 +24,8 @@ pub(crate) struct SessionRequest<'a> {
     pub(crate) run_id: &'a RunId,
     pub(crate) deadline: Deadline,
     pub(crate) broker_endpoint: &'a str,
+    pub(crate) security: AdapterSecurity,
+    pub(crate) adapter_environment: &'a [(String, String)],
     pub(crate) model_broker: Option<&'a RunningBroker>,
 }
 
@@ -39,9 +41,11 @@ pub(crate) fn run_adapter_session(
         run_id,
         deadline,
         broker_endpoint,
+        security,
+        adapter_environment,
         model_broker,
     } = request;
-    let mut process = AdapterProcess::spawn(repository_root, subject)?;
+    let mut process = AdapterProcess::spawn(repository_root, subject, adapter_environment)?;
     let mut protocol = ProtocolSession::default();
     let ready = protocol.send_and_wait(
         &mut process,
@@ -51,6 +55,7 @@ pub(crate) fn run_adapter_session(
             run_id: run_id.clone(),
             scenario_id: scenario.id.clone(),
             broker_endpoint: broker_endpoint.to_owned(),
+            security,
         },
         &ExpectedEvent::Ready,
     )?;

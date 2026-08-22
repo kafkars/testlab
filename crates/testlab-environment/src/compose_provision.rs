@@ -16,6 +16,7 @@ use testlab_schema::{
 use crate::compose::DockerComposeEnvironment;
 use crate::compose_support::elapsed_unix_ms;
 use crate::compose_types::ComposePhase;
+use crate::security::ClientSecurity;
 
 const READINESS_TOPIC: &str = "testlab-environment-readiness";
 
@@ -37,7 +38,13 @@ impl DockerComposeEnvironment {
         let endpoint = self.endpoint();
         let operation_started = Instant::now();
         let started_unix_ms = elapsed_unix_ms(self.started_unix_ms, self.started.elapsed());
-        let result = provision(&endpoint, &self.run_id.to_string(), &topics, timeout);
+        let result = provision(
+            &endpoint,
+            &self.run_id.to_string(),
+            &topics,
+            timeout,
+            &self.client_security,
+        );
         let completed_unix_ms = elapsed_unix_ms(started_unix_ms, operation_started.elapsed());
         let (status, diagnostic) = match result {
             Ok(()) => (EnvironmentOperationStatus::Succeeded, None),
@@ -74,12 +81,15 @@ fn provision(
     run_id: &str,
     topics: &BTreeMap<String, i32>,
     timeout: Duration,
+    security: &ClientSecurity,
 ) -> Result<(), String> {
-    let admin: AdminClient<DefaultClientContext> = ClientConfig::new()
+    let mut config = ClientConfig::new();
+    config
         .set("bootstrap.servers", endpoint)
-        .set("client.id", format!("testlab-provisioner-{run_id}"))
-        .create()
-        .map_err(|error| error.to_string())?;
+        .set("client.id", format!("testlab-provisioner-{run_id}"));
+    security.configure(&mut config);
+    let admin: AdminClient<DefaultClientContext> =
+        config.create().map_err(|error| error.to_string())?;
     let requests = topics
         .iter()
         .map(|(topic, partitions)| NewTopic::new(topic, *partitions, TopicReplication::Fixed(1)))
@@ -99,21 +109,23 @@ fn provision(
             return Err(format!("topic {topic} creation failed: {error}"));
         }
     }
-    prove_idempotent_production(endpoint, run_id, timeout)
+    prove_idempotent_production(endpoint, run_id, timeout, security)
 }
 
 fn prove_idempotent_production(
     endpoint: &str,
     run_id: &str,
     timeout: Duration,
+    security: &ClientSecurity,
 ) -> Result<(), String> {
-    let producer: FutureProducer = ClientConfig::new()
+    let mut config = ClientConfig::new();
+    config
         .set("bootstrap.servers", endpoint)
         .set("client.id", format!("testlab-readiness-{run_id}"))
         .set("enable.idempotence", "true")
-        .set("message.timeout.ms", timeout.as_millis().to_string())
-        .create()
-        .map_err(|error| error.to_string())?;
+        .set("message.timeout.ms", timeout.as_millis().to_string());
+    security.configure(&mut config);
+    let producer: FutureProducer = config.create().map_err(|error| error.to_string())?;
     let delivery = block_on(
         producer.send(
             FutureRecord::to(READINESS_TOPIC)
