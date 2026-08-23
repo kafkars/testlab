@@ -54,34 +54,34 @@ gating = true
 [[cells]]
 id = "apache-kafka-4-3-1-three-tls"
 environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-three-broker.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-sasl-plain"
 environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-three-broker.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-scram-sha-256"
 environment = "clusters/apache-kafka/4.3.1/three-scram-sha-256.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-three-broker.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-scram-sha-512"
 environment = "clusters/apache-kafka/4.3.1/three-scram-sha-512.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-three-broker.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-plaintext"
 environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-three-broker.toml"
 attempts = 1
 gating = true

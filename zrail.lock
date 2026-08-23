@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "40052f5bb43ecd5d30f548505f685cb7c88128687c6d44f94404ebb780978670"
+contract_sha256 = "8eec9779311c5939acd235aeaa5bf4e5efea1a0e6dfaaf7c6fbaa85b501f4802"
 ratchet = []
 
 [[package]]
@@ -601,6 +601,10 @@ path = "packs/kafkars-pr.toml"
 sha256 = "e74862aee6df67865c5886603b1eabdf34291e087453ba1662e93bbf3faf6a53"
 
 [[gate.input]]
+path = "packs/kafkars-three-broker.toml"
+sha256 = "25616e402182083d4cd555d9557bf9028a0ed838a9f393b9b19824fe6756b3af"
+
+[[gate.input]]
 path = "packs/repository-pr.toml"
 sha256 = "3676bbfceb360dfa064ad63e3f9d95d714f825f2878e421699f13c9553eda62e"
 
@@ -610,7 +614,7 @@ sha256 = "48b2b5261fedf39caacff045a8440ccfa9de198bec152b1be279aabb99168ba1"
 
 [[gate.input]]
 path = "qualifications/kafkars-release.toml"
-sha256 = "e0c3e0a2142f016d6ee50e7f4b3d06b2c5f0952bb66a1f775c12a962d3e76644"
+sha256 = "9971f4173d22bf7287c805bd224804152f3dc6a7fdc1e1357a5a9c44741fd8b8"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"
@@ -651,6 +655,10 @@ sha256 = "d59bb8292f21cc411b52ae95390551619c1c6d2beafbd140360e3d4973f28b9d"
 [[gate.input]]
 path = "scenarios/kafka/producer-partition-routing.toml"
 sha256 = "179c849e78a71fa562dbd48056ddbcfa977069c24574fc7527de828c29be505e"
+
+[[gate.input]]
+path = "scenarios/kafka/producer-rolling-restart.toml"
+sha256 = "d14f874f07d236820f193670bce6fb6995cf88757bacf578c778900d74deb510"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-round-trip.toml"

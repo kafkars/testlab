@@ -15,8 +15,8 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 14);
-    assert_eq!(summary.packs, 3);
+    assert_eq!(summary.scenarios, 15);
+    assert_eq!(summary.packs, 4);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 17);
     assert_eq!(summary.qualifications, 3);
@@ -24,7 +24,7 @@ fn checked_in_catalog_is_complete() {
 }
 
 #[test]
-fn pre_kip_848_release_cells_use_the_classic_pack() {
+fn release_cells_use_their_topology_pack() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let repository = match Repository::open(&root) {
         Ok(repository) => repository,
@@ -37,12 +37,15 @@ fn pre_kip_848_release_cells_use_the_classic_pack() {
         };
     for cell in qualification.cells {
         let legacy = cell.environment.contains("apache-kafka/3.");
-        assert_eq!(
-            cell.pack == "packs/kafkars-classic.toml",
-            legacy,
-            "unexpected pack for {}",
-            cell.id
-        );
+        let three_broker = cell.environment.contains("/three-");
+        let expected = if legacy {
+            "packs/kafkars-classic.toml"
+        } else if three_broker {
+            "packs/kafkars-three-broker.toml"
+        } else {
+            "packs/kafkars-pr.toml"
+        };
+        assert_eq!(cell.pack, expected, "unexpected pack for {}", cell.id);
     }
     let (_, pack) = match repository.load_pack(Path::new("packs/kafkars-classic.toml")) {
         Ok(value) => value,
@@ -63,5 +66,20 @@ fn pre_kip_848_release_cells_use_the_classic_pack() {
         pack.scenarios
             .iter()
             .any(|scenario| scenario.ends_with("classic-group-broker-restart.toml"))
+    );
+    let (_, pack) = match repository.load_pack(Path::new("packs/kafkars-three-broker.toml")) {
+        Ok(value) => value,
+        Err(error) => panic!("load three-broker pack: {error}"),
+    };
+    assert!(
+        pack.scenarios
+            .iter()
+            .any(|scenario| scenario.ends_with("producer-rolling-restart.toml"))
+    );
+    assert!(
+        !pack
+            .scenarios
+            .iter()
+            .any(|scenario| scenario.ends_with("producer-broker-restart.toml"))
     );
 }

@@ -45,7 +45,8 @@ Testlab may consume public artifacts. It never imports private client state.
   group membership, public topic administration, commit/abort transactions,
   replacement ownership fencing without read-committed record leakage, and
   producer and classic-group recovery across evidence-retaining broker
-  restarts.
+  restarts, including release-only rolling recovery across every broker in a
+  three-node topology.
 
 The model broker is **not Kafka compatibility evidence**. The `kafkars-pr`
 qualification runs the packaged Kafkars adapter against pinned Apache Kafka and
@@ -71,7 +72,9 @@ mechanisms. Dirty source is rejected unless `--allow-dirty` is the third
 argument.
 
 The release matrix uses a classic-only pack for Kafka 3.7–3.9, so unsupported
-KIP-848 behavior cannot create a false legacy-broker release failure.
+KIP-848 behavior cannot create a false legacy-broker release failure. Its
+three-node cells use a topology-specific pack that restarts every broker in
+turn rather than treating one arbitrary restart as a rolling-recovery claim.
 
 Kafkars CI can call the same boundary without copying any broker logic:
 

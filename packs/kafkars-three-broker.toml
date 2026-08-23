@@ -1,0 +1,16 @@
+schema_version = 1
+id = "kafkars-three-broker"
+title = "packaged Kafkars qualification for three-broker topologies"
+scenarios = [
+  "scenarios/kafka/producer-round-trip.toml",
+  "scenarios/kafka/producer-partition-routing.toml",
+  "scenarios/kafka/producer-batch.toml",
+  "scenarios/kafka/producer-rolling-restart.toml",
+  "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/classic-group-round-trip.toml",
+  "scenarios/kafka/classic-group-broker-restart.toml",
+  "scenarios/kafka/consumer-protocol-group-round-trip.toml",
+  "scenarios/kafka/admin-create-topic.toml",
+  "scenarios/kafka/transaction-commit-abort.toml",
+  "scenarios/kafka/transaction-fencing.toml",
+]
