@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 4;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 5;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -120,6 +120,8 @@ pub enum EnvironmentOperationKind {
     BrokerSecuritySetup,
     /// Provision scenario-owned broker resources.
     BrokerProvision,
+    /// Restart one declared broker service and retain its terminal result.
+    BrokerRestart,
     /// Snapshot broker-visible records with an independent client.
     BrokerObserve,
     /// Capture Compose process state.

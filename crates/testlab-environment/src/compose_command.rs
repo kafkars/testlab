@@ -50,6 +50,44 @@ pub(super) fn up(prefix: &[String]) -> CommandSpec {
     )
 }
 
+pub(super) fn restart(prefix: &[String], service: &str, operation: u32) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerRestart,
+        prefix,
+        vec![
+            "restart".to_owned(),
+            "--no-deps".to_owned(),
+            service.to_owned(),
+        ],
+        format!("broker-restart-{service}-{operation:05}.txt"),
+        format!("broker-restart-{service}-{operation:05}.stderr.txt"),
+    )
+}
+
+pub(super) fn restart_readiness(
+    prefix: &[String],
+    service: &str,
+    client_port: u16,
+    operation: u32,
+    attempt: u32,
+) -> CommandSpec {
+    let port = format!("localhost:{client_port}");
+    compose_owned(
+        EnvironmentOperationKind::Readiness,
+        prefix,
+        vec![
+            "exec".to_owned(),
+            "--no-TTY".to_owned(),
+            service.to_owned(),
+            "/opt/kafka/bin/kafka-broker-api-versions.sh".to_owned(),
+            "--bootstrap-server".to_owned(),
+            port,
+        ],
+        format!("broker-restart-readiness-{service}-{operation:05}-{attempt:03}.txt"),
+        format!("broker-restart-readiness-{service}-{operation:05}-{attempt:03}.stderr.txt"),
+    )
+}
+
 pub(super) fn readiness(
     prefix: &[String],
     service: &str,

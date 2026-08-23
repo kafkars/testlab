@@ -41,13 +41,14 @@ pub(super) fn elapsed_unix_ms(started_unix_ms: u64, elapsed: Duration) -> u64 {
 
 pub(super) fn failure_code(kind: EnvironmentOperationKind) -> &'static str {
     use EnvironmentOperationKind::{
-        BrokerSecuritySetup, ComposeConfig, ComposeUp, ImageInspect, ImagePull,
+        BrokerRestart, BrokerSecuritySetup, ComposeConfig, ComposeUp, ImageInspect, ImagePull,
     };
     match kind {
         ImagePull => "environment_image_pull_failed",
         ImageInspect => "environment_image_unavailable",
         ComposeConfig => "environment_compose_config_failed",
         ComposeUp => "environment_compose_up_failed",
+        BrokerRestart => "environment_broker_restart_failed",
         BrokerSecuritySetup => "environment_security_setup_failed",
         _ => "environment_operation_failed",
     }
