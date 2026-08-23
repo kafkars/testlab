@@ -26,6 +26,31 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Validate qualification runner
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ "${RUNNER_OS:-}" != "Linux" ]]; then
+          echo "testlab qualification requires a Linux runner" >&2
+          exit 2
+        fi
+        command -v apt-get >/dev/null
+        command -v docker >/dev/null
+        command -v rustup >/dev/null
+        docker compose version
+        docker info >/dev/null
+
+    - name: Install native build dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get update
+        sudo apt-get install --yes --no-install-recommends libcurl4-openssl-dev
+
+    - name: Install pinned Rust toolchain
+      shell: bash
+      run: rustup toolchain install 1.88.0 --profile minimal
+
     - id: qualify
       name: Package and qualify Kafkars
       shell: bash
