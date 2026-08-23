@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "8eec9779311c5939acd235aeaa5bf4e5efea1a0e6dfaaf7c6fbaa85b501f4802"
+contract_sha256 = "eb9d0036c9e2ca7de757de4a8dd0f0d616577119a92ca7aaab8bb735347c5ae6"
 ratchet = []
 
 [[package]]
@@ -598,7 +598,11 @@ sha256 = "816caad1361fc9a750bd92fa2a0e0af58bbbc98f47d66e3c2db257d16032ee49"
 
 [[gate.input]]
 path = "packs/kafkars-pr.toml"
-sha256 = "e74862aee6df67865c5886603b1eabdf34291e087453ba1662e93bbf3faf6a53"
+sha256 = "59d4fa210e07565be755eb71612bb1d27fb5cfaa244accc5b32bf6039e8caba0"
+
+[[gate.input]]
+path = "packs/kafkars-release.toml"
+sha256 = "4d6d474cacd686014ca373287481ad2064bc3e00e5e65345c65e89d4543c6fd6"
 
 [[gate.input]]
 path = "packs/kafkars-three-broker.toml"
@@ -614,7 +618,7 @@ sha256 = "48b2b5261fedf39caacff045a8440ccfa9de198bec152b1be279aabb99168ba1"
 
 [[gate.input]]
 path = "qualifications/kafkars-release.toml"
-sha256 = "9971f4173d22bf7287c805bd224804152f3dc6a7fdc1e1357a5a9c44741fd8b8"
+sha256 = "38eb79ebf01f06a175e1aa941ef8de07aeb23fecb1af9efa827b679ac1681077"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"

@@ -5,28 +5,28 @@ title = "packaged Kafkars release qualification"
 [[cells]]
 id = "apache-kafka-4-3-1-plaintext"
 environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-release.toml"
 attempts = 3
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-2-1-plaintext"
 environment = "clusters/apache-kafka/4.2.1/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-release.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-1-2-plaintext"
 environment = "clusters/apache-kafka/4.1.2/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-release.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-0-2-plaintext"
 environment = "clusters/apache-kafka/4.0.2/single-plaintext.toml"
-pack = "packs/kafkars-pr.toml"
+pack = "packs/kafkars-release.toml"
 attempts = 1
 gating = true
 

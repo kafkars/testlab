@@ -67,6 +67,7 @@ inputs = [
   "scenarios/kafka/transaction-commit-abort.toml",
   "scenarios/kafka/transaction-fencing.toml",
   "packs/kafkars-pr.toml",
+  "packs/kafkars-release.toml",
   "packs/kafkars-classic.toml",
   "packs/kafkars-three-broker.toml",
   "qualifications/kafkars-pr.toml",

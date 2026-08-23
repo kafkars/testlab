@@ -71,10 +71,13 @@ exact driver and wire revisions declared by Kafkars. Use `release` instead of
 mechanisms. Dirty source is rejected unless `--allow-dirty` is the third
 argument.
 
-The release matrix uses a classic-only pack for Kafka 3.7–3.9, so unsupported
-KIP-848 behavior cannot create a false legacy-broker release failure. Its
-three-node cells use a topology-specific pack that restarts every broker in
-turn rather than treating one arbitrary restart as a rolling-recovery claim.
+The pull-request tier is a five-scenario public-surface smoke repeated three
+times. The release matrix adds batching, routing, KIP-848, fencing, and
+disruption coverage. It uses a classic-only pack for Kafka 3.7–3.9, so
+unsupported KIP-848 behavior cannot create a false legacy-broker release
+failure. Its three-node cells use a topology-specific pack that restarts every
+broker in turn rather than treating one arbitrary restart as a rolling-recovery
+claim.
 
 Kafkars CI can call the same boundary without copying any broker logic:
 

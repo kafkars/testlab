@@ -16,7 +16,7 @@ fn checked_in_catalog_is_complete() {
         Err(error) => panic!("catalog validation failed: {error}"),
     };
     assert_eq!(summary.scenarios, 15);
-    assert_eq!(summary.packs, 4);
+    assert_eq!(summary.packs, 5);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 17);
     assert_eq!(summary.qualifications, 3);
@@ -43,7 +43,7 @@ fn release_cells_use_their_topology_pack() {
         } else if three_broker {
             "packs/kafkars-three-broker.toml"
         } else {
-            "packs/kafkars-pr.toml"
+            "packs/kafkars-release.toml"
         };
         assert_eq!(cell.pack, expected, "unexpected pack for {}", cell.id);
     }
@@ -81,5 +81,26 @@ fn release_cells_use_their_topology_pack() {
             .scenarios
             .iter()
             .any(|scenario| scenario.ends_with("producer-broker-restart.toml"))
+    );
+}
+
+#[test]
+fn pull_request_pack_excludes_release_disruptions() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let repository = match Repository::open(&root) {
+        Ok(repository) => repository,
+        Err(error) => panic!("failed to open test repository: {error}"),
+    };
+    let (_, pack) = match repository.load_pack(Path::new("packs/kafkars-pr.toml")) {
+        Ok(value) => value,
+        Err(error) => panic!("load pull-request pack: {error}"),
+    };
+
+    assert_eq!(pack.scenarios.len(), 5);
+    assert!(
+        !pack
+            .scenarios
+            .iter()
+            .any(|scenario| scenario.contains("restart") || scenario.contains("fencing"))
     );
 }
