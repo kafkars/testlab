@@ -24,8 +24,8 @@
 
 - Pin oldest/current/next Kafka versions and image digests.
 - Add independent Java seeding and Fetch-based verification.
-- Add leader, controller, group coordinator, transaction coordinator, TLS,
-  SCRAM, ACL, quota, and rolling-restart scenarios.
+- Extend the first broker-restart scenario with leader, controller, group
+  coordinator, transaction coordinator, ACL, quota, and rolling-restart cases.
 - Add Java and librdkafka interoperability.
 
 ## Batch 5 — C ABI gauntlet

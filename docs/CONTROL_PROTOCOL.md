@@ -41,8 +41,9 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `shutdown_client`
 - `finish`
 
-Model-broker controls are owned directly by testctl and do not cross the adapter
-boundary.
+Model-broker controls and real-cluster broker restarts are owned directly by
+testctl and do not cross the adapter boundary. A restart occurs between public
+client commands while the same adapter process and client handles remain alive.
 
 ## Events
 

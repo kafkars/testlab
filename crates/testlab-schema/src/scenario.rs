@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 9;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 10;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -54,7 +54,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v9.
+/// Scenario action vocabulary for scenario schema v10.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -79,6 +79,13 @@ pub enum ScenarioAction {
     SetBrokerBehavior {
         /// One-shot broker behavior.
         behavior: BrokerBehavior,
+    },
+    /// Restarts one environment-owned broker and waits for Kafka readiness.
+    RestartBroker {
+        /// One-based ordinal in the environment's declared broker service order.
+        broker_ordinal: u16,
+        /// Complete restart and readiness bound.
+        timeout_ms: u64,
     },
     /// Offers one record.
     Send {

@@ -45,6 +45,10 @@ pub(crate) fn validate_action(
             problems,
         ),
         ScenarioAction::SetBrokerBehavior { .. } => {}
+        ScenarioAction::RestartBroker {
+            broker_ordinal,
+            timeout_ms,
+        } => validate_broker_restart(*broker_ordinal, *timeout_ms, problems),
         ScenarioAction::Send {
             producer_id,
             operation_id,
@@ -111,6 +115,15 @@ pub(crate) fn validate_action(
                 problems,
             );
         }
+    }
+}
+
+fn validate_broker_restart(broker_ordinal: u16, timeout_ms: u64, problems: &mut Vec<String>) {
+    if broker_ordinal == 0 {
+        problems.push("broker restart ordinal must be one-based".to_owned());
+    }
+    if !(100..=600_000).contains(&timeout_ms) {
+        problems.push("broker restart timeout_ms must be between 100 and 600000".to_owned());
     }
 }
 

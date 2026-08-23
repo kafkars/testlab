@@ -141,6 +141,41 @@ fn fencing_requires_the_original_transactional_identity() {
     );
 }
 
+#[test]
+fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
+    let mut scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/producer-broker-restart.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse broker restart scenario: {error}"));
+    let Some(ScenarioAction::RestartBroker {
+        broker_ordinal,
+        timeout_ms,
+    }) = scenario.steps.get_mut(4).map(|step| &mut step.action)
+    else {
+        panic!("broker restart action missing");
+    };
+    *broker_ordinal = 0;
+    *timeout_ms = 99;
+
+    let error = match scenario.validate() {
+        Ok(()) => panic!("invalid broker restart must fail"),
+        Err(error) => error,
+    };
+
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem.contains("ordinal must be one-based"))
+    );
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem.contains("restart timeout_ms"))
+    );
+}
+
 fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
     let client = id(ClientId::new("client-1"));
     let producer = id(ProducerId::new("producer-1"));

@@ -1,0 +1,89 @@
+schema_version = 10
+id = "kafka.producer-broker-restart"
+title = "packaged producer recovers after a broker restart"
+description = "One live packaged client acknowledges exact records before and after testlab restarts its Kafka broker."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-before-restart"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-before-restart"
+
+[steps.record]
+topic = "testlab-kafkars-producer-restart"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "before" }
+value = { encoding = "utf8", data = "before-restart" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-restart" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "restart-broker"
+kind = "restart_broker"
+broker_ordinal = 1
+timeout_ms = 45000
+
+[[steps]]
+id = "send-after-restart"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-restart"
+
+[steps.record]
+topic = "testlab-kafkars-producer-restart"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "after" }
+value = { encoding = "utf8", data = "after-restart" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-restart" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-before-restart"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-restart"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

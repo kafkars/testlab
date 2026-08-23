@@ -1,4 +1,4 @@
-schema_version = 9
+schema_version = 10
 id = "producer.definite-rejection"
 title = "definitely-not-sent record is absent"
 description = "The broker rejects before persistence and the client must preserve definite non-delivery."

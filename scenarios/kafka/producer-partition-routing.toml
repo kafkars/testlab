@@ -1,4 +1,4 @@
-schema_version = 9
+schema_version = 10
 id = "kafka.producer-partition-routing"
 title = "packaged producer routes exact records across partitions"
 description = "Three packaged-client sends target distinct partitions and remain independently visible once with exact Kafka bytes."

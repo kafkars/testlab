@@ -86,7 +86,9 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             },
             ExpectedEvent::ClientShutdown(client_id.clone()),
         ),
-        ScenarioAction::SetBrokerBehavior { .. } => return None,
+        ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::RestartBroker { .. } => {
+            return None;
+        }
     };
     Some(pair)
 }

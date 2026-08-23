@@ -57,6 +57,7 @@ inputs = [
   "scenarios/kafka/producer-round-trip.toml",
   "scenarios/kafka/producer-partition-routing.toml",
   "scenarios/kafka/producer-batch.toml",
+  "scenarios/kafka/producer-broker-restart.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
   "scenarios/kafka/classic-group-round-trip.toml",
   "scenarios/kafka/consumer-protocol-group-round-trip.toml",

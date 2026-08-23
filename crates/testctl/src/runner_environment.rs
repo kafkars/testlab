@@ -15,7 +15,7 @@ use testlab_schema::{
 
 use crate::recorder::HistoryRecorder;
 use crate::run_error::RunFailure;
-use crate::session::{SessionRequest, run_adapter_session};
+use crate::session::{SessionEnvironment, SessionRequest, run_adapter_session};
 use crate::time::Deadline;
 
 const CLEANUP_RESERVE: Duration = Duration::from_secs(15);
@@ -68,7 +68,7 @@ fn execute_model(
             broker_endpoints: &broker_endpoints,
             security: AdapterSecurity::Plaintext,
             adapter_environment: &[],
-            model_broker: Some(&broker),
+            environment: SessionEnvironment::Model(&broker),
         },
         recorder,
         adapter,
@@ -141,7 +141,10 @@ fn execute_compose(
                 broker_endpoints: &broker_endpoints,
                 security: adapter_security,
                 adapter_environment: &adapter_environment,
-                model_broker: None,
+                environment: SessionEnvironment::Compose {
+                    controller: &mut environment,
+                    artifacts,
+                },
             },
             recorder,
             adapter,
@@ -187,7 +190,7 @@ fn record_compose_observation(
     phase_result
 }
 
-fn record_phase(
+pub(crate) fn record_phase(
     phase: ComposePhase,
     recorder: &mut HistoryRecorder,
     artifacts: &mut Vec<ComposeArtifact>,

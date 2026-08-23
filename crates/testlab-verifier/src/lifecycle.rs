@@ -95,6 +95,7 @@ pub(crate) fn verify_lifecycle(
                 violations,
             ),
             ScenarioAction::SetBrokerBehavior { .. }
+            | ScenarioAction::RestartBroker { .. }
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::Receive { .. }

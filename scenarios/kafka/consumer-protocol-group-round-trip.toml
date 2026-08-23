@@ -1,4 +1,4 @@
-schema_version = 9
+schema_version = 10
 id = "kafka.consumer-protocol-group-round-trip"
 title = "packaged KIP-848 group consumer receives and commits exact bytes"
 description = "The packaged client joins with the consumer group protocol, returns the exact public record, commits its checkpoint, and exposes a positive KIP-848 member epoch."

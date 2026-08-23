@@ -162,7 +162,7 @@ impl HistoryIndex {
             ScenarioAction::ShutdownClient { client_id } => {
                 self.clients_shutdown_issued.contains(client_id)
             }
-            ScenarioAction::SetBrokerBehavior { .. } => true,
+            ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::RestartBroker { .. } => true,
         }
     }
 
