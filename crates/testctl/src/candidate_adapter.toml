@@ -24,6 +24,12 @@ thiserror = "2.0"
 [patch.crates-io]
 kafka-client-core = {{ path = {core} }}
 kafka-client-engine = {{ path = {engine} }}
+kafka-driver = {{ path = {driver} }}
+kafka-driver-core = {{ path = {driver_core} }}
+kafka-driver-transport = {{ path = {driver_transport} }}
+kafka-wire = {{ path = {wire} }}
+kafka-wire-core = {{ path = {wire_core} }}
+kafka-wire-records = {{ path = {wire_records} }}
 
 [lints.rust]
 unsafe_code = "forbid"
