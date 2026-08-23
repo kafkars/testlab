@@ -26,6 +26,9 @@ Docker environments pull and then inspect the declared digest as separate
 operations before Compose receives the image reference. Scenario-owned broker
 restarts and their Kafka readiness probes are recorded as distinct operations
 without stopping the packaged adapter process.
+Provisioning waits for every harness-created scenario partition to report a
+leader and the topology's full in-sync replica count before starting the
+packaged client.
 Real-Kafka runs also record one `broker_observe` operation. Its librdkafka
 snapshot uses broker watermarks and emits structured observations with exact
 partition, offset, key, value, and ordered header bytes.

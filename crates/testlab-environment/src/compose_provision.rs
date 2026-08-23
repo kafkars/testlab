@@ -15,6 +15,7 @@ use testlab_schema::{
 
 use crate::compose::DockerComposeEnvironment;
 use crate::compose_support::elapsed_unix_ms;
+use crate::compose_topic_readiness;
 use crate::compose_types::ComposePhase;
 use crate::security::ClientSecurity;
 
@@ -83,6 +84,9 @@ fn provision(
     timeout: Duration,
     security: &ClientSecurity,
 ) -> Result<(), String> {
+    let deadline = Instant::now()
+        .checked_add(timeout)
+        .ok_or_else(|| "provisioning deadline overflowed".to_owned())?;
     let mut config = ClientConfig::new();
     config
         .set("bootstrap.servers", endpoint)
@@ -90,7 +94,9 @@ fn provision(
     security.configure(&mut config);
     let admin: AdminClient<DefaultClientContext> =
         config.create().map_err(|error| error.to_string())?;
-    let requests = topics
+    let mut expected_topics = topics.clone();
+    expected_topics.insert(READINESS_TOPIC.to_owned(), 1);
+    let requests = expected_topics
         .iter()
         .map(|(topic, partitions)| {
             NewTopic::new(
@@ -99,15 +105,11 @@ fn provision(
                 TopicReplication::Fixed(replication_factor),
             )
         })
-        .chain(std::iter::once(NewTopic::new(
-            READINESS_TOPIC,
-            1,
-            TopicReplication::Fixed(replication_factor),
-        )))
         .collect::<Vec<_>>();
+    let operation_timeout = remaining(deadline)?;
     let options = AdminOptions::new()
-        .request_timeout(Some(timeout))
-        .operation_timeout(Some(timeout));
+        .request_timeout(Some(operation_timeout))
+        .operation_timeout(Some(operation_timeout));
     let results =
         block_on(admin.create_topics(&requests, &options)).map_err(|error| error.to_string())?;
     for result in results {
@@ -115,7 +117,17 @@ fn provision(
             return Err(format!("topic {topic} creation failed: {error}"));
         }
     }
-    prove_idempotent_production(endpoint, run_id, timeout, security)
+    compose_topic_readiness::wait(&admin, &expected_topics, replication_factor, deadline)?;
+    prove_idempotent_production(endpoint, run_id, remaining(deadline)?, security)
+}
+
+fn remaining(deadline: Instant) -> Result<Duration, String> {
+    let remaining = deadline.saturating_duration_since(Instant::now());
+    if remaining.is_zero() {
+        Err("provisioning deadline elapsed".to_owned())
+    } else {
+        Ok(remaining)
+    }
 }
 
 fn prove_idempotent_production(
@@ -203,6 +215,7 @@ pub(super) fn operation_args(
         endpoint.to_owned(),
         "--readiness-topic".to_owned(),
         READINESS_TOPIC.to_owned(),
+        "--require-full-isr".to_owned(),
     ];
     for (topic, partitions) in topics {
         args.extend([

@@ -9,6 +9,7 @@ mod compose_ports;
 mod compose_provision;
 mod compose_security;
 mod compose_support;
+mod compose_topic_readiness;
 mod compose_types;
 mod observer;
 mod observer_error;
