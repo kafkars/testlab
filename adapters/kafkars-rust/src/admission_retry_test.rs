@@ -1,0 +1,58 @@
+//! Scenarios for bounded pre-admission retry without ownership loss.
+
+use std::time::{Duration, Instant};
+
+use super::admission_retry::retry_until;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum AttemptError {
+    Retryable,
+    Terminal,
+}
+
+#[test]
+fn retryable_rejection_reconstructs_the_operation_before_deadline() {
+    let mut attempts = 0;
+    let result = retry_until(
+        Instant::now() + Duration::from_secs(1),
+        || {
+            attempts += 1;
+            if attempts == 1 {
+                Err(AttemptError::Retryable)
+            } else {
+                Ok(7)
+            }
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+
+    assert_eq!(result, Ok(7));
+    assert_eq!(attempts, 2);
+}
+
+#[test]
+fn terminal_or_elapsed_rejection_is_returned_without_retry() {
+    let mut terminal_attempts = 0;
+    let terminal = retry_until(
+        Instant::now() + Duration::from_secs(1),
+        || {
+            terminal_attempts += 1;
+            Err::<(), _>(AttemptError::Terminal)
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+    let mut elapsed_attempts = 0;
+    let elapsed = retry_until(
+        Instant::now(),
+        || {
+            elapsed_attempts += 1;
+            Err::<(), _>(AttemptError::Retryable)
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+
+    assert_eq!(terminal, Err(AttemptError::Terminal));
+    assert_eq!(terminal_attempts, 1);
+    assert_eq!(elapsed, Err(AttemptError::Retryable));
+    assert_eq!(elapsed_attempts, 1);
+}

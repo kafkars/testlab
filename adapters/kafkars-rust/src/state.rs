@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
+use crate::admission_retry::retry_safe;
 use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::resolve;
 use crate::group_consumers::GroupConsumers;
@@ -96,12 +97,11 @@ impl AdapterState {
     }
 
     pub(crate) fn await_client_ready(&self, client_id: &ClientId) -> Result<(), StateError> {
-        self.clients
+        let client = self
+            .clients
             .get(client_id)
-            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?
-            .ready()
-            .wait()
-            .map_err(StateError::Client)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
+        retry_safe(|| client.ready().wait()).map_err(StateError::Client)
     }
 
     pub(crate) fn client(&self, client_id: &ClientId) -> Result<&Client, StateError> {
@@ -244,11 +244,16 @@ impl AdapterState {
     }
 
     pub(crate) fn close_producer(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {
-        let owner = self
-            .producers
-            .remove(producer_id)
-            .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))?;
-        owner.producer.close().wait().map_err(StateError::Client)
+        let result = {
+            let owner = self
+                .producers
+                .get(producer_id)
+                .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))?;
+            retry_safe(|| owner.producer.close().wait())
+        };
+        result.map_err(StateError::Client)?;
+        self.producers.remove(producer_id);
+        Ok(())
     }
 
     pub(crate) fn shutdown_client(&mut self, client_id: &ClientId) -> Result<(), StateError> {

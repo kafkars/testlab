@@ -1,6 +1,7 @@
 //! Kafkars adapter translates only the packaged public client surface.
 
 mod adapter_error;
+mod admission_retry;
 mod assigned_consumers;
 mod connection_security;
 mod group_consumers;
@@ -20,6 +21,8 @@ mod transactional_producers;
 pub use adapter_error::AdapterError;
 pub use protocol::run_stdio;
 
+#[cfg(test)]
+mod admission_retry_test;
 #[cfg(test)]
 mod connection_security_test;
 #[cfg(test)]

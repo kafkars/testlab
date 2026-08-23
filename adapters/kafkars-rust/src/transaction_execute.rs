@@ -143,22 +143,29 @@ pub(crate) fn send<W: Write>(
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     let operation_id = operation.operation_id;
-    let record = normalize::record(operation.record)?;
-    let observer = match transaction.send(record, remaining(deadline)?) {
-        Ok(observer) => observer,
-        Err(rejection) => {
-            let (_, error) = rejection.into_parts();
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id.clone(),
-                    AdapterEvent::OperationRejected {
-                        operation_id,
-                        code: normalize::error_code(&error),
-                    },
-                ),
-            )?;
-            return Err(AdapterError::Client(error));
+    let mut record = normalize::record(operation.record)?;
+    let observer = loop {
+        match transaction.send(record, remaining(deadline)?) {
+            Ok(observer) => break observer,
+            Err(rejection) => {
+                let (returned, error) = rejection.into_parts();
+                if error.retry_advice() == RetryAdvice::RetrySafe && Instant::now() < deadline {
+                    record = returned;
+                    thread::sleep(Duration::from_millis(1));
+                    continue;
+                }
+                emit(
+                    writer,
+                    &AdapterEventEnvelope::new(
+                        command_id.clone(),
+                        AdapterEvent::OperationRejected {
+                            operation_id,
+                            code: normalize::error_code(&error),
+                        },
+                    ),
+                )?;
+                return Err(AdapterError::Client(error));
+            }
         }
     };
     emit(
