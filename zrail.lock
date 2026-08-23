@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "f586afd74e795991dafd3ea4b41a0026416ef78efcc8a56b816c0f94cc9b3bb4"
+contract_sha256 = "40052f5bb43ecd5d30f548505f685cb7c88128687c6d44f94404ebb780978670"
 ratchet = []
 
 [[package]]
@@ -594,11 +594,11 @@ sha256 = "80025fa15528c00d19f46a065c4551adf0c882ebb92a0fc6e78b251079bddfb2"
 
 [[gate.input]]
 path = "packs/kafkars-classic.toml"
-sha256 = "6808980b60bc8ba651821360f2b3b2d5315e54457a444e6d5b54c9992f97caf1"
+sha256 = "816caad1361fc9a750bd92fa2a0e0af58bbbc98f47d66e3c2db257d16032ee49"
 
 [[gate.input]]
 path = "packs/kafkars-pr.toml"
-sha256 = "6e94f2c231b71778fc727f6c71d29f0dc1247ba1533ee4075c596118410649e4"
+sha256 = "e74862aee6df67865c5886603b1eabdf34291e087453ba1662e93bbf3faf6a53"
 
 [[gate.input]]
 path = "packs/repository-pr.toml"
@@ -627,6 +627,10 @@ sha256 = "505899c407f0ebac99f45c6bf59a208bf9a41f2e5449908cec22323b69f652a3"
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-round-trip.toml"
 sha256 = "870e26380a397e2477836ff6ae88b049d7178c7ffa1790bca068e43fed005230"
+
+[[gate.input]]
+path = "scenarios/kafka/classic-group-broker-restart.toml"
+sha256 = "812c1e146c49ce6a676c316962465e8dcc20db96fef6cda19122e2448370aeb1"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-round-trip.toml"

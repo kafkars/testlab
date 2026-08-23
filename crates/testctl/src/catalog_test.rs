@@ -15,7 +15,7 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 13);
+    assert_eq!(summary.scenarios, 14);
     assert_eq!(summary.packs, 3);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 17);
@@ -58,5 +58,10 @@ fn pre_kip_848_release_cells_use_the_classic_pack() {
         pack.scenarios
             .iter()
             .any(|scenario| scenario.ends_with("producer-broker-restart.toml"))
+    );
+    assert!(
+        pack.scenarios
+            .iter()
+            .any(|scenario| scenario.ends_with("classic-group-broker-restart.toml"))
     );
 }

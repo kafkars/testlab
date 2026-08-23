@@ -44,7 +44,8 @@ Testlab may consume public artifacts. It never imports private client state.
   packaged batch API, exact directly assigned consumption, classic and KIP-848
   group membership, public topic administration, commit/abort transactions,
   replacement ownership fencing without read-committed record leakage, and
-  producer recovery across an evidence-retaining broker restart.
+  producer and classic-group recovery across evidence-retaining broker
+  restarts.
 
 The model broker is **not Kafka compatibility evidence**. The `kafkars-pr`
 qualification runs the packaged Kafkars adapter against pinned Apache Kafka and

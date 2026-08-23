@@ -8,6 +8,7 @@ scenarios = [
   "scenarios/kafka/producer-broker-restart.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
   "scenarios/kafka/classic-group-round-trip.toml",
+  "scenarios/kafka/classic-group-broker-restart.toml",
   "scenarios/kafka/consumer-protocol-group-round-trip.toml",
   "scenarios/kafka/admin-create-topic.toml",
   "scenarios/kafka/transaction-commit-abort.toml",
