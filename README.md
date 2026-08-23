@@ -1,205 +1,120 @@
-# testlab
+<p align="center">
+  <img src="./testlab-logo.svg" alt="testlab" width="720">
+</p>
 
-black-box correctness, compatibility, chaos, and release evidence for Kafka clients
+<p align="center"><strong>Black-box release qualification for Kafka clients.</strong></p>
+<p align="center">Packaged artifacts. Real brokers. Independent evidence.</p>
 
-`kafkars/testlab` attacks packaged client surfaces from the outside. It runs the
-same machine-readable scenarios through Rust, C, Java, and reference-client
-adapters; observes Kafka independently; and seals deterministic evidence for
-pass, fail, or invalid outcomes.
+<p align="center">
+  <a href="#model">Model</a> ·
+  <a href="#run">Run</a> ·
+  <a href="#coverage">Coverage</a> ·
+  <a href="#evidence">Evidence</a> ·
+  <a href="#scope">Scope</a>
+</p>
 
-The client repository proves internal invariants. Testlab distrusts the client
-and verifies public behavior.
+<br />
 
-## Repository boundary
+`testlab` exercises Kafka clients through their public packaged surface. It
+runs deterministic scenarios against pinned Kafka environments, observes the
+broker independently, and seals a release-facing verdict that can be replayed
+and audited.
 
-| Repository | Owns |
-| --- | --- |
-| `kafka-client` | Unit tests, invariant tests, deterministic simulation, implementation-aware loopback tests, private fuzz targets |
-| `testlab` | Black-box adapters, scenarios, independent verification, compatibility, chaos, packaging, release evidence |
-| `benchmarks` | Performance methodology, request economics, profiling, and performance reports |
+## Model
 
-Testlab may consume public artifacts. It never imports private client state.
-
-## What this first cut contains
-
-- a versioned JSON Lines process protocol for client adapters;
-- typed scenario, subject, history, evidence, and verdict schemas;
-- one absolute scenario deadline and owned child-process supervision;
-- deterministic producer and lifecycle verification;
-- an independent model broker used only to self-test the harness;
-- a reference Rust adapter;
-- an exact packaged `kafkars 0.0.1` adapter;
-- atomic evidence sealing with SHA-256 digests and replay commands;
-- zrail policy for 300-line files, facade-only modules, and separate tests;
-- catalog integrity validation through the same public manifest loader used by
-  `testctl`;
-- seven immutable Apache Kafka 3.7.2–4.3.1 versions plus a three-broker topology,
-  TLS, SASL/PLAIN, and SCRAM-SHA-256/512 environments with owned digest pull,
-  inspection, readiness, snapshots, logs, cleanup, and sealed terminal evidence;
-- fail-closed qualification manifests that aggregate ordered scenario evidence;
-- bounded per-cell repetition so intermittent failures block qualification;
-- independent real-Kafka observation through pinned librdkafka;
-- end-to-end scenarios for producer acknowledgment, definite rejection, lost
-  response uncertainty, real-Kafka round trips, partition routing, the
-  packaged batch API, exact directly assigned consumption, classic and KIP-848
-  group membership, public topic administration, commit/abort transactions,
-  replacement ownership fencing without read-committed record leakage, and
-  producer and classic-group recovery across evidence-retaining broker
-  restarts, including release-only rolling recovery across every broker in a
-  three-node topology.
-
-The model broker is **not Kafka compatibility evidence**. The `kafkars-pr`
-qualification runs the packaged Kafkars adapter against pinned Apache Kafka and
-uses a separate librdkafka consumer to verify broker-visible records.
-
-## Quick start
-
-```bash
-scripts/check
-scripts/run-reference-qualification
-scripts/run-kafkars-qualification # requires Docker
-scripts/run-kafkars-release-qualification # version and security release matrix
-scripts/qualify-kafkars-candidate ../kafkars pr # packages the checkout first
+```text
+packaged client -> external adapter -> Kafka
+                         ^             |
+                         |             v
+                      testctl -> independent observer -> verifier -> evidence
 ```
 
-The candidate command packages `kafka-client-core`, `kafka-client-engine`, and
-`kafkars`, hashes each `.crate`, extracts them, and builds the external adapter
-only against those extracted packages. Before packaging, it invokes the
-candidate's fail-closed sibling bootstrap, which materializes and attests the
-exact driver and wire revisions declared by Kafkars. Use `release` instead of
-`pr` for the seven-version matrix plus TLS, SASL/PLAIN, and both SCRAM
-mechanisms. Dirty source is rejected unless `--allow-dirty` is the third
-argument.
+Adapters are standalone processes speaking a versioned JSON Lines protocol.
+They report what the client said; they do not decide whether the broker agrees.
+`testctl` owns the environment, deadlines, disruption controls, verification,
+and evidence.
 
-The pull-request tier is a five-scenario public-surface smoke repeated three
-times. The release matrix adds batching, routing, KIP-848, fencing, and
-disruption coverage. It uses a classic-only pack for Kafka 3.7–3.9, so
-unsupported KIP-848 behavior cannot create a false legacy-broker release
-failure. Its three-node cells use a topology-specific pack that restarts every
-broker in turn rather than treating one arbitrary restart as a rolling-recovery
-claim.
+The in-process model broker tests the harness itself. Only real Kafka runs
+support compatibility or release claims.
 
-Kafkars CI can call the same boundary without copying any broker logic:
+## Run
+
+Validate the repository and its reference qualification:
+
+```sh
+scripts/check
+scripts/run-reference-qualification
+```
+
+Qualify a packaged Kafkars checkout against real Kafka with Docker:
+
+```sh
+scripts/qualify-kafkars-candidate ../kafkars pr
+scripts/qualify-kafkars-candidate ../kafkars release
+```
+
+The `pr` tier is a repeated public-surface smoke test. The `release` tier runs
+the complete version, security, topology, transaction, and disruption matrix.
+The candidate is packaged first, then the adapter is built only against those
+artifacts and Kafkars's exact reviewed driver and wire revisions.
+
+Kafkars CI can invoke the same boundary without owning broker setup:
 
 ```yaml
-- uses: kafkars/testlab@<full-testlab-commit-sha>
+- uses: kafkars/testlab@<full-commit-sha>
   with:
     kafkars-path: ${{ github.workspace }}
     qualification: pr
     evidence-directory: testlab-evidence
-- if: ${{ always() }}
-  uses: actions/upload-artifact@v4
-  with:
-    name: testlab-evidence
-    path: testlab-evidence
 ```
 
-The workflow only selects a qualification tier. Testlab owns Kafka image
-digests, single- and three-broker security topologies, Docker lifecycle,
-scenario repetition, independent observation, and the release-facing verdict.
-The action also bootstraps Kafkars's exact reviewed driver and wire siblings;
-the calling repository does not duplicate those revision pins.
+## Coverage
 
-Or:
+| Area | Current qualification |
+| --- | --- |
+| Kafka | Apache Kafka 3.7.2 through 4.3.1 |
+| Topology | Single broker and three-broker clusters |
+| Security | Plaintext, TLS, SASL/PLAIN, and SCRAM-SHA-256/512 |
+| Behavior | Produce, consume, groups, admin, transactions, fencing, restart, and rolling recovery |
+| Truth | Adapter history checked against independent librdkafka observation |
 
-```bash
-cargo build -p testctl -p testlab-reference-adapter
+Kafka images are pinned by digest. Scenario topics must have leaders and full
+in-sync replicas before a client starts.
 
-target/debug/testctl validate --root .
+## Evidence
 
-target/debug/testctl qualify \
-  --root . \
-  --qualification qualifications/repository-pr.toml \
-  --subject subjects/reference-rust.toml \
-  --evidence-dir evidence
-```
+Every scenario produces ordered history, broker observations, manifests,
+digests, a reproduction command, and one deterministic verdict:
 
-The command prints exactly one release-facing status and evidence path. Every
-qualification cell and scenario run remains inspectable beneath that directory.
+- **passed** — valid evidence and every contract held;
+- **failed** — valid evidence, but the client violated a contract;
+- **invalid** — infrastructure, protocol, process, or harness failure prevents
+  a compatibility claim.
 
-A run seals a directory like:
+Failures and retries never overwrite prior evidence. LLM output never decides
+validity, pass/fail, or release eligibility.
 
-```text
-evidence/run-.../
-├── adapter.json
-├── broker-observations.jsonl
-├── digests.json
-├── environment.json
-├── history.jsonl
-├── manifest.json
-├── reproduction.sh
-├── scenario.json
-├── subject.json
-├── summary.md
-└── verdict.json
-```
+## Scope
 
-A qualification seals a recursively digested tree:
+| Repository | Owns |
+| --- | --- |
+| Client repository | Implementation-aware unit, invariant, simulation, and loopback tests |
+| `testlab` | Packaged adapters, broker environments, scenarios, independent verification, and release evidence |
 
-```text
-evidence/qualification-.../
-├── cells/<cell-id>/<run-id>/...
-├── digests.json
-├── manifest.json
-├── qualification.json
-├── reproduction.sh
-├── subject.json
-└── summary.md
-```
+Performance methodology and profiling belong in
+[`kafkars/benchmarks`](https://github.com/kafkars/benchmarks).
 
-## Adapter boundary
+## Status
 
-Every client surface is a standalone executable:
+Testlab is under active development. A client is supported only where a
+complete qualification cell has passing archived evidence; source-level or
+model-broker success is not a broker-compatibility claim.
 
-```text
-testctl
-  ├── kafkars-rust-adapter
-  ├── kafkars-c-adapter
-  ├── kafkars-java-adapter
-  ├── apache-java-adapter
-  └── librdkafka-c-adapter
-```
+Read [`ARCHITECTURE.md`](ARCHITECTURE.md), the
+[`control protocol`](docs/CONTROL_PROTOCOL.md), and the
+[`evidence contract`](docs/EVIDENCE.md) before changing trust boundaries.
 
-Adapters receive commands on stdin and emit normalized events on stdout. The
-process boundary catches packaging, ABI, loader, shutdown, crash, and runtime
-behavior that an in-process Rust trait would hide.
+## License
 
-The Kafka observer is environment-owned and uses librdkafka, not Kafkars. Real
-Kafka scenarios carry `testlab-operation-id` and `testlab-sequence` headers so
-observations remain correlated and exact without trusting adapter claims.
-
-## Verdicts
-
-- **passed** — valid evidence and every deterministic contract held;
-- **failed** — valid evidence, but one or more semantic contracts failed;
-- **invalid** — process, protocol, environment, timeout, broker, or harness
-  failure prevents a product claim.
-
-Retries never overwrite evidence. Every attempt has a new run identity.
-
-## Core contracts
-
-- Every send emits exactly one accepted or rejected admission decision.
-- Every batch preserves ordered per-record admission and delivery evidence.
-- Every direct receive preserves exact public record bytes and must expose its
-  expected prior send exactly once.
-- Every group receive commits its public checkpoint and proves a positive
-  membership epoch from the explicitly requested classic or KIP-848 protocol.
-- Every accepted send settles exactly once; rejected sends do not settle later.
-- Acknowledged records are broker-visible exactly once.
-- Definitely-not-sent records are absent.
-- Possibly-sent records are visible zero or one times, never twice.
-- Broker-visible bytes and the environment-reported digest are independently
-  recomputed and checked.
-- Client creation, readiness, producer creation, flush, close, shutdown, and
-  finish events settle exactly once.
-
-The registry lives in `contracts/conformance.toml`.
-
-## Design
-
-- [`ARCHITECTURE.md`](ARCHITECTURE.md)
-- [`docs/CONTROL_PROTOCOL.md`](docs/CONTROL_PROTOCOL.md)
-- [`docs/EVIDENCE.md`](docs/EVIDENCE.md)
-- [`docs/ROADMAP.md`](docs/ROADMAP.md)
-- [`docs/ADDING_AN_ADAPTER.md`](docs/ADDING_AN_ADAPTER.md)
+Apache-2.0. Apache Kafka is a trademark of the Apache Software Foundation. This
+project is independent and is not endorsed by the Apache Software Foundation.
