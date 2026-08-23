@@ -1,8 +1,13 @@
 name: setup pinned Rust
-description: install the repository toolchain and components
+description: install the repository toolchain, components, and native build dependencies
 runs:
   using: composite
   steps:
+    - name: Install native build dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes --no-install-recommends libcurl4-openssl-dev
     - name: Install Rust
       shell: bash
       run: |
