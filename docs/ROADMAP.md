@@ -1,43 +1,52 @@
 # Roadmap
 
-## Batch 1 — repository foundation (this zip)
+## Shipped foundation
 
-- Versioned schemas and process adapter protocol.
-- Owned runner, deadline, model broker, verifier, evidence sealer, and zrail policy.
-- Reference adapter and three producer truth scenarios.
+- External JSON Lines adapters exercise packaged client APIs.
+- `testctl` owns deadlines, process supervision, deterministic verdicts, and
+  sealed replayable evidence.
+- The model broker self-tests the harness without making Kafka compatibility
+  claims.
+- Pinned Apache Kafka 3.7.2 through 4.3.1 environments cover single- and
+  three-broker clusters, TLS, SASL/PLAIN, and SCRAM-SHA-256/512.
+- Real-Kafka scenarios cover producing, assigned and group consumption, topic
+  administration, transactions, fencing, broker restart, and rolling restart.
+- Pull-request and release qualifications package Kafkars first and verify
+  broker-visible truth independently through librdkafka.
+- A pinned composite action gives client repositories one qualification entry
+  point while Testlab retains the broker matrix and verdict rules.
 
-## Batch 2 — real kafkars Rust adapter
+## Now — adopt the release boundary
 
-- Resolve and build packaged `kafka-client` artifacts.
-- Map public admission, delivery, flush, close, and shutdown semantics.
-- Add backpressure, cancellation, drop, and outstanding-operation scenarios.
-- Run the same scenarios against Rust base and head subjects.
+1. Make Kafkars pull requests call the pinned Testlab action and archive its
+   sealed evidence.
+2. Make scheduled and manual release qualification call the Testlab release
+   tier.
+3. Remove duplicated broker, scenario, matrix, and aggregation logic from the
+   Kafkars repository.
+4. Fix client failures exposed by Testlab until every gating release cell
+   passes.
+5. Derive Kafkars support and release eligibility from archived qualification
+   evidence.
 
-## Batch 3 — Kafka protocol adversary
+## Next — broaden failure coverage
 
-- Add API-version negotiation, partial frames, wrong correlation IDs, stale
-  responses, read/write stalls, disconnect points, retriable/fatal errors, and
-  leader/coordinator movement.
-- Preserve minimized failure scripts as a permanent corpus.
+- Add a scripted Kafka protocol adversary for partial frames, wrong correlation
+  IDs, stale responses, stalls, disconnect points, and minimized replay cases.
+- Add targeted leader, controller, group-coordinator, transaction-coordinator,
+  ACL, quota, and network-fault scenarios.
+- Add concurrent actors, seeded generation, shrinking, soak, and weekly chaos
+  packs without weakening deterministic verdicts.
 
-## Batch 4 — real clusters and interoperability
+## Later — additional client surfaces
 
-- Pin oldest/current/next Kafka versions and image digests.
-- Add independent Java seeding and Fetch-based verification.
-- Extend the first broker-restart scenario with leader, controller, group
-  coordinator, transaction coordinator, ACL, quota, and rolling-restart cases.
-- Add Java and librdkafka interoperability.
+- Add Java and librdkafka reference adapters over shared public semantics.
+- Add a C ABI gauntlet when Kafkars exposes a versioned foreign interface.
+- Add deterministic analysis packets and optional narrative summaries that
+  cannot alter validity, pass/fail, or release eligibility.
 
-## Batch 5 — C ABI gauntlet
+## Release rule
 
-- Test C11/C++17, static/dynamic linking, symbol/layout snapshots, older struct
-  sizes, copy-in, retained-event backpressure, release order, and shutdown.
-- Add sanitizer, Miri-compatible, and stateful FFI fuzz lanes.
-
-## Batch 6 — consumers, groups, transactions, generated histories
-
-- Add consumer, assignment, rebalance, checkpoint, transaction, fencing, and
-  atomic offset scenarios.
-- Add concurrent actors, barriers, seeded generation, replay, and shrinking.
-- Add nightly, weekly-chaos, and release packs.
-- Add deterministic analysis packets and optional LLM narrative summaries.
+A release requires complete passing evidence for every gating cell. A failed or
+invalid cell blocks the claim. Model-broker runs and narrative output never
+count as Kafka compatibility evidence.
