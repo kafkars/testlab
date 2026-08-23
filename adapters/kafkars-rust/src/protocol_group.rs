@@ -16,6 +16,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_owned_until;
 use crate::protocol::emit;
 use crate::state::AdapterState;
 
@@ -97,13 +98,23 @@ fn receive<W: Write>(
                 .map(|record| normalize_record(&record))
                 .collect::<Result<Vec<_>, _>>()?;
             let checkpoint = batch.checkpoint();
-            let commit_timeout = deadline.saturating_duration_since(Instant::now());
-            state
-                .group_consumer_mut(consumer_id)?
-                .try_commit(checkpoint, commit_timeout)
-                .map_err(|error| AdapterError::Client(error.into_parts().1))?
-                .wait()
-                .map_err(|error| AdapterError::Client(error.into_parts().1))?;
+            let consumer = state.group_consumer_mut(consumer_id)?;
+            retry_owned_until(
+                deadline,
+                checkpoint,
+                |checkpoint| {
+                    consumer
+                        .try_commit(
+                            checkpoint,
+                            deadline.saturating_duration_since(Instant::now()),
+                        )
+                        .map_err(kafkars::ConsumerCommitAdmissionError::into_parts)
+                },
+                |error| error.retry_advice() == RetryAdvice::RetrySafe,
+            )
+            .map_err(|(_, error)| AdapterError::Client(error))?
+            .wait()
+            .map_err(|error| AdapterError::Client(error.into_parts().1))?;
             (records, true)
         }
         None => (Vec::new(), false),

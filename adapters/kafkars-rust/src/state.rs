@@ -222,7 +222,7 @@ impl AdapterState {
     pub(crate) fn assign_beginning(
         &mut self,
         consumer_id: &ConsumerId,
-        topic: String,
+        topic: &str,
         partition: i32,
     ) -> Result<(), StateError> {
         self.consumers

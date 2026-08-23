@@ -1,11 +1,12 @@
 //! Assigned-consumer ownership stays separate from client and producer state.
 
 use std::collections::BTreeMap;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use kafkars::{AssignedConsumer, Client, StartPosition, TopicPartition};
+use kafkars::{AssignedConsumer, Client, RetryAdvice, StartPosition, TopicPartition};
 use testlab_schema::{ClientId, ConsumerId};
 
+use crate::admission_retry::{retry_owned_safe, retry_safe, retry_until};
 use crate::state::StateError;
 
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(20);
@@ -31,10 +32,12 @@ impl AssignedConsumers {
         if self.owners.contains_key(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
-        let consumer = client
-            .assigned_consumer()
-            .build()
-            .map_err(|error| StateError::Client(error.into_parts().1))?;
+        let consumer = retry_owned_safe(client.assigned_consumer(), |builder| {
+            builder
+                .build()
+                .map_err(kafkars::AssignedConsumerBuildError::into_parts)
+        })
+        .map_err(|(_, error)| StateError::Client(error))?;
         self.owners.insert(
             consumer_id,
             ConsumerOwner {
@@ -48,15 +51,23 @@ impl AssignedConsumers {
     pub(crate) fn assign_beginning(
         &mut self,
         consumer_id: &ConsumerId,
-        topic: String,
+        topic: &str,
         partition: i32,
     ) -> Result<(), StateError> {
-        self.get_mut(consumer_id)?
-            .try_replace_assignment(
-                [TopicPartition::new(topic, partition).start_at(StartPosition::Beginning)],
-                OPERATION_TIMEOUT,
-            )
-            .map_err(StateError::Client)
+        let started = Instant::now();
+        let deadline = started.checked_add(OPERATION_TIMEOUT).unwrap_or(started);
+        let consumer = self.get_mut(consumer_id)?;
+        retry_until(
+            deadline,
+            || {
+                consumer.try_replace_assignment(
+                    [TopicPartition::new(topic, partition).start_at(StartPosition::Beginning)],
+                    deadline.saturating_duration_since(Instant::now()),
+                )
+            },
+            |error| error.retry_advice() == RetryAdvice::RetrySafe,
+        )
+        .map_err(StateError::Client)
     }
 
     pub(crate) fn get_mut(
@@ -70,8 +81,8 @@ impl AssignedConsumers {
     }
 
     pub(crate) fn close(&mut self, consumer_id: &ConsumerId) -> Result<(), StateError> {
-        self.get_mut(consumer_id)?
-            .try_close()
+        let consumer = self.get_mut(consumer_id)?;
+        retry_safe(|| consumer.try_close())
             .map_err(StateError::Client)?
             .wait()
             .map_err(StateError::Client)?;

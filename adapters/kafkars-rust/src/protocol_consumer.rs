@@ -33,7 +33,7 @@ pub(crate) fn dispatch<W: Write>(
             consumer_id,
             topic,
             partition,
-        } => assign(state, writer, command_id, consumer_id, topic, partition),
+        } => assign(state, writer, command_id, consumer_id, &topic, partition),
         AdapterCommand::Receive {
             consumer_id,
             receive_id,
@@ -77,7 +77,7 @@ pub(crate) fn assign<W: Write>(
     writer: &mut W,
     command_id: CommandId,
     consumer_id: ConsumerId,
-    topic: String,
+    topic: &str,
     partition: i32,
 ) -> Result<(), AdapterError> {
     state.assign_beginning(&consumer_id, topic, partition)?;

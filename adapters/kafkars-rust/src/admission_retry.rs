@@ -20,6 +20,37 @@ pub(crate) fn retry_safe<T>(
     })
 }
 
+pub(crate) fn retry_owned_safe<I, O>(
+    input: I,
+    operation: impl FnMut(I) -> Result<O, (I, KafkaError)>,
+) -> Result<O, (I, KafkaError)> {
+    let started = Instant::now();
+    let deadline = started
+        .checked_add(ADMISSION_RETRY_TIMEOUT)
+        .unwrap_or(started);
+    retry_owned_until(deadline, input, operation, |error| {
+        error.retry_advice() == RetryAdvice::RetrySafe
+    })
+}
+
+pub(crate) fn retry_owned_until<I, O, E>(
+    deadline: Instant,
+    mut input: I,
+    mut operation: impl FnMut(I) -> Result<O, (I, E)>,
+    retryable: impl Fn(&E) -> bool,
+) -> Result<O, (I, E)> {
+    loop {
+        match operation(input) {
+            Ok(output) => return Ok(output),
+            Err((returned, error)) if retryable(&error) && Instant::now() < deadline => {
+                input = returned;
+                thread::sleep(RETRY_POLL_INTERVAL);
+            }
+            Err(rejection) => return Err(rejection),
+        }
+    }
+}
+
 pub(crate) fn retry_until<T, E>(
     deadline: Instant,
     mut operation: impl FnMut() -> Result<T, E>,
