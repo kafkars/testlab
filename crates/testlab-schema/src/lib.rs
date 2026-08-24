@@ -69,6 +69,10 @@ pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, Subject
 pub use verdict::{Verdict, VerdictStatus, Violation};
 
 #[cfg(test)]
+mod admin_action_validation_test;
+#[cfg(test)]
+mod admin_protocol_test;
+#[cfg(test)]
 mod bytes_test;
 #[cfg(test)]
 mod environment_test;

@@ -1,9 +1,11 @@
 //! Compose observation records one bounded independent Kafka snapshot operation.
 
+use std::collections::BTreeSet;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{
-    EnvironmentOperation, EnvironmentOperationKind, EnvironmentOperationStatus, Scenario,
+    EnvironmentOperation, EnvironmentOperationKind, EnvironmentOperationStatus, OperationId,
+    Scenario,
 };
 
 use crate::compose::DockerComposeEnvironment;
@@ -12,8 +14,13 @@ use crate::compose_types::{ComposeObservation, ComposePhase};
 use crate::observer::{ObserverRequest, capture};
 
 impl DockerComposeEnvironment {
-    /// Snapshots all scenario topic-partitions with a client independent of the subject.
-    pub fn observe(&mut self, scenario: &Scenario, timeout: Duration) -> ComposeObservation {
+    /// Snapshots issued scenario topic-partitions with a client independent of the subject.
+    pub fn observe(
+        &mut self,
+        scenario: &Scenario,
+        issued_operations: &BTreeSet<OperationId>,
+        timeout: Duration,
+    ) -> ComposeObservation {
         let mut phase = ComposePhase::default();
         let id = match self.operation_id() {
             Ok(id) => id,
@@ -32,6 +39,7 @@ impl DockerComposeEnvironment {
             endpoint: &endpoint,
             run_id: &self.run_id,
             scenario,
+            issued_operations,
             timeout,
             security: &self.client_security,
         });

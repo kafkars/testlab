@@ -118,6 +118,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::GroupReceive { .. }
         | AdapterCommand::CloseGroupConsumer { .. }
         | AdapterCommand::CreateTopic { .. }
+        | AdapterCommand::CreatePartitions { .. }
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::FenceTransaction { .. }

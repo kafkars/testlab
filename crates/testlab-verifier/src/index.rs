@@ -7,6 +7,7 @@ use testlab_schema::{
     OperationId, ProducerId, ScenarioAction, TerminalStatus, TransactionDisposition,
 };
 
+mod admin_recording;
 mod recording;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -31,7 +32,7 @@ pub(crate) struct IndexedReceive {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct IndexedTopicCreation {
+pub(crate) struct IndexedAdminTopicCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) topic: String,
 }
@@ -62,6 +63,7 @@ pub(crate) struct HistoryIndex {
     group_consumers_close_issued: BTreeSet<ConsumerId>,
     operations_issued: BTreeSet<OperationId>,
     topics_create_issued: BTreeSet<OperationId>,
+    topic_partitions_create_issued: BTreeSet<OperationId>,
     transactional_producers_create_issued: BTreeSet<ProducerId>,
     transactions_execute_issued: BTreeSet<OperationId>,
     transactional_producers_close_issued: BTreeSet<ProducerId>,
@@ -73,7 +75,8 @@ pub(crate) struct HistoryIndex {
     pub(crate) accepted: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) rejected: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) terminals: BTreeMap<OperationId, Vec<IndexedTerminal>>,
-    pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedTopicCreation>>,
+    pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
+    pub(crate) topic_partitions_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
     pub(crate) transactional_producers_created: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) transactions_completed: BTreeMap<OperationId, Vec<IndexedTransactionCompletion>>,
     pub(crate) transactions_fenced: BTreeMap<OperationId, Vec<IndexedTransactionFence>>,
@@ -144,6 +147,9 @@ impl HistoryIndex {
             }
             ScenarioAction::CreateTopic { operation_id, .. } => {
                 self.topics_create_issued.contains(operation_id)
+            }
+            ScenarioAction::CreatePartitions { operation_id, .. } => {
+                self.topic_partitions_create_issued.contains(operation_id)
             }
             ScenarioAction::CreateTransactionalProducer { producer_id, .. } => self
                 .transactional_producers_create_issued

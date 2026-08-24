@@ -24,13 +24,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: zsumz/zcheck/.github/actions/setup-zcheck@4ca5e71db9974972d4d59349550a6d25a8dc7e90
+        with:
+          version: 0.0.2
+          sha256: a9e3ca964b6f5e86c693edeff4aeaddb46ee9d62f8713d3ded0bb6533b758e53
       - uses: ./.github/actions/setup-rust
       - name: Install the zrail toolchain
         run: rustup toolchain install 1.96.0 --profile minimal
       - name: Install pinned zrail
         run: cargo +1.96.0 install zrail --version 0.0.1 --locked
       - name: Check architecture
-        run: zrail check
+        run: zcheck run architecture --format github
 
   rust-lint:
     runs-on: ubuntu-latest
@@ -39,8 +43,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: zsumz/zcheck/.github/actions/setup-zcheck@4ca5e71db9974972d4d59349550a6d25a8dc7e90
+        with:
+          version: 0.0.2
+          sha256: a9e3ca964b6f5e86c693edeff4aeaddb46ee9d62f8713d3ded0bb6533b758e53
       - uses: ./.github/actions/setup-rust
-      - run: scripts/check-rust-lint
+      - run: zcheck run rust-lint --format github
 
   rust-test:
     runs-on: ubuntu-latest
@@ -49,8 +57,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: zsumz/zcheck/.github/actions/setup-zcheck@4ca5e71db9974972d4d59349550a6d25a8dc7e90
+        with:
+          version: 0.0.2
+          sha256: a9e3ca964b6f5e86c693edeff4aeaddb46ee9d62f8713d3ded0bb6533b758e53
       - uses: ./.github/actions/setup-rust
-      - run: scripts/check-rust-test
+      - run: zcheck run rust-test --format github
 
   repository-selftest:
     runs-on: ubuntu-latest
@@ -59,9 +71,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: zsumz/zcheck/.github/actions/setup-zcheck@4ca5e71db9974972d4d59349550a6d25a8dc7e90
+        with:
+          version: 0.0.2
+          sha256: a9e3ca964b6f5e86c693edeff4aeaddb46ee9d62f8713d3ded0bb6533b758e53
       - uses: ./.github/actions/setup-rust
-      - run: scripts/check-scenarios
-      - run: scripts/run-reference-pack
+      - run: zcheck run repository-selftest --format github
       - name: Upload sealed evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

@@ -25,4 +25,6 @@ mod connection_security_test;
 #[cfg(test)]
 mod normalize_test;
 #[cfg(test)]
+mod protocol_admin_test;
+#[cfg(test)]
 mod protocol_test;

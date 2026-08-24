@@ -25,6 +25,12 @@ statement = "Each requested public topic creation emits exactly one completion n
 category = "admin"
 
 [[contract]]
+id = "ADMIN-002"
+title = "Admin partition creation settles exactly once"
+statement = "Each requested public partition-count increase emits exactly one completion naming the exact operation and topic."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

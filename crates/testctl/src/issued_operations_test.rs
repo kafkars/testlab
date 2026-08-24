@@ -1,0 +1,119 @@
+//! Issued-operation tests retain records from every record-bearing public command.
+
+use testlab_schema::{
+    AdapterCommand, BatchRecord, ClientId, CommandEnvelope, CommandId, HistoryEntry,
+    HistoryPayload, OperationId, ProducerId, RecordSpec, TransactionDisposition,
+};
+
+use crate::issued_operations::from_history;
+
+#[test]
+fn recorded_commands_retain_every_record_operation() {
+    let history = vec![
+        entry(
+            0,
+            "admin",
+            AdapterCommand::CreatePartitions {
+                client_id: id(ClientId::new("client-1")),
+                operation_id: id(OperationId::new("admin-partitions-1")),
+                topic: "records".to_owned(),
+                total_count: 3,
+                timeout_ms: 1_000,
+            },
+        ),
+        entry(
+            1,
+            "send",
+            AdapterCommand::Send {
+                producer_id: id(ProducerId::new("producer-1")),
+                operation_id: id(OperationId::new("send-1")),
+                record: record_spec(2),
+            },
+        ),
+        entry(
+            2,
+            "batch",
+            AdapterCommand::SendBatch {
+                producer_id: id(ProducerId::new("producer-1")),
+                operations: vec![record("batch-1", 0), record("batch-2", 1)],
+            },
+        ),
+        entry(
+            3,
+            "transaction",
+            AdapterCommand::ExecuteTransaction {
+                producer_id: id(ProducerId::new("transactional-1")),
+                transaction_id: id(OperationId::new("transaction-1")),
+                operations: vec![record("transaction-record-1", 0)],
+                disposition: TransactionDisposition::Commit,
+                timeout_ms: 1_000,
+            },
+        ),
+        entry(
+            4,
+            "fence",
+            AdapterCommand::FenceTransaction {
+                producer_id: id(ProducerId::new("transactional-2")),
+                transaction_id: id(OperationId::new("transaction-2")),
+                operation: record("fenced-record-1", 0),
+                replacement_client_id: id(ClientId::new("client-1")),
+                replacement_producer_id: id(ProducerId::new("replacement-1")),
+                transactional_id: "shared-owner".to_owned(),
+                transaction_timeout_ms: 1_000,
+                initialization_timeout_ms: 1_000,
+                timeout_ms: 1_000,
+            },
+        ),
+    ];
+
+    let issued = from_history(&history);
+
+    assert_eq!(
+        issued,
+        [
+            "batch-1",
+            "batch-2",
+            "fenced-record-1",
+            "send-1",
+            "transaction-record-1",
+        ]
+        .into_iter()
+        .map(|value| id(OperationId::new(value)))
+        .collect()
+    );
+}
+
+fn entry(sequence: u64, command_id: &str, command: AdapterCommand) -> HistoryEntry {
+    HistoryEntry {
+        sequence,
+        observed_unix_ms: 0,
+        payload: HistoryPayload::HarnessCommand {
+            command: CommandEnvelope::new(id(CommandId::new(command_id)), command),
+        },
+    }
+}
+
+fn record(operation_id: &str, partition: i32) -> BatchRecord {
+    BatchRecord {
+        operation_id: id(OperationId::new(operation_id)),
+        record: record_spec(partition),
+    }
+}
+
+fn record_spec(partition: i32) -> RecordSpec {
+    RecordSpec {
+        topic: "records".to_owned(),
+        partition,
+        sequence: 1,
+        key: None,
+        value: None,
+        headers: Vec::new(),
+    }
+}
+
+fn id<T, E>(result: Result<T, E>) -> T
+where
+    E: std::fmt::Display,
+{
+    result.unwrap_or_else(|error| panic!("fixture identity: {error}"))
+}

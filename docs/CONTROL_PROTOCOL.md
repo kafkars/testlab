@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v12 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v13 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -32,6 +32,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `group_receive`
 - `close_group_consumer`
 - `create_topic`
+- `create_partitions`
 - `create_transactional_producer`
 - `execute_transaction`
 - `fence_transaction`
@@ -63,6 +64,7 @@ client commands while the same adapter process and client handles remain alive.
 - `group_receive_completed`
 - `group_consumer_closed`
 - `topic_created`
+- `topic_partitions_created`
 - `transactional_producer_created`
 - `transaction_completed`
 - `transaction_fence_completed`
@@ -91,10 +93,13 @@ completion reports both the exact records and whether that checkpoint committed;
 the deterministic verifier requires both the expected record and a successful
 commit.
 
-Topic creation uses the packaged client's public admin handle and returns one
-exact per-topic batch outcome. Admin-created scenario topics are deliberately
-excluded from independent environment provisioning, and broker auto-creation is
-disabled, so a later broker-visible producer record proves the topic was usable.
+Topic creation and partition expansion use the packaged client's public admin
+handle and return one exact per-topic batch outcome. Admin-created scenario
+topics are deliberately excluded from independent environment provisioning,
+and broker auto-creation is disabled. A later independently observed producer
+record proves a created topic was usable; a record on a newly added partition
+proves that partition was usable without manufacturing an independently
+observed exact final partition count.
 
 One `execute_transaction` command owns a complete linear begin, ordered send,
 and commit-or-abort sequence because the public transaction token borrows its
@@ -125,6 +130,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v12 is an exact semantic contract. New capabilities may be declared
+Protocol v13 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

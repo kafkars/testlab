@@ -28,4 +28,4 @@ privileged access to client internals merely to make a scenario easier.
   re-exports only.
 - Unit tests live in sibling `*_test.rs` files.
 - Rust source files remain at or below 300 lines.
-- Run `scripts/check` before handing off a change.
+- Run `zcheck` before handing off a change.

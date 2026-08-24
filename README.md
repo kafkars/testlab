@@ -42,8 +42,7 @@ support compatibility or release claims.
 Validate the repository and its reference qualification:
 
 ```sh
-scripts/check
-scripts/run-reference-qualification
+zcheck
 ```
 
 Qualify a packaged Kafkars checkout against real Kafka with Docker:

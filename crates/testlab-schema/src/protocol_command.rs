@@ -127,6 +127,19 @@ pub enum AdapterCommand {
         /// Complete public operation bound.
         timeout_ms: u64,
     },
+    /// Increases one Kafka topic through the public admin surface.
+    CreatePartitions {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Positive requested total partition count.
+        total_count: i32,
+        /// Complete public operation bound.
+        timeout_ms: u64,
+    },
     /// Initializes one public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.

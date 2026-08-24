@@ -63,7 +63,9 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::CreateGroupConsumer { .. }
         | ScenarioAction::GroupReceive { .. }
         | ScenarioAction::CloseGroupConsumer { .. }) => return consumer(action),
-        action @ ScenarioAction::CreateTopic { .. } => return admin(action),
+        action @ (ScenarioAction::CreateTopic { .. } | ScenarioAction::CreatePartitions { .. }) => {
+            return crate::session_command_admin::translate(action);
+        }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::FenceTransaction { .. }
@@ -170,34 +172,6 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
         _ => return None,
     };
     Some(pair)
-}
-
-fn admin(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    let ScenarioAction::CreateTopic {
-        client_id,
-        operation_id,
-        topic,
-        partitions,
-        replication_factor,
-        timeout_ms,
-    } = action
-    else {
-        return None;
-    };
-    Some((
-        AdapterCommand::CreateTopic {
-            client_id: client_id.clone(),
-            operation_id: operation_id.clone(),
-            topic: topic.clone(),
-            partitions: *partitions,
-            replication_factor: *replication_factor,
-            timeout_ms: *timeout_ms,
-        },
-        ExpectedEvent::TopicCreated {
-            operation_id: operation_id.clone(),
-            topic: topic.clone(),
-        },
-    ))
 }
 
 fn consumer(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {

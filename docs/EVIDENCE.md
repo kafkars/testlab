@@ -30,8 +30,11 @@ Provisioning waits for every harness-created scenario partition to report a
 leader and the topology's full in-sync replica count before starting the
 packaged client.
 Real-Kafka runs also record one `broker_observe` operation. Its librdkafka
-snapshot uses broker watermarks and emits structured observations with exact
-partition, offset, key, value, and ordered header bytes.
+snapshot targets only record-bearing adapter commands actually issued in the
+recorded harness history; an issued batch, transaction, or fencing command
+contributes every contained operation. The snapshot uses broker watermarks and
+emits structured observations with exact partition, offset, key, value, and
+ordered header bytes.
 
 ## Qualification evidence
 

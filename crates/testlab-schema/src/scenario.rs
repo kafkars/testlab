@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 10;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 11;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -54,7 +54,7 @@ pub struct ScenarioStep {
     pub action: ScenarioAction,
 }
 
-/// Scenario action vocabulary for scenario schema v10.
+/// Scenario action vocabulary for scenario schema v11.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -176,6 +176,19 @@ pub enum ScenarioAction {
         partitions: i32,
         /// Positive replication factor.
         replication_factor: i16,
+        /// Complete public operation bound.
+        timeout_ms: u64,
+    },
+    /// Increases one Kafka topic to a requested total partition count.
+    CreatePartitions {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Positive requested total partition count.
+        total_count: i32,
         /// Complete public operation bound.
         timeout_ms: u64,
     },

@@ -83,7 +83,9 @@ fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
             GroupProtocol::Classic => Capability::ConsumerGroups,
             GroupProtocol::Consumer => Capability::ConsumerProtocolGroups,
         }),
-        ScenarioAction::CreateTopic { .. } => Some(Capability::Admin),
+        ScenarioAction::CreateTopic { .. } | ScenarioAction::CreatePartitions { .. } => {
+            Some(Capability::Admin)
+        }
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::FenceTransaction { .. }
@@ -207,11 +209,8 @@ fn validate_assertions(
                 assertion.operation_id
             ));
         }
-        validate_assertion_semantics(
-            assertion,
-            transaction_sends.get(&assertion.operation_id).copied(),
-            problems,
-        );
+        let transaction = transaction_sends.get(&assertion.operation_id).copied();
+        validate_assertion_semantics(assertion, transaction, problems);
     }
     for operation in operations {
         if !asserted.contains(operation) {

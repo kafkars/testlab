@@ -109,6 +109,13 @@ pub enum AdapterEvent {
         /// Exact topic reported by the public batch result.
         topic: String,
     },
+    /// One public admin partition-count increase completed successfully.
+    TopicPartitionsCreated {
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact topic reported by the public batch result.
+        topic: String,
+    },
     /// Public transactional producer initialization completed.
     TransactionalProducerCreated {
         /// Created transactional producer.

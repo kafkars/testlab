@@ -8,6 +8,7 @@ mod catalog_io;
 mod evidence;
 mod evidence_io;
 mod identity;
+mod issued_operations;
 mod process;
 mod process_io;
 mod protocol_session;
@@ -21,6 +22,7 @@ mod runner_protocol;
 mod runner_protocol_family;
 mod session;
 mod session_command;
+mod session_command_admin;
 mod time;
 
 pub use app::run_cli;
@@ -31,6 +33,8 @@ mod candidate_test;
 #[cfg(test)]
 mod catalog_test;
 #[cfg(test)]
+mod issued_operations_test;
+#[cfg(test)]
 mod qualification_test;
 #[cfg(test)]
 mod recorder_test;
@@ -40,3 +44,5 @@ mod runner_docker_test;
 mod runner_protocol_test;
 #[cfg(test)]
 mod runner_test;
+#[cfg(test)]
+mod session_command_admin_test;

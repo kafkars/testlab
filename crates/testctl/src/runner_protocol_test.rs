@@ -119,6 +119,33 @@ fn admin_completion_requires_exact_operation_and_topic() {
 }
 
 #[test]
+fn partition_creation_requires_exact_operation_and_topic() {
+    let operation_id = id(OperationId::new("admin-partitions-1"));
+    let expected = ExpectedEvent::TopicPartitionsCreated {
+        operation_id: operation_id.clone(),
+        topic: "orders".to_owned(),
+    };
+
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::TopicPartitionsCreated {
+                operation_id: operation_id.clone(),
+                topic: "orders".to_owned(),
+            })
+            .unwrap_or_else(|error| panic!("classify partition creation: {error}")),
+        EventDisposition::Complete
+    );
+    assert!(
+        expected
+            .classify(&AdapterEvent::TopicPartitionsCreated {
+                operation_id,
+                topic: "payments".to_owned(),
+            })
+            .is_err()
+    );
+}
+
+#[test]
 fn transaction_waits_for_exact_disposition_identity() {
     let operation_id = id(OperationId::new("transaction-record-1"));
     let transaction_id = id(OperationId::new("transaction-1"));

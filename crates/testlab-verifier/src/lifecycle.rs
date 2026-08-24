@@ -101,6 +101,7 @@ pub(crate) fn verify_lifecycle(
             | ScenarioAction::Receive { .. }
             | ScenarioAction::GroupReceive { .. }
             | ScenarioAction::CreateTopic { .. }
+            | ScenarioAction::CreatePartitions { .. }
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }
             | ScenarioAction::CreateTransactionalProducer { .. }

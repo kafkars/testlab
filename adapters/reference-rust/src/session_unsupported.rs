@@ -11,7 +11,9 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
         | AdapterCommand::CloseGroupConsumer { .. } => "consumer_groups capability required",
-        AdapterCommand::CreateTopic { .. } => "admin capability required",
+        AdapterCommand::CreateTopic { .. } | AdapterCommand::CreatePartitions { .. } => {
+            "admin capability required"
+        }
         AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::FenceTransaction { .. }

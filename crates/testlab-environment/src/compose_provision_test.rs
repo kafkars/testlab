@@ -34,7 +34,7 @@ fn operation_records_cluster_replication_factor() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 10
+schema_version = 11
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -62,35 +62,10 @@ operations = [
 }
 
 #[test]
-fn admin_created_topics_are_not_preprovisioned() {
-    let scenario: Scenario = toml::from_str(
-        r#"
-schema_version = 10
-id = "admin.explicit-topic"
-title = "admin topic"
-description = "admin topic provisioning fixture"
-timeout_ms = 1000
-requires = ["producer", "admin", "lifecycle"]
-assertions = []
-
-[[steps]]
-id = "create-topic"
-kind = "create_topic"
-client_id = "client-1"
-operation_id = "admin-create-1"
-topic = "admin-owned"
-partitions = 1
-replication_factor = 1
-timeout_ms = 1000
-
-[[steps]]
-id = "send"
-kind = "send"
-producer_id = "producer-1"
-operation_id = "op-1"
-record = { topic = "admin-owned", partition = 0, sequence = 1 }
-"#,
-    )
+fn admin_created_and_expanded_topics_are_not_preprovisioned() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-create-partitions.toml"
+    ))
     .unwrap_or_else(|error| panic!("parse scenario: {error}"));
 
     assert!(topics(&scenario).is_empty());
