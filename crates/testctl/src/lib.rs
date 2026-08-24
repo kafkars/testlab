@@ -24,6 +24,7 @@ mod session;
 mod session_command;
 mod session_command_consumer;
 mod session_environment_control;
+mod session_share;
 mod time;
 
 pub use app::run_cli;
@@ -45,3 +46,7 @@ mod runner_protocol_share_test;
 mod runner_protocol_test;
 #[cfg(test)]
 mod runner_test;
+#[cfg(test)]
+mod session_share_test;
+#[cfg(test)]
+mod session_test;

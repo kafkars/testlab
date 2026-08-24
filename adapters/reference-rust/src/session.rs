@@ -1,11 +1,9 @@
 //! Session interpreter translates protocol commands to one fixture state machine.
 
-use std::collections::BTreeSet;
 use std::io::{self, BufRead, Read, Write};
 
 use testlab_schema::{
-    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId, Capability,
-    CommandEnvelope, PROTOCOL_VERSION,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
 use thiserror::Error;
 
@@ -158,13 +156,8 @@ fn dispatch<W: Write>(
                 &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientShutdown { client_id }),
             )?;
         }
-        AdapterCommand::Finish => {
-            state.finish()?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::Finished),
-            )?;
-            return Ok(true);
+        command @ (AdapterCommand::Finish | AdapterCommand::Abort) => {
+            return crate::session_end::dispatch(state, writer, command_id, &command);
         }
     }
     Ok(false)
@@ -182,7 +175,7 @@ fn dispatch_hello<W: Write>(
         &AdapterEventEnvelope::new(
             command_id,
             AdapterEvent::Ready {
-                descriptor: descriptor()?,
+                descriptor: crate::session_descriptor::descriptor()?,
             },
         ),
     )
@@ -199,22 +192,6 @@ fn dispatch_client_ready<W: Write>(
         writer,
         &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
     )
-}
-
-fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
-    Ok(AdapterDescriptor {
-        id: AdapterId::new("reference-rust")?,
-        implementation: "testlab reference Rust adapter".to_owned(),
-        version: env!("CARGO_PKG_VERSION").to_owned(),
-        protocol_version: PROTOCOL_VERSION,
-        capabilities: BTreeSet::from([
-            Capability::Producer,
-            Capability::ProducerBatch,
-            Capability::Lifecycle,
-            Capability::ClientReadiness,
-            Capability::ModelBroker,
-        ]),
-    })
 }
 
 pub(crate) fn emit<W: Write>(

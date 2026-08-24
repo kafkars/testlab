@@ -1,0 +1,232 @@
+schema_version = 11
+id = "kafka.share-group-membership-ownership"
+title = "simultaneous share members preserve acquisition ownership"
+description = "Two live members hold distinct records from one partition, a held batch survives membership change, and an unfinished close redelivers to a survivor."
+timeout_ms = 240000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-second-client"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "await-second-client-ready"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "send-held"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-held"
+
+[steps.record]
+topic = "testlab-kafkars-share-membership"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "held" }
+value = { encoding = "utf8", data = "held-across-join" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-held" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-first-share"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-membership"
+topic = "testlab-kafkars-share-membership"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "first-holds-record"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-held"
+expected_operation_id = "op-held"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "create-second-share"
+kind = "create_share_consumer"
+client_id = "client-2"
+consumer_id = "share-2"
+group_id = "testlab-share-membership"
+topic = "testlab-kafkars-share-membership"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "send-second-member"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-second-member"
+
+[steps.record]
+topic = "testlab-kafkars-share-membership"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "second" }
+value = { encoding = "utf8", data = "second-live-member" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second-member" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "second-holds-distinct-record"
+kind = "share_receive"
+consumer_id = "share-2"
+receive_id = "receive-second"
+expected_operation_id = "op-second-member"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "first-accepts-after-join"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-held"
+acknowledgement_id = "ack-held-after-join"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "second-accepts"
+kind = "share_acknowledge"
+consumer_id = "share-2"
+receive_id = "receive-second"
+acknowledgement_id = "ack-second"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-second-share"
+kind = "close_share_consumer"
+consumer_id = "share-2"
+expect_success = true
+
+[[steps]]
+id = "send-unfinished"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-unfinished"
+
+[steps.record]
+topic = "testlab-kafkars-share-membership"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "unfinished" }
+value = { encoding = "utf8", data = "redeliver-after-close" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-unfinished" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "first-holds-unfinished"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-unfinished"
+expected_operation_id = "op-unfinished"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "create-survivor"
+kind = "create_share_consumer"
+client_id = "client-2"
+consumer_id = "share-3"
+group_id = "testlab-share-membership"
+topic = "testlab-kafkars-share-membership"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "close-unfinished-member"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "survivor-receives-unfinished"
+kind = "share_receive"
+consumer_id = "share-3"
+receive_id = "receive-unfinished-again"
+expected_operation_id = "op-unfinished"
+minimum_delivery_count = 2
+timeout_ms = 30000
+
+[[steps]]
+id = "survivor-accepts-unfinished"
+kind = "share_acknowledge"
+consumer_id = "share-3"
+receive_id = "receive-unfinished-again"
+acknowledgement_id = "ack-unfinished"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-survivor"
+kind = "close_share_consumer"
+consumer_id = "share-3"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[steps]]
+id = "shutdown-second-client"
+kind = "shutdown_client"
+client_id = "client-2"
+
+[[assertions]]
+operation_id = "op-held"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-second-member"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-unfinished"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

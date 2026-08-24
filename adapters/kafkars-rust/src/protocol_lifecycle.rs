@@ -37,6 +37,13 @@ pub(crate) fn dispatch<W: Write>(
             )?;
             return Ok(true);
         }
+        AdapterCommand::Abort => {
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(command_id, AdapterEvent::Aborted),
+            )?;
+            return Ok(true);
+        }
         _ => {
             return Err(AdapterError::State(
                 "non-lifecycle command reached lifecycle dispatcher".to_owned(),

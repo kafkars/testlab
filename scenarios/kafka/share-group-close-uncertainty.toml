@@ -1,0 +1,97 @@
+schema_version = 11
+id = "kafka.share-group-close-uncertainty"
+title = "share close reports truthful certainty during broker loss"
+description = "A share member closes with an unfinished acquisition while its sole broker is stopped and must expose an explicit non-success terminal with delivery certainty."
+timeout_ms = 120000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-close"
+topic = "testlab-kafkars-share-close"
+membership_timeout_ms = 30000
+close_timeout_ms = 500
+
+[[steps]]
+id = "send-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-close"
+
+[steps.record]
+topic = "testlab-kafkars-share-close"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "close" }
+value = { encoding = "utf8", data = "unfinished-on-close" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-close" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-unfinished"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-close"
+expected_operation_id = "op-close"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "stop-only-broker"
+kind = "stop_broker"
+broker_ordinal = 1
+timeout_ms = 10000
+
+[[steps]]
+id = "close-during-broker-loss"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = false
+
+[[steps]]
+id = "restart-only-broker"
+kind = "start_broker"
+broker_ordinal = 1
+timeout_ms = 45000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-close"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

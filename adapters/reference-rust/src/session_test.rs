@@ -138,3 +138,46 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
         Some(AdapterEvent::Finished)
     ));
 }
+
+#[test]
+fn abort_exits_with_open_resources() {
+    let client = id(ClientId::new("client-open"));
+    let commands = vec![
+        command(
+            "cmd-hello",
+            AdapterCommand::Hello {
+                run_id: id(RunId::new("run-abort")),
+                scenario_id: id(ScenarioId::new("producer.failed")),
+                broker_endpoints: vec!["127.0.0.1:1".to_owned()],
+                security: AdapterSecurity::Plaintext,
+            },
+        ),
+        command(
+            "cmd-client",
+            AdapterCommand::CreateClient { client_id: client },
+        ),
+        command("cmd-abort", AdapterCommand::Abort),
+    ];
+    let input = commands
+        .iter()
+        .map(|value| {
+            serde_json::to_string(value).unwrap_or_else(|error| panic!("encode command: {error}"))
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n";
+    let mut output = Vec::new();
+
+    run_session(Cursor::new(input.into_bytes()), &mut output)
+        .unwrap_or_else(|error| panic!("abort adapter: {error}"));
+
+    let last = String::from_utf8(output)
+        .unwrap_or_else(|error| panic!("adapter UTF-8: {error}"))
+        .lines()
+        .last()
+        .and_then(|line| serde_json::from_str::<AdapterEventEnvelope>(line).ok());
+    assert!(matches!(
+        last.map(|event| event.event),
+        Some(AdapterEvent::Aborted)
+    ));
+}

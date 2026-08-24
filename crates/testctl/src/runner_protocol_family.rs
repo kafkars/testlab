@@ -246,6 +246,7 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
             ExpectedEvent::ClientShutdown(_),
             AdapterEvent::ClientShutdown { .. }
         ) | (ExpectedEvent::Finished, AdapterEvent::Finished)
+            | (ExpectedEvent::Aborted, AdapterEvent::Aborted)
     )
 }
 

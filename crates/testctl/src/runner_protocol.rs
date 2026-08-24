@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v13 command.
+//! Expected event shapes constrain each sequential protocol-v14 command.
 
 use std::collections::BTreeSet;
 
@@ -51,6 +51,7 @@ pub(crate) enum ExpectedEvent {
     ProducerClosed(ProducerId),
     ClientShutdown(ClientId),
     Finished,
+    Aborted,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -86,7 +87,8 @@ fn classify_core(
 ) -> Result<EventDisposition, RunFailure> {
     match (expected, event) {
         (ExpectedEvent::Ready, AdapterEvent::Ready { .. })
-        | (ExpectedEvent::Finished, AdapterEvent::Finished) => Ok(EventDisposition::Complete),
+        | (ExpectedEvent::Finished, AdapterEvent::Finished)
+        | (ExpectedEvent::Aborted, AdapterEvent::Aborted) => Ok(EventDisposition::Complete),
         (ExpectedEvent::ClientCreated(expected), AdapterEvent::ClientCreated { client_id })
             if expected == client_id =>
         {

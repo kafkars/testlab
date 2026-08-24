@@ -171,7 +171,8 @@ fn dispatch<W: Write>(
         command @ (AdapterCommand::Flush { .. }
         | AdapterCommand::CloseProducer { .. }
         | AdapterCommand::ShutdownClient { .. }
-        | AdapterCommand::Finish) => {
+        | AdapterCommand::Finish
+        | AdapterCommand::Abort) => {
             return protocol_lifecycle::dispatch(state, writer, command_id, command);
         }
     }

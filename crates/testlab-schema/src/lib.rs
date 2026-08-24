@@ -21,6 +21,7 @@ mod record;
 mod scenario;
 mod scenario_action;
 mod scenario_action_validation;
+mod scenario_capability_validation;
 mod scenario_environment_action_validation;
 mod scenario_error;
 mod scenario_types;

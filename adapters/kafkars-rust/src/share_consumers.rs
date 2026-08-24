@@ -57,7 +57,7 @@ impl ShareConsumers {
         let deadline = started.checked_add(membership_timeout).unwrap_or(started);
         let mut builder = client
             .share_consumer(group_id)
-            .subscribe([topic])
+            .subscribe([topic.as_str()])
             .fetch_config(
                 ShareConsumerFetchConfig::default()
                     .with_max_records(1)
@@ -79,6 +79,7 @@ impl ShareConsumers {
                 }
             }
         };
+        share_consumers_receive::await_assignment(&consumer, &topic, deadline)?;
         self.owners.insert(
             consumer_id,
             ShareOwner {

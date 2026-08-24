@@ -206,6 +206,8 @@ pub enum AdapterEvent {
     },
     /// Adapter session settled and may exit.
     Finished,
+    /// Adapter session was abandoned after a scenario failure.
+    Aborted,
     /// Adapter cannot continue the session.
     Fatal {
         /// Stable adapter failure code.

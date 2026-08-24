@@ -82,7 +82,8 @@ impl HistoryIndex {
             }
             AdapterEvent::Finished => self.finished.push(sequence),
             AdapterEvent::Ready { descriptor } => self.ready.push((sequence, descriptor.clone())),
-            AdapterEvent::BatchCompleted { .. }
+            AdapterEvent::Aborted
+            | AdapterEvent::BatchCompleted { .. }
             | AdapterEvent::ShareConsumerCreated { .. }
             | AdapterEvent::ShareReceiveCompleted { .. }
             | AdapterEvent::ShareAcknowledgementCompleted { .. }
@@ -285,7 +286,7 @@ impl HistoryIndex {
                 self.clients_shutdown_issued.insert(client_id.clone());
             }
             AdapterCommand::Finish => self.finish_issued = true,
-            AdapterCommand::Hello { .. } => {}
+            AdapterCommand::Abort | AdapterCommand::Hello { .. } => {}
             AdapterCommand::CreateShareConsumer { .. }
             | AdapterCommand::ShareReceive { .. }
             | AdapterCommand::ShareAcknowledge { .. }

@@ -1,16 +1,21 @@
 //! Provisioning tests pin topology-sized topic replication evidence.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::Scenario;
 
-use crate::compose_provision::{operation_args, topics};
+use crate::compose_provision::{operation_args, share_groups, topics};
 
 #[test]
 fn operation_records_cluster_replication_factor() {
     let topics = BTreeMap::from([("orders".to_owned(), 3)]);
 
-    let args = operation_args("127.0.0.1:19091,127.0.0.1:19092", &topics, 2);
+    let args = operation_args(
+        "127.0.0.1:19091,127.0.0.1:19092",
+        &topics,
+        &BTreeSet::new(),
+        2,
+    );
 
     assert_eq!(
         args,
@@ -26,6 +31,59 @@ fn operation_records_cluster_replication_factor() {
             "3",
             "--replication-factor",
             "2",
+        ]
+    );
+}
+
+#[test]
+fn share_groups_are_preconfigured_for_deterministic_earliest_start() {
+    let scenario: Scenario = toml::from_str(
+        r#"
+schema_version = 11
+id = "share.provisioning"
+title = "share provisioning"
+description = "share group provisioning fixture"
+timeout_ms = 1000
+requires = ["share_consumer", "lifecycle"]
+assertions = []
+
+[[steps]]
+id = "first"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "orders-share"
+topic = "orders"
+membership_timeout_ms = 1000
+close_timeout_ms = 1000
+
+[[steps]]
+id = "second"
+kind = "create_share_consumer"
+client_id = "client-2"
+consumer_id = "share-2"
+group_id = "orders-share"
+topic = "orders"
+membership_timeout_ms = 1000
+close_timeout_ms = 1000
+"#,
+    )
+    .unwrap_or_else(|error| panic!("parse scenario: {error}"));
+
+    let groups = share_groups(&scenario);
+    assert_eq!(groups, BTreeSet::from(["orders-share".to_owned()]));
+    assert_eq!(
+        operation_args("localhost:9092", &BTreeMap::new(), &groups, 1),
+        [
+            "--bootstrap-server",
+            "localhost:9092",
+            "--readiness-topic",
+            "testlab-environment-readiness",
+            "--require-full-isr",
+            "--share-group",
+            "orders-share",
+            "--share-auto-offset-reset",
+            "earliest",
         ]
     );
 }

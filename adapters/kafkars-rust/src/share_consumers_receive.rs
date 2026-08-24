@@ -19,6 +19,43 @@ pub(crate) struct ShareReceiveFacts {
     pub(crate) assignment_epoch: Option<u64>,
 }
 
+pub(crate) fn await_assignment(
+    consumer: &ShareConsumer,
+    topic: &str,
+    deadline: Instant,
+) -> Result<(), StateError> {
+    loop {
+        if let Some(error) = consumer.startup_error() {
+            return Err(StateError::Client(error));
+        }
+        match consumer.assignment() {
+            Ok(Some(assignment))
+                if !assignment.partitions().is_empty()
+                    && assignment
+                        .partitions()
+                        .iter()
+                        .all(|partition| partition.topic() == topic) =>
+            {
+                return Ok(());
+            }
+            Ok(Some(assignment)) if !assignment.partitions().is_empty() => {
+                return Err(StateError::ShareSurface(format!(
+                    "share member received an assignment outside {topic}: {assignment:?}"
+                )));
+            }
+            Ok(Some(_)) | Ok(None) => {}
+            Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => {}
+            Err(error) => return Err(StateError::Client(error)),
+        }
+        if Instant::now() >= deadline {
+            return Err(StateError::ShareSurface(format!(
+                "share assignment for {topic} did not materialize before the membership deadline"
+            )));
+        }
+        thread::sleep(POLL_SLICE.min(deadline.saturating_duration_since(Instant::now())));
+    }
+}
+
 pub(crate) fn receive(
     consumer: &mut ShareConsumer,
     timeout: Duration,

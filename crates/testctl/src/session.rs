@@ -1,4 +1,4 @@
-//! One sequential adapter session executes protocol-v13 scenario actions.
+//! One sequential adapter session executes protocol-v14 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -77,23 +77,54 @@ pub(crate) fn run_adapter_session(
             &mut environment,
             deadline,
             &mut protocol,
+            scenario,
             &step.action,
         )?;
-        if outcome == StepOutcome::ClientFailed {
-            return settle_process(&mut process, &protocol, recorder, deadline);
+        match outcome {
+            StepOutcome::Continue => {}
+            StepOutcome::ClientFailed => {
+                return settle_process(&mut process, &protocol, recorder, deadline);
+            }
+            StepOutcome::ScenarioFailed => {
+                return abort_and_settle(&mut process, &mut protocol, recorder, deadline);
+            }
         }
     }
+    finish_and_settle(&mut process, &mut protocol, recorder, deadline)
+}
+
+fn abort_and_settle(
+    process: &mut AdapterProcess,
+    protocol: &mut ProtocolSession,
+    recorder: &mut HistoryRecorder,
+    deadline: Deadline,
+) -> Result<(), RunFailure> {
+    let (command, expected) = scenario_failure_settlement();
+    protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
+    settle_process(process, protocol, recorder, deadline)
+}
+
+pub(super) fn scenario_failure_settlement() -> (AdapterCommand, ExpectedEvent) {
+    (AdapterCommand::Abort, ExpectedEvent::Aborted)
+}
+
+fn finish_and_settle(
+    process: &mut AdapterProcess,
+    protocol: &mut ProtocolSession,
+    recorder: &mut HistoryRecorder,
+    deadline: Deadline,
+) -> Result<(), RunFailure> {
     let finish = protocol.send_and_wait(
-        &mut process,
+        process,
         recorder,
         deadline,
         AdapterCommand::Finish,
         &ExpectedEvent::Finished,
     )?;
     if matches!(finish.event, AdapterEvent::CommandFailed { .. }) {
-        return settle_process(&mut process, &protocol, recorder, deadline);
+        return settle_process(process, protocol, recorder, deadline);
     }
-    settle_process(&mut process, &protocol, recorder, deadline)
+    settle_process(process, protocol, recorder, deadline)
 }
 
 fn settle_process(
@@ -112,6 +143,7 @@ fn settle_process(
 pub(crate) enum StepOutcome {
     Continue,
     ClientFailed,
+    ScenarioFailed,
 }
 
 fn execute_step(
@@ -120,6 +152,7 @@ fn execute_step(
     environment: &mut SessionEnvironment<'_>,
     deadline: Deadline,
     protocol: &mut ProtocolSession,
+    scenario: &Scenario,
     action: &ScenarioAction,
 ) -> Result<StepOutcome, RunFailure> {
     if let Some(result) =
@@ -136,6 +169,9 @@ fn execute_step(
     let event = protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
     if matches!(event.event, AdapterEvent::CommandFailed { .. }) {
         Ok(StepOutcome::ClientFailed)
+    } else if crate::session_share::receive_succeeded(scenario, action, &event.event) == Some(false)
+    {
+        Ok(StepOutcome::ScenarioFailed)
     } else {
         Ok(StepOutcome::Continue)
     }

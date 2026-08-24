@@ -2,6 +2,8 @@
 
 mod broker_client;
 mod session;
+mod session_descriptor;
+mod session_end;
 mod session_send;
 mod session_unsupported;
 mod state;

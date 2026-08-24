@@ -245,4 +245,6 @@ pub enum AdapterCommand {
     },
     /// Ends the adapter session after lifecycle work settles.
     Finish,
+    /// Abandons the adapter session after testctl has observed a scenario failure.
+    Abort,
 }
