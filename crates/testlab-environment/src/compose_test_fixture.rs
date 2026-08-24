@@ -23,12 +23,27 @@ pub(super) struct Fixture {
 
 impl Fixture {
     pub(super) fn new(fail_up: bool) -> Self {
-        Self::with_authentication(fail_up, Authentication::None)
+        Self::with_behavior(fail_up, false, false, Authentication::None)
     }
 
     pub(super) fn with_authentication(fail_up: bool, authentication: Authentication) -> Self {
-        Self::with_security(
+        Self::with_behavior(fail_up, false, false, authentication)
+    }
+
+    pub(super) fn with_startup_exit(persistent: bool) -> Self {
+        Self::with_behavior(false, true, persistent, Authentication::None)
+    }
+
+    fn with_behavior(
+        fail_up: bool,
+        startup_exit: bool,
+        persistent_startup_exit: bool,
+        authentication: Authentication,
+    ) -> Self {
+        Self::with_security_behavior(
             fail_up,
+            startup_exit,
+            persistent_startup_exit,
             SecurityProfile {
                 transport: TransportSecurity::Plaintext,
                 authentication,
@@ -37,14 +52,26 @@ impl Fixture {
     }
 
     pub(super) fn with_security(fail_up: bool, security: SecurityProfile) -> Self {
+        Self::with_security_behavior(fail_up, false, false, security)
+    }
+
+    fn with_security_behavior(
+        fail_up: bool,
+        startup_exit: bool,
+        persistent_startup_exit: bool,
+        security: SecurityProfile,
+    ) -> Self {
         let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
         let root =
             std::env::temp_dir().join(format!("testlab-compose-{}-{sequence}", std::process::id()));
         fs::create_dir(&root)
             .unwrap_or_else(|error| panic!("create fixture {}: {error}", root.display()));
         let program = root.join("fake-docker");
-        fs::write(&program, fake_docker(fail_up))
-            .unwrap_or_else(|error| panic!("write fake Docker program: {error}"));
+        fs::write(
+            &program,
+            fake_docker(fail_up, startup_exit, persistent_startup_exit),
+        )
+        .unwrap_or_else(|error| panic!("write fake Docker program: {error}"));
         make_executable(&program);
         Self {
             root,
@@ -113,9 +140,9 @@ fn manifest(security: SecurityProfile) -> EnvironmentManifest {
     }
 }
 
-fn fake_docker(fail_up: bool) -> String {
+fn fake_docker(fail_up: bool, startup_exit: bool, persistent_startup_exit: bool) -> String {
     format!(
-        "#!/bin/sh\nlog=\"$0.log\"\nprintf '%s\\n' \"$*\" >> \"$log\"\necho \"stdout:$*\"\necho \"stderr:$*\" >&2\ncase \" $* \" in\n  *\" up \"*) if {fail_up}; then exit 9; fi ;;\n  *\"kafka-broker-api-versions.sh\"*)\n    ready=\"$0.ready\"\n    if [ ! -e \"$ready\" ]; then : > \"$ready\"; exit 1; fi ;;\nesac\nexit 0\n"
+        "#!/bin/sh\nlog=\"$0.log\"\nprintf '%s\\n' \"$*\" >> \"$log\"\necho \"stderr:$*\" >&2\ncase \" $* \" in\n  *\" up \"*) if {fail_up}; then exit 9; fi ;;\n  *\"kafka-broker-api-versions.sh\"*)\n    ready=\"$0.ready\"\n    if {persistent_startup_exit} || [ ! -e \"$ready\" ]; then\n      : > \"$ready\"\n      if {startup_exit}; then : > \"$0.exited\"; fi\n      exit 1\n    fi ;;\n  *\" ps \"*\" --status exited \"*)\n    if [ -e \"$0.exited\" ]; then echo broker; fi\n    exit 0 ;;\n  *\" logs \"*) echo \"error while preparing configs: fixture startup exit\" ;;\n  *\" start broker \"*) rm -f \"$0.exited\" ;;\n  *) echo \"stdout:$*\" ;;\nesac\nexit 0\n"
     )
 }
 

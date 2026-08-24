@@ -254,7 +254,7 @@ fn compose(
     )
 }
 
-fn compose_owned(
+pub(super) fn compose_owned(
     kind: EnvironmentOperationKind,
     prefix: &[String],
     tail: Vec<String>,

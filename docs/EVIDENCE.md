@@ -26,6 +26,9 @@ Docker environments pull and then inspect the declared digest as separate
 operations before Compose receives the image reference. Scenario-owned broker
 restarts and their Kafka readiness probes are recorded as distinct operations
 without stopping the packaged adapter process.
+If a broker process exits before initial readiness, Testlab retains its failed
+readiness, process state, and logs, then permits one deadline-bounded start of
+the same container. A repeated exit makes the run invalid.
 Provisioning waits for every harness-created scenario partition to report a
 leader and the topology's full in-sync replica count before starting the
 packaged client.
