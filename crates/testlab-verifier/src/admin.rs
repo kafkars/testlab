@@ -1,17 +1,22 @@
 //! Admin verification requires one exact public completion per declared operation.
 
-use testlab_schema::{Scenario, ScenarioAction, Violation};
+use testlab_schema::{BrokerObservation, Scenario, ScenarioAction, Violation};
 
+use crate::admin_discovery::verify_discovery_action;
 use crate::index::{HistoryIndex, IndexedAdminTopicCompletion};
 use crate::support::{references, violation};
 
 pub(crate) fn verify_admin(
     scenario: &Scenario,
     index: &HistoryIndex,
+    observations: &[BrokerObservation],
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
         if !index.action_issued(&step.action) {
+            continue;
+        }
+        if verify_discovery_action(&step.action, index, observations, violations) {
             continue;
         }
         match &step.action {

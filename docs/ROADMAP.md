@@ -10,6 +10,7 @@
 - Pinned Apache Kafka 3.7.2 through 4.3.1 environments cover single- and
   three-broker clusters, TLS, SASL/PLAIN, and SCRAM-SHA-256/512.
 - Real-Kafka scenarios cover producing, assigned and group consumption, topic
+  creation, partition expansion, scoped topic discovery and latest-offset
   administration, transactions, fencing, broker restart, and rolling restart.
 - Pull-request and release qualifications package Kafkars first and verify
   broker-visible truth independently through librdkafka.

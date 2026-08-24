@@ -83,9 +83,11 @@ fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
             GroupProtocol::Classic => Capability::ConsumerGroups,
             GroupProtocol::Consumer => Capability::ConsumerProtocolGroups,
         }),
-        ScenarioAction::CreateTopic { .. } | ScenarioAction::CreatePartitions { .. } => {
-            Some(Capability::Admin)
-        }
+        ScenarioAction::CreateTopic { .. }
+        | ScenarioAction::CreatePartitions { .. }
+        | ScenarioAction::DescribeTopic { .. }
+        | ScenarioAction::ListTopics { .. }
+        | ScenarioAction::ListOffsets { .. } => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::FenceTransaction { .. }

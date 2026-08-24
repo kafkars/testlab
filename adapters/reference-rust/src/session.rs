@@ -110,23 +110,6 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
-        command @ (AdapterCommand::CreateAssignedConsumer { .. }
-        | AdapterCommand::AssignBeginning { .. }
-        | AdapterCommand::Receive { .. }
-        | AdapterCommand::CloseAssignedConsumer { .. }
-        | AdapterCommand::CreateGroupConsumer { .. }
-        | AdapterCommand::GroupReceive { .. }
-        | AdapterCommand::CloseGroupConsumer { .. }
-        | AdapterCommand::CreateTopic { .. }
-        | AdapterCommand::CreatePartitions { .. }
-        | AdapterCommand::CreateTransactionalProducer { .. }
-        | AdapterCommand::ExecuteTransaction { .. }
-        | AdapterCommand::FenceTransaction { .. }
-        | AdapterCommand::CloseTransactionalProducer { .. }) => {
-            return Err(AdapterError::Unsupported(
-                crate::session_unsupported::reason(&command),
-            ));
-        }
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;
             emit(
@@ -161,6 +144,11 @@ fn dispatch<W: Write>(
                 &AdapterEventEnvelope::new(command_id, AdapterEvent::Finished),
             )?;
             return Ok(true);
+        }
+        command => {
+            return Err(AdapterError::Unsupported(
+                crate::session_unsupported::reason(&command),
+            ));
         }
     }
     Ok(false)

@@ -7,6 +7,9 @@ mod group_consumers;
 mod normalize;
 mod protocol;
 mod protocol_admin;
+mod protocol_admin_read;
+mod protocol_admin_result;
+mod protocol_admin_write;
 mod protocol_consumer;
 mod protocol_group;
 mod protocol_lifecycle;
@@ -24,6 +27,10 @@ pub use protocol::run_stdio;
 mod connection_security_test;
 #[cfg(test)]
 mod normalize_test;
+#[cfg(test)]
+mod protocol_admin_discovery_test;
+#[cfg(test)]
+mod protocol_admin_offset_test;
 #[cfg(test)]
 mod protocol_admin_test;
 #[cfg(test)]

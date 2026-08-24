@@ -4,36 +4,7 @@ use testlab_schema::AdapterEvent;
 
 use crate::run_error::RunFailure;
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
-
-pub(super) fn classify_admin(
-    expected: &ExpectedEvent,
-    event: &AdapterEvent,
-) -> Option<Result<EventDisposition, RunFailure>> {
-    let identity_matches = match (expected, event) {
-        (
-            ExpectedEvent::TopicCreated {
-                operation_id: expected_operation,
-                topic: expected_topic,
-            },
-            AdapterEvent::TopicCreated {
-                operation_id: actual_operation,
-                topic: actual_topic,
-            },
-        )
-        | (
-            ExpectedEvent::TopicPartitionsCreated {
-                operation_id: expected_operation,
-                topic: expected_topic,
-            },
-            AdapterEvent::TopicPartitionsCreated {
-                operation_id: actual_operation,
-                topic: actual_topic,
-            },
-        ) => expected_operation == actual_operation && expected_topic == actual_topic,
-        _ => return None,
-    };
-    Some(identity_result(identity_matches, event, expected))
-}
+use crate::runner_protocol_admin::same_admin_event_family;
 
 pub(super) fn classify_group(
     expected: &ExpectedEvent,
@@ -137,6 +108,9 @@ pub(super) fn classify_transaction(
 }
 
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
+    if same_admin_event_family(expected, event) {
+        return true;
+    }
     matches!(
         (expected, event),
         (ExpectedEvent::Ready, AdapterEvent::Ready { .. })
@@ -192,10 +166,6 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
             | (
                 ExpectedEvent::GroupConsumerClosed(_),
                 AdapterEvent::GroupConsumerClosed { .. }
-            )
-            | (
-                ExpectedEvent::TopicCreated { .. } | ExpectedEvent::TopicPartitionsCreated { .. },
-                AdapterEvent::TopicCreated { .. } | AdapterEvent::TopicPartitionsCreated { .. }
             )
             | (
                 ExpectedEvent::TransactionalProducerCreated(_),

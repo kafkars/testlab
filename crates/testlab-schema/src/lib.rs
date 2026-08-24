@@ -2,6 +2,7 @@
 
 mod adapter;
 mod admin_action_validation;
+mod admin_offset_position;
 mod bytes;
 mod consumer_action_validation;
 mod contract;
@@ -19,6 +20,7 @@ mod qualification_evidence;
 mod receive_action_validation;
 mod record;
 mod scenario;
+mod scenario_action;
 mod scenario_action_validation;
 mod scenario_types;
 mod scenario_validation;
@@ -27,6 +29,7 @@ mod transaction_action_validation;
 mod verdict;
 
 pub use adapter::{AdapterDescriptor, Capability};
+pub use admin_offset_position::AdminOffsetPosition;
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
 pub use environment::{
@@ -59,9 +62,8 @@ pub use qualification_evidence::{
     QualificationEvidenceManifest, QualificationRunEvidence,
 };
 pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
-pub use scenario::{
-    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioError, ScenarioStep,
-};
+pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario, ScenarioError, ScenarioStep};
+pub use scenario_action::ScenarioAction;
 pub use scenario_types::{
     BatchRecord, BrokerBehavior, OperationAssertion, TransactionDisposition, VisibilityExpectation,
 };
@@ -72,6 +74,12 @@ pub use verdict::{Verdict, VerdictStatus, Violation};
 mod admin_action_validation_test;
 #[cfg(test)]
 mod admin_protocol_test;
+#[cfg(test)]
+mod admin_query_ownership_test;
+#[cfg(test)]
+mod admin_query_protocol_test;
+#[cfg(test)]
+mod admin_query_validation_test;
 #[cfg(test)]
 mod bytes_test;
 #[cfg(test)]

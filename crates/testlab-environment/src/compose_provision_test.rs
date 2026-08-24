@@ -34,7 +34,7 @@ fn operation_records_cluster_replication_factor() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 11
+schema_version = 12
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -69,6 +69,32 @@ fn admin_created_and_expanded_topics_are_not_preprovisioned() {
     .unwrap_or_else(|error| panic!("parse scenario: {error}"));
 
     assert!(topics(&scenario).is_empty());
+}
+
+#[test]
+fn read_only_admin_topics_are_preprovisioned_from_their_markers() {
+    for (path, expected) in [
+        (
+            "../../scenarios/kafka/admin-describe-topic.toml",
+            BTreeMap::from([("testlab-kafkars-admin-described".to_owned(), 3)]),
+        ),
+        (
+            "../../scenarios/kafka/admin-list-topics.toml",
+            BTreeMap::from([("testlab-kafkars-admin-listed".to_owned(), 1)]),
+        ),
+        (
+            "../../scenarios/kafka/admin-list-offsets.toml",
+            BTreeMap::from([("testlab-kafkars-admin-offsets".to_owned(), 1)]),
+        ),
+    ] {
+        let manifest =
+            std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(path))
+                .unwrap_or_else(|error| panic!("read {path}: {error}"));
+        let scenario: Scenario =
+            toml::from_str(&manifest).unwrap_or_else(|error| panic!("parse {path}: {error}"));
+
+        assert_eq!(topics(&scenario), expected, "unexpected topics for {path}");
+    }
 }
 
 #[test]

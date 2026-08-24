@@ -116,6 +116,33 @@ pub enum AdapterEvent {
         /// Exact topic reported by the public batch result.
         topic: String,
     },
+    /// One public admin topic description completed successfully.
+    TopicDescribed {
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact topic reported by the public batch result.
+        topic: String,
+        /// Exact partition indices reported by the public result.
+        partitions: Vec<i32>,
+    },
+    /// One public admin topic listing completed successfully.
+    TopicsListed {
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact topics reported by the public result.
+        topics: Vec<String>,
+    },
+    /// One public admin offset listing completed successfully.
+    OffsetListed {
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact topic reported by the public result.
+        topic: String,
+        /// Exact partition reported by the public result.
+        partition: i32,
+        /// Selected offset, or absence when Kafka reported none.
+        offset: Option<i64>,
+    },
     /// Public transactional producer initialization completed.
     TransactionalProducerCreated {
         /// Created transactional producer.

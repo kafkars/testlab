@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AdapterSecurity, BatchRecord, ClientId, ConsumerId, GroupProtocol, OperationId, ProducerId,
-    RecordSpec, RunId, ScenarioId, TransactionDisposition,
+    AdapterSecurity, AdminOffsetPosition, BatchRecord, ClientId, ConsumerId, GroupProtocol,
+    OperationId, ProducerId, RecordSpec, RunId, ScenarioId, TransactionDisposition,
 };
 
 /// Public operation requested from an adapter.
@@ -137,6 +137,43 @@ pub enum AdapterCommand {
         topic: String,
         /// Positive requested total partition count.
         total_count: i32,
+        /// Complete public operation bound.
+        timeout_ms: u64,
+    },
+    /// Describes one Kafka topic through the public admin surface.
+    DescribeTopic {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Complete public operation bound.
+        timeout_ms: u64,
+    },
+    /// Lists Kafka topics visible through the public admin surface.
+    ListTopics {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Whether broker-marked internal topics enter the public result.
+        include_internal: bool,
+        /// Complete public operation bound.
+        timeout_ms: u64,
+    },
+    /// Lists one offset position through the public admin surface.
+    ListOffsets {
+        /// Existing client whose admin handle is used.
+        client_id: ClientId,
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Exact nonnegative partition.
+        partition: i32,
+        /// Latest offset position.
+        position: AdminOffsetPosition,
         /// Complete public operation bound.
         timeout_ms: u64,
     },

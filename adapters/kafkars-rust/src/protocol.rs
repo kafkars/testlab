@@ -137,8 +137,11 @@ fn dispatch<W: Write>(
         | AdapterCommand::CloseGroupConsumer { .. }) => {
             protocol_group::dispatch(state, writer, command_id, command)?;
         }
-        command
-        @ (AdapterCommand::CreateTopic { .. } | AdapterCommand::CreatePartitions { .. }) => {
+        command @ (AdapterCommand::CreateTopic { .. }
+        | AdapterCommand::CreatePartitions { .. }
+        | AdapterCommand::DescribeTopic { .. }
+        | AdapterCommand::ListTopics { .. }
+        | AdapterCommand::ListOffsets { .. }) => {
             protocol_admin::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateTransactionalProducer { .. }

@@ -30,7 +30,7 @@ pub fn verify(
     let mut violations = Vec::new();
     verify_protocol(adapter, &index, &mut violations);
     verify_client_failures(&index, &mut violations);
-    verify_admin(scenario, &index, &mut violations);
+    verify_admin(scenario, &index, observations, &mut violations);
     verify_transactions(scenario, &index, observations, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     verify_consumers(scenario, &index, &mut violations);

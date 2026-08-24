@@ -81,6 +81,9 @@ impl HistoryIndex {
             | AdapterEvent::GroupConsumerClosed { .. }
             | AdapterEvent::TopicCreated { .. }
             | AdapterEvent::TopicPartitionsCreated { .. }
+            | AdapterEvent::TopicDescribed { .. }
+            | AdapterEvent::TopicsListed { .. }
+            | AdapterEvent::OffsetListed { .. }
             | AdapterEvent::TransactionalProducerCreated { .. }
             | AdapterEvent::TransactionCompleted { .. }
             | AdapterEvent::TransactionFenceCompleted { .. }
@@ -270,7 +273,10 @@ impl HistoryIndex {
             AdapterCommand::Finish => self.finish_issued = true,
             AdapterCommand::Hello { .. }
             | AdapterCommand::CreateTopic { .. }
-            | AdapterCommand::CreatePartitions { .. } => {}
+            | AdapterCommand::CreatePartitions { .. }
+            | AdapterCommand::DescribeTopic { .. }
+            | AdapterCommand::ListTopics { .. }
+            | AdapterCommand::ListOffsets { .. } => {}
         }
     }
 }

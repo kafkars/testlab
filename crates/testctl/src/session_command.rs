@@ -63,7 +63,11 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::CreateGroupConsumer { .. }
         | ScenarioAction::GroupReceive { .. }
         | ScenarioAction::CloseGroupConsumer { .. }) => return consumer(action),
-        action @ (ScenarioAction::CreateTopic { .. } | ScenarioAction::CreatePartitions { .. }) => {
+        action @ (ScenarioAction::CreateTopic { .. }
+        | ScenarioAction::CreatePartitions { .. }
+        | ScenarioAction::DescribeTopic { .. }
+        | ScenarioAction::ListTopics { .. }
+        | ScenarioAction::ListOffsets { .. }) => {
             return crate::session_command_admin::translate(action);
         }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }

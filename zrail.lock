@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "def3ee6aab578330ce4d88f9757836d39042447498b9d61ceba2ae92719226d7"
+contract_sha256 = "01dd280f993e7ffbfae6c3cbdd710e4e63280b4d7dd171c8f413914f42fe14e1"
 ratchet = []
 
 [[package]]
@@ -590,23 +590,23 @@ sha256 = "00f5a2e21fccb01f778960c81886300b8faa8bb59ca393cec0c41d53614b0235"
 
 [[gate.input]]
 path = "contracts/conformance.toml"
-sha256 = "85f9ece119595074a54766462740f81cc6ae1f21a3a570bc46adaf622c429ab6"
+sha256 = "a3947870f1b55e229e35eebc0b14676bb9036154d058d08926463bb406a17f5c"
 
 [[gate.input]]
 path = "packs/kafkars-classic.toml"
-sha256 = "ea6e8563f7959841de26bd1d68ef8d71822ed6691e8d213ea5117adda1a0b543"
+sha256 = "4bce29761d3d187e01c194c47acfff8d8cc3ed91f95f8520800b442ef76f9529"
 
 [[gate.input]]
 path = "packs/kafkars-pr.toml"
-sha256 = "5b815cc3e59812c597fe67c98c0c3f690a3dfadecbcbe8b38134092e386a4e08"
+sha256 = "6aec1cb64d3d90980a2fbe08fdcf1f7825a931bef3c8afe5f91f62a41ae628cc"
 
 [[gate.input]]
 path = "packs/kafkars-release.toml"
-sha256 = "67679bf3bf72f2b33fe04deb8e8b6039e34879e28cf047f2d0adf970e3dbf44c"
+sha256 = "cc895013e364f200fce0d5446b58394737f6cd6fe351e1f7f61689bfe7ee2b16"
 
 [[gate.input]]
 path = "packs/kafkars-three-broker.toml"
-sha256 = "c89e2ca40685e9c103fe6e526b086d3b39728d7d13019924446af28928c19a71"
+sha256 = "848cc10063a75c81a4bc602d9462fc2fcd9570d92c3a6052d7e49ca4673bcd66"
 
 [[gate.input]]
 path = "packs/repository-pr.toml"
@@ -630,67 +630,79 @@ sha256 = "980c9752cb40dca3265ce4e3e31de1c369b469c9837be059b806ea93fe76799d"
 
 [[gate.input]]
 path = "scenarios/kafka/admin-create-partitions.toml"
-sha256 = "863b9849f7b7b228735dbe792e1f1420d9181041fb0cade475d84c1d3a368dae"
+sha256 = "cdfce3b642564ccd4adba66e4a672bdb0d6b1159d292ed5f18f9811ecf76d7e9"
 
 [[gate.input]]
 path = "scenarios/kafka/admin-create-topic.toml"
-sha256 = "06e4bb655ade92aaefe569fee29e27a94bdbb4c87b961319ae28cffacd64477e"
+sha256 = "356a70090544288048538bc05ac024bb7232d780d97f455a328f715feaab09a0"
+
+[[gate.input]]
+path = "scenarios/kafka/admin-describe-topic.toml"
+sha256 = "fbcc2cb365bc72cfe01bd88c00bacb94dd2dbbe7fd74bcd59ef7a46d2f201521"
+
+[[gate.input]]
+path = "scenarios/kafka/admin-list-offsets.toml"
+sha256 = "b98fe82450a02d116f7b2b9839e500e422aed0084ae71ab9bd5392022437f160"
+
+[[gate.input]]
+path = "scenarios/kafka/admin-list-topics.toml"
+sha256 = "e74bd0c2fea02bd86e9276788105538df9eef994a6be08d0807260aa50f2d144"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-round-trip.toml"
-sha256 = "efe69bf84ed0da442fcd8f132b1e595445ca8b6fb1c72985e7f5bd1095c818a1"
+sha256 = "0283c0f9239c707c0bf500091751232187306323e332c308e04959e6604d3156"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-broker-restart.toml"
-sha256 = "bbd5a2bcffb594a42c999ed96a40643c9dc200260ee437fa8d9901375869a568"
+sha256 = "6717b88df92a30d54c42c8232cf1d25f5e0c983b81dabc44311a8d153a9f793a"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-round-trip.toml"
-sha256 = "3c531702539d0ef12b2df0111fc8f81346329d795c97458cc9a62facb3bfb5ab"
+sha256 = "ea1ae3b98130a346b8ec73430be9f86beb8edbc8c20e59419a0e2545e7c5afda"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-protocol-group-round-trip.toml"
-sha256 = "83c99e3cb45d420388e60e56ac24242989d88392e1e5487c1052e777fd67c030"
+sha256 = "d36c0762b9ba35cd19eeb89d46cf05225780bc889b31d592045493741d716673"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-batch.toml"
-sha256 = "58409a1b440095920b99c188af1bb6bcdcb2ee98845fdf91e3adcf5318845a44"
+sha256 = "025de9a16b3653c531a2ef55f159997844589a735eec4a3aba81ae583c590e93"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-broker-restart.toml"
-sha256 = "f069b9b2e01a6d46e9345415d09a6fab7a67e4f89cfd8ef80d93a7f90140a8fa"
+sha256 = "7c3e76d0f825ce35191ba4ef02c64086cb36a717c2070e36c66f9d78431e9f72"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-partition-routing.toml"
-sha256 = "242d5f37921bb49d541e673d2abf570ff1bc7e1f58d902dcd1ff58de41fc1969"
+sha256 = "bff69c78df7c453a99ff1917d5c2a9d94db7c295190c62b1a5ad5e4bbe0282b0"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-rolling-restart.toml"
-sha256 = "3d113de9b47df0103d372a7d807e317ff5e50f44b4b834541307ed95a6188a49"
+sha256 = "34d5518c80141abf08f3ebde85556f47669e69e61b198ee60ceef6426de3c266"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-round-trip.toml"
-sha256 = "551b11500a3abf2316fb8a5369f4967a061c49cc643e72c660f57b42512b9569"
+sha256 = "b4c380e705e7ed9cfe7e83f508882072f60569d7fde25b51774c351eb6406433"
 
 [[gate.input]]
 path = "scenarios/kafka/transaction-commit-abort.toml"
-sha256 = "0abae5ea86e2a7c5ca28f0903eba6d6439dad455e755a179c742fd6f2349d93b"
+sha256 = "c6da362fc46a4485661b6d40efc4fef44bafbe9bfd98860e24aac303636a2a09"
 
 [[gate.input]]
 path = "scenarios/kafka/transaction-fencing.toml"
-sha256 = "13feb498ca7f9ff27dad5e3bc91eebb870719cc6f0b1f63e39c9bc6bfe3fb508"
+sha256 = "f7d7b2ef069b33db98669674c39d573ac8a6d1405221f556d9d40df9643a32dd"
 
 [[gate.input]]
 path = "scenarios/producer/definite-rejection.toml"
-sha256 = "c624474ab2c518e9edbfd8c2a5278fbf6a4768ab55924a912bed07f2c7895d61"
+sha256 = "446dece4bd633054b44d58e10e0ee7812d2f3d4172ee22a2c089b727403d15bf"
 
 [[gate.input]]
 path = "scenarios/producer/lost-response.toml"
-sha256 = "3f32e60369e105f10d0e7fa746c1a5969740f364728d05bceb521650349393e8"
+sha256 = "1b25a29ff386167a0e1bf990a86f390d80ec72c1c83ce7bd88ec004faa5bf9c6"
 
 [[gate.input]]
 path = "scenarios/producer/round-trip.toml"
-sha256 = "15f71a47c948274999a6d1b2cce8f0052663a0ff94794def7bbf30f780b07306"
+sha256 = "a48173a87221417dc75129e78c611e8a7a30396fd22960782c92ac905e03e50c"
 
 [[gate.input]]
 path = "scripts/check-rust-lint"

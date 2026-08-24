@@ -36,6 +36,14 @@ contributes every contained operation. The snapshot uses broker watermarks and
 emits structured observations with exact partition, offset, key, value, and
 ordered header bytes.
 
+Read-only Admin claims deliberately reuse those independent record facts. A
+topic-description claim covers only declared partitions later exercised by
+observed records, and an all-topic listing claim covers only declared required
+topics with observed markers. A latest-offset claim covers one isolated
+partition whose greatest observed offset is exactly one less than the declared
+end offset. The evidence does not imply exhaustive topic discovery, internal
+topic classification, replica topology, or untested offset selectors.
+
 ## Qualification evidence
 
 `testctl qualify` creates one `<qualification-run-id>.partial` tree, executes

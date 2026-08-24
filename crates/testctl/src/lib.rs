@@ -19,6 +19,7 @@ mod run_error;
 mod runner;
 mod runner_environment;
 mod runner_protocol;
+mod runner_protocol_admin;
 mod runner_protocol_family;
 mod session;
 mod session_command;
@@ -40,6 +41,8 @@ mod qualification_test;
 mod recorder_test;
 #[cfg(test)]
 mod runner_docker_test;
+#[cfg(test)]
+mod runner_protocol_admin_test;
 #[cfg(test)]
 mod runner_protocol_test;
 #[cfg(test)]

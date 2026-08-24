@@ -4,7 +4,7 @@ use kafkars::{ErrorKind, KafkaError};
 use testlab_schema::OperationId;
 
 use crate::AdapterError;
-use crate::protocol_admin::validate_single_topic_result;
+use crate::protocol_admin_result::validate_single_topic_result;
 
 #[test]
 fn single_matching_topic_result_succeeds() {

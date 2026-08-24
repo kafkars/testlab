@@ -85,7 +85,11 @@ pub(crate) fn validate_action(
         | ScenarioAction::CloseGroupConsumer { .. }) => {
             crate::consumer_action_validation::validate(action, state, problems);
         }
-        action @ (ScenarioAction::CreateTopic { .. } | ScenarioAction::CreatePartitions { .. }) => {
+        action @ (ScenarioAction::CreateTopic { .. }
+        | ScenarioAction::CreatePartitions { .. }
+        | ScenarioAction::DescribeTopic { .. }
+        | ScenarioAction::ListTopics { .. }
+        | ScenarioAction::ListOffsets { .. }) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,

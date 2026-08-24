@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v13. It is not a
+An adapter translates one packaged client surface to protocol v14. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -10,6 +10,8 @@ runner and not a verifier.
 - Preserve command and operation IDs exactly.
 - Report admission separately from terminal completion.
 - Preserve delivery certainty rather than collapsing failures.
+- Preserve exact read-only admin results without receiving scenario
+  expectations through the adapter command.
 - Use stable normalized codes and bounded diagnostics.
 - Emit `command_failed` and exit successfully for a normal public API failure.
 - Settle close and shutdown explicitly.

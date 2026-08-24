@@ -1,4 +1,4 @@
-schema_version = 11
+schema_version = 12
 id = "kafka.producer-rolling-restart"
 title = "packaged producer survives a three-broker rolling restart"
 description = "One live packaged producer acknowledges an exact record before and after each broker in a three-node Kafka cluster is restarted in turn."
