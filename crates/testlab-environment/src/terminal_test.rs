@@ -1,7 +1,7 @@
 //! Terminal supervision tests prove bounded completion evidence.
 
 use std::path::PathBuf;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use testlab_schema::{
     EnvironmentOperationId, EnvironmentOperationKind, EnvironmentOperationStatus,
@@ -38,6 +38,19 @@ fn timed_out_command_is_killed_and_waited() {
         output.operation.status,
         EnvironmentOperationStatus::TimedOut
     );
+}
+
+#[cfg(unix)]
+#[test]
+fn timed_out_command_kills_descendants_that_retain_terminal_streams() {
+    let started = Instant::now();
+    let output = run_terminal(request("sleep 2 & wait", Duration::from_millis(20)));
+
+    assert_eq!(
+        output.operation.status,
+        EnvironmentOperationStatus::TimedOut
+    );
+    assert!(started.elapsed() < Duration::from_millis(500));
 }
 
 fn request(script: &str, timeout: Duration) -> TerminalRequest {

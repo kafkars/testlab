@@ -3,8 +3,10 @@
 use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus, Stdio};
-use std::thread;
 use std::time::{Duration, Instant};
+
+#[cfg(unix)]
+use std::os::unix::process::CommandExt as _;
 
 use testlab_schema::{
     EnvironmentOperation, EnvironmentOperationId, EnvironmentOperationKind,
@@ -13,7 +15,8 @@ use testlab_schema::{
 
 use crate::terminal_capture::{join_reader, spawn_reader};
 
-const POLL_INTERVAL: Duration = Duration::from_millis(5);
+mod process;
+use process::{WaitResult, wait_for_child};
 
 /// One non-secret terminal command owned by an environment driver.
 pub struct TerminalRequest {
@@ -99,6 +102,8 @@ pub fn run_terminal(request: TerminalRequest) -> TerminalOutput {
         .current_dir(&request.current_directory)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    #[cfg(unix)]
+    command.process_group(0);
     for (name, value) in &request.environment {
         command.env(name, value);
     }
@@ -136,34 +141,6 @@ pub fn run_terminal(request: TerminalRequest) -> TerminalOutput {
     let stdout = join_reader(stdout_reader, "stdout");
     let stderr = join_reader(stderr_reader, "stderr");
     finish(request, started.elapsed(), wait, stdout, stderr)
-}
-
-#[derive(Debug)]
-enum WaitResult {
-    Exited(ExitStatus),
-    Failed(String),
-    TimedOut(Option<ExitStatus>, Option<String>),
-}
-
-fn wait_for_child(
-    child: &mut std::process::Child,
-    timeout: Duration,
-    started: Instant,
-) -> WaitResult {
-    loop {
-        match child.try_wait() {
-            Ok(Some(status)) => return WaitResult::Exited(status),
-            Ok(None) if started.elapsed() < timeout => {
-                thread::sleep(POLL_INTERVAL.min(timeout.saturating_sub(started.elapsed())));
-            }
-            Ok(None) => {
-                let kill_error = child.kill().err().map(|error| error.to_string());
-                let status = child.wait().ok();
-                return WaitResult::TimedOut(status, kill_error);
-            }
-            Err(error) => return WaitResult::Failed(error.to_string()),
-        }
-    }
 }
 
 fn finish(
