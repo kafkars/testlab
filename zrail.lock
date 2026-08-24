@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "01dd280f993e7ffbfae6c3cbdd710e4e63280b4d7dd171c8f413914f42fe14e1"
+contract_sha256 = "80625ebca3085413a63e52268c71c4ef4421d96cd2f9834eca66ef8f0089c1c8"
 ratchet = []
 
 [[package]]
@@ -569,6 +569,10 @@ path = "clusters/apache-kafka/compose/single-sasl.yml"
 sha256 = "1089b9f54a7c9d0a0a87dc49c39f044c8da7d904d5a09cf384ea8ceefe8eb8c6"
 
 [[gate.input]]
+path = "clusters/apache-kafka/compose/single-share.yml"
+sha256 = "ddd21ed4845cb4eb57f7286d0320b198f9f901d2d871b4044dde015bb99d5111"
+
+[[gate.input]]
 path = "clusters/apache-kafka/compose/single-tls.yml"
 sha256 = "5a8f1f811954d5bea223500a7321d067c33280c490135084c259bf38b5c7ae9f"
 
@@ -579,6 +583,10 @@ sha256 = "6b3941706694098206819e58755016d8a600f9046b3a635d8551b062a88384af"
 [[gate.input]]
 path = "clusters/apache-kafka/compose/three-sasl.yml"
 sha256 = "7a3383458ad1ad1e16a1fe1440c90fb08d5e8995d25fb967b181631afa6eeb97"
+
+[[gate.input]]
+path = "clusters/apache-kafka/compose/three-share.yml"
+sha256 = "d77cc5b8f97aa8f7c1dd96c183938512c9494d255a79d3478e4f96f7ea5eb5b7"
 
 [[gate.input]]
 path = "clusters/apache-kafka/compose/three-tls.yml"
@@ -603,6 +611,18 @@ sha256 = "de18b8af2891c56cb13e6ff4955927cbd5363fba041635997c5e742b0f944d12"
 [[gate.input]]
 path = "packs/kafkars-release.toml"
 sha256 = "cc895013e364f200fce0d5446b58394737f6cd6fe351e1f7f61689bfe7ee2b16"
+
+[[gate.input]]
+path = "packs/kafkars-share-release.toml"
+sha256 = "2aa0d470cb6e0272ed63d4df584011e5aa9b6176557403142508b4e6a69c1415"
+
+[[gate.input]]
+path = "packs/kafkars-three-broker-security.toml"
+sha256 = "63eece925e46c63f0e649be13e91a13904b2bc49c634efa2dfe94cb9d32ff19d"
+
+[[gate.input]]
+path = "packs/kafkars-three-broker-share.toml"
+sha256 = "3585cb0ab51fbdec3f048a7dbc6c25eb981af0ab6a71a88d1fe390dcc0dbd56d"
 
 [[gate.input]]
 path = "packs/kafkars-three-broker.toml"
@@ -683,6 +703,26 @@ sha256 = "c6e2336ce3775d9bd9382220e502f014b547770f3ac418c6f1320806287547ff"
 [[gate.input]]
 path = "scenarios/kafka/producer-round-trip.toml"
 sha256 = "54d18826e6ac21e58e67de26d179f57f10113c9770b176221cc220ba057746bb"
+
+[[gate.input]]
+path = "scenarios/kafka/share-group-close-uncertainty.toml"
+sha256 = "0a0f702d0283e468fb040210018510dbc814bccee39a19a5bdd562f125fef9eb"
+
+[[gate.input]]
+path = "scenarios/kafka/share-group-leader-recovery.toml"
+sha256 = "b198c69d4e5fc6cd05aced6f3e2c330643fdde0c79ae7a5688a8ded8e1a7831a"
+
+[[gate.input]]
+path = "scenarios/kafka/share-group-lifecycle.toml"
+sha256 = "9a2d7e492f56eae958bd78debd3922f187d8949eb7cfcd4836a4170de2b3c192"
+
+[[gate.input]]
+path = "scenarios/kafka/share-group-membership-ownership.toml"
+sha256 = "2ebfc3fe22e6e5a216144e9111ff5f5d0a076b51ee07055992d69f83398805d8"
+
+[[gate.input]]
+path = "scenarios/kafka/share-group-session-recovery.toml"
+sha256 = "ee4bd09c60277394722e823ef7e62963fd9518846e29ee165b07efebba6a6189"
 
 [[gate.input]]
 path = "scenarios/kafka/transaction-commit-abort.toml"
