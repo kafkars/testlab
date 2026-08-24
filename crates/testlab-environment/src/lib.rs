@@ -11,6 +11,7 @@ mod compose_ports;
 mod compose_provision;
 mod compose_readiness;
 mod compose_security;
+mod compose_startup;
 mod compose_support;
 mod compose_topic_readiness;
 mod compose_types;
@@ -35,6 +36,8 @@ mod compose_partition_leader_test;
 mod compose_ports_test;
 #[cfg(test)]
 mod compose_provision_test;
+#[cfg(test)]
+mod compose_startup_test;
 #[cfg(test)]
 mod compose_test;
 #[cfg(test)]

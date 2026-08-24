@@ -19,6 +19,44 @@ fn one_endpoint_is_emitted_per_broker() {
 }
 
 #[test]
+fn reassignment_replaces_every_advertised_compose_port() {
+    let ports = HostPorts::fixed(39_092, 3)
+        .unwrap_or_else(|error| panic!("create fixed host ports: {error}"));
+    let mut environment = vec![
+        ("KAFKA_HOST_PORT".to_owned(), "1".to_owned()),
+        ("KAFKA_HOST_PORT_1".to_owned(), "1".to_owned()),
+        ("KAFKA_HOST_PORT_2".to_owned(), "2".to_owned()),
+        ("KAFKA_HOST_PORT_3".to_owned(), "3".to_owned()),
+    ];
+
+    ports
+        .apply_to(&mut environment)
+        .unwrap_or_else(|error| panic!("apply host ports: {error}"));
+
+    assert_eq!(environment[0].1, "39092");
+    assert_eq!(environment[1].1, "39092");
+    assert_eq!(environment[2].1, "39093");
+    assert_eq!(environment[3].1, "39094");
+}
+
+#[test]
+fn reassignment_rejects_an_incomplete_compose_environment() {
+    let ports = HostPorts::fixed(39_092, 2)
+        .unwrap_or_else(|error| panic!("create fixed host ports: {error}"));
+    let mut environment = vec![
+        ("KAFKA_HOST_PORT".to_owned(), "1".to_owned()),
+        ("KAFKA_HOST_PORT_1".to_owned(), "1".to_owned()),
+    ];
+
+    let error = match ports.apply_to(&mut environment) {
+        Ok(()) => panic!("missing broker port must fail"),
+        Err(error) => error,
+    };
+
+    assert_eq!(error.code(), "environment_host_port_invalid");
+}
+
+#[test]
 fn empty_or_wrapping_ranges_are_rejected() {
     assert!(HostPorts::fixed(0, 1).is_err());
     assert!(HostPorts::fixed(u16::MAX, 2).is_err());

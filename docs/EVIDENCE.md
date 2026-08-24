@@ -29,6 +29,10 @@ without stopping the packaged adapter process.
 If a broker process exits before initial readiness, Testlab retains its failed
 readiness, process state, and logs, then permits one deadline-bounded start of
 the same container. A repeated exit makes the run invalid.
+If Docker loses a reserved loopback port before Compose owns it, Testlab retains
+the failed start, removes its partial project, assigns a fresh reserved port
+set, and permits one deadline-bounded Compose retry. A second collision makes
+the run invalid.
 Provisioning waits for every harness-created scenario partition to report a
 leader and the topology's full in-sync replica count before starting the
 packaged client.

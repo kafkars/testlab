@@ -26,13 +26,13 @@ pub struct DockerComposeEnvironment {
     pub(super) client_port: u16,
     pub(super) cluster_size: u16,
     pub(super) feature_levels: BTreeMap<String, u16>,
-    host_ports: HostPorts,
+    pub(super) host_ports: HostPorts,
     pub(super) started_unix_ms: u64,
     pub(super) started: Instant,
     pub(super) next_operation: u32,
     pub(super) stopped_partition_leaders: BTreeMap<(String, i32), u16>,
     pub(super) stopped_brokers: Vec<u16>,
-    up_attempted: bool,
+    pub(super) up_attempted: bool,
 }
 
 impl Debug for DockerComposeEnvironment {
@@ -159,42 +159,6 @@ impl DockerComposeEnvironment {
     /// Returns ephemeral secret values passed only in the adapter process environment.
     pub fn adapter_environment(&self) -> Vec<(String, String)> {
         self.client_security.adapter_environment()
-    }
-
-    /// Starts the pinned image and waits for every declared broker service.
-    pub fn start(&mut self, timeout: Duration) -> ComposePhase {
-        let mut phase = ComposePhase::default();
-        let Some(deadline) = Instant::now().checked_add(timeout) else {
-            phase.fail("environment_deadline_invalid", "setup deadline overflowed");
-            return phase;
-        };
-        let image = self.environment[0].1.clone();
-        if !self.required(&mut phase, compose_command::image_pull(&image), deadline) {
-            return phase;
-        }
-        if !self.required(&mut phase, compose_command::image_inspect(&image), deadline) {
-            return phase;
-        }
-        if !self.required(&mut phase, compose_command::config(&self.prefix), deadline) {
-            return phase;
-        }
-        self.host_ports.release();
-        self.up_attempted = true;
-        if !self.required(&mut phase, compose_command::up(&self.prefix), deadline) {
-            return phase;
-        }
-        for service in self.broker_services.clone() {
-            if !self.wait_ready(&mut phase, &service, deadline) {
-                return phase;
-            }
-        }
-        if !self.prepare_broker_features(&mut phase, deadline) {
-            return phase;
-        }
-        if !self.prepare_client_security(&mut phase, deadline) {
-            return phase;
-        }
-        phase
     }
 
     /// Captures final state and logs before removing all project resources.
