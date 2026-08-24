@@ -121,6 +121,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeTopic(_)
             | ScenarioAction::ListTopics(_)
             | ScenarioAction::ListOffsets(_)
+            | ScenarioAction::ListConsumerGroupOffsets(_)
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }
             | ScenarioAction::CreateShareConsumer { .. }

@@ -2,6 +2,7 @@
 
 mod admin;
 mod admin_discovery;
+mod admin_group;
 mod client_failure;
 mod consumer;
 mod contracts;
@@ -19,6 +20,10 @@ pub use verify::verify;
 
 #[cfg(test)]
 mod admin_discovery_test;
+#[cfg(test)]
+mod admin_group_test;
+#[cfg(test)]
+mod admin_group_verdict_test;
 #[cfg(test)]
 mod admin_test;
 #[cfg(test)]

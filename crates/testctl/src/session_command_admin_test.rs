@@ -2,7 +2,8 @@
 
 use testlab_schema::{
     AdapterCommand, AdminOffsetPosition, ClientId, CreatePartitionsAction, DescribeTopicAction,
-    ListOffsetsAction, ListTopicsAction, OperationId, ScenarioAction,
+    ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand, ListOffsetsAction,
+    ListTopicsAction, OperationId, ScenarioAction,
 };
 
 use crate::session_command_admin::translate;
@@ -117,6 +118,39 @@ fn offset_translation_keeps_expected_result_private() {
             position: AdminOffsetPosition::Latest,
             timeout_ms: 20_000,
         }
+    );
+}
+
+#[test]
+fn group_offset_translation_keeps_expected_result_private() {
+    let client_id = id(ClientId::new("client-1"));
+    let operation_id = id(OperationId::new("admin-group-offsets-1"));
+    let action = ScenarioAction::ListConsumerGroupOffsets(ListConsumerGroupOffsetsAction {
+        client_id: client_id.clone(),
+        operation_id: operation_id.clone(),
+        group_id: "group-1".to_owned(),
+        topic: "orders".to_owned(),
+        partition: 2,
+        require_stable: true,
+        expected_offset: 42,
+        timeout_ms: 20_000,
+    });
+
+    let Some((command, _)) = translate(&action) else {
+        panic!("consumer-group offset listing must cross the adapter boundary");
+    };
+
+    assert_eq!(
+        command,
+        AdapterCommand::ListConsumerGroupOffsets(ListConsumerGroupOffsetsCommand {
+            client_id,
+            operation_id,
+            group_id: "group-1".to_owned(),
+            topic: "orders".to_owned(),
+            partition: 2,
+            require_stable: true,
+            timeout_ms: 20_000,
+        })
     );
 }
 

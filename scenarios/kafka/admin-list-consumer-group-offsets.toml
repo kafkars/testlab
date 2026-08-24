@@ -1,9 +1,9 @@
 schema_version = 14
-id = "kafka.consumer-protocol-group-round-trip"
-title = "packaged KIP-848 group consumer receives and commits exact bytes"
-description = "The packaged client joins with the consumer group protocol, returns the exact public record, commits its checkpoint, and exposes a positive KIP-848 member epoch."
+id = "kafka.admin-list-consumer-group-offsets"
+title = "packaged admin lists an independently observed consumer-group offset"
+description = "After a classic group publicly consumes and commits one exact record, the packaged client's public group-offset query returns offset 1 and an independent librdkafka query confirms the same checkpoint."
 timeout_ms = 120000
-requires = ["producer", "consumer_protocol_groups", "lifecycle", "client_readiness"]
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -28,16 +28,14 @@ producer_id = "producer-1"
 operation_id = "op-produced"
 
 [steps.record]
-topic = "testlab-kafkars-kip848-group"
+topic = "testlab-kafkars-admin-group-offsets"
 partition = 0
 sequence = 1
-key = { encoding = "hex", data = "006b6970383438ff" }
-value = { encoding = "hex", data = "00636f6d6d6974ff" }
+key = { encoding = "hex", data = "0067726f75702d6f6666736574ff" }
+value = { encoding = "hex", data = "00636f6d6d6974746564ff" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-produced" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
-  { name = "binary", value = { encoding = "hex", data = "00ff" } },
-  { name = "nullable" },
 ]
 
 [[steps]]
@@ -55,9 +53,9 @@ id = "create-group-consumer"
 kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
-group_id = "testlab-kip848-group"
-topic = "testlab-kafkars-kip848-group"
-protocol = "consumer"
+group_id = "testlab-admin-offset-group"
+topic = "testlab-kafkars-admin-group-offsets"
+protocol = "classic"
 
 [[steps]]
 id = "receive-and-commit"
@@ -71,6 +69,18 @@ timeout_ms = 30000
 id = "close-group-consumer"
 kind = "close_group_consumer"
 consumer_id = "consumer-1"
+
+[[steps]]
+id = "list-consumer-group-offset"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-group-offsets-1"
+group_id = "testlab-admin-offset-group"
+topic = "testlab-kafkars-admin-group-offsets"
+partition = 0
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
 
 [[steps]]
 id = "shutdown-client"

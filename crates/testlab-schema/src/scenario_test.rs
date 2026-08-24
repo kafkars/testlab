@@ -117,6 +117,7 @@ fn fencing_requires_the_original_transactional_identity() {
         "../../../scenarios/kafka/transaction-fencing.toml"
     ))
     .unwrap_or_else(|error| panic!("parse fencing scenario: {error}"));
+    scenario.schema_version = SCENARIO_SCHEMA_VERSION;
     scenario
         .validate()
         .unwrap_or_else(|error| panic!("validate fencing scenario: {error}"));
@@ -147,6 +148,7 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
         "../../../scenarios/kafka/producer-broker-restart.toml"
     ))
     .unwrap_or_else(|error| panic!("parse broker restart scenario: {error}"));
+    scenario.schema_version = SCENARIO_SCHEMA_VERSION;
     let Some(ScenarioAction::RestartBroker {
         broker_ordinal,
         timeout_ms,
@@ -179,7 +181,7 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
 #[test]
 fn broker_and_partition_stops_require_exact_restoration() {
     let source = r#"
-schema_version = 13
+schema_version = 14
 id = "environment.paired-control"
 title = "paired control"
 description = "every retained broker control is restored"

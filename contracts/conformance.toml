@@ -49,6 +49,12 @@ statement = "Each requested public latest-offset query emits exactly one complet
 category = "admin"
 
 [[contract]]
+id = "ADMIN-006"
+title = "Admin consumer-group offset listing matches broker state"
+statement = "Each requested public consumer-group offset query emits exactly one completion for the exact group and topic-partition and returns the declared committed offset confirmed by an independent broker-state query."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

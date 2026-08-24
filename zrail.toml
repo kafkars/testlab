@@ -75,6 +75,7 @@ inputs = [
   "scenarios/kafka/admin-describe-topic.toml",
   "scenarios/kafka/admin-list-topics.toml",
   "scenarios/kafka/admin-list-offsets.toml",
+  "scenarios/kafka/admin-list-consumer-group-offsets.toml",
   "scenarios/kafka/transaction-commit-abort.toml",
   "scenarios/kafka/transaction-fencing.toml",
   "packs/kafkars-pr.toml",

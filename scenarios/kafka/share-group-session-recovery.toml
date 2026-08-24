@@ -1,4 +1,4 @@
-schema_version = 13
+schema_version = 14
 id = "kafka.share-group-session-recovery"
 title = "one share member recovers while every broker is disrupted"
 description = "Testlab stops each broker in turn while one unique share member remains live and proves forward progress after the stop that necessarily disrupts its original group coordinator."

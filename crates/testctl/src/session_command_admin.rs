@@ -1,6 +1,6 @@
 //! Admin scenario actions translate into exact public-operation completions.
 
-use testlab_schema::{AdapterCommand, ScenarioAction};
+use testlab_schema::{AdapterCommand, ListConsumerGroupOffsetsCommand, ScenarioAction};
 
 use crate::runner_protocol::ExpectedEvent;
 
@@ -42,7 +42,8 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ),
         action @ (ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
-        | ScenarioAction::ListOffsets(_)) => return translate_query(action),
+        | ScenarioAction::ListOffsets(_)
+        | ScenarioAction::ListConsumerGroupOffsets(_)) => return translate_query(action),
         _ => return None,
     };
     Some(pair)
@@ -84,6 +85,23 @@ fn translate_query(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
             },
             ExpectedEvent::OffsetListed {
                 operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+            },
+        ),
+        ScenarioAction::ListConsumerGroupOffsets(action) => (
+            AdapterCommand::ListConsumerGroupOffsets(ListConsumerGroupOffsetsCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                group_id: action.group_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+                require_stable: action.require_stable,
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::ConsumerGroupOffsetListed {
+                operation_id: action.operation_id.clone(),
+                group_id: action.group_id.clone(),
                 topic: action.topic.clone(),
                 partition: action.partition,
             },

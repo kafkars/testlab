@@ -2,7 +2,9 @@
 
 use std::path::Path;
 
-use testlab_schema::{BrokerObservation, EnvironmentManifest, EnvironmentOperation, RunId};
+use testlab_schema::{
+    BrokerObservation, BrokerStateObservation, EnvironmentManifest, EnvironmentOperation, RunId,
+};
 use thiserror::Error;
 
 use crate::TerminalOutput;
@@ -47,6 +49,8 @@ pub struct ComposeObservation {
     pub phase: ComposePhase,
     /// Exact records visible at the captured broker watermarks.
     pub observations: Vec<BrokerObservation>,
+    /// Read-only broker state returned by independent targeted queries.
+    pub state_observations: Vec<BrokerStateObservation>,
 }
 
 impl ComposePhase {

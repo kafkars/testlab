@@ -1,29 +1,42 @@
-//! Issued record operations are derived only from recorded harness commands.
+//! Issued operation identities are derived only from recorded harness commands.
 
 use std::collections::BTreeSet;
 
-use testlab_schema::{AdapterCommand, HistoryEntry, HistoryPayload, OperationId};
+use testlab_schema::{
+    AdapterCommand, HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId,
+};
 
-pub(crate) fn from_history(history: &[HistoryEntry]) -> BTreeSet<OperationId> {
-    let mut issued = BTreeSet::new();
+#[derive(Debug, Default)]
+pub(crate) struct IssuedOperations {
+    pub(crate) record_operations: BTreeSet<OperationId>,
+    pub(crate) group_offset_commands: Vec<ListConsumerGroupOffsetsCommand>,
+}
+
+pub(crate) fn from_history(history: &[HistoryEntry]) -> IssuedOperations {
+    let mut issued = IssuedOperations::default();
     for entry in history {
         let HistoryPayload::HarnessCommand { command } = &entry.payload else {
             continue;
         };
         match &command.command {
             AdapterCommand::Send { operation_id, .. } => {
-                issued.insert(operation_id.clone());
+                issued.record_operations.insert(operation_id.clone());
             }
             AdapterCommand::SendBatch { operations, .. }
             | AdapterCommand::ExecuteTransaction { operations, .. } => {
-                issued.extend(
+                issued.record_operations.extend(
                     operations
                         .iter()
                         .map(|operation| operation.operation_id.clone()),
                 );
             }
             AdapterCommand::FenceTransaction { operation, .. } => {
-                issued.insert(operation.operation_id.clone());
+                issued
+                    .record_operations
+                    .insert(operation.operation_id.clone());
+            }
+            AdapterCommand::ListConsumerGroupOffsets(action) => {
+                issued.group_offset_commands.push(action.clone());
             }
             _ => {}
         }

@@ -55,7 +55,8 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::CreatePartitions(_)
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
-        | ScenarioAction::ListOffsets(_)) => {
+        | ScenarioAction::ListOffsets(_)
+        | ScenarioAction::ListConsumerGroupOffsets(_)) => {
             return crate::session_command_admin::translate(action);
         }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }

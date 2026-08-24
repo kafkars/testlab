@@ -27,7 +27,8 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::CreatePartitions(_)
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
-        | ScenarioAction::ListOffsets(_) => Some(Capability::Admin),
+        | ScenarioAction::ListOffsets(_)
+        | ScenarioAction::ListConsumerGroupOffsets(_) => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::FenceTransaction { .. }

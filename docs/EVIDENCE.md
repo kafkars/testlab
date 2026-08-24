@@ -14,12 +14,13 @@ digests exist.
 - `adapter.json` after a successful handshake
 - `history.jsonl`
 - `broker-observations.jsonl`
+- `broker-state-observations.jsonl`
 - `verdict.json`
 - `summary.md`
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v5 records the exact environment identity in `manifest.json`.
+Evidence schema v6 records the exact environment identity in `manifest.json`.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -51,6 +52,15 @@ partition whose greatest observed offset is exactly one less than the declared
 end offset. The evidence does not imply exhaustive topic discovery, internal
 topic classification, replica topology, or untested offset selectors.
 
+`broker-state-observations.jsonl` retains independently queried broker state
+that is not a record snapshot. The first state observation is one exact
+consumer-group committed offset, queried only when its correlated public admin
+command was actually issued. The state-query consumer never joins the group,
+subscribes, assigns, or commits. An absent broker offset remains explicit
+absence, and observer errors invalidate the run rather than manufacture a
+client result. ADMIN-006 requires the public and independent offsets to match
+the scenario's declared checkpoint.
+
 ## Qualification evidence
 
 `testctl qualify` creates one `<qualification-run-id>.partial` tree, executes
@@ -78,7 +88,8 @@ harness failure prevents a client claim.
 ## Evidence references
 
 Violations cite stable locations such as `history:12`,
-`broker-observation:3`, and `scenario:operation:op-1`.
+`broker-observation:3`, `broker-state-observation:0`, and
+`scenario:operation:op-1`.
 
 ## Future LLM summary
 

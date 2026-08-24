@@ -6,10 +6,7 @@ use crate::{
     BatchRecord, BrokerBehavior, ClientId, ConsumerId, GroupProtocol, OperationId, ProducerId,
     RecordSpec, ShareDisposition, TransactionDisposition,
 };
-use crate::{CreatePartitionsAction, DescribeTopicAction};
-use crate::{ListOffsetsAction, ListTopicsAction};
-
-/// Scenario action vocabulary for scenario schema v13.
+/// Scenario action vocabulary for scenario schema v14.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -222,13 +219,15 @@ pub enum ScenarioAction {
         timeout_ms: u64,
     },
     /// Increases one Kafka topic to a requested total partition count.
-    CreatePartitions(CreatePartitionsAction),
+    CreatePartitions(crate::CreatePartitionsAction),
     /// Describes one Kafka topic through the public admin surface.
-    DescribeTopic(DescribeTopicAction),
+    DescribeTopic(crate::DescribeTopicAction),
     /// Lists Kafka topics visible through the public admin surface.
-    ListTopics(ListTopicsAction),
+    ListTopics(crate::ListTopicsAction),
     /// Lists one offset position through the public admin surface.
-    ListOffsets(ListOffsetsAction),
+    ListOffsets(crate::ListOffsetsAction),
+    /// Lists one committed consumer-group offset through the public admin surface.
+    ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsAction),
     /// Initializes one uniquely controlled public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.

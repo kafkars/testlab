@@ -44,6 +44,8 @@ mod normalize_test;
 #[cfg(test)]
 mod protocol_admin_discovery_test;
 #[cfg(test)]
+mod protocol_admin_group_offset_test;
+#[cfg(test)]
 mod protocol_admin_offset_test;
 #[cfg(test)]
 mod protocol_admin_test;

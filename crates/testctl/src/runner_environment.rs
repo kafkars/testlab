@@ -9,8 +9,8 @@ use testlab_environment::{
     DockerComposeEnvironment,
 };
 use testlab_schema::{
-    AdapterDescriptor, AdapterSecurity, BrokerObservation, EnvironmentDriver, EnvironmentManifest,
-    RunId, Scenario, SubjectManifest,
+    AdapterDescriptor, AdapterSecurity, BrokerObservation, BrokerStateObservation,
+    EnvironmentDriver, EnvironmentManifest, RunId, Scenario, SubjectManifest,
 };
 
 use crate::recorder::HistoryRecorder;
@@ -35,13 +35,19 @@ pub(crate) fn execute_environment(
     recorder: &mut HistoryRecorder,
     adapter: &mut Option<AdapterDescriptor>,
     observations: &mut Vec<BrokerObservation>,
+    state_observations: &mut Vec<BrokerStateObservation>,
     artifacts: &mut Vec<ComposeArtifact>,
 ) -> Result<(), RunFailure> {
     match &request.environment.driver {
         EnvironmentDriver::ModelBroker => execute_model(request, recorder, adapter, observations),
-        EnvironmentDriver::DockerCompose { .. } => {
-            execute_compose(request, recorder, adapter, observations, artifacts)
-        }
+        EnvironmentDriver::DockerCompose { .. } => execute_compose(
+            request,
+            recorder,
+            adapter,
+            observations,
+            state_observations,
+            artifacts,
+        ),
     }
 }
 
@@ -106,6 +112,7 @@ fn execute_compose(
     recorder: &mut HistoryRecorder,
     adapter: &mut Option<AdapterDescriptor>,
     observations: &mut Vec<BrokerObservation>,
+    state_observations: &mut Vec<BrokerStateObservation>,
     artifacts: &mut Vec<ComposeArtifact>,
 ) -> Result<(), RunFailure> {
     let work_deadline = request.deadline.reserving(CLEANUP_RESERVE)?;
@@ -156,14 +163,20 @@ fn execute_compose(
     let observation = if setup_result.is_ok() && provision_result.is_ok() && adapter.is_some() {
         environment.observe(
             request.scenario,
-            &issued_operations,
+            &issued_operations.record_operations,
+            &issued_operations.group_offset_commands,
             work_deadline.remaining().unwrap_or(Duration::ZERO),
         )
     } else {
         ComposeObservation::default()
     };
-    let observation_result =
-        record_compose_observation(observation, recorder, observations, artifacts);
+    let observation_result = record_compose_observation(
+        observation,
+        recorder,
+        observations,
+        state_observations,
+        artifacts,
+    );
     let cleanup_timeout = request.deadline.remaining().unwrap_or(Duration::ZERO);
     let cleanup = environment.finish(cleanup_timeout);
     let cleanup_result = record_phase(cleanup, recorder, artifacts);
@@ -178,17 +191,23 @@ fn record_compose_observation(
     snapshot: ComposeObservation,
     recorder: &mut HistoryRecorder,
     observations: &mut Vec<BrokerObservation>,
+    state_observations: &mut Vec<BrokerStateObservation>,
     artifacts: &mut Vec<ComposeArtifact>,
 ) -> Result<(), RunFailure> {
     let ComposeObservation {
         phase,
         observations: captured,
+        state_observations: captured_state,
     } = snapshot;
     let phase_result = record_phase(phase, recorder, artifacts);
     for observation in &captured {
         recorder.observation(observation.clone())?;
     }
     observations.clone_from(&captured);
+    for observation in &captured_state {
+        recorder.state_observation(observation.clone())?;
+    }
+    state_observations.clone_from(&captured_state);
     phase_result
 }
 

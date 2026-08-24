@@ -67,6 +67,26 @@ pub(super) fn classify_admin(
                 && expected_topic == actual_topic
                 && expected_partition == actual_partition
         }
+        (
+            ExpectedEvent::ConsumerGroupOffsetListed {
+                operation_id: expected_operation,
+                group_id: expected_group,
+                topic: expected_topic,
+                partition: expected_partition,
+            },
+            AdapterEvent::ConsumerGroupOffsetListed {
+                operation_id: actual_operation,
+                group_id: actual_group,
+                topic: actual_topic,
+                partition: actual_partition,
+                ..
+            },
+        ) => {
+            expected_operation == actual_operation
+                && expected_group == actual_group
+                && expected_topic == actual_topic
+                && expected_partition == actual_partition
+        }
         _ => return None,
     };
     Some(if identity_matches {
@@ -87,6 +107,7 @@ pub(super) fn same_admin_event_family(expected: &ExpectedEvent, event: &AdapterE
             | ExpectedEvent::TopicDescribed { .. }
             | ExpectedEvent::TopicsListed { .. }
             | ExpectedEvent::OffsetListed { .. }
+            | ExpectedEvent::ConsumerGroupOffsetListed { .. }
     ) && matches!(
         event,
         AdapterEvent::TopicCreated { .. }
@@ -94,5 +115,6 @@ pub(super) fn same_admin_event_family(expected: &ExpectedEvent, event: &AdapterE
             | AdapterEvent::TopicDescribed { .. }
             | AdapterEvent::TopicsListed { .. }
             | AdapterEvent::OffsetListed { .. }
+            | AdapterEvent::ConsumerGroupOffsetListed { .. }
     )
 }

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{Capability, OperationAssertion, ScenarioError, ScenarioId, ScenarioStep};
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 13;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 14;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

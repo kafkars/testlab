@@ -20,7 +20,8 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::CreatePartitions { .. }
         | AdapterCommand::DescribeTopic { .. }
         | AdapterCommand::ListTopics { .. }
-        | AdapterCommand::ListOffsets { .. } => "admin capability required",
+        | AdapterCommand::ListOffsets { .. }
+        | AdapterCommand::ListConsumerGroupOffsets(_) => "admin capability required",
         AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::FenceTransaction { .. }

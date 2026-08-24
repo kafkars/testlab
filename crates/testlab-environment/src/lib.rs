@@ -17,6 +17,7 @@ mod compose_topic_readiness;
 mod compose_types;
 mod observer;
 mod observer_error;
+mod observer_group_offset;
 mod observer_record;
 mod security;
 mod terminal;
@@ -42,6 +43,8 @@ mod compose_startup_test;
 mod compose_test;
 #[cfg(test)]
 mod compose_test_fixture;
+#[cfg(test)]
+mod observer_group_offset_test;
 #[cfg(test)]
 mod observer_test;
 #[cfg(test)]

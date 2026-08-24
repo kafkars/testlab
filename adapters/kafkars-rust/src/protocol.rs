@@ -152,7 +152,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::CreatePartitions { .. }
         | AdapterCommand::DescribeTopic { .. }
         | AdapterCommand::ListTopics { .. }
-        | AdapterCommand::ListOffsets { .. }) => {
+        | AdapterCommand::ListOffsets { .. }
+        | AdapterCommand::ListConsumerGroupOffsets(_)) => {
             protocol_admin::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateTransactionalProducer { .. }

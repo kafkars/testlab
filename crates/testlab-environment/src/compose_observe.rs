@@ -4,21 +4,24 @@ use std::collections::BTreeSet;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{
-    EnvironmentOperation, EnvironmentOperationKind, EnvironmentOperationStatus, OperationId,
-    Scenario,
+    EnvironmentOperation, EnvironmentOperationKind, EnvironmentOperationStatus,
+    ListConsumerGroupOffsetsCommand, OperationId, Scenario,
 };
 
 use crate::compose::DockerComposeEnvironment;
 use crate::compose_support::elapsed_unix_ms;
 use crate::compose_types::{ComposeObservation, ComposePhase};
-use crate::observer::{ObserverRequest, capture};
+use crate::observer::{ObserverRequest, capture as capture_records};
+use crate::observer_error::ObserverError;
+use crate::observer_group_offset::capture as capture_group_offsets;
 
 impl DockerComposeEnvironment {
-    /// Snapshots issued scenario topic-partitions with a client independent of the subject.
+    /// Snapshots issued record and broker-state targets independently of the subject.
     pub fn observe(
         &mut self,
         scenario: &Scenario,
-        issued_operations: &BTreeSet<OperationId>,
+        issued_record_operations: &BTreeSet<OperationId>,
+        issued_group_offset_commands: &[ListConsumerGroupOffsetsCommand],
         timeout: Duration,
     ) -> ComposeObservation {
         let mut phase = ComposePhase::default();
@@ -29,22 +32,37 @@ impl DockerComposeEnvironment {
                 return ComposeObservation {
                     phase,
                     observations: Vec::new(),
+                    state_observations: Vec::new(),
                 };
             }
         };
         let endpoint = self.endpoint();
         let operation_started = Instant::now();
         let started_unix_ms = elapsed_unix_ms(self.started_unix_ms, self.started.elapsed());
-        let result = capture(ObserverRequest {
+        let deadline = operation_started.checked_add(timeout);
+        let request = |deadline| ObserverRequest {
             endpoint: &endpoint,
             run_id: &self.run_id,
             scenario,
-            issued_operations,
-            timeout,
+            issued_record_operations,
+            issued_group_offset_commands,
+            deadline,
             security: &self.client_security,
-        });
+        };
+        let record_result = deadline
+            .ok_or(ObserverError::DeadlineOverflow)
+            .and_then(|deadline| capture_records(request(deadline)));
+        let (observations, state_result) = match record_result {
+            Ok(observations) => {
+                let result = deadline
+                    .ok_or(ObserverError::DeadlineOverflow)
+                    .and_then(|deadline| capture_group_offsets(request(deadline)));
+                (observations, result)
+            }
+            Err(error) => (Vec::new(), Err(error)),
+        };
         let completed_unix_ms = elapsed_unix_ms(started_unix_ms, operation_started.elapsed());
-        let (status, diagnostic, observations) = match result {
+        let (status, diagnostic, state_observations) = match state_result {
             Ok(observations) => (EnvironmentOperationStatus::Succeeded, None, observations),
             Err(error) => {
                 let status = if error.is_timeout() {
@@ -79,6 +97,7 @@ impl DockerComposeEnvironment {
         ComposeObservation {
             phase,
             observations,
+            state_observations,
         }
     }
 }

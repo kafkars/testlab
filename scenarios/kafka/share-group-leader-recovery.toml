@@ -1,4 +1,4 @@
-schema_version = 13
+schema_version = 14
 id = "kafka.share-group-leader-recovery"
 title = "share acquisitions recover across an observed leader replacement"
 description = "One member retains an acquisition while Testlab stops its partition leader; another live member receives the released acquisition and new work through the replacement without duplicate local ownership."

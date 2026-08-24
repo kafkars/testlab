@@ -116,6 +116,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeTopic { .. }
         | AdapterCommand::ListTopics { .. }
         | AdapterCommand::ListOffsets { .. }
+        | AdapterCommand::ListConsumerGroupOffsets(_)
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::FenceTransaction { .. }

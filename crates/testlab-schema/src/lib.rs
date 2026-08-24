@@ -2,6 +2,7 @@
 
 mod adapter;
 mod admin_action_validation;
+mod admin_group_offset;
 mod admin_offset_position;
 mod admin_scenario_action;
 mod bytes;
@@ -35,6 +36,7 @@ mod transaction_action_validation;
 mod verdict;
 
 pub use adapter::{AdapterDescriptor, Capability};
+pub use admin_group_offset::{ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand};
 pub use admin_offset_position::AdminOffsetPosition;
 pub use admin_scenario_action::{
     CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
@@ -46,8 +48,9 @@ pub use environment::{
     EnvironmentError, EnvironmentManifest, SecurityProfile, TransportSecurity,
 };
 pub use evidence::{
-    BrokerObservation, EVIDENCE_SCHEMA_VERSION, EnvironmentOperation, EnvironmentOperationKind,
-    EnvironmentOperationStatus, EvidenceManifest, HarnessError, HistoryEntry, HistoryPayload,
+    BrokerObservation, BrokerStateObservation, EVIDENCE_SCHEMA_VERSION, EnvironmentOperation,
+    EnvironmentOperationKind, EnvironmentOperationStatus, EvidenceManifest, HarnessError,
+    HistoryEntry, HistoryPayload,
 };
 pub use ids::{
     AdapterId, CellId, ClientId, CommandId, ConsumerId, ContractId, EnvironmentId,
@@ -84,6 +87,8 @@ pub use verdict::{Verdict, VerdictStatus, Violation};
 
 #[cfg(test)]
 mod admin_action_validation_test;
+#[cfg(test)]
+mod admin_group_offset_test;
 #[cfg(test)]
 mod admin_protocol_test;
 #[cfg(test)]

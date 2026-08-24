@@ -14,6 +14,7 @@ impl HistoryIndex {
             HistoryPayload::AdapterEvent { event } => {
                 self.record_event(&event.event, entry.sequence);
             }
+            HistoryPayload::BrokerStateObservation { observation: fact } => self.record_state(fact),
             _ => {}
         }
     }
@@ -91,6 +92,7 @@ impl HistoryIndex {
             | AdapterEvent::TopicDescribed { .. }
             | AdapterEvent::TopicsListed { .. }
             | AdapterEvent::OffsetListed { .. }
+            | AdapterEvent::ConsumerGroupOffsetListed { .. }
             | AdapterEvent::TransactionalProducerCreated { .. }
             | AdapterEvent::TransactionCompleted { .. }
             | AdapterEvent::TransactionFenceCompleted { .. }
@@ -284,6 +286,7 @@ impl HistoryIndex {
             | AdapterCommand::DescribeTopic { .. }
             | AdapterCommand::ListTopics { .. }
             | AdapterCommand::ListOffsets { .. }
+            | AdapterCommand::ListConsumerGroupOffsets(_)
             | AdapterCommand::CreateShareConsumer { .. }
             | AdapterCommand::ShareReceive { .. }
             | AdapterCommand::ShareAcknowledge { .. }

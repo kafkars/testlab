@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v15 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v16 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -41,6 +41,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_topic`
 - `list_topics`
 - `list_offsets`
+- `list_consumer_group_offsets`
 - `create_transactional_producer`
 - `execute_transaction`
 - `fence_transaction`
@@ -82,6 +83,7 @@ client commands while the same adapter process and client handles remain alive.
 - `topic_described`
 - `topics_listed`
 - `offset_listed`
+- `consumer_group_offset_listed`
 - `transactional_producer_created`
 - `transaction_completed`
 - `transaction_fence_completed`
@@ -142,6 +144,15 @@ observations at offsets 0 and 1 establish the claim without treating an adapter
 echo as broker truth. Other offset positions, timestamps, and leader epochs are
 outside this slice.
 
+The initial consumer-group offset slice selects one exact group and
+topic-partition after a public classic-group receive commits its checkpoint. The
+adapter command carries the requested stable-read option but omits the expected
+offset. Its result preserves an absent committed offset as absence. A separate
+librdkafka consumer that never joins or commits independently queries that exact
+group and topic-partition after the session; both public and independent results
+must equal the declared offset. This does not claim group-state, membership, or
+multi-partition listing behavior.
+
 One `execute_transaction` command owns a complete linear begin, ordered send,
 and commit-or-abort sequence because the public transaction token borrows its
 producer until it ends. Each accepted record reports `transaction_staged`, then
@@ -171,6 +182,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v15 is an exact semantic contract. New capabilities may be declared
+Protocol v16 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

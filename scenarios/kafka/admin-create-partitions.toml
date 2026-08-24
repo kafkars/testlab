@@ -1,4 +1,4 @@
-schema_version = 13
+schema_version = 14
 id = "kafka.admin-create-partitions"
 title = "packaged admin expands a Kafka topic to a usable partition"
 description = "The packaged client's public admin creates a one-partition topic and requests expansion to a total of three partitions, then the packaged producer writes one independently observed exact record proving newly addressed partition 2 usable."

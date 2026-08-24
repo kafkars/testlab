@@ -39,7 +39,7 @@ fn operation_records_cluster_replication_factor() {
 fn share_groups_are_preconfigured_for_deterministic_earliest_start() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 13
+schema_version = 14
 id = "share.provisioning"
 title = "share provisioning"
 description = "share group provisioning fixture"
@@ -92,7 +92,7 @@ close_timeout_ms = 1000
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 13
+schema_version = 14
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -143,6 +143,10 @@ fn read_only_admin_topics_are_preprovisioned_from_their_markers() {
         (
             "../../scenarios/kafka/admin-list-offsets.toml",
             BTreeMap::from([("testlab-kafkars-admin-offsets".to_owned(), 1)]),
+        ),
+        (
+            "../../scenarios/kafka/admin-list-consumer-group-offsets.toml",
+            BTreeMap::from([("testlab-kafkars-admin-group-offsets".to_owned(), 1)]),
         ),
     ] {
         let manifest =

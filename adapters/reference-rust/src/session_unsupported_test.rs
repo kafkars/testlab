@@ -1,6 +1,9 @@
 //! Unsupported-command tests keep capability classification explicit.
 
-use testlab_schema::{AdapterCommand, AdminOffsetPosition, ClientId, ConsumerId, OperationId};
+use testlab_schema::{
+    AdapterCommand, AdminOffsetPosition, ClientId, ConsumerId, ListConsumerGroupOffsetsCommand,
+    OperationId,
+};
 
 use crate::session_unsupported::reason;
 
@@ -22,13 +25,22 @@ fn read_only_admin_commands_require_admin_capability() {
             timeout_ms: 1_000,
         },
         AdapterCommand::ListOffsets {
-            client_id,
-            operation_id,
+            client_id: client_id.clone(),
+            operation_id: operation_id.clone(),
             topic: "orders".to_owned(),
             partition: 0,
             position: AdminOffsetPosition::Latest,
             timeout_ms: 1_000,
         },
+        AdapterCommand::ListConsumerGroupOffsets(ListConsumerGroupOffsetsCommand {
+            client_id,
+            operation_id,
+            group_id: "orders-group".to_owned(),
+            topic: "orders".to_owned(),
+            partition: 0,
+            require_stable: true,
+            timeout_ms: 1_000,
+        }),
     ];
 
     for command in commands {

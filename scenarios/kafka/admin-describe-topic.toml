@@ -1,4 +1,4 @@
-schema_version = 13
+schema_version = 14
 id = "kafka.admin-describe-topic"
 title = "packaged admin describes independently exercised topic partitions"
 description = "The packaged client's public admin describes one harness-provisioned topic as partitions 0, 1, and 2, then one exact independently observed record exercises each described partition."

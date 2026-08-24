@@ -1,4 +1,4 @@
-schema_version = 13
+schema_version = 14
 id = "kafka.assigned-consumer-round-trip"
 title = "packaged assigned consumer reads exact produced bytes"
 description = "The packaged client produces one record, directly assigns a consumer from the beginning, and returns the exact topic, partition, key, value, and ordered headers."

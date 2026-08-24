@@ -3,7 +3,9 @@
 use std::path::Path;
 
 use testlab_environment::ComposeArtifact;
-use testlab_schema::{EnvironmentManifest, Scenario, SubjectManifest, Verdict};
+use testlab_schema::{
+    BrokerStateObservation, EnvironmentManifest, Scenario, SubjectManifest, Verdict,
+};
 
 use crate::catalog::Repository;
 use crate::evidence::{SealRequest, SealedRun, seal};
@@ -96,6 +98,7 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
     let mut recorder = HistoryRecorder::default();
     let mut adapter = None;
     let mut observations = Vec::new();
+    let mut state_observations = Vec::<BrokerStateObservation>::new();
     let mut environment_artifacts = Vec::<ComposeArtifact>::new();
     let execution = execute_environment(
         EnvironmentExecutionRequest {
@@ -109,6 +112,7 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
         &mut recorder,
         &mut adapter,
         &mut observations,
+        &mut state_observations,
         &mut environment_artifacts,
     );
     let mut failure = execution.err();
@@ -152,6 +156,7 @@ fn run_loaded(repository: &Repository, request: LoadedRun<'_>) -> Result<SealedR
         adapter: adapter.as_ref(),
         history: &history,
         observations: &observations,
+        state_observations: &state_observations,
         environment_artifacts: &environment_artifacts,
         verdict: &verdict,
         started_unix_ms,

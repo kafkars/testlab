@@ -5,8 +5,8 @@ use std::path::{Component, Path, PathBuf};
 
 use testlab_environment::ComposeArtifact;
 use testlab_schema::{
-    AdapterDescriptor, BrokerObservation, EVIDENCE_SCHEMA_VERSION, EnvironmentManifest,
-    EvidenceManifest, HistoryEntry, RunId, Scenario, SubjectManifest, Verdict,
+    AdapterDescriptor, BrokerObservation, BrokerStateObservation, EVIDENCE_SCHEMA_VERSION,
+    EnvironmentManifest, EvidenceManifest, HistoryEntry, RunId, Scenario, SubjectManifest, Verdict,
 };
 
 use crate::evidence_io::{
@@ -28,6 +28,7 @@ pub(crate) struct SealRequest<'a> {
     pub(crate) adapter: Option<&'a AdapterDescriptor>,
     pub(crate) history: &'a [HistoryEntry],
     pub(crate) observations: &'a [BrokerObservation],
+    pub(crate) state_observations: &'a [BrokerStateObservation],
     pub(crate) environment_artifacts: &'a [ComposeArtifact],
     pub(crate) verdict: &'a Verdict,
     pub(crate) started_unix_ms: u64,
@@ -102,6 +103,11 @@ fn write_artifacts(directory: &Path, request: &SealRequest<'_>) -> Result<(), Ap
     }
     write_json_lines(directory, "history.jsonl", request.history)?;
     write_json_lines(directory, "broker-observations.jsonl", request.observations)?;
+    write_json_lines(
+        directory,
+        "broker-state-observations.jsonl",
+        request.state_observations,
+    )?;
     write_json(directory, "verdict.json", request.verdict)?;
     write_bytes(directory, "summary.md", summary(request).as_bytes(), false)?;
     write_bytes(

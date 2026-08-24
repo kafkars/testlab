@@ -9,7 +9,10 @@ use rdkafka::error::KafkaError;
 use rdkafka::message::{Headers, Message};
 use rdkafka::topic_partition_list::{Offset, TopicPartitionList};
 use rdkafka::types::RDKafkaErrorCode;
-use testlab_schema::{BrokerObservation, OperationId, RunId, Scenario, ScenarioAction};
+use testlab_schema::{
+    BrokerObservation, ListConsumerGroupOffsetsCommand, OperationId, RunId, Scenario,
+    ScenarioAction,
+};
 
 use crate::observer_error::ObserverError;
 use crate::observer_record::{CapturedRecord, normalize};
@@ -22,8 +25,9 @@ pub(super) struct ObserverRequest<'a> {
     pub(super) endpoint: &'a str,
     pub(super) run_id: &'a RunId,
     pub(super) scenario: &'a Scenario,
-    pub(super) issued_operations: &'a BTreeSet<OperationId>,
-    pub(super) timeout: Duration,
+    pub(super) issued_record_operations: &'a BTreeSet<OperationId>,
+    pub(super) issued_group_offset_commands: &'a [ListConsumerGroupOffsetsCommand],
+    pub(super) deadline: Instant,
     pub(super) security: &'a ClientSecurity,
 }
 
@@ -40,17 +44,14 @@ type Assignment = (TopicPartitionList, Cursors);
 pub(super) fn capture(
     request: ObserverRequest<'_>,
 ) -> Result<Vec<BrokerObservation>, ObserverError> {
-    let targets = targets(request.scenario, request.issued_operations);
+    let targets = targets(request.scenario, request.issued_record_operations);
     if targets.is_empty() {
         return Ok(Vec::new());
     }
-    let deadline = Instant::now()
-        .checked_add(request.timeout)
-        .ok_or(ObserverError::DeadlineOverflow)?;
     let consumer = consumer(request.endpoint, request.run_id, request.security)?;
-    let (assignment, mut cursors) = assignment(&consumer, targets, deadline)?;
+    let (assignment, mut cursors) = assignment(&consumer, targets, request.deadline)?;
     consumer.assign(&assignment)?;
-    poll_snapshot(&consumer, &mut cursors, deadline)
+    poll_snapshot(&consumer, &mut cursors, request.deadline)
 }
 
 fn consumer(
@@ -216,7 +217,7 @@ fn normalize_message(
     )
 }
 
-fn remaining(deadline: Instant) -> Result<Duration, ObserverError> {
+pub(super) fn remaining(deadline: Instant) -> Result<Duration, ObserverError> {
     let remaining = deadline.saturating_duration_since(Instant::now());
     if remaining.is_zero() {
         Err(ObserverError::Deadline)

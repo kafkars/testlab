@@ -83,6 +83,41 @@ fn list_offset_completion_checks_topic_partition_and_operation() {
     );
 }
 
+#[test]
+fn group_offset_completion_checks_every_stable_identity() {
+    let operation_id = id(OperationId::new("group-offset-1"));
+    let expected = ExpectedEvent::ConsumerGroupOffsetListed {
+        operation_id: operation_id.clone(),
+        group_id: "group-1".to_owned(),
+        topic: "orders".to_owned(),
+        partition: 2,
+    };
+
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::ConsumerGroupOffsetListed {
+                operation_id: operation_id.clone(),
+                group_id: "group-1".to_owned(),
+                topic: "orders".to_owned(),
+                partition: 2,
+                offset: None,
+            })
+            .unwrap_or_else(|error| panic!("group offset classification: {error}")),
+        EventDisposition::Complete
+    );
+    assert!(
+        expected
+            .classify(&AdapterEvent::ConsumerGroupOffsetListed {
+                operation_id,
+                group_id: "other-group".to_owned(),
+                topic: "orders".to_owned(),
+                partition: 2,
+                offset: Some(42),
+            })
+            .is_err()
+    );
+}
+
 fn id<T, E>(result: Result<T, E>) -> T
 where
     E: std::fmt::Display,

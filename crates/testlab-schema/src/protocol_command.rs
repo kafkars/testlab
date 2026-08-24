@@ -2,10 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    AdapterSecurity, BatchRecord, ClientId, ConsumerId, GroupProtocol, OperationId, ProducerId,
-    RecordSpec, RunId, ScenarioId, ShareDisposition, TransactionDisposition,
-};
+use crate::{BatchRecord, ClientId, ConsumerId, OperationId, ProducerId};
 
 /// Public operation requested from an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -14,13 +11,13 @@ pub enum AdapterCommand {
     /// Starts one adapter session and declares the environment endpoints.
     Hello {
         /// Unique test attempt.
-        run_id: RunId,
+        run_id: crate::RunId,
         /// Stable scenario identity.
-        scenario_id: ScenarioId,
+        scenario_id: crate::ScenarioId,
         /// Ordered broker or test-peer bootstrap endpoints selected by testctl.
         broker_endpoints: Vec<String>,
         /// Non-secret connection policy and secret environment references.
-        security: AdapterSecurity,
+        security: crate::AdapterSecurity,
     },
     /// Creates one public client handle.
     CreateClient {
@@ -46,7 +43,7 @@ pub enum AdapterCommand {
         /// Stable operation identity.
         operation_id: OperationId,
         /// Exact logical record.
-        record: RecordSpec,
+        record: crate::RecordSpec,
     },
     /// Offers an ordered record batch through one public producer call.
     SendBatch {
@@ -96,7 +93,7 @@ pub enum AdapterCommand {
         /// Subscribed topic.
         topic: String,
         /// Classic or KIP-848 group protocol.
-        protocol: GroupProtocol,
+        protocol: crate::GroupProtocol,
     },
     /// Receives one group batch and commits its checkpoint.
     GroupReceive {
@@ -145,7 +142,7 @@ pub enum AdapterCommand {
         /// Stable acknowledgement identity.
         acknowledgement_id: OperationId,
         /// Uniform public record disposition.
-        disposition: ShareDisposition,
+        disposition: crate::ShareDisposition,
         /// Complete acknowledgement bound.
         timeout_ms: u64,
     },
@@ -226,6 +223,8 @@ pub enum AdapterCommand {
         /// Complete public operation bound.
         timeout_ms: u64,
     },
+    /// Lists one committed consumer-group offset through the public admin surface.
+    ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsCommand),
     /// Initializes one public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.
@@ -248,7 +247,7 @@ pub enum AdapterCommand {
         /// Ordered records staged by the transaction.
         operations: Vec<BatchRecord>,
         /// Requested public transaction outcome.
-        disposition: TransactionDisposition,
+        disposition: crate::TransactionDisposition,
         /// Complete begin, send, and end bound.
         timeout_ms: u64,
     },

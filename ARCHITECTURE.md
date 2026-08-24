@@ -32,8 +32,9 @@ what the client said. It never decides whether the broker agrees.
 Owns external effects and observations. A tiny model broker self-tests the
 harness but never supports Kafka compatibility claims. Docker Compose
 environments run pinned real Kafka clusters, retain lifecycle and disruption
-operations, and observe records independently through librdkafka. A future
-Kafka protocol adversary and network fault proxy will extend this boundary.
+operations, and observe records and targeted broker state independently through
+librdkafka. A future Kafka protocol adversary and network fault proxy will
+extend this boundary.
 
 ### Verifier
 

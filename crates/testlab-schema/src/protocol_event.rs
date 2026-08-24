@@ -192,6 +192,19 @@ pub enum AdapterEvent {
         /// Selected offset, or absence when Kafka reported none.
         offset: Option<i64>,
     },
+    /// One public admin consumer-group offset listing completed successfully.
+    ConsumerGroupOffsetListed {
+        /// Stable admin operation identity.
+        operation_id: OperationId,
+        /// Exact Kafka consumer-group identity requested by the public operation.
+        group_id: String,
+        /// Exact topic reported by the public result.
+        topic: String,
+        /// Exact partition reported by the public result.
+        partition: i32,
+        /// Committed offset, or absence when Kafka reported none.
+        offset: Option<i64>,
+    },
     /// Public transactional producer initialization completed.
     TransactionalProducerCreated {
         /// Created transactional producer.

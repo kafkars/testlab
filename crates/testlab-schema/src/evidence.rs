@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 5;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 6;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -24,6 +24,27 @@ pub struct BrokerObservation {
     pub record: RecordSpec,
     /// Canonical digest calculated from the received record.
     pub digest: String,
+}
+
+/// One independently observed broker-state fact outside the record stream.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum BrokerStateObservation {
+    /// One committed consumer-group offset independently read from Kafka.
+    ConsumerGroupOffset {
+        /// Monotonic observation ordinal from the environment.
+        observation: u64,
+        /// Admin operation whose claim this fact checks independently.
+        operation_id: OperationId,
+        /// Exact Kafka consumer-group identity.
+        group_id: String,
+        /// Exact Kafka topic name.
+        topic: String,
+        /// Exact partition.
+        partition: i32,
+        /// Committed offset, or absence when Kafka reported none.
+        offset: Option<i64>,
+    },
 }
 
 /// One ordered entry in the complete run history.
@@ -61,6 +82,11 @@ pub enum HistoryPayload {
     BrokerObservation {
         /// Exact observation.
         observation: BrokerObservation,
+    },
+    /// One typed broker-state observation outside the record stream.
+    BrokerStateObservation {
+        /// Exact independent state observation.
+        observation: BrokerStateObservation,
     },
     /// One completed environment terminal operation.
     EnvironmentOperation {
@@ -130,7 +156,7 @@ pub enum EnvironmentOperationKind {
     BrokerStop,
     /// Start one previously stopped partition leader.
     BrokerStart,
-    /// Snapshot broker-visible records with an independent client.
+    /// Snapshot broker-visible records and targeted broker state independently.
     BrokerObserve,
     /// Capture Compose process state.
     ComposePs,

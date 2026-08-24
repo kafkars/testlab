@@ -1,8 +1,9 @@
 //! Recorder tests prove one stable order across commands and external controls.
 
 use testlab_schema::{
-    AdapterCommand, BrokerBehavior, CommandEnvelope, CommandId, EnvironmentOperation,
-    EnvironmentOperationId, EnvironmentOperationKind, EnvironmentOperationStatus, HistoryPayload,
+    AdapterCommand, BrokerBehavior, BrokerStateObservation, CommandEnvelope, CommandId,
+    EnvironmentOperation, EnvironmentOperationId, EnvironmentOperationKind,
+    EnvironmentOperationStatus, HistoryPayload, OperationId,
 };
 
 use crate::recorder::HistoryRecorder;
@@ -23,9 +24,13 @@ fn recorder_assigns_monotonic_sequences() {
     if let Err(error) = recorder.environment_operation(operation()) {
         panic!("failed to record environment operation: {error}");
     }
+    if let Err(error) = recorder.state_observation(state_observation()) {
+        panic!("failed to record broker state: {error}");
+    }
     assert_eq!(recorder.entries()[0].sequence, 0);
     assert_eq!(recorder.entries()[1].sequence, 1);
     assert_eq!(recorder.entries()[2].sequence, 2);
+    assert_eq!(recorder.entries()[3].sequence, 3);
     assert!(matches!(
         &recorder.entries()[1].payload,
         HistoryPayload::BrokerControl {
@@ -37,6 +42,27 @@ fn recorder_assigns_monotonic_sequences() {
         HistoryPayload::EnvironmentOperation { operation }
             if operation.kind == EnvironmentOperationKind::ComposeConfig
     ));
+    assert!(matches!(
+        &recorder.entries()[3].payload,
+        HistoryPayload::BrokerStateObservation {
+            observation: BrokerStateObservation::ConsumerGroupOffset {
+                offset: Some(1),
+                ..
+            }
+        }
+    ));
+}
+
+fn state_observation() -> BrokerStateObservation {
+    BrokerStateObservation::ConsumerGroupOffset {
+        observation: 0,
+        operation_id: OperationId::new("admin-offset-1")
+            .unwrap_or_else(|error| panic!("invalid operation id: {error}")),
+        group_id: "group-1".to_owned(),
+        topic: "records".to_owned(),
+        partition: 0,
+        offset: Some(1),
+    }
 }
 
 fn operation() -> EnvironmentOperation {

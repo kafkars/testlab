@@ -69,6 +69,7 @@ fn assert_required_artifacts(run: &Path) {
         "environment.json",
         "history.jsonl",
         "broker-observations.jsonl",
+        "broker-state-observations.jsonl",
         "verdict.json",
         "summary.md",
         "reproduction.sh",

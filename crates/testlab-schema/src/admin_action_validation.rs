@@ -61,7 +61,8 @@ pub(crate) fn validate(
         }
         action @ (ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
-        | ScenarioAction::ListOffsets(_)) => {
+        | ScenarioAction::ListOffsets(_)
+        | ScenarioAction::ListConsumerGroupOffsets(_)) => {
             validate_query(action, clients, operation_ids, problems);
         }
         _ => {}
@@ -111,6 +112,35 @@ fn validate_query(
                 operation_ids,
                 problems,
             );
+            if action.partition < 0 {
+                problems.push(format!(
+                    "admin operation {} partition must be nonnegative",
+                    action.operation_id
+                ));
+            }
+            if action.expected_offset < 0 {
+                problems.push(format!(
+                    "admin operation {} expected_offset must be nonnegative",
+                    action.operation_id
+                ));
+            }
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
+        ScenarioAction::ListConsumerGroupOffsets(action) => {
+            validate_common(
+                &action.client_id,
+                &action.operation_id,
+                &action.topic,
+                clients,
+                operation_ids,
+                problems,
+            );
+            if action.group_id.is_empty() || action.group_id.len() > 255 {
+                problems.push(format!(
+                    "admin operation {} has invalid group_id",
+                    action.operation_id
+                ));
+            }
             if action.partition < 0 {
                 problems.push(format!(
                     "admin operation {} partition must be nonnegative",

@@ -101,6 +101,24 @@ pub(crate) fn listed_offset(
     )
 }
 
+pub(crate) fn listed_consumer_group_offset(
+    entries: Vec<(TopicPartition, Result<Option<i64>, KafkaError>)>,
+    operation_id: &OperationId,
+    expected_topic: &str,
+    expected_partition: i32,
+) -> Result<Option<i64>, AdapterError> {
+    take_single_result(
+        entries,
+        operation_id,
+        |topic_partition| {
+            topic_partition.topic() == expected_topic
+                && topic_partition.partition() == expected_partition
+                && topic_partition.start_position().is_none()
+        },
+        "consumer-group topic-partition offset",
+    )
+}
+
 fn take_single_result<K, V, F>(
     entries: Vec<(K, Result<V, KafkaError>)>,
     operation_id: &OperationId,

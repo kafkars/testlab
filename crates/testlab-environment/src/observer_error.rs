@@ -1,5 +1,7 @@
 //! Observer errors keep failed capture distinct from a valid empty snapshot.
 
+use rdkafka::error::KafkaError;
+use rdkafka::types::RDKafkaErrorCode;
 use thiserror::Error;
 
 /// One independent Kafka observation failure.
@@ -13,6 +15,8 @@ pub(super) enum ObserverError {
     Deadline,
     #[error("Kafka observer received an invalid record: {0}")]
     InvalidRecord(String),
+    #[error("Kafka observer received invalid broker state: {0}")]
+    InvalidBrokerState(String),
     #[error("Kafka observer received an unexpected topic-partition {0}:{1}")]
     UnexpectedPartition(String, i32),
     #[error("Kafka observer offset overflowed")]
@@ -23,6 +27,13 @@ pub(super) enum ObserverError {
 
 impl ObserverError {
     pub(super) fn is_timeout(&self) -> bool {
-        matches!(self, Self::Deadline)
+        matches!(
+            self,
+            Self::Deadline
+                | Self::Kafka(
+                    KafkaError::MetadataFetch(RDKafkaErrorCode::OperationTimedOut)
+                        | KafkaError::OffsetFetch(RDKafkaErrorCode::OperationTimedOut)
+                )
+        )
     }
 }

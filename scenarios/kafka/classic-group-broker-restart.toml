@@ -1,4 +1,4 @@
-schema_version = 13
+schema_version = 14
 id = "kafka.classic-group-broker-restart"
 title = "packaged classic group member recovers after a broker restart"
 description = "One live classic group member receives and commits exact records before and after testlab restarts its Kafka broker."

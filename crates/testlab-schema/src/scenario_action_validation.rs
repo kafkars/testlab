@@ -102,7 +102,8 @@ pub(crate) fn validate_action(
         | ScenarioAction::CreatePartitions(_)
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
-        | ScenarioAction::ListOffsets(_)) => {
+        | ScenarioAction::ListOffsets(_)
+        | ScenarioAction::ListConsumerGroupOffsets(_)) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,

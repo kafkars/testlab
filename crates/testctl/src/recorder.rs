@@ -1,8 +1,8 @@
 //! One recorder establishes total history order across every trust boundary.
 
 use testlab_schema::{
-    AdapterEventEnvelope, BrokerBehavior, BrokerObservation, CommandEnvelope, EnvironmentOperation,
-    HarnessError, HistoryEntry, HistoryPayload,
+    AdapterEventEnvelope, BrokerBehavior, BrokerObservation, BrokerStateObservation,
+    CommandEnvelope, EnvironmentOperation, HarnessError, HistoryEntry, HistoryPayload,
 };
 
 use crate::run_error::RunFailure;
@@ -29,6 +29,13 @@ impl HistoryRecorder {
 
     pub(crate) fn observation(&mut self, observation: BrokerObservation) -> Result<(), RunFailure> {
         self.push(HistoryPayload::BrokerObservation { observation })
+    }
+
+    pub(crate) fn state_observation(
+        &mut self,
+        observation: BrokerStateObservation,
+    ) -> Result<(), RunFailure> {
+        self.push(HistoryPayload::BrokerStateObservation { observation })
     }
 
     pub(crate) fn environment_operation(

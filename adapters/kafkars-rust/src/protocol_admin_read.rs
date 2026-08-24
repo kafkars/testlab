@@ -3,7 +3,7 @@
 use std::io::Write;
 use std::time::Duration;
 
-use kafkars::{ListOffsetsQuery, OffsetSpec, ReadIsolation};
+use kafkars::{ListOffsetsQuery, OffsetSpec, ReadIsolation, TopicPartition};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminOffsetPosition, ClientId, CommandId,
     OperationId,
@@ -12,7 +12,8 @@ use testlab_schema::{
 use crate::AdapterError;
 use crate::protocol::emit;
 use crate::protocol_admin_result::{
-    DescribedTopicResult, described_partitions, listed_offset, listed_topics,
+    DescribedTopicResult, described_partitions, listed_consumer_group_offset, listed_offset,
+    listed_topics,
 };
 use crate::state::AdapterState;
 
@@ -29,6 +30,16 @@ struct ListOffsetInput {
     topic: String,
     partition: i32,
     position: AdminOffsetPosition,
+    timeout_ms: u64,
+}
+
+struct ListConsumerGroupOffsetInput {
+    client_id: ClientId,
+    operation_id: OperationId,
+    group_id: String,
+    topic: String,
+    partition: i32,
+    require_stable: bool,
     timeout_ms: u64,
 }
 
@@ -87,6 +98,20 @@ pub(crate) fn dispatch<W: Write>(
                 partition,
                 position,
                 timeout_ms,
+            },
+        ),
+        AdapterCommand::ListConsumerGroupOffsets(input) => list_consumer_group_offset(
+            state,
+            writer,
+            command_id,
+            ListConsumerGroupOffsetInput {
+                client_id: input.client_id,
+                operation_id: input.operation_id,
+                group_id: input.group_id,
+                topic: input.topic,
+                partition: input.partition,
+                require_stable: input.require_stable,
+                timeout_ms: input.timeout_ms,
             },
         ),
         _ => Err(AdapterError::AdminResult(
@@ -196,6 +221,47 @@ fn list_offset<W: Write>(
             command_id,
             AdapterEvent::OffsetListed {
                 operation_id: input.operation_id,
+                topic: input.topic,
+                partition: input.partition,
+                offset,
+            },
+        ),
+    )
+}
+
+fn list_consumer_group_offset<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    input: ListConsumerGroupOffsetInput,
+) -> Result<(), AdapterError> {
+    // The singular public operation owns the group identity; its result keys
+    // independently echo only the selected topic-partition.
+    let result = state
+        .client(&input.client_id)?
+        .admin()
+        .list_consumer_group_offsets(input.group_id.clone())
+        .partitions([TopicPartition::new(input.topic.clone(), input.partition)])
+        .require_stable(input.require_stable)
+        .deadline_after(Duration::from_millis(input.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let entries = result
+        .into_offsets()
+        .into_entries()
+        .into_iter()
+        .map(|(key, result)| (key, result.map(|value| value.committed_offset())))
+        .collect();
+    let offset =
+        listed_consumer_group_offset(entries, &input.operation_id, &input.topic, input.partition)?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::ConsumerGroupOffsetListed {
+                operation_id: input.operation_id,
+                group_id: input.group_id,
                 topic: input.topic,
                 partition: input.partition,
                 offset,

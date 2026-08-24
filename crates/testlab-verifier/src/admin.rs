@@ -3,6 +3,7 @@
 use testlab_schema::{BrokerObservation, Scenario, ScenarioAction, Violation};
 
 use crate::admin_discovery::verify_discovery_action;
+use crate::admin_group::verify_group_offset_action;
 use crate::index::{HistoryIndex, IndexedAdminTopicCompletion};
 use crate::support::{references, violation};
 
@@ -13,6 +14,9 @@ pub(crate) fn verify_admin(
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
+        if verify_group_offset_action(&step.action, index, violations) {
+            continue;
+        }
         if !index.action_issued(&step.action) {
             continue;
         }

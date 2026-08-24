@@ -22,7 +22,8 @@ pub(crate) fn dispatch<W: Write>(
         }
         command @ (AdapterCommand::DescribeTopic { .. }
         | AdapterCommand::ListTopics { .. }
-        | AdapterCommand::ListOffsets { .. }) => {
+        | AdapterCommand::ListOffsets { .. }
+        | AdapterCommand::ListConsumerGroupOffsets(_)) => {
             protocol_admin_read::dispatch(state, writer, command_id, command)
         }
         _ => Err(AdapterError::AdminResult(
