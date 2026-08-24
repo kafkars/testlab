@@ -12,7 +12,24 @@ use crate::identity::new_run_id;
 use crate::run_error::AppError;
 use crate::time::unix_ms;
 
-const PACKAGE_NAMES: [&str; 3] = ["kafka-client-core", "kafka-client-engine", "kafkars"];
+const KAFKARS_PACKAGE_NAMES: [&str; 3] = ["kafka-client-core", "kafka-client-engine", "kafkars"];
+const DRIVER_PACKAGE_NAMES: [&str; 3] = [
+    "kafka-driver",
+    "kafka-driver-core",
+    "kafka-driver-transport",
+];
+const WIRE_PACKAGE_NAMES: [&str; 3] = ["kafka-wire", "kafka-wire-core", "kafka-wire-records"];
+const PACKAGE_NAMES: [&str; 9] = [
+    "kafka-client-core",
+    "kafka-client-engine",
+    "kafkars",
+    "kafka-driver",
+    "kafka-driver-core",
+    "kafka-driver-transport",
+    "kafka-wire",
+    "kafka-wire-core",
+    "kafka-wire-records",
+];
 
 #[derive(Debug)]
 pub(crate) struct PreparedCandidate {
@@ -45,7 +62,24 @@ pub(crate) fn prepare_kafkars(
             error,
         )
     })?;
-    package(&manifest, &package_target, allow_dirty)?;
+    let sibling_root = kafkars_root.parent().ok_or_else(|| {
+        AppError::Candidate("Kafkars root has no sibling dependency directory".to_owned())
+    })?;
+    let driver_manifest = sibling_manifest(sibling_root, "kafka-driver")?;
+    let wire_manifest = sibling_manifest(sibling_root, "kafka-protocol")?;
+    package(
+        &manifest,
+        &package_target,
+        &KAFKARS_PACKAGE_NAMES,
+        allow_dirty,
+    )?;
+    package(
+        &driver_manifest,
+        &package_target,
+        &DRIVER_PACKAGE_NAMES,
+        false,
+    )?;
+    package(&wire_manifest, &package_target, &WIRE_PACKAGE_NAMES, false)?;
     let artifacts = extract_packages(&directory, &package_target.join("package"))?;
     let adapter_manifest = write_adapter_manifest(repository.root(), &directory, &artifacts)?;
     build_adapter(&adapter_manifest, &directory.join("adapter-target"))?;
@@ -56,7 +90,12 @@ pub(crate) fn prepare_kafkars(
     })
 }
 
-fn package(manifest: &Path, target: &Path, allow_dirty: bool) -> Result<(), AppError> {
+fn package(
+    manifest: &Path,
+    target: &Path,
+    package_names: &[&str],
+    allow_dirty: bool,
+) -> Result<(), AppError> {
     let mut command = Command::new("cargo");
     command
         .arg("package")
@@ -69,10 +108,22 @@ fn package(manifest: &Path, target: &Path, allow_dirty: bool) -> Result<(), AppE
     if allow_dirty {
         command.arg("--allow-dirty");
     }
-    for name in PACKAGE_NAMES {
+    for name in package_names {
         command.arg("--package").arg(name);
     }
     run(&mut command, "package Kafkars public crates")
+}
+
+fn sibling_manifest(parent: &Path, sibling: &str) -> Result<PathBuf, AppError> {
+    let root = canonical_directory(&parent.join(sibling), sibling)?;
+    let manifest = root.join("Cargo.toml");
+    if !manifest.is_file() {
+        return Err(AppError::Candidate(format!(
+            "missing {sibling} workspace manifest {}",
+            manifest.display()
+        )));
+    }
+    Ok(manifest)
 }
 
 fn extract_packages(
@@ -128,7 +179,7 @@ pub(crate) fn find_archive(directory: &Path, package: &str) -> Result<(PathBuf, 
         if let Some(version) = name
             .strip_prefix(&prefix)
             .and_then(|value| value.strip_suffix(".crate"))
-            .filter(|value| !value.is_empty())
+            .filter(|value| value.as_bytes().first().is_some_and(u8::is_ascii_digit))
         {
             matches.push((entry.path(), version.to_owned()));
         }
@@ -152,7 +203,8 @@ fn build_adapter(manifest: &Path, target: &Path) -> Result<(), AppError> {
         .arg("--manifest-path")
         .arg(manifest)
         .arg("--target-dir")
-        .arg(target);
+        .arg(target)
+        .env("RUSTFLAGS", "--cfg kafkars_share_candidate");
     run(&mut command, "build packaged Kafkars adapter")
 }
 

@@ -5,6 +5,8 @@ scenarios = [
   "scenarios/kafka/producer-round-trip.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
   "scenarios/kafka/classic-group-round-trip.toml",
+  "scenarios/kafka/share-group-lifecycle.toml",
+  "scenarios/kafka/share-group-membership-ownership.toml",
   "scenarios/kafka/admin-create-topic.toml",
   "scenarios/kafka/admin-create-partitions.toml",
   "scenarios/kafka/admin-describe-topic.toml",

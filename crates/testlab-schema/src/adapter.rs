@@ -26,6 +26,8 @@ pub enum Capability {
     ConsumerGroups,
     /// KIP-848 consumer group operations.
     ConsumerProtocolGroups,
+    /// KIP-932 share-group acquisition and acknowledgement operations.
+    ShareConsumer,
     /// Transactional producer operations.
     Transactions,
     /// Administrative operations.

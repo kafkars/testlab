@@ -1,7 +1,8 @@
 //! Admin verifier tests distinguish exact topic success from mismatched claims.
 
 use testlab_schema::{
-    AdapterEvent, Capability, OperationId, ScenarioAction, TerminalStatus, VisibilityExpectation,
+    AdapterEvent, Capability, CreatePartitionsAction, OperationId, ScenarioAction, TerminalStatus,
+    VisibilityExpectation,
 };
 
 use super::verify;
@@ -113,13 +114,13 @@ fn partition_scenario() -> (testlab_schema::Scenario, OperationId) {
         2,
         step(
             "admin-partitions",
-            ScenarioAction::CreatePartitions {
+            ScenarioAction::CreatePartitions(CreatePartitionsAction {
                 client_id: id(testlab_schema::ClientId::new("client-1")),
                 operation_id: operation_id.clone(),
                 topic: "records".to_owned(),
                 total_count: 2,
                 timeout_ms: 1_000,
-            },
+            }),
         ),
     );
     (scenario, operation_id)

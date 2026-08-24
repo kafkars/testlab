@@ -5,21 +5,21 @@ title = "packaged Kafkars release qualification"
 [[cells]]
 id = "apache-kafka-4-3-1-plaintext"
 environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
-pack = "packs/kafkars-release.toml"
+pack = "packs/kafkars-share-release.toml"
 attempts = 3
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-2-1-plaintext"
 environment = "clusters/apache-kafka/4.2.1/single-plaintext.toml"
-pack = "packs/kafkars-release.toml"
+pack = "packs/kafkars-share-release.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-1-2-plaintext"
 environment = "clusters/apache-kafka/4.1.2/single-plaintext.toml"
-pack = "packs/kafkars-release.toml"
+pack = "packs/kafkars-share-release.toml"
 attempts = 1
 gating = true
 
@@ -54,34 +54,34 @@ gating = true
 [[cells]]
 id = "apache-kafka-4-3-1-three-tls"
 environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
-pack = "packs/kafkars-three-broker.toml"
+pack = "packs/kafkars-three-broker-security.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-sasl-plain"
 environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
-pack = "packs/kafkars-three-broker.toml"
+pack = "packs/kafkars-three-broker-security.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-scram-sha-256"
 environment = "clusters/apache-kafka/4.3.1/three-scram-sha-256.toml"
-pack = "packs/kafkars-three-broker.toml"
+pack = "packs/kafkars-three-broker-security.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-scram-sha-512"
 environment = "clusters/apache-kafka/4.3.1/three-scram-sha-512.toml"
-pack = "packs/kafkars-three-broker.toml"
+pack = "packs/kafkars-three-broker-security.toml"
 attempts = 1
 gating = true
 
 [[cells]]
 id = "apache-kafka-4-3-1-three-plaintext"
 environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
-pack = "packs/kafkars-three-broker.toml"
+pack = "packs/kafkars-three-broker-share.toml"
 attempts = 1
 gating = true

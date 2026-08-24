@@ -1,0 +1,212 @@
+schema_version = 13
+id = "kafka.share-group-session-recovery"
+title = "one share member recovers while every broker is disrupted"
+description = "Testlab stops each broker in turn while one unique share member remains live and proves forward progress after the stop that necessarily disrupts its original group coordinator."
+timeout_ms = 360000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-session"
+topic = "testlab-kafkars-share-session"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "stop-broker-1"
+kind = "stop_broker"
+broker_ordinal = 1
+timeout_ms = 10000
+
+[[steps]]
+id = "send-after-broker-1"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-broker-1"
+
+[steps.record]
+topic = "testlab-kafkars-share-session"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "broker-1" }
+value = { encoding = "utf8", data = "progress-after-broker-1" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "receive-after-broker-1"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-after-broker-1"
+expected_operation_id = "op-after-broker-1"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-after-broker-1"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-after-broker-1"
+acknowledgement_id = "ack-after-broker-1"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "start-broker-1"
+kind = "start_broker"
+broker_ordinal = 1
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-broker-2"
+kind = "stop_broker"
+broker_ordinal = 2
+timeout_ms = 10000
+
+[[steps]]
+id = "send-after-broker-2"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-broker-2"
+
+[steps.record]
+topic = "testlab-kafkars-share-session"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "broker-2" }
+value = { encoding = "utf8", data = "progress-after-broker-2" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-2" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-after-broker-2"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-after-broker-2"
+expected_operation_id = "op-after-broker-2"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-after-broker-2"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-after-broker-2"
+acknowledgement_id = "ack-after-broker-2"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "start-broker-2"
+kind = "start_broker"
+broker_ordinal = 2
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-broker-3"
+kind = "stop_broker"
+broker_ordinal = 3
+timeout_ms = 10000
+
+[[steps]]
+id = "send-after-broker-3"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-broker-3"
+
+[steps.record]
+topic = "testlab-kafkars-share-session"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "broker-3" }
+value = { encoding = "utf8", data = "progress-after-broker-3" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-3" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "receive-after-broker-3"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-after-broker-3"
+expected_operation_id = "op-after-broker-3"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-after-broker-3"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-after-broker-3"
+acknowledgement_id = "ack-after-broker-3"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "start-broker-3"
+kind = "start_broker"
+broker_ordinal = 3
+timeout_ms = 45000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-after-broker-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-broker-2"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-broker-3"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

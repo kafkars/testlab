@@ -6,6 +6,7 @@ use std::time::Duration;
 use kafkars::{Client, Consumer, ConsumerGroupProtocol, OffsetReset};
 use testlab_schema::{ClientId, ConsumerId, GroupProtocol};
 
+use crate::admission_retry::retry_owned_safe;
 use crate::state::StateError;
 
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(30);
@@ -34,7 +35,7 @@ impl GroupConsumers {
         if self.contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
-        let consumer = client
+        let builder = client
             .consumer(group_id)
             .subscribe([topic])
             .group_protocol(match protocol {
@@ -43,9 +44,13 @@ impl GroupConsumers {
             })
             .on_missing_offset(OffsetReset::Earliest)
             .membership_start_timeout(OPERATION_TIMEOUT)
-            .close_timeout(OPERATION_TIMEOUT)
-            .build()
-            .map_err(|error| StateError::Client(error.into_parts().1))?;
+            .close_timeout(OPERATION_TIMEOUT);
+        let consumer = retry_owned_safe(builder, |builder| {
+            builder
+                .build()
+                .map_err(kafkars::ConsumerBuildError::into_parts)
+        })
+        .map_err(|(_, error)| StateError::Client(error))?;
         self.owners.insert(
             consumer_id,
             ConsumerOwner {
@@ -71,20 +76,29 @@ impl GroupConsumers {
             .owners
             .remove(consumer_id)
             .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))?;
-        match owner.consumer.try_close() {
-            Ok(close) => close.wait().map_err(StateError::Client),
-            Err(error) => {
+        let close = match retry_owned_safe(owner, |owner| {
+            let ConsumerOwner {
+                client_id,
+                consumer,
+            } = owner;
+            consumer.try_close().map_err(|error| {
                 let (consumer, client_error) = error.into_parts();
-                self.owners.insert(
-                    consumer_id.clone(),
+                (
                     ConsumerOwner {
-                        client_id: owner.client_id,
+                        client_id,
                         consumer,
                     },
-                );
-                Err(StateError::Client(client_error))
+                    client_error,
+                )
+            })
+        }) {
+            Ok(close) => close,
+            Err((owner, client_error)) => {
+                self.owners.insert(consumer_id.clone(), owner);
+                return Err(StateError::Client(client_error));
             }
-        }
+        };
+        close.wait().map_err(StateError::Client)
     }
 
     pub(crate) fn contains(&self, consumer_id: &ConsumerId) -> bool {

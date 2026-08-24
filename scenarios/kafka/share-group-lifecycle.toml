@@ -1,0 +1,291 @@
+schema_version = 13
+id = "kafka.share-group-lifecycle"
+title = "packaged share consumer preserves acknowledgement dispositions"
+description = "One share member proves accept, release, reject, and unacknowledged-drop behavior with exact records and delivery counts."
+timeout_ms = 180000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-accept"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-accept"
+
+[steps.record]
+topic = "testlab-kafkars-share-lifecycle"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "accept" }
+value = { encoding = "utf8", data = "accepted-once" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-accept" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-lifecycle"
+topic = "testlab-kafkars-share-lifecycle"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "receive-accept"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-accept"
+expected_operation_id = "op-accept"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-accept"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-accept"
+acknowledgement_id = "ack-accept"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-release"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-release"
+
+[steps.record]
+topic = "testlab-kafkars-share-lifecycle"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "release" }
+value = { encoding = "utf8", data = "released-once" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-release" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-release"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-release-1"
+expected_operation_id = "op-release"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-release"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-release-1"
+acknowledgement_id = "ack-release"
+disposition = "release"
+timeout_ms = 30000
+
+[[steps]]
+id = "receive-released-again"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-release-2"
+expected_operation_id = "op-release"
+minimum_delivery_count = 2
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-released-record"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-release-2"
+acknowledgement_id = "ack-release-final"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-reject"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-reject"
+
+[steps.record]
+topic = "testlab-kafkars-share-lifecycle"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "reject" }
+value = { encoding = "utf8", data = "rejected-once" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-reject" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "receive-reject"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-reject"
+expected_operation_id = "op-reject"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-reject"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-reject"
+acknowledgement_id = "ack-reject"
+disposition = "reject"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-after-reject"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-reject"
+
+[steps.record]
+topic = "testlab-kafkars-share-lifecycle"
+partition = 0
+sequence = 4
+key = { encoding = "utf8", data = "after-reject" }
+value = { encoding = "utf8", data = "forward-progress" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-reject" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+]
+
+[[steps]]
+id = "receive-after-reject"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-after-reject"
+expected_operation_id = "op-after-reject"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-after-reject"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-after-reject"
+acknowledgement_id = "ack-after-reject"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-drop"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-drop"
+
+[steps.record]
+topic = "testlab-kafkars-share-lifecycle"
+partition = 0
+sequence = 5
+key = { encoding = "utf8", data = "drop" }
+value = { encoding = "utf8", data = "redeliver-after-lock" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "5" } },
+]
+
+[[steps]]
+id = "receive-drop"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-drop-1"
+expected_operation_id = "op-drop"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "drop-share-batch"
+kind = "drop_share_batch"
+consumer_id = "share-1"
+receive_id = "receive-drop-1"
+
+[[steps]]
+id = "receive-dropped-again"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-drop-2"
+expected_operation_id = "op-drop"
+minimum_delivery_count = 2
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-dropped-record"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-drop-2"
+acknowledgement_id = "ack-drop-final"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-accept"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-release"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-reject"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-reject"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-drop"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

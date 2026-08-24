@@ -16,46 +16,30 @@ pub(crate) fn verify_discovery_action(
     violations: &mut Vec<Violation>,
 ) -> bool {
     match action {
-        ScenarioAction::DescribeTopic {
-            operation_id,
-            topic,
-            expected_partitions,
-            ..
-        } => verify_description(
-            operation_id,
-            topic,
-            expected_partitions,
-            index.topics_described.get(operation_id),
+        ScenarioAction::DescribeTopic(action) => verify_description(
+            &action.operation_id,
+            &action.topic,
+            &action.expected_partitions,
+            index.topics_described.get(&action.operation_id),
             observations,
             violations,
         ),
-        ScenarioAction::ListTopics {
-            operation_id,
-            required_topics,
-            ..
-        } => verify_topics(
-            operation_id,
-            required_topics,
-            index.topics_listed.get(operation_id),
+        ScenarioAction::ListTopics(action) => verify_topics(
+            &action.operation_id,
+            &action.required_topics,
+            index.topics_listed.get(&action.operation_id),
             observations,
             violations,
         ),
-        ScenarioAction::ListOffsets {
-            operation_id,
-            topic,
-            partition,
-            position,
-            expected_offset,
-            ..
-        } => verify_offset(
+        ScenarioAction::ListOffsets(action) => verify_offset(
             OffsetExpectation {
-                operation_id,
-                topic,
-                partition: *partition,
-                position: *position,
-                expected_offset: *expected_offset,
+                operation_id: &action.operation_id,
+                topic: &action.topic,
+                partition: action.partition,
+                position: action.position,
+                expected_offset: action.expected_offset,
             },
-            index.offsets_listed.get(operation_id),
+            index.offsets_listed.get(&action.operation_id),
             observations,
             violations,
         ),

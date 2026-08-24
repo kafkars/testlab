@@ -5,7 +5,9 @@ use std::time::{Duration, Instant};
 
 use futures_executor::block_on;
 use rdkafka::ClientConfig;
-use rdkafka::admin::{AdminClient, AdminOptions, NewTopic, TopicReplication};
+use rdkafka::admin::{
+    AdminClient, AdminOptions, AlterConfig, NewTopic, ResourceSpecifier, TopicReplication,
+};
 use rdkafka::client::DefaultClientContext;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use testlab_schema::{
@@ -25,6 +27,7 @@ impl DockerComposeEnvironment {
     /// Creates harness-owned topics and proves the broker accepts idempotent production.
     pub fn provision(&mut self, scenario: &Scenario, timeout: Duration) -> ComposePhase {
         let topics = topics(scenario);
+        let share_groups = share_groups(scenario);
         let mut phase = ComposePhase::default();
         let id = match self.operation_id() {
             Ok(id) => id,
@@ -41,6 +44,7 @@ impl DockerComposeEnvironment {
             &endpoint,
             &self.run_id.to_string(),
             &topics,
+            &share_groups,
             replication_factor,
             timeout,
             &self.client_security,
@@ -63,7 +67,7 @@ impl DockerComposeEnvironment {
             id,
             kind: EnvironmentOperationKind::BrokerProvision,
             program: format!("librdkafka/{librdkafka_version}"),
-            args: operation_args(&endpoint, &topics, replication_factor),
+            args: operation_args(&endpoint, &topics, &share_groups, replication_factor),
             started_unix_ms,
             completed_unix_ms,
             status,
@@ -80,6 +84,7 @@ fn provision(
     endpoint: &str,
     run_id: &str,
     topics: &BTreeMap<String, i32>,
+    share_groups: &BTreeSet<String>,
     replication_factor: i32,
     timeout: Duration,
     security: &ClientSecurity,
@@ -117,8 +122,37 @@ fn provision(
             return Err(format!("topic {topic} creation failed: {error}"));
         }
     }
+    configure_share_groups(&admin, share_groups, deadline)?;
     compose_topic_readiness::wait(&admin, &expected_topics, replication_factor, deadline)?;
     prove_idempotent_production(endpoint, run_id, remaining(deadline)?, security)
+}
+
+fn configure_share_groups(
+    admin: &AdminClient<DefaultClientContext>,
+    share_groups: &BTreeSet<String>,
+    deadline: Instant,
+) -> Result<(), String> {
+    if share_groups.is_empty() {
+        return Ok(());
+    }
+    let configs = share_groups
+        .iter()
+        .map(|group_id| {
+            AlterConfig::new(ResourceSpecifier::Group(group_id))
+                .set("share.auto.offset.reset", "earliest")
+        })
+        .collect::<Vec<_>>();
+    let options = AdminOptions::new().request_timeout(Some(remaining(deadline)?));
+    let results =
+        block_on(admin.alter_configs(&configs, &options)).map_err(|error| error.to_string())?;
+    for result in results {
+        if let Err((resource, error)) = result {
+            return Err(format!(
+                "share group {resource:?} configuration failed: {error}"
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn remaining(deadline: Instant) -> Result<Duration, String> {
@@ -190,6 +224,17 @@ pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     topics
 }
 
+pub(super) fn share_groups(scenario: &Scenario) -> BTreeSet<String> {
+    scenario
+        .steps
+        .iter()
+        .filter_map(|step| match &step.action {
+            ScenarioAction::CreateShareConsumer { group_id, .. } => Some(group_id.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
 fn record_topic(
     topics: &mut BTreeMap<String, i32>,
     admin_topics: &BTreeSet<String>,
@@ -208,6 +253,7 @@ fn record_topic(
 pub(super) fn operation_args(
     endpoint: &str,
     topics: &BTreeMap<String, i32>,
+    share_groups: &BTreeSet<String>,
     replication_factor: i32,
 ) -> Vec<String> {
     let mut args = vec![
@@ -225,6 +271,14 @@ pub(super) fn operation_args(
             partitions.to_string(),
             "--replication-factor".to_owned(),
             replication_factor.to_string(),
+        ]);
+    }
+    for group_id in share_groups {
+        args.extend([
+            "--share-group".to_owned(),
+            group_id.clone(),
+            "--share-auto-offset-reset".to_owned(),
+            "earliest".to_owned(),
         ]);
     }
     args

@@ -118,10 +118,18 @@ pub enum EnvironmentOperationKind {
     Readiness,
     /// Provision environment-owned broker authentication state.
     BrokerSecuritySetup,
+    /// Establish one explicit broker feature level after readiness.
+    BrokerFeatureSetup,
     /// Provision scenario-owned broker resources.
     BrokerProvision,
     /// Restart one declared broker service and retain its terminal result.
     BrokerRestart,
+    /// Independently observe one partition leader before or after disruption.
+    BrokerLeaderObserve,
+    /// Stop one independently selected partition leader.
+    BrokerStop,
+    /// Start one previously stopped partition leader.
+    BrokerStart,
     /// Snapshot broker-visible records with an independent client.
     BrokerObserve,
     /// Capture Compose process state.

@@ -32,18 +32,14 @@ pub(crate) fn verify_admin(
                 index.topics_created.get(operation_id).map(Vec::as_slice),
                 violations,
             ),
-            ScenarioAction::CreatePartitions {
-                operation_id,
-                topic,
-                ..
-            } => verify_completion(
+            ScenarioAction::CreatePartitions(action) => verify_completion(
                 "ADMIN-002",
                 "partition creation",
-                operation_id,
-                topic,
+                &action.operation_id,
+                &action.topic,
                 index
                     .topic_partitions_created
-                    .get(operation_id)
+                    .get(&action.operation_id)
                     .map(Vec::as_slice),
                 violations,
             ),

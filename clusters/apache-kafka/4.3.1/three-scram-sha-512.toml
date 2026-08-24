@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 id = "apache-kafka-4.3.1-three-scram-sha-512"
 title = "Apache Kafka 4.3.1 three-broker SCRAM-SHA-512"
 
@@ -9,6 +9,7 @@ cluster_size = 3
 compose_files = [
   "clusters/apache-kafka/compose/three-plaintext.yml",
   "clusters/apache-kafka/compose/three-sasl.yml",
+  "clusters/apache-kafka/compose/three-share.yml",
 ]
 broker_services = ["broker-1", "broker-2", "broker-3"]
 client_port = 19092

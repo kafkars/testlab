@@ -2,7 +2,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{AdminOffsetPosition, ClientId, OperationId, ScenarioAction};
+use super::{
+    AdminOffsetPosition, ClientId, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
+    OperationId, ScenarioAction,
+};
 use crate::admin_action_validation::validate;
 
 #[test]
@@ -117,7 +120,7 @@ fn list_offsets_rejects_invalid_common_and_offset_fields() {
     let clients = BTreeMap::from([(client_id.clone(), false)]);
     let mut operation_ids = BTreeSet::new();
     let mut problems = Vec::new();
-    let action = ScenarioAction::ListOffsets {
+    let action = ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id,
         operation_id: operation("admin-offset-invalid"),
         topic: "a".repeat(250),
@@ -125,7 +128,7 @@ fn list_offsets_rejects_invalid_common_and_offset_fields() {
         position: AdminOffsetPosition::Latest,
         expected_offset: -1,
         timeout_ms: 99,
-    };
+    });
 
     validate(&action, &clients, &mut operation_ids, &mut problems);
 
@@ -140,13 +143,13 @@ fn describe_topic(
     operation_id: OperationId,
     expected_partitions: Vec<i32>,
 ) -> ScenarioAction {
-    ScenarioAction::DescribeTopic {
+    ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id,
         operation_id,
         topic: "records".to_owned(),
         expected_partitions,
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn list_topics(
@@ -154,13 +157,13 @@ fn list_topics(
     operation_id: OperationId,
     required_topics: Vec<String>,
 ) -> ScenarioAction {
-    ScenarioAction::ListTopics {
+    ScenarioAction::ListTopics(ListTopicsAction {
         client_id,
         operation_id,
         include_internal: false,
         required_topics,
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn list_offsets(
@@ -169,7 +172,7 @@ fn list_offsets(
     partition: i32,
     expected_offset: i64,
 ) -> ScenarioAction {
-    ScenarioAction::ListOffsets {
+    ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id,
         operation_id,
         topic: "records".to_owned(),
@@ -177,7 +180,7 @@ fn list_offsets(
         position: AdminOffsetPosition::Latest,
         expected_offset,
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn assert_problem(problems: &[String], expected: &str) {

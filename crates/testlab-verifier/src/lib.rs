@@ -9,6 +9,7 @@ mod index;
 mod lifecycle;
 mod observations;
 mod protocol;
+mod share;
 mod support;
 mod transaction;
 mod verify;
@@ -22,6 +23,8 @@ mod admin_discovery_test;
 mod admin_test;
 #[cfg(test)]
 mod contract_test;
+#[cfg(test)]
+mod share_test;
 #[cfg(test)]
 mod transaction_fence_test;
 #[cfg(test)]

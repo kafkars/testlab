@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 id = "apache-kafka-4.3.1-single-scram-sha-512"
 title = "Apache Kafka 4.3.1 single-broker SCRAM-SHA-512"
 
@@ -9,6 +9,7 @@ cluster_size = 1
 compose_files = [
   "clusters/apache-kafka/compose/single-plaintext.yml",
   "clusters/apache-kafka/compose/single-sasl.yml",
+  "clusters/apache-kafka/compose/single-share.yml",
 ]
 broker_services = ["broker"]
 client_port = 19092

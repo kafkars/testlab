@@ -1,4 +1,4 @@
-schema_version = 12
+schema_version = 13
 id = "kafka.transaction-fencing"
 title = "replacement transactional ownership fences an active producer"
 description = "A packaged producer stages a record, a replacement initializes with the same transactional identity, and the old commit must report fenced while read-committed observation excludes its record and retains replacement commit/abort isolation."

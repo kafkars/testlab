@@ -1,11 +1,9 @@
 //! Session interpreter translates protocol commands to one fixture state machine.
 
-use std::collections::BTreeSet;
 use std::io::{self, BufRead, Read, Write};
 
 use testlab_schema::{
-    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId, Capability,
-    CommandEnvelope, PROTOCOL_VERSION,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
 use thiserror::Error;
 
@@ -84,16 +82,7 @@ fn dispatch<W: Write>(
         AdapterCommand::CreateProducer {
             client_id,
             producer_id,
-        } => {
-            state.create_producer(client_id, producer_id.clone())?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::ProducerCreated { producer_id },
-                ),
-            )?;
-        }
+        } => dispatch_create_producer(state, writer, command_id, client_id, producer_id)?,
         AdapterCommand::Send {
             producer_id,
             operation_id,
@@ -110,6 +99,31 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
+        command @ (AdapterCommand::CreateAssignedConsumer { .. }
+        | AdapterCommand::AssignBeginning { .. }
+        | AdapterCommand::Receive { .. }
+        | AdapterCommand::CloseAssignedConsumer { .. }
+        | AdapterCommand::CreateGroupConsumer { .. }
+        | AdapterCommand::GroupReceive { .. }
+        | AdapterCommand::CloseGroupConsumer { .. }
+        | AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. }
+        | AdapterCommand::CreateTopic { .. }
+        | AdapterCommand::CreatePartitions { .. }
+        | AdapterCommand::DescribeTopic { .. }
+        | AdapterCommand::ListTopics { .. }
+        | AdapterCommand::ListOffsets { .. }
+        | AdapterCommand::CreateTransactionalProducer { .. }
+        | AdapterCommand::ExecuteTransaction { .. }
+        | AdapterCommand::FenceTransaction { .. }
+        | AdapterCommand::CloseTransactionalProducer { .. }) => {
+            return Err(AdapterError::Unsupported(
+                crate::session_unsupported::reason(&command),
+            ));
+        }
         AdapterCommand::Flush { producer_id } => {
             state.require_producer(&producer_id)?;
             emit(
@@ -137,21 +151,25 @@ fn dispatch<W: Write>(
                 &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientShutdown { client_id }),
             )?;
         }
-        AdapterCommand::Finish => {
-            state.finish()?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::Finished),
-            )?;
-            return Ok(true);
-        }
-        command => {
-            return Err(AdapterError::Unsupported(
-                crate::session_unsupported::reason(&command),
-            ));
+        command @ (AdapterCommand::Finish | AdapterCommand::Abort) => {
+            return crate::session_end::dispatch(state, writer, command_id, &command);
         }
     }
     Ok(false)
+}
+
+fn dispatch_create_producer<W: Write>(
+    state: &mut AdapterState,
+    writer: &mut W,
+    command_id: testlab_schema::CommandId,
+    client_id: testlab_schema::ClientId,
+    producer_id: testlab_schema::ProducerId,
+) -> Result<(), AdapterError> {
+    state.create_producer(client_id, producer_id.clone())?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(command_id, AdapterEvent::ProducerCreated { producer_id }),
+    )
 }
 
 fn dispatch_hello<W: Write>(
@@ -166,7 +184,7 @@ fn dispatch_hello<W: Write>(
         &AdapterEventEnvelope::new(
             command_id,
             AdapterEvent::Ready {
-                descriptor: descriptor()?,
+                descriptor: crate::session_descriptor::descriptor()?,
             },
         ),
     )
@@ -183,22 +201,6 @@ fn dispatch_client_ready<W: Write>(
         writer,
         &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
     )
-}
-
-fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
-    Ok(AdapterDescriptor {
-        id: AdapterId::new("reference-rust")?,
-        implementation: "testlab reference Rust adapter".to_owned(),
-        version: env!("CARGO_PKG_VERSION").to_owned(),
-        protocol_version: PROTOCOL_VERSION,
-        capabilities: BTreeSet::from([
-            Capability::Producer,
-            Capability::ProducerBatch,
-            Capability::Lifecycle,
-            Capability::ClientReadiness,
-            Capability::ModelBroker,
-        ]),
-    })
 }
 
 pub(crate) fn emit<W: Write>(

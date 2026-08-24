@@ -3,12 +3,11 @@
 use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
-use crate::{Capability, OperationAssertion, ScenarioAction, ScenarioId, StepId};
+use crate::{Capability, OperationAssertion, ScenarioError, ScenarioId, ScenarioStep};
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 12;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 13;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -38,22 +37,4 @@ impl Scenario {
     pub fn validate(&self) -> Result<(), ScenarioError> {
         crate::scenario_validation::validate(self)
     }
-}
-
-/// One named scenario action.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ScenarioStep {
-    /// Stable step identity.
-    pub id: StepId,
-    /// Action payload.
-    #[serde(flatten)]
-    pub action: ScenarioAction,
-}
-
-/// Invalid scenario with all reviewable problems retained.
-#[derive(Clone, Debug, Eq, Error, PartialEq)]
-#[error("invalid scenario: {problems:?}")]
-pub struct ScenarioError {
-    /// Every discovered validation problem.
-    pub problems: Vec<String>,
 }

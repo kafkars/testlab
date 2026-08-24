@@ -3,8 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    Capability, ClientId, OperationId, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
-    ScenarioId, ScenarioStep, StepId,
+    Capability, ClientId, CreatePartitionsAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
+    ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
 use crate::admin_action_validation::validate;
 
@@ -214,13 +214,13 @@ fn create_partitions(
     total_count: i32,
     timeout_ms: u64,
 ) -> ScenarioAction {
-    ScenarioAction::CreatePartitions {
+    ScenarioAction::CreatePartitions(CreatePartitionsAction {
         client_id,
         operation_id,
         topic,
         total_count,
         timeout_ms,
-    }
+    })
 }
 
 fn client(value: &str) -> ClientId {

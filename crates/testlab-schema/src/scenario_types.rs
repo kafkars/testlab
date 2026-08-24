@@ -2,7 +2,17 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{OperationId, RecordSpec, TerminalStatus};
+use crate::{OperationId, RecordSpec, ScenarioAction, StepId, TerminalStatus};
+
+/// One named scenario action.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct ScenarioStep {
+    /// Stable step identity.
+    pub id: StepId,
+    /// Action payload.
+    #[serde(flatten)]
+    pub action: ScenarioAction,
+}
 
 /// One identified record within a public batch send.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

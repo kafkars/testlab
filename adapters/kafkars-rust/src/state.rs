@@ -1,13 +1,14 @@
 //! Adapter state owns public Kafkars handles under protocol identities.
 
-use std::collections::BTreeMap;
-use std::time::Duration;
+use std::{collections::BTreeMap, time::Duration};
 
+use crate::admission_retry::retry_safe;
 use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::resolve;
 use crate::group_consumers::GroupConsumers;
-use crate::transactional_producers::OwnedTransactionalProducer;
-use crate::transactional_producers::TransactionalProducers;
+#[cfg(kafkars_share_candidate)]
+use crate::share_consumers::ShareConsumers;
+use crate::transactional_producers::{OwnedTransactionalProducer, TransactionalProducers};
 use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
 use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, GroupProtocol, ProducerId};
 
@@ -23,6 +24,8 @@ pub(crate) struct AdapterState {
     producers: BTreeMap<ProducerId, ProducerOwner>,
     consumers: AssignedConsumers,
     group_consumers: GroupConsumers,
+    #[cfg(kafkars_share_candidate)]
+    pub(crate) share_consumers: ShareConsumers,
     transactional_producers: TransactionalProducers,
 }
 
@@ -96,12 +99,11 @@ impl AdapterState {
     }
 
     pub(crate) fn await_client_ready(&self, client_id: &ClientId) -> Result<(), StateError> {
-        self.clients
+        let client = self
+            .clients
             .get(client_id)
-            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?
-            .ready()
-            .wait()
-            .map_err(StateError::Client)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
+        retry_safe(|| client.ready().wait()).map_err(StateError::Client)
     }
 
     pub(crate) fn client(&self, client_id: &ClientId) -> Result<&Client, StateError> {
@@ -176,7 +178,7 @@ impl AdapterState {
         client_id: ClientId,
         consumer_id: ConsumerId,
     ) -> Result<(), StateError> {
-        if self.group_consumers.contains(&consumer_id) {
+        if self.group_consumers.contains(&consumer_id) || self.share_contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
         let client = self
@@ -194,7 +196,7 @@ impl AdapterState {
         topic: String,
         protocol: GroupProtocol,
     ) -> Result<(), StateError> {
-        if self.consumers.contains(&consumer_id) {
+        if self.consumers.contains(&consumer_id) || self.share_contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
         let client = self
@@ -222,7 +224,7 @@ impl AdapterState {
     pub(crate) fn assign_beginning(
         &mut self,
         consumer_id: &ConsumerId,
-        topic: String,
+        topic: &str,
         partition: i32,
     ) -> Result<(), StateError> {
         self.consumers
@@ -244,11 +246,16 @@ impl AdapterState {
     }
 
     pub(crate) fn close_producer(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {
-        let owner = self
-            .producers
-            .remove(producer_id)
-            .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))?;
-        owner.producer.close().wait().map_err(StateError::Client)
+        let result = {
+            let owner = self
+                .producers
+                .get(producer_id)
+                .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))?;
+            retry_safe(|| owner.producer.close().wait())
+        };
+        result.map_err(StateError::Client)?;
+        self.producers.remove(producer_id);
+        Ok(())
     }
 
     pub(crate) fn shutdown_client(&mut self, client_id: &ClientId) -> Result<(), StateError> {
@@ -261,6 +268,7 @@ impl AdapterState {
         }
         if self.consumers.has_owner(client_id)
             || self.group_consumers.has_owner(client_id)
+            || self.share_has_owner(client_id)
             || self.transactional_producers.has_owner(client_id)
         {
             return Err(StateError::OpenConsumer(client_id.clone()));
@@ -273,13 +281,11 @@ impl AdapterState {
     }
 
     pub(crate) fn finish(&self) -> Result<(), StateError> {
-        if !self.producers.is_empty() {
+        if !self.producers.is_empty() || !self.transactional_producers.is_empty() {
             return Err(StateError::UnclosedProducers);
         }
-        if !self.transactional_producers.is_empty() {
-            return Err(StateError::UnclosedProducers);
-        }
-        if !self.consumers.is_empty() || !self.group_consumers.is_empty() {
+        if !self.consumers.is_empty() || !self.group_consumers.is_empty() || !self.share_is_empty()
+        {
             return Err(StateError::UnclosedConsumers);
         }
         if !self.clients.is_empty() {

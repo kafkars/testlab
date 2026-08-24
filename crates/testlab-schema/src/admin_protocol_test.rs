@@ -1,6 +1,8 @@
 //! Partition-administration wire tests separate requested intent from public completion.
 
-use super::{AdapterCommand, AdapterEvent, ClientId, OperationId};
+use super::{
+    AdapterCommand, AdapterEvent, ClientId, CreatePartitionsAction, OperationId, ScenarioAction,
+};
 
 #[test]
 fn create_partitions_command_carries_requested_total() {
@@ -17,6 +19,26 @@ fn create_partitions_command_carries_requested_total() {
 
     assert!(encoded.contains("kind = \"create_partitions\""));
     assert!(encoded.contains("total_count = 2"));
+}
+
+#[test]
+fn create_partitions_action_retains_the_flat_scenario_shape() {
+    let action = ScenarioAction::CreatePartitions(CreatePartitionsAction {
+        client_id: client("client-1"),
+        operation_id: operation("admin-partitions-1"),
+        topic: "records".to_owned(),
+        total_count: 2,
+        timeout_ms: 1_000,
+    });
+
+    let encoded = toml::to_string(&action)
+        .unwrap_or_else(|error| panic!("serialize create-partitions action: {error}"));
+    let decoded = toml::from_str::<ScenarioAction>(&encoded)
+        .unwrap_or_else(|error| panic!("deserialize create-partitions action: {error}"));
+
+    assert!(encoded.contains("kind = \"create_partitions\""));
+    assert!(encoded.contains("total_count = 2"));
+    assert_eq!(decoded, action);
 }
 
 #[test]

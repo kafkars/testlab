@@ -20,6 +20,7 @@ impl HistoryIndex {
 
     fn record_event(&mut self, event: &AdapterEvent, sequence: u64) {
         if self.record_admin_event(event, sequence)
+            || self.record_share_event(event, sequence)
             || self.record_transaction_event(event, sequence)
             || self.record_consumer_event(event, sequence)
         {
@@ -71,7 +72,13 @@ impl HistoryIndex {
             }
             AdapterEvent::Finished => self.finished.push(sequence),
             AdapterEvent::Ready { descriptor } => self.ready.push((sequence, descriptor.clone())),
-            AdapterEvent::BatchCompleted { .. }
+            AdapterEvent::Aborted
+            | AdapterEvent::BatchCompleted { .. }
+            | AdapterEvent::ShareConsumerCreated { .. }
+            | AdapterEvent::ShareReceiveCompleted { .. }
+            | AdapterEvent::ShareAcknowledgementCompleted { .. }
+            | AdapterEvent::ShareBatchDropped { .. }
+            | AdapterEvent::ShareConsumerClosed { .. }
             | AdapterEvent::AssignedConsumerCreated { .. }
             | AdapterEvent::AssignmentCompleted { .. }
             | AdapterEvent::ReceiveCompleted { .. }
@@ -194,7 +201,7 @@ impl HistoryIndex {
 
     fn record_command(&mut self, command: &AdapterCommand) {
         self.has_harness_commands = true;
-        if self.record_admin_command(command) {
+        if self.record_admin_command(command) || self.record_share_command(command) {
             return;
         }
         match command {
@@ -271,12 +278,19 @@ impl HistoryIndex {
                 self.clients_shutdown_issued.insert(client_id.clone());
             }
             AdapterCommand::Finish => self.finish_issued = true,
-            AdapterCommand::Hello { .. }
-            | AdapterCommand::CreateTopic { .. }
+            AdapterCommand::Abort | AdapterCommand::Hello { .. } => {}
+            AdapterCommand::CreateTopic { .. }
             | AdapterCommand::CreatePartitions { .. }
             | AdapterCommand::DescribeTopic { .. }
             | AdapterCommand::ListTopics { .. }
-            | AdapterCommand::ListOffsets { .. } => {}
+            | AdapterCommand::ListOffsets { .. }
+            | AdapterCommand::CreateShareConsumer { .. }
+            | AdapterCommand::ShareReceive { .. }
+            | AdapterCommand::ShareAcknowledge { .. }
+            | AdapterCommand::DropShareBatch { .. }
+            | AdapterCommand::CloseShareConsumer { .. } => {
+                unreachable!("specialized commands are indexed before generic commands")
+            }
         }
     }
 }

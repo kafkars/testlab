@@ -3,6 +3,7 @@
 mod adapter;
 mod admin_action_validation;
 mod admin_offset_position;
+mod admin_scenario_action;
 mod bytes;
 mod consumer_action_validation;
 mod contract;
@@ -22,14 +23,22 @@ mod record;
 mod scenario;
 mod scenario_action;
 mod scenario_action_validation;
+mod scenario_capability_validation;
+mod scenario_environment_action_validation;
+mod scenario_error;
 mod scenario_types;
 mod scenario_validation;
+mod share;
+mod share_action_validation;
 mod subject;
 mod transaction_action_validation;
 mod verdict;
 
 pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_offset_position::AdminOffsetPosition;
+pub use admin_scenario_action::{
+    CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
+};
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
 pub use environment::{
@@ -62,11 +71,14 @@ pub use qualification_evidence::{
     QualificationEvidenceManifest, QualificationRunEvidence,
 };
 pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
-pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario, ScenarioError, ScenarioStep};
+pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario};
 pub use scenario_action::ScenarioAction;
+pub use scenario_error::ScenarioError;
 pub use scenario_types::{
-    BatchRecord, BrokerBehavior, OperationAssertion, TransactionDisposition, VisibilityExpectation,
+    BatchRecord, BrokerBehavior, OperationAssertion, ScenarioStep, TransactionDisposition,
+    VisibilityExpectation,
 };
+pub use share::{ShareConsumedRecord, ShareDisposition};
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};
 

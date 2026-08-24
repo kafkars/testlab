@@ -1,5 +1,6 @@
 //! Shared Compose test fixtures retain fake terminal behavior outside behavioral tests.
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -22,12 +23,39 @@ pub(super) struct Fixture {
 
 impl Fixture {
     pub(super) fn new(fail_up: bool) -> Self {
-        Self::with_authentication(fail_up, Authentication::None)
+        Self::with_behavior(fail_up, false, false, 0, Authentication::None)
     }
 
     pub(super) fn with_authentication(fail_up: bool, authentication: Authentication) -> Self {
-        Self::with_security(
+        Self::with_behavior(fail_up, false, false, 0, authentication)
+    }
+
+    pub(super) fn with_startup_exit(persistent: bool) -> Self {
+        Self::with_behavior(false, true, persistent, 0, Authentication::None)
+    }
+
+    pub(super) fn with_port_collision(persistent: bool) -> Self {
+        Self::with_behavior(
+            false,
+            false,
+            false,
+            if persistent { 2 } else { 1 },
+            Authentication::None,
+        )
+    }
+
+    fn with_behavior(
+        fail_up: bool,
+        startup_exit: bool,
+        persistent_startup_exit: bool,
+        port_collisions: u8,
+        authentication: Authentication,
+    ) -> Self {
+        Self::with_security_behavior(
             fail_up,
+            startup_exit,
+            persistent_startup_exit,
+            port_collisions,
             SecurityProfile {
                 transport: TransportSecurity::Plaintext,
                 authentication,
@@ -36,14 +64,32 @@ impl Fixture {
     }
 
     pub(super) fn with_security(fail_up: bool, security: SecurityProfile) -> Self {
+        Self::with_security_behavior(fail_up, false, false, 0, security)
+    }
+
+    fn with_security_behavior(
+        fail_up: bool,
+        startup_exit: bool,
+        persistent_startup_exit: bool,
+        port_collisions: u8,
+        security: SecurityProfile,
+    ) -> Self {
         let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
         let root =
             std::env::temp_dir().join(format!("testlab-compose-{}-{sequence}", std::process::id()));
         fs::create_dir(&root)
             .unwrap_or_else(|error| panic!("create fixture {}: {error}", root.display()));
         let program = root.join("fake-docker");
-        fs::write(&program, fake_docker(fail_up))
-            .unwrap_or_else(|error| panic!("write fake Docker program: {error}"));
+        fs::write(
+            &program,
+            fake_docker(
+                fail_up,
+                startup_exit,
+                persistent_startup_exit,
+                port_collisions,
+            ),
+        )
+        .unwrap_or_else(|error| panic!("write fake Docker program: {error}"));
         make_executable(&program);
         Self {
             root,
@@ -52,6 +98,16 @@ impl Fixture {
             run_id: RunId::new(format!("run-compose-{sequence}"))
                 .unwrap_or_else(|error| panic!("fixture run id: {error}")),
         }
+    }
+
+    pub(super) fn with_feature_level(name: &str, level: u16) -> Self {
+        let mut fixture = Self::with_authentication(false, Authentication::ScramSha256);
+        let EnvironmentDriver::DockerCompose { feature_levels, .. } = &mut fixture.manifest.driver
+        else {
+            panic!("fixture must use Docker Compose");
+        };
+        feature_levels.insert(name.to_owned(), level);
+        fixture
     }
 
     pub(super) fn environment(&self) -> DockerComposeEnvironment {
@@ -82,7 +138,7 @@ impl Drop for Fixture {
 
 fn manifest(security: SecurityProfile) -> EnvironmentManifest {
     EnvironmentManifest {
-        schema_version: 1,
+        schema_version: 2,
         id: EnvironmentId::new("apache-kafka-test")
             .unwrap_or_else(|error| panic!("fixture environment id: {error}")),
         title: "Apache Kafka test fixture".to_owned(),
@@ -97,13 +153,21 @@ fn manifest(security: SecurityProfile) -> EnvironmentManifest {
             compose_files: vec!["clusters/kafka.yml".to_owned()],
             broker_services: vec!["broker".to_owned()],
             client_port: 9092,
+            feature_levels: BTreeMap::new(),
         },
     }
 }
 
-fn fake_docker(fail_up: bool) -> String {
+fn fake_docker(
+    fail_up: bool,
+    startup_exit: bool,
+    persistent_startup_exit: bool,
+    port_collisions: u8,
+) -> String {
+    let collision_once = port_collisions == 1;
+    let collision_always = port_collisions == 2;
     format!(
-        "#!/bin/sh\nlog=\"$0.log\"\nprintf '%s\\n' \"$*\" >> \"$log\"\necho \"stdout:$*\"\necho \"stderr:$*\" >&2\ncase \" $* \" in\n  *\" up \"*) if {fail_up}; then exit 9; fi ;;\n  *\"kafka-broker-api-versions.sh\"*)\n    ready=\"$0.ready\"\n    if [ ! -e \"$ready\" ]; then : > \"$ready\"; exit 1; fi ;;\nesac\nexit 0\n"
+        "#!/bin/sh\nlog=\"$0.log\"\nprintf '%s\\n' \"$*\" >> \"$log\"\necho \"stderr:$*\" >&2\ncase \" $* \" in\n  *\" up \"*)\n    if {fail_up}; then exit 9; fi\n    collision=\"$0.port-collision\"\n    if {collision_always} || ( {collision_once} && [ ! -e \"$collision\" ] ); then\n      : > \"$collision\"\n      echo \"failed to bind port 127.0.0.1:39092: address already in use\" >&2\n      exit 9\n    fi ;;\n  *\"kafka-broker-api-versions.sh\"*)\n    ready=\"$0.ready\"\n    if {persistent_startup_exit} || [ ! -e \"$ready\" ]; then\n      : > \"$ready\"\n      if {startup_exit}; then : > \"$0.exited\"; fi\n      exit 1\n    fi ;;\n  *\" ps \"*\" --status exited \"*)\n    if [ -e \"$0.exited\" ]; then echo broker; fi\n    exit 0 ;;\n  *\" logs \"*) echo \"error while preparing configs: fixture startup exit\" ;;\n  *\" start broker \"*) rm -f \"$0.exited\" ;;\n  *) echo \"stdout:$*\" ;;\nesac\nexit 0\n"
     )
 }
 

@@ -3,7 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    AdminOffsetPosition, Capability, ClientId, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
+    AdminOffsetPosition, Capability, ClientId, CreatePartitionsAction, DescribeTopicAction,
+    ListOffsetsAction, ListTopicsAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
     ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
 use crate::admin_action_validation::validate;
@@ -98,14 +99,49 @@ fn admin_queries_require_the_admin_capability() {
         .unwrap_or_else(|error| panic!("valid admin query scenario: {error}"));
 }
 
+#[test]
+fn every_admin_action_records_the_admin_capability() {
+    let client_id = client("client-1");
+    let actions = vec![
+        ScenarioAction::CreateTopic {
+            client_id: client_id.clone(),
+            operation_id: operation("admin-create"),
+            topic: "records".to_owned(),
+            partitions: 1,
+            replication_factor: 1,
+            timeout_ms: 1_000,
+        },
+        ScenarioAction::CreatePartitions(CreatePartitionsAction {
+            client_id: client_id.clone(),
+            operation_id: operation("admin-partitions"),
+            topic: "records".to_owned(),
+            total_count: 2,
+            timeout_ms: 1_000,
+        }),
+        describe_topic(client_id.clone(), operation("admin-describe")),
+        list_topics(
+            client_id.clone(),
+            operation("admin-topics"),
+            vec!["records".to_owned()],
+        ),
+        list_offsets(client_id, operation("admin-offset"), 0, 0),
+    ];
+
+    for action in actions {
+        let mut usage = BTreeSet::new();
+        crate::scenario_capability_validation::record_usage(&action, &mut usage);
+        assert_eq!(usage, BTreeSet::from([Capability::Admin]), "{action:?}");
+    }
+}
+
 fn describe_topic(client_id: ClientId, operation_id: OperationId) -> ScenarioAction {
-    ScenarioAction::DescribeTopic {
+    ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id,
         operation_id,
         topic: "records".to_owned(),
         expected_partitions: vec![0],
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn list_topics(
@@ -113,13 +149,13 @@ fn list_topics(
     operation_id: OperationId,
     required_topics: Vec<String>,
 ) -> ScenarioAction {
-    ScenarioAction::ListTopics {
+    ScenarioAction::ListTopics(ListTopicsAction {
         client_id,
         operation_id,
         include_internal: false,
         required_topics,
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn list_offsets(
@@ -128,7 +164,7 @@ fn list_offsets(
     partition: i32,
     expected_offset: i64,
 ) -> ScenarioAction {
-    ScenarioAction::ListOffsets {
+    ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id,
         operation_id,
         topic: "records".to_owned(),
@@ -136,7 +172,7 @@ fn list_offsets(
         position: AdminOffsetPosition::Latest,
         expected_offset,
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn assert_problem(problems: &[String], expected: &str) {

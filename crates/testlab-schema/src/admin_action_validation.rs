@@ -42,31 +42,26 @@ pub(crate) fn validate(
             }
             validate_timeout(operation_id, *timeout_ms, problems);
         }
-        ScenarioAction::CreatePartitions {
-            client_id,
-            operation_id,
-            topic,
-            total_count,
-            timeout_ms,
-        } => {
+        ScenarioAction::CreatePartitions(action) => {
             validate_common(
-                client_id,
-                operation_id,
-                topic,
+                &action.client_id,
+                &action.operation_id,
+                &action.topic,
                 clients,
                 operation_ids,
                 problems,
             );
-            if !(1..=10_000).contains(total_count) {
+            if !(1..=10_000).contains(&action.total_count) {
                 problems.push(format!(
-                    "admin operation {operation_id} total_count must be between 1 and 10000"
+                    "admin operation {} total_count must be between 1 and 10000",
+                    action.operation_id
                 ));
             }
-            validate_timeout(operation_id, *timeout_ms, problems);
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
-        action @ (ScenarioAction::DescribeTopic { .. }
-        | ScenarioAction::ListTopics { .. }
-        | ScenarioAction::ListOffsets { .. }) => {
+        action @ (ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListOffsets(_)) => {
             validate_query(action, clients, operation_ids, problems);
         }
         _ => {}
@@ -80,63 +75,55 @@ fn validate_query(
     problems: &mut Vec<String>,
 ) {
     match action {
-        ScenarioAction::DescribeTopic {
-            client_id,
-            operation_id,
-            topic,
-            expected_partitions,
-            timeout_ms,
-        } => {
+        ScenarioAction::DescribeTopic(action) => {
             validate_common(
-                client_id,
-                operation_id,
-                topic,
+                &action.client_id,
+                &action.operation_id,
+                &action.topic,
                 clients,
                 operation_ids,
                 problems,
             );
-            validate_expected_partitions(operation_id, expected_partitions, problems);
-            validate_timeout(operation_id, *timeout_ms, problems);
+            validate_expected_partitions(
+                &action.operation_id,
+                &action.expected_partitions,
+                problems,
+            );
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
-        ScenarioAction::ListTopics {
-            client_id,
-            operation_id,
-            required_topics,
-            timeout_ms,
-            ..
-        } => {
-            validate_identity(client_id, operation_id, clients, operation_ids, problems);
-            validate_required_topics(operation_id, required_topics, problems);
-            validate_timeout(operation_id, *timeout_ms, problems);
-        }
-        ScenarioAction::ListOffsets {
-            client_id,
-            operation_id,
-            topic,
-            partition,
-            expected_offset,
-            timeout_ms,
-            ..
-        } => {
-            validate_common(
-                client_id,
-                operation_id,
-                topic,
+        ScenarioAction::ListTopics(action) => {
+            validate_identity(
+                &action.client_id,
+                &action.operation_id,
                 clients,
                 operation_ids,
                 problems,
             );
-            if *partition < 0 {
+            validate_required_topics(&action.operation_id, &action.required_topics, problems);
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
+        ScenarioAction::ListOffsets(action) => {
+            validate_common(
+                &action.client_id,
+                &action.operation_id,
+                &action.topic,
+                clients,
+                operation_ids,
+                problems,
+            );
+            if action.partition < 0 {
                 problems.push(format!(
-                    "admin operation {operation_id} partition must be nonnegative"
+                    "admin operation {} partition must be nonnegative",
+                    action.operation_id
                 ));
             }
-            if *expected_offset < 0 {
+            if action.expected_offset < 0 {
                 problems.push(format!(
-                    "admin operation {operation_id} expected_offset must be nonnegative"
+                    "admin operation {} expected_offset must be nonnegative",
+                    action.operation_id
                 ));
             }
-            validate_timeout(operation_id, *timeout_ms, problems);
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
         _ => {}
     }

@@ -8,6 +8,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_owned_safe;
 use crate::normalize;
 use crate::protocol::emit;
 use crate::state::AdapterState;
@@ -22,10 +23,13 @@ pub(crate) fn dispatch_send<W: Write>(
 ) -> Result<(), AdapterError> {
     let producer = state.producer(producer_id)?;
     let record = normalize::record(record)?;
-    let delivery = match producer.try_send(record) {
+    let delivery = match retry_owned_safe(record, |record| {
+        producer
+            .try_send(record)
+            .map_err(kafkars::TrySendError::into_parts)
+    }) {
         Ok(delivery) => delivery,
-        Err(rejection) => {
-            let (_, error) = rejection.into_parts();
+        Err((_, error)) => {
             eprintln!("Kafkars rejected operation {operation_id}: {error}");
             return emit(
                 writer,

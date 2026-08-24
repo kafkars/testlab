@@ -67,6 +67,40 @@ fn undeclared_broker_ordinal_fails_without_a_terminal_operation() {
     assert!(restart.operations.is_empty());
 }
 
+#[test]
+fn explicit_stop_and_start_are_distinct_bounded_operations() {
+    let fixture = Fixture::new(false);
+    let mut environment = fixture.environment();
+    let setup = environment.start(Duration::from_secs(2));
+
+    let stop = environment.stop_broker(1, Duration::from_secs(2));
+    let start = environment.start_broker(1, Duration::from_secs(2));
+    let cleanup = environment.finish(Duration::from_secs(2));
+
+    assert!(setup.succeeded(), "setup failure: {:?}", setup.failure);
+    assert!(stop.succeeded(), "stop failure: {:?}", stop.failure);
+    assert!(start.succeeded(), "start failure: {:?}", start.failure);
+    assert!(
+        cleanup.succeeded(),
+        "cleanup failure: {:?}",
+        cleanup.failure
+    );
+    assert_eq!(
+        stop.operations[0].kind,
+        EnvironmentOperationKind::BrokerStop
+    );
+    assert_eq!(
+        start.operations[0].kind,
+        EnvironmentOperationKind::BrokerStart
+    );
+    assert!(
+        start
+            .operations
+            .iter()
+            .any(|operation| operation.kind == EnvironmentOperationKind::Readiness)
+    );
+}
+
 fn assert_unique_operation_ids(operations: &[&EnvironmentOperation]) {
     for (index, operation) in operations.iter().enumerate() {
         assert!(

@@ -11,6 +11,11 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
         | AdapterCommand::CloseGroupConsumer { .. } => "consumer_groups capability required",
+        AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. } => "share_consumer capability required",
         AdapterCommand::CreateTopic { .. }
         | AdapterCommand::CreatePartitions { .. }
         | AdapterCommand::DescribeTopic { .. }
@@ -29,6 +34,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::Flush { .. }
         | AdapterCommand::CloseProducer { .. }
         | AdapterCommand::ShutdownClient { .. }
-        | AdapterCommand::Finish => "unsupported command",
+        | AdapterCommand::Finish
+        | AdapterCommand::Abort => "unsupported command",
     }
 }

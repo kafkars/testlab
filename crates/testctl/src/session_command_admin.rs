@@ -27,28 +27,22 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 topic: topic.clone(),
             },
         ),
-        ScenarioAction::CreatePartitions {
-            client_id,
-            operation_id,
-            topic,
-            total_count,
-            timeout_ms,
-        } => (
+        ScenarioAction::CreatePartitions(action) => (
             AdapterCommand::CreatePartitions {
-                client_id: client_id.clone(),
-                operation_id: operation_id.clone(),
-                topic: topic.clone(),
-                total_count: *total_count,
-                timeout_ms: *timeout_ms,
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                total_count: action.total_count,
+                timeout_ms: action.timeout_ms,
             },
             ExpectedEvent::TopicPartitionsCreated {
-                operation_id: operation_id.clone(),
-                topic: topic.clone(),
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
             },
         ),
-        action @ (ScenarioAction::DescribeTopic { .. }
-        | ScenarioAction::ListTopics { .. }
-        | ScenarioAction::ListOffsets { .. }) => return translate_query(action),
+        action @ (ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListOffsets(_)) => return translate_query(action),
         _ => return None,
     };
     Some(pair)
@@ -56,62 +50,42 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
 
 fn translate_query(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     let pair = match action {
-        ScenarioAction::DescribeTopic {
-            client_id,
-            operation_id,
-            topic,
-            timeout_ms,
-            ..
-        } => (
+        ScenarioAction::DescribeTopic(action) => (
             AdapterCommand::DescribeTopic {
-                client_id: client_id.clone(),
-                operation_id: operation_id.clone(),
-                topic: topic.clone(),
-                timeout_ms: *timeout_ms,
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                timeout_ms: action.timeout_ms,
             },
             ExpectedEvent::TopicDescribed {
-                operation_id: operation_id.clone(),
-                topic: topic.clone(),
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
             },
         ),
-        ScenarioAction::ListTopics {
-            client_id,
-            operation_id,
-            include_internal,
-            timeout_ms,
-            ..
-        } => (
+        ScenarioAction::ListTopics(action) => (
             AdapterCommand::ListTopics {
-                client_id: client_id.clone(),
-                operation_id: operation_id.clone(),
-                include_internal: *include_internal,
-                timeout_ms: *timeout_ms,
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                include_internal: action.include_internal,
+                timeout_ms: action.timeout_ms,
             },
             ExpectedEvent::TopicsListed {
-                operation_id: operation_id.clone(),
+                operation_id: action.operation_id.clone(),
             },
         ),
-        ScenarioAction::ListOffsets {
-            client_id,
-            operation_id,
-            topic,
-            partition,
-            position,
-            timeout_ms,
-            ..
-        } => (
+        ScenarioAction::ListOffsets(action) => (
             AdapterCommand::ListOffsets {
-                client_id: client_id.clone(),
-                operation_id: operation_id.clone(),
-                topic: topic.clone(),
-                partition: *partition,
-                position: *position,
-                timeout_ms: *timeout_ms,
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+                position: action.position,
+                timeout_ms: action.timeout_ms,
             },
             ExpectedEvent::OffsetListed {
-                operation_id: operation_id.clone(),
-                topic: topic.clone(),
-                partition: *partition,
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
             },
         ),
         _ => return None,

@@ -1,4 +1,4 @@
-schema_version = 12
+schema_version = 13
 id = "kafka.classic-group-round-trip"
 title = "packaged classic group consumer receives and commits exact bytes"
 description = "The packaged client produces one record, joins a classic consumer group, returns the exact public record, and commits the checkpoint derived from that batch."

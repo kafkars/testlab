@@ -1,25 +1,26 @@
 //! Read-only admin wire tests separate verifier expectations from public facts.
 
 use super::{
-    AdapterCommand, AdapterEvent, AdminOffsetPosition, ClientId, OperationId, PROTOCOL_VERSION,
-    SCENARIO_SCHEMA_VERSION, ScenarioAction,
+    AdapterCommand, AdapterEvent, AdminOffsetPosition, ClientId, DescribeTopicAction,
+    ListOffsetsAction, ListTopicsAction, OperationId, PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION,
+    ScenarioAction,
 };
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 14);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 12);
+    assert_eq!(PROTOCOL_VERSION, 15);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 13);
 }
 
 #[test]
 fn describe_topic_command_excludes_expected_partitions() {
-    let action = ScenarioAction::DescribeTopic {
+    let action = ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id: client(),
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
         expected_partitions: vec![0, 1],
         timeout_ms: 1_000,
-    };
+    });
     let command = AdapterCommand::DescribeTopic {
         client_id: client(),
         operation_id: operation("admin-describe-1"),
@@ -27,9 +28,10 @@ fn describe_topic_command_excludes_expected_partitions() {
         timeout_ms: 1_000,
     };
 
-    let action = encode(&action);
+    let action = encode_action(&action);
     let command = encode(&command);
 
+    assert!(action.contains("kind = \"describe_topic\""));
     assert!(action.contains("expected_partitions = [0, 1]"));
     assert!(command.contains("kind = \"describe_topic\""));
     assert!(!command.contains("expected_partitions"));
@@ -37,13 +39,13 @@ fn describe_topic_command_excludes_expected_partitions() {
 
 #[test]
 fn list_topics_command_excludes_required_topics() {
-    let action = ScenarioAction::ListTopics {
+    let action = ScenarioAction::ListTopics(ListTopicsAction {
         client_id: client(),
         operation_id: operation("admin-topics-1"),
         include_internal: false,
         required_topics: vec!["records".to_owned()],
         timeout_ms: 1_000,
-    };
+    });
     let command = AdapterCommand::ListTopics {
         client_id: client(),
         operation_id: operation("admin-topics-1"),
@@ -51,9 +53,10 @@ fn list_topics_command_excludes_required_topics() {
         timeout_ms: 1_000,
     };
 
-    let action = encode(&action);
+    let action = encode_action(&action);
     let command = encode(&command);
 
+    assert!(action.contains("kind = \"list_topics\""));
     assert!(action.contains("required_topics = [\"records\"]"));
     assert!(command.contains("kind = \"list_topics\""));
     assert!(command.contains("include_internal = false"));
@@ -62,7 +65,7 @@ fn list_topics_command_excludes_required_topics() {
 
 #[test]
 fn list_offsets_command_excludes_expected_offset() {
-    let action = ScenarioAction::ListOffsets {
+    let action = ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id: client(),
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
@@ -70,7 +73,7 @@ fn list_offsets_command_excludes_expected_offset() {
         position: AdminOffsetPosition::Latest,
         expected_offset: 3,
         timeout_ms: 1_000,
-    };
+    });
     let command = AdapterCommand::ListOffsets {
         client_id: client(),
         operation_id: operation("admin-offset-1"),
@@ -80,9 +83,10 @@ fn list_offsets_command_excludes_expected_offset() {
         timeout_ms: 1_000,
     };
 
-    let action = encode(&action);
+    let action = encode_action(&action);
     let command = encode(&command);
 
+    assert!(action.contains("kind = \"list_offsets\""));
     assert!(action.contains("expected_offset = 3"));
     assert!(command.contains("kind = \"list_offsets\""));
     assert!(command.contains("position = \"latest\""));
@@ -135,6 +139,14 @@ fn list_offsets_rejects_an_earliest_position() {
 
 fn encode<T: serde::Serialize>(value: &T) -> String {
     toml::to_string(value).unwrap_or_else(|error| panic!("serialize admin schema: {error}"))
+}
+
+fn encode_action(action: &ScenarioAction) -> String {
+    let encoded = encode(action);
+    let decoded = toml::from_str::<ScenarioAction>(&encoded)
+        .unwrap_or_else(|error| panic!("deserialize admin action: {error}"));
+    assert_eq!(decoded, *action);
+    encoded
 }
 
 fn client() -> ClientId {

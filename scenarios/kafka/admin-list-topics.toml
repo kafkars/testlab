@@ -1,4 +1,4 @@
-schema_version = 12
+schema_version = 13
 id = "kafka.admin-list-topics"
 title = "packaged admin lists an independently observed Kafka topic"
 description = "The packaged client's public all-topic query includes one required harness-provisioned topic whose partition is later proven by one exact independent broker observation."

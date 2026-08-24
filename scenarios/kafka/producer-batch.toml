@@ -1,4 +1,4 @@
-schema_version = 12
+schema_version = 13
 id = "kafka.producer-batch"
 title = "packaged producer sends one ordered batch"
 description = "One packaged-client batch call admits three identified records, settles each delivery, and leaves exact independently observed Kafka records."

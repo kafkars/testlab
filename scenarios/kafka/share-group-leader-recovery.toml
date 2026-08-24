@@ -1,0 +1,211 @@
+schema_version = 13
+id = "kafka.share-group-leader-recovery"
+title = "share acquisitions recover across an observed leader replacement"
+description = "One member retains an acquisition while Testlab stops its partition leader; another live member receives the released acquisition and new work through the replacement without duplicate local ownership."
+timeout_ms = 240000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-second-client"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "await-second-client-ready"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "create-first-share"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-leader"
+topic = "testlab-kafkars-share-leader"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "send-held"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-held"
+
+[steps.record]
+topic = "testlab-kafkars-share-leader"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "held" }
+value = { encoding = "utf8", data = "held-across-leader-change" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-held" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "first-holds-record"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-held"
+expected_operation_id = "op-held"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "create-second-share"
+kind = "create_share_consumer"
+client_id = "client-2"
+consumer_id = "share-2"
+group_id = "testlab-share-leader"
+topic = "testlab-kafkars-share-leader"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "stop-original-leader"
+kind = "stop_partition_leader"
+topic = "testlab-kafkars-share-leader"
+partition = 0
+timeout_ms = 45000
+
+[[steps]]
+id = "drop-held-record"
+kind = "drop_share_batch"
+consumer_id = "share-1"
+receive_id = "receive-held"
+
+[[steps]]
+id = "second-receives-released-record"
+kind = "share_receive"
+consumer_id = "share-2"
+receive_id = "receive-held-again"
+expected_operation_id = "op-held"
+minimum_delivery_count = 1
+timeout_ms = 45000
+
+[[steps]]
+id = "second-accepts-released-record"
+kind = "share_acknowledge"
+consumer_id = "share-2"
+receive_id = "receive-held-again"
+acknowledgement_id = "ack-held-final"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "create-replacement-leader-producer"
+kind = "create_producer"
+client_id = "client-2"
+producer_id = "producer-2"
+
+[[steps]]
+id = "send-after-leader-movement"
+kind = "send"
+producer_id = "producer-2"
+operation_id = "op-after-move"
+
+[steps.record]
+topic = "testlab-kafkars-share-leader"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "after-move" }
+value = { encoding = "utf8", data = "replacement-leader" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-move" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "second-receives-after-movement"
+kind = "share_receive"
+consumer_id = "share-2"
+receive_id = "receive-after-move"
+expected_operation_id = "op-after-move"
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "second-accepts-after-movement"
+kind = "share_acknowledge"
+consumer_id = "share-2"
+receive_id = "receive-after-move"
+acknowledgement_id = "ack-after-move"
+disposition = "accept"
+timeout_ms = 30000
+
+[[steps]]
+id = "restore-original-leader"
+kind = "restore_partition_leader"
+topic = "testlab-kafkars-share-leader"
+partition = 0
+timeout_ms = 45000
+
+[[steps]]
+id = "close-first-share"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "close-second-share"
+kind = "close_share_consumer"
+consumer_id = "share-2"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "flush-replacement-leader-producer"
+kind = "flush"
+producer_id = "producer-2"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-replacement-leader-producer"
+kind = "close_producer"
+producer_id = "producer-2"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[steps]]
+id = "shutdown-second-client"
+kind = "shutdown_client"
+client_id = "client-2"
+
+[[assertions]]
+operation_id = "op-held"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-move"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

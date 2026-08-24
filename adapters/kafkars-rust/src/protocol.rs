@@ -15,6 +15,8 @@ use crate::protocol_consumer;
 use crate::protocol_group;
 use crate::protocol_lifecycle;
 use crate::protocol_send;
+#[cfg(kafkars_share_candidate)]
+use crate::protocol_share;
 use crate::state::AdapterState;
 use crate::transaction_execute;
 use crate::transaction_fence;
@@ -100,16 +102,7 @@ fn dispatch<W: Write>(
         AdapterCommand::CreateProducer {
             client_id,
             producer_id,
-        } => {
-            state.create_producer(client_id, producer_id.clone())?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::ProducerCreated { producer_id },
-                ),
-            )?;
-        }
+        } => dispatch_create_producer(state, writer, command_id, client_id, producer_id)?,
         AdapterCommand::Send {
             producer_id,
             operation_id,
@@ -137,6 +130,24 @@ fn dispatch<W: Write>(
         | AdapterCommand::CloseGroupConsumer { .. }) => {
             protocol_group::dispatch(state, writer, command_id, command)?;
         }
+        #[cfg(kafkars_share_candidate)]
+        command @ (AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. }) => {
+            protocol_share::dispatch(state, writer, command_id, command)?;
+        }
+        #[cfg(not(kafkars_share_candidate))]
+        AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. } => {
+            return Err(AdapterError::State(
+                "published adapter does not expose the candidate share capability".to_owned(),
+            ));
+        }
         command @ (AdapterCommand::CreateTopic { .. }
         | AdapterCommand::CreatePartitions { .. }
         | AdapterCommand::DescribeTopic { .. }
@@ -155,11 +166,26 @@ fn dispatch<W: Write>(
         command @ (AdapterCommand::Flush { .. }
         | AdapterCommand::CloseProducer { .. }
         | AdapterCommand::ShutdownClient { .. }
-        | AdapterCommand::Finish) => {
+        | AdapterCommand::Finish
+        | AdapterCommand::Abort) => {
             return protocol_lifecycle::dispatch(state, writer, command_id, command);
         }
     }
     Ok(false)
+}
+
+fn dispatch_create_producer<W: Write>(
+    state: &mut AdapterState,
+    writer: &mut W,
+    command_id: testlab_schema::CommandId,
+    client_id: testlab_schema::ClientId,
+    producer_id: testlab_schema::ProducerId,
+) -> Result<(), AdapterError> {
+    state.create_producer(client_id, producer_id.clone())?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(command_id, AdapterEvent::ProducerCreated { producer_id }),
+    )
 }
 
 fn dispatch_hello<W: Write>(
@@ -182,22 +208,29 @@ fn dispatch_hello<W: Write>(
 }
 
 fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
+    let capabilities = BTreeSet::from([
+        Capability::Producer,
+        Capability::ProducerBatch,
+        Capability::Lifecycle,
+        Capability::ClientReadiness,
+        Capability::AssignedConsumer,
+        Capability::ConsumerGroups,
+        Capability::ConsumerProtocolGroups,
+        Capability::Admin,
+        Capability::Transactions,
+    ]);
+    #[cfg(kafkars_share_candidate)]
+    let capabilities = {
+        let mut capabilities = capabilities;
+        capabilities.insert(Capability::ShareConsumer);
+        capabilities
+    };
     Ok(AdapterDescriptor {
         id: AdapterId::new("kafkars-rust")?,
         implementation: "packaged kafkars Rust client".to_owned(),
         version: "0.0.1".to_owned(),
         protocol_version: PROTOCOL_VERSION,
-        capabilities: BTreeSet::from([
-            Capability::Producer,
-            Capability::ProducerBatch,
-            Capability::Lifecycle,
-            Capability::ClientReadiness,
-            Capability::AssignedConsumer,
-            Capability::ConsumerGroups,
-            Capability::ConsumerProtocolGroups,
-            Capability::Admin,
-            Capability::Transactions,
-        ]),
+        capabilities,
     })
 }
 

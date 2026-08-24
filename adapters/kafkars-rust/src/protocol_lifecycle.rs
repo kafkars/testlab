@@ -5,6 +5,7 @@ use std::io::Write;
 use testlab_schema::{AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandId};
 
 use crate::AdapterError;
+use crate::admission_retry::retry_safe;
 use crate::protocol::emit;
 use crate::state::AdapterState;
 
@@ -16,11 +17,8 @@ pub(crate) fn dispatch<W: Write>(
 ) -> Result<bool, AdapterError> {
     let event = match command {
         AdapterCommand::Flush { producer_id } => {
-            state
-                .producer(&producer_id)?
-                .flush()
-                .wait()
-                .map_err(AdapterError::Client)?;
+            let producer = state.producer(&producer_id)?;
+            retry_safe(|| producer.flush().wait()).map_err(AdapterError::Client)?;
             AdapterEvent::FlushCompleted { producer_id }
         }
         AdapterCommand::CloseProducer { producer_id } => {
@@ -36,6 +34,13 @@ pub(crate) fn dispatch<W: Write>(
             emit(
                 writer,
                 &AdapterEventEnvelope::new(command_id, AdapterEvent::Finished),
+            )?;
+            return Ok(true);
+        }
+        AdapterCommand::Abort => {
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(command_id, AdapterEvent::Aborted),
             )?;
             return Ok(true);
         }

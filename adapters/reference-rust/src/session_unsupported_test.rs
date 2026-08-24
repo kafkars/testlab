@@ -1,6 +1,6 @@
-//! Unsupported-command tests keep read-only admin classification explicit.
+//! Unsupported-command tests keep capability classification explicit.
 
-use testlab_schema::{AdapterCommand, AdminOffsetPosition, ClientId, OperationId};
+use testlab_schema::{AdapterCommand, AdminOffsetPosition, ClientId, ConsumerId, OperationId};
 
 use crate::session_unsupported::reason;
 
@@ -34,6 +34,21 @@ fn read_only_admin_commands_require_admin_capability() {
     for command in commands {
         assert_eq!(reason(&command), "admin capability required");
     }
+}
+
+#[test]
+fn share_commands_require_share_consumer_capability() {
+    let command = AdapterCommand::CreateShareConsumer {
+        client_id: client_id(),
+        consumer_id: ConsumerId::new("share-1")
+            .unwrap_or_else(|error| panic!("consumer id: {error}")),
+        group_id: "share-group".to_owned(),
+        topic: "orders".to_owned(),
+        membership_timeout_ms: 1_000,
+        close_timeout_ms: 1_000,
+    };
+
+    assert_eq!(reason(&command), "share_consumer capability required");
 }
 
 fn client_id() -> ClientId {

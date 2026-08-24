@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v14 command.
+//! Expected event shapes constrain each sequential protocol-v15 command.
 
 use std::collections::BTreeSet;
 
@@ -26,6 +26,11 @@ pub(crate) enum ExpectedEvent {
     GroupConsumerCreated(ConsumerId),
     GroupReceiveCompleted(OperationId),
     GroupConsumerClosed(ConsumerId),
+    ShareConsumerCreated(ConsumerId),
+    ShareReceiveCompleted(OperationId),
+    ShareAcknowledgementCompleted(OperationId),
+    ShareBatchDropped(OperationId),
+    ShareConsumerClosed(ConsumerId),
     TopicCreated {
         operation_id: OperationId,
         topic: String,
@@ -61,6 +66,7 @@ pub(crate) enum ExpectedEvent {
     ProducerClosed(ProducerId),
     ClientShutdown(ClientId),
     Finished,
+    Aborted,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -77,99 +83,108 @@ impl ExpectedEvent {
         if let Some(disposition) = classify_group(self, event) {
             return disposition;
         }
+        if let Some(disposition) = crate::runner_protocol_share::classify(self, event) {
+            return disposition;
+        }
         if let Some(disposition) = classify_admin(self, event) {
             return disposition;
         }
         if let Some(disposition) = classify_transaction(self, event) {
             return disposition;
         }
-        match (self, event) {
-            (Self::Ready, AdapterEvent::Ready { .. })
-            | (Self::Finished, AdapterEvent::Finished) => Ok(EventDisposition::Complete),
-            (Self::ClientCreated(expected), AdapterEvent::ClientCreated { client_id })
-                if expected == client_id =>
-            {
-                Ok(EventDisposition::Complete)
-            }
-            (Self::ClientReady(expected), AdapterEvent::ClientReady { client_id })
-                if expected == client_id =>
-            {
-                Ok(EventDisposition::Complete)
-            }
-            (Self::ProducerCreated(expected), AdapterEvent::ProducerCreated { producer_id })
-                if expected == producer_id =>
-            {
-                Ok(EventDisposition::Complete)
-            }
-            (Self::FlushCompleted(expected), AdapterEvent::FlushCompleted { producer_id })
-                if expected == producer_id =>
-            {
-                Ok(EventDisposition::Complete)
-            }
-            (Self::ProducerClosed(expected), AdapterEvent::ProducerClosed { producer_id })
-                if expected == producer_id =>
-            {
-                Ok(EventDisposition::Complete)
-            }
-            (Self::ClientShutdown(expected), AdapterEvent::ClientShutdown { client_id })
-                if expected == client_id =>
-            {
-                Ok(EventDisposition::Complete)
-            }
-            (Self::SendSettled(expected), AdapterEvent::OperationAccepted { operation_id })
-                if expected == operation_id =>
-            {
-                Ok(EventDisposition::Continue)
-            }
-            (
-                Self::SendSettled(expected),
-                AdapterEvent::OperationRejected { operation_id, .. }
-                | AdapterEvent::OperationTerminal { operation_id, .. },
-            ) if expected == operation_id => Ok(EventDisposition::Complete),
-            (
-                Self::BatchCompleted { operation_ids, .. },
-                AdapterEvent::OperationAccepted { operation_id }
-                | AdapterEvent::OperationRejected { operation_id, .. }
-                | AdapterEvent::OperationTerminal { operation_id, .. },
-            ) if operation_ids.contains(operation_id) => Ok(EventDisposition::Continue),
-            (
-                Self::BatchCompleted { producer_id, .. },
-                AdapterEvent::BatchCompleted {
-                    producer_id: actual,
-                },
-            ) if producer_id == actual => Ok(EventDisposition::Complete),
-            (
-                Self::AssignedConsumerCreated(expected),
-                AdapterEvent::AssignedConsumerCreated {
-                    consumer_id: actual,
-                },
-            ) if expected == actual => Ok(EventDisposition::Complete),
-            (
-                Self::AssignmentCompleted(expected),
-                AdapterEvent::AssignmentCompleted {
-                    consumer_id: actual,
-                },
-            ) if expected == actual => Ok(EventDisposition::Complete),
-            (
-                Self::ReceiveCompleted(expected),
-                AdapterEvent::ReceiveCompleted {
-                    receive_id: actual, ..
-                },
-            ) if expected == actual => Ok(EventDisposition::Complete),
-            (
-                Self::AssignedConsumerClosed(expected),
-                AdapterEvent::AssignedConsumerClosed {
-                    consumer_id: actual,
-                },
-            ) if expected == actual => Ok(EventDisposition::Complete),
-            _ if same_event_family(self, event) => Err(RunFailure::protocol(
-                "event_identity_mismatch",
-                format!("event {event:?} does not match expected {self:?}"),
-            )),
-            _ => Err(RunFailure::protocol(
-                "unexpected_event_kind",
-                format!("unexpected event {event:?} while waiting for {self:?}"),
-            )),
+        classify_core(self, event)
+    }
+}
+
+fn classify_core(
+    expected: &ExpectedEvent,
+    event: &AdapterEvent,
+) -> Result<EventDisposition, RunFailure> {
+    match (expected, event) {
+        (ExpectedEvent::Ready, AdapterEvent::Ready { .. })
+        | (ExpectedEvent::Finished, AdapterEvent::Finished)
+        | (ExpectedEvent::Aborted, AdapterEvent::Aborted) => Ok(EventDisposition::Complete),
+        (ExpectedEvent::ClientCreated(expected), AdapterEvent::ClientCreated { client_id })
+            if expected == client_id =>
+        {
+            Ok(EventDisposition::Complete)
         }
+        (ExpectedEvent::ClientReady(expected), AdapterEvent::ClientReady { client_id })
+            if expected == client_id =>
+        {
+            Ok(EventDisposition::Complete)
+        }
+        (
+            ExpectedEvent::ProducerCreated(expected),
+            AdapterEvent::ProducerCreated { producer_id },
+        ) if expected == producer_id => Ok(EventDisposition::Complete),
+        (ExpectedEvent::FlushCompleted(expected), AdapterEvent::FlushCompleted { producer_id })
+            if expected == producer_id =>
+        {
+            Ok(EventDisposition::Complete)
+        }
+        (ExpectedEvent::ProducerClosed(expected), AdapterEvent::ProducerClosed { producer_id })
+            if expected == producer_id =>
+        {
+            Ok(EventDisposition::Complete)
+        }
+        (ExpectedEvent::ClientShutdown(expected), AdapterEvent::ClientShutdown { client_id })
+            if expected == client_id =>
+        {
+            Ok(EventDisposition::Complete)
+        }
+        (
+            ExpectedEvent::SendSettled(expected),
+            AdapterEvent::OperationAccepted { operation_id },
+        ) if expected == operation_id => Ok(EventDisposition::Continue),
+        (
+            ExpectedEvent::SendSettled(expected),
+            AdapterEvent::OperationRejected { operation_id, .. }
+            | AdapterEvent::OperationTerminal { operation_id, .. },
+        ) if expected == operation_id => Ok(EventDisposition::Complete),
+        (
+            ExpectedEvent::BatchCompleted { operation_ids, .. },
+            AdapterEvent::OperationAccepted { operation_id }
+            | AdapterEvent::OperationRejected { operation_id, .. }
+            | AdapterEvent::OperationTerminal { operation_id, .. },
+        ) if operation_ids.contains(operation_id) => Ok(EventDisposition::Continue),
+        (
+            ExpectedEvent::BatchCompleted { producer_id, .. },
+            AdapterEvent::BatchCompleted {
+                producer_id: actual,
+            },
+        ) if producer_id == actual => Ok(EventDisposition::Complete),
+        (
+            ExpectedEvent::AssignedConsumerCreated(expected),
+            AdapterEvent::AssignedConsumerCreated {
+                consumer_id: actual,
+            },
+        ) if expected == actual => Ok(EventDisposition::Complete),
+        (
+            ExpectedEvent::AssignmentCompleted(expected),
+            AdapterEvent::AssignmentCompleted {
+                consumer_id: actual,
+            },
+        ) if expected == actual => Ok(EventDisposition::Complete),
+        (
+            ExpectedEvent::ReceiveCompleted(expected),
+            AdapterEvent::ReceiveCompleted {
+                receive_id: actual, ..
+            },
+        ) if expected == actual => Ok(EventDisposition::Complete),
+        (
+            ExpectedEvent::AssignedConsumerClosed(expected),
+            AdapterEvent::AssignedConsumerClosed {
+                consumer_id: actual,
+            },
+        ) if expected == actual => Ok(EventDisposition::Complete),
+        _ if same_event_family(expected, event) => Err(RunFailure::protocol(
+            "event_identity_mismatch",
+            format!("event {event:?} does not match expected {expected:?}"),
+        )),
+        _ => Err(RunFailure::protocol(
+            "unexpected_event_kind",
+            format!("unexpected event {event:?} while waiting for {expected:?}"),
+        )),
     }
 }

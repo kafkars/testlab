@@ -54,14 +54,18 @@ fn lifecycle_retries_readiness_and_retains_cleanup_evidence() {
     let setup = environment.start(Duration::from_secs(2));
 
     assert!(setup.succeeded(), "setup failure: {:?}", setup.failure);
-    assert_eq!(setup.operations.len(), 6);
+    assert_eq!(setup.operations.len(), 7);
     assert_eq!(
         setup.operations[4].status,
         EnvironmentOperationStatus::Failed
     );
     assert_eq!(
-        setup.operations[5].status,
+        setup.operations[6].status,
         EnvironmentOperationStatus::Succeeded
+    );
+    assert_eq!(
+        setup.operations[5].kind,
+        EnvironmentOperationKind::ComposePs
     );
     assert_unique_operation_ids(&setup.operations);
     assert_eq!(environment.endpoint(), "127.0.0.1:29092");
@@ -89,6 +93,61 @@ fn lifecycle_retries_readiness_and_retains_cleanup_evidence() {
     assert!(log.contains("pull apache/kafka@sha256:"));
     assert!(log.contains("image inspect apache/kafka@sha256:"));
     assert!(log.contains("down --volumes --remove-orphans"));
+}
+
+#[test]
+fn exited_broker_startup_is_recovered_once_with_retained_evidence() {
+    let fixture = Fixture::with_startup_exit(false);
+    let mut environment = fixture.environment();
+
+    let setup = environment.start(Duration::from_secs(2));
+    let _cleanup = environment.finish(Duration::from_secs(2));
+
+    assert!(setup.succeeded(), "setup failure: {:?}", setup.failure);
+    assert_eq!(
+        setup
+            .operations
+            .iter()
+            .map(|operation| operation.kind)
+            .collect::<Vec<_>>(),
+        vec![
+            EnvironmentOperationKind::ImagePull,
+            EnvironmentOperationKind::ImageInspect,
+            EnvironmentOperationKind::ComposeConfig,
+            EnvironmentOperationKind::ComposeUp,
+            EnvironmentOperationKind::Readiness,
+            EnvironmentOperationKind::ComposePs,
+            EnvironmentOperationKind::ComposeLogs,
+            EnvironmentOperationKind::BrokerStart,
+            EnvironmentOperationKind::Readiness,
+        ]
+    );
+    assert!(setup.artifacts.iter().any(|artifact| {
+        artifact.name == "startup-failure-broker-001.log"
+            && String::from_utf8_lossy(&artifact.bytes).contains("fixture startup exit")
+    }));
+}
+
+#[test]
+fn repeated_broker_startup_exit_fails_closed_after_one_recovery() {
+    let fixture = Fixture::with_startup_exit(true);
+    let mut environment = fixture.environment();
+
+    let setup = environment.start(Duration::from_secs(2));
+    let _cleanup = environment.finish(Duration::from_secs(2));
+
+    assert_eq!(
+        setup.failure.as_ref().map(crate::ComposeFailure::code),
+        Some("environment_broker_startup_recovery_exhausted")
+    );
+    assert_eq!(
+        setup
+            .operations
+            .iter()
+            .filter(|operation| operation.kind == EnvironmentOperationKind::BrokerStart)
+            .count(),
+        1
+    );
 }
 
 #[test]
@@ -157,6 +216,52 @@ fn tls_ca_copy_is_a_correlated_security_operation() {
     assert!(args.contains("cp broker:/etc/kafka/secrets/ca.pem"));
     assert!(args.contains("target/testlab-security/run-compose-"));
     assert!(!args.contains("ca.key"));
+}
+
+#[test]
+fn feature_setup_follows_readiness_and_precedes_client_security() {
+    let fixture = Fixture::with_feature_level("share.version", 1);
+    let mut environment = fixture.environment();
+
+    let setup = environment.start(Duration::from_secs(2));
+    let _cleanup = environment.finish(Duration::from_secs(2));
+
+    let feature = setup
+        .operations
+        .iter()
+        .position(|operation| operation.kind == EnvironmentOperationKind::BrokerFeatureSetup)
+        .unwrap_or_else(|| panic!("missing broker feature setup operation"));
+    let last_readiness = setup
+        .operations
+        .iter()
+        .rposition(|operation| operation.kind == EnvironmentOperationKind::Readiness)
+        .unwrap_or_else(|| panic!("missing readiness operation"));
+    assert!(last_readiness < feature);
+    let security = setup
+        .operations
+        .iter()
+        .position(|operation| operation.kind == EnvironmentOperationKind::BrokerSecuritySetup)
+        .unwrap_or_else(|| panic!("missing broker security setup operation"));
+    assert!(feature < security);
+    assert_eq!(
+        setup.operations[feature].args,
+        [
+            "compose",
+            "--project-name",
+            setup.operations[feature].args[2].as_str(),
+            "--file",
+            "clusters/kafka.yml",
+            "exec",
+            "--no-TTY",
+            "broker",
+            "/opt/kafka/bin/kafka-features.sh",
+            "--bootstrap-server",
+            "localhost:9092",
+            "upgrade",
+            "--feature",
+            "share.version=1",
+        ]
+    );
 }
 
 fn assert_unique_operation_ids(operations: &[testlab_schema::EnvironmentOperation]) {

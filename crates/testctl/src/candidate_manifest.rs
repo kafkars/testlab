@@ -52,6 +52,12 @@ pub(crate) fn adapter_manifest(
         core = source("kafka-client-core")?,
         engine = source("kafka-client-engine")?,
         kafkars = source("kafkars")?,
+        driver = source("kafka-driver")?,
+        driver_core = source("kafka-driver-core")?,
+        driver_transport = source("kafka-driver-transport")?,
+        wire = source("kafka-wire")?,
+        wire_core = source("kafka-wire-core")?,
+        wire_records = source("kafka-wire-records")?,
     ))
 }
 

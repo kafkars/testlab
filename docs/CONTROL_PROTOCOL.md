@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v14 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v15 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -31,6 +31,11 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_group_consumer`
 - `group_receive`
 - `close_group_consumer`
+- `create_share_consumer`
+- `share_receive`
+- `share_acknowledge`
+- `drop_share_batch`
+- `close_share_consumer`
 - `create_topic`
 - `create_partitions`
 - `describe_topic`
@@ -44,6 +49,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `close_producer`
 - `shutdown_client`
 - `finish`
+- `abort`
 
 Model-broker controls and real-cluster broker restarts are owned directly by
 testctl and do not cross the adapter boundary. A restart occurs between public
@@ -66,6 +72,11 @@ client commands while the same adapter process and client handles remain alive.
 - `group_consumer_created`
 - `group_receive_completed`
 - `group_consumer_closed`
+- `share_consumer_created`
+- `share_receive_completed`
+- `share_acknowledgement_completed`
+- `share_batch_dropped`
+- `share_consumer_closed`
 - `topic_created`
 - `topic_partitions_created`
 - `topic_described`
@@ -80,6 +91,7 @@ client commands while the same adapter process and client handles remain alive.
 - `client_shutdown`
 - `command_failed`
 - `finished`
+- `aborted`
 - `fatal`
 
 A send emits one admission decision. Accepted operations later emit exactly one
@@ -98,6 +110,13 @@ assignment-fenced checkpoint and attempts a bounded public commit. Its
 completion reports both the exact records and whether that checkpoint committed;
 the deterministic verifier requires both the expected record and a successful
 commit.
+
+A share receive retains the exact linear acquisition batch behind its receive
+identity until one later acknowledgement, explicit drop, or consumer close.
+Acknowledgement and close events report success or the public delivery
+certainty of failure; Testlab never infers a stronger terminal. Delivery counts
+and positive membership fences remain in the correlated receive event so
+redelivery and concurrent-member claims are deterministic.
 
 Topic creation and partition expansion use the packaged client's public admin
 handle and return one exact per-topic batch outcome. Admin-created scenario
@@ -152,6 +171,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v14 is an exact semantic contract. New capabilities may be declared
+Protocol v15 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

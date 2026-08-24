@@ -1,8 +1,7 @@
-//! One sequential adapter session executes protocol-v14 scenario actions.
+//! One sequential adapter session executes protocol-v15 scenario actions.
 
 use std::collections::BTreeSet;
 use std::path::Path;
-use std::time::Duration;
 
 use testlab_broker::RunningBroker;
 use testlab_environment::{ComposeArtifact, DockerComposeEnvironment};
@@ -78,23 +77,54 @@ pub(crate) fn run_adapter_session(
             &mut environment,
             deadline,
             &mut protocol,
+            scenario,
             &step.action,
         )?;
-        if outcome == StepOutcome::ClientFailed {
-            return settle_process(&mut process, &protocol, recorder, deadline);
+        match outcome {
+            StepOutcome::Continue => {}
+            StepOutcome::ClientFailed => {
+                return settle_process(&mut process, &protocol, recorder, deadline);
+            }
+            StepOutcome::ScenarioFailed => {
+                return abort_and_settle(&mut process, &mut protocol, recorder, deadline);
+            }
         }
     }
+    finish_and_settle(&mut process, &mut protocol, recorder, deadline)
+}
+
+fn abort_and_settle(
+    process: &mut AdapterProcess,
+    protocol: &mut ProtocolSession,
+    recorder: &mut HistoryRecorder,
+    deadline: Deadline,
+) -> Result<(), RunFailure> {
+    let (command, expected) = scenario_failure_settlement();
+    protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
+    settle_process(process, protocol, recorder, deadline)
+}
+
+pub(super) fn scenario_failure_settlement() -> (AdapterCommand, ExpectedEvent) {
+    (AdapterCommand::Abort, ExpectedEvent::Aborted)
+}
+
+fn finish_and_settle(
+    process: &mut AdapterProcess,
+    protocol: &mut ProtocolSession,
+    recorder: &mut HistoryRecorder,
+    deadline: Deadline,
+) -> Result<(), RunFailure> {
     let finish = protocol.send_and_wait(
-        &mut process,
+        process,
         recorder,
         deadline,
         AdapterCommand::Finish,
         &ExpectedEvent::Finished,
     )?;
     if matches!(finish.event, AdapterEvent::CommandFailed { .. }) {
-        return settle_process(&mut process, &protocol, recorder, deadline);
+        return settle_process(process, protocol, recorder, deadline);
     }
-    settle_process(&mut process, &protocol, recorder, deadline)
+    settle_process(process, protocol, recorder, deadline)
 }
 
 fn settle_process(
@@ -110,9 +140,10 @@ fn settle_process(
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum StepOutcome {
+pub(crate) enum StepOutcome {
     Continue,
     ClientFailed,
+    ScenarioFailed,
 }
 
 fn execute_step(
@@ -121,25 +152,13 @@ fn execute_step(
     environment: &mut SessionEnvironment<'_>,
     deadline: Deadline,
     protocol: &mut ProtocolSession,
+    scenario: &Scenario,
     action: &ScenarioAction,
 ) -> Result<StepOutcome, RunFailure> {
-    match action {
-        ScenarioAction::SetBrokerBehavior { behavior } => {
-            return control_model_broker(environment, recorder, *behavior);
-        }
-        ScenarioAction::RestartBroker {
-            broker_ordinal,
-            timeout_ms,
-        } => {
-            return restart_compose_broker(
-                environment,
-                recorder,
-                deadline,
-                *broker_ordinal,
-                *timeout_ms,
-            );
-        }
-        _ => {}
+    if let Some(result) =
+        crate::session_environment_control::execute(environment, recorder, deadline, action)
+    {
+        return result;
     }
     let (command, expected) = crate::session_command::translate(action).ok_or_else(|| {
         RunFailure::harness(
@@ -150,53 +169,12 @@ fn execute_step(
     let event = protocol.send_and_wait(process, recorder, deadline, command, &expected)?;
     if matches!(event.event, AdapterEvent::CommandFailed { .. }) {
         Ok(StepOutcome::ClientFailed)
+    } else if crate::session_share::receive_succeeded(scenario, action, &event.event) == Some(false)
+    {
+        Ok(StepOutcome::ScenarioFailed)
     } else {
         Ok(StepOutcome::Continue)
     }
-}
-
-fn control_model_broker(
-    environment: &SessionEnvironment<'_>,
-    recorder: &mut HistoryRecorder,
-    behavior: testlab_schema::BrokerBehavior,
-) -> Result<StepOutcome, RunFailure> {
-    let SessionEnvironment::Model(broker) = environment else {
-        return Err(RunFailure::harness(
-            "environment_control_unsupported",
-            "scenario requested model-broker control from a real Kafka environment",
-        ));
-    };
-    broker.set_next_behavior(behavior).map_err(|error| {
-        RunFailure::harness(
-            "environment_control_failed",
-            format!("failed to control model broker: {error}"),
-        )
-    })?;
-    recorder.broker_control(behavior)?;
-    Ok(StepOutcome::Continue)
-}
-
-fn restart_compose_broker(
-    environment: &mut SessionEnvironment<'_>,
-    recorder: &mut HistoryRecorder,
-    deadline: Deadline,
-    broker_ordinal: u16,
-    timeout_ms: u64,
-) -> Result<StepOutcome, RunFailure> {
-    let SessionEnvironment::Compose {
-        controller,
-        artifacts,
-    } = environment
-    else {
-        return Err(RunFailure::harness(
-            "environment_control_unsupported",
-            "scenario requested a broker restart from the model environment",
-        ));
-    };
-    let timeout = Duration::from_millis(timeout_ms).min(deadline.remaining()?);
-    let phase = controller.restart_broker(broker_ordinal, timeout);
-    crate::runner_environment::record_phase(phase, recorder, artifacts)?;
-    Ok(StepOutcome::Continue)
 }
 
 fn descriptor_from(event: AdapterEventEnvelope) -> Result<AdapterDescriptor, RunFailure> {

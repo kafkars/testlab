@@ -1,8 +1,9 @@
 //! Discovery verifier tests require exact public results and independent broker truth.
 
 use testlab_schema::{
-    AdapterEvent, AdminOffsetPosition, BrokerObservation, ByteString, OperationId, RecordSpec,
-    ScenarioAction, TerminalStatus, VisibilityExpectation,
+    AdapterEvent, AdminOffsetPosition, BrokerObservation, ByteString, DescribeTopicAction,
+    ListOffsetsAction, ListTopicsAction, OperationId, RecordSpec, ScenarioAction, TerminalStatus,
+    VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -12,13 +13,13 @@ use crate::verify_fixture::{event, scenario, step};
 #[test]
 fn exact_description_with_every_partition_exercised_passes() {
     let operation_id = operation("describe-1");
-    let scenario = admin_scenario(ScenarioAction::DescribeTopic {
+    let scenario = admin_scenario(ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id: client(),
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
         expected_partitions: vec![0, 1, 2],
         timeout_ms: 1_000,
-    });
+    }));
     let history = [event(
         1,
         AdapterEvent::TopicDescribed {
@@ -39,13 +40,13 @@ fn exact_description_with_every_partition_exercised_passes() {
 #[test]
 fn description_missing_independent_partition_fails() {
     let operation_id = operation("describe-1");
-    let scenario = admin_scenario(ScenarioAction::DescribeTopic {
+    let scenario = admin_scenario(ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id: client(),
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
         expected_partitions: vec![0, 1, 2],
         timeout_ms: 1_000,
-    });
+    }));
     let history = [event(
         1,
         AdapterEvent::TopicDescribed {
@@ -68,13 +69,13 @@ fn description_missing_independent_partition_fails() {
 #[test]
 fn topic_list_requires_sorted_public_membership_and_independent_marker() {
     let operation_id = operation("topics-1");
-    let scenario = admin_scenario(ScenarioAction::ListTopics {
+    let scenario = admin_scenario(ScenarioAction::ListTopics(ListTopicsAction {
         client_id: client(),
         operation_id: operation_id.clone(),
         include_internal: false,
         required_topics: vec!["marker".to_owned()],
         timeout_ms: 1_000,
-    });
+    }));
     let good = [event(
         1,
         AdapterEvent::TopicsListed {
@@ -166,7 +167,7 @@ fn latest_offset_rejects_none_or_a_value_beyond_broker_truth() {
 }
 
 fn offset_scenario(operation_id: OperationId, expected_offset: i64) -> testlab_schema::Scenario {
-    admin_scenario(ScenarioAction::ListOffsets {
+    admin_scenario(ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id: client(),
         operation_id,
         topic: "offsets".to_owned(),
@@ -174,7 +175,7 @@ fn offset_scenario(operation_id: OperationId, expected_offset: i64) -> testlab_s
         position: AdminOffsetPosition::Latest,
         expected_offset,
         timeout_ms: 1_000,
-    })
+    }))
 }
 
 fn admin_scenario(action: ScenarioAction) -> testlab_schema::Scenario {

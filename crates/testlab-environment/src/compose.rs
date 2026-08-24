@@ -1,8 +1,8 @@
 //! Docker Compose lifecycle owns immutable setup, readiness, snapshots, and cleanup.
 
+use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
-use std::thread;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{AdapterSecurity, EnvironmentDriver, RunId, TransportSecurity};
@@ -12,9 +12,6 @@ use crate::compose_ports::HostPorts;
 use crate::compose_support::{compose_prefix, failure_code, project_name, remaining};
 use crate::compose_types::{ComposeFailure, ComposePhase, ComposeRequest};
 use crate::security::ClientSecurity;
-
-const READINESS_ATTEMPT_MAX: Duration = Duration::from_secs(5);
-const READINESS_RETRY_DELAY: Duration = Duration::from_millis(250);
 
 /// One isolated Compose project that must be explicitly finished for evidence.
 #[must_use = "call finish so owned containers, networks, and volumes are removed"]
@@ -28,11 +25,14 @@ pub struct DockerComposeEnvironment {
     pub(super) broker_services: Vec<String>,
     pub(super) client_port: u16,
     pub(super) cluster_size: u16,
-    host_ports: HostPorts,
+    pub(super) feature_levels: BTreeMap<String, u16>,
+    pub(super) host_ports: HostPorts,
     pub(super) started_unix_ms: u64,
     pub(super) started: Instant,
     pub(super) next_operation: u32,
-    up_attempted: bool,
+    pub(super) stopped_partition_leaders: BTreeMap<(String, i32), u16>,
+    pub(super) stopped_brokers: Vec<u16>,
+    pub(super) up_attempted: bool,
 }
 
 impl Debug for DockerComposeEnvironment {
@@ -96,6 +96,7 @@ impl DockerComposeEnvironment {
             compose_files,
             broker_services,
             client_port,
+            feature_levels,
             ..
         } = &request.environment.driver
         else {
@@ -129,10 +130,13 @@ impl DockerComposeEnvironment {
             broker_services: broker_services.clone(),
             client_port: *client_port,
             cluster_size: *cluster_size,
+            feature_levels: feature_levels.clone(),
             host_ports,
             started_unix_ms: request.started_unix_ms,
             started: Instant::now(),
             next_operation: 0,
+            stopped_partition_leaders: BTreeMap::new(),
+            stopped_brokers: Vec::new(),
             up_attempted: false,
         })
     }
@@ -155,39 +159,6 @@ impl DockerComposeEnvironment {
     /// Returns ephemeral secret values passed only in the adapter process environment.
     pub fn adapter_environment(&self) -> Vec<(String, String)> {
         self.client_security.adapter_environment()
-    }
-
-    /// Starts the pinned image and waits for every declared broker service.
-    pub fn start(&mut self, timeout: Duration) -> ComposePhase {
-        let mut phase = ComposePhase::default();
-        let Some(deadline) = Instant::now().checked_add(timeout) else {
-            phase.fail("environment_deadline_invalid", "setup deadline overflowed");
-            return phase;
-        };
-        let image = self.environment[0].1.clone();
-        if !self.required(&mut phase, compose_command::image_pull(&image), deadline) {
-            return phase;
-        }
-        if !self.required(&mut phase, compose_command::image_inspect(&image), deadline) {
-            return phase;
-        }
-        if !self.required(&mut phase, compose_command::config(&self.prefix), deadline) {
-            return phase;
-        }
-        self.host_ports.release();
-        self.up_attempted = true;
-        if !self.required(&mut phase, compose_command::up(&self.prefix), deadline) {
-            return phase;
-        }
-        for service in self.broker_services.clone() {
-            if !self.wait_ready(&mut phase, &service, deadline) {
-                return phase;
-            }
-        }
-        if !self.prepare_client_security(&mut phase, deadline) {
-            return phase;
-        }
-        phase
     }
 
     /// Captures final state and logs before removing all project resources.
@@ -253,42 +224,6 @@ impl DockerComposeEnvironment {
                 phase.fail(error.code, error.diagnostic);
                 false
             }
-        }
-    }
-
-    fn wait_ready(&mut self, phase: &mut ComposePhase, service: &str, deadline: Instant) -> bool {
-        let mut attempt = 1_u32;
-        loop {
-            let timeout = remaining(deadline).min(READINESS_ATTEMPT_MAX);
-            let spec = compose_command::readiness(&self.prefix, service, self.client_port, attempt);
-            match self.execute(spec, timeout) {
-                Ok(output) => {
-                    if phase.retain(output) {
-                        return true;
-                    }
-                }
-                Err(error) => {
-                    phase.fail(error.code, error.diagnostic);
-                    return false;
-                }
-            }
-            if remaining(deadline).is_zero() {
-                phase.fail(
-                    "environment_readiness_failed",
-                    format!("broker service {service} did not become ready"),
-                );
-                return false;
-            }
-            thread::sleep(READINESS_RETRY_DELAY.min(remaining(deadline)));
-            attempt = if let Some(value) = attempt.checked_add(1) {
-                value
-            } else {
-                phase.fail(
-                    "environment_operation_overflow",
-                    "readiness attempt overflowed",
-                );
-                return false;
-            };
         }
     }
 }

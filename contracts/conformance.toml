@@ -151,6 +151,36 @@ statement = "A group receive exposes a positive public classic generation or KIP
 category = "consumer"
 
 [[contract]]
+id = "SHARE-001"
+title = "Share consumer registration settles exactly once"
+statement = "Each requested unique share-group member emits one exact creation event."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-002"
+title = "Share acquisition returns one exact expected record"
+statement = "Each share receive exposes the exact expected public record once with at least the declared broker delivery count."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-003"
+title = "Each retained share batch has one explicit disposition"
+statement = "A retained share batch is consumed exactly once by Accept, Release, Reject, or an acknowledgement-free drop."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-004"
+title = "Share close preserves public uncertainty"
+statement = "Each unique share member closes once and a failed close retains definitely-not-sent or possibly-sent certainty without false success."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-005"
+title = "Share delivery carries live membership fences"
+statement = "Each delivered share batch is correlated to positive broker membership and local assignment epochs."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-001"
 title = "Client creation settles exactly once"
 statement = "Each requested client creation emits exactly one matching event."

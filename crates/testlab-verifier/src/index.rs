@@ -4,11 +4,13 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, HistoryEntry,
-    OperationId, ProducerId, ScenarioAction, TerminalStatus, TransactionDisposition,
+    OperationId, ProducerId, ScenarioAction, ShareConsumedRecord, ShareDisposition, TerminalStatus,
+    TransactionDisposition,
 };
 
 mod admin_recording;
 mod recording;
+mod share;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTerminal {
@@ -70,6 +72,33 @@ pub(crate) struct IndexedTransactionFence {
     pub(crate) commit_error_code: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedShareReceive {
+    pub(crate) history_sequence: u64,
+    pub(crate) consumer_id: ConsumerId,
+    pub(crate) records: Vec<ShareConsumedRecord>,
+    pub(crate) member_epoch: Option<i32>,
+    pub(crate) assignment_epoch: Option<u64>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedShareAcknowledgement {
+    pub(crate) history_sequence: u64,
+    pub(crate) receive_id: OperationId,
+    pub(crate) disposition: ShareDisposition,
+    pub(crate) success: bool,
+    pub(crate) delivery: Option<TerminalStatus>,
+    pub(crate) code: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedShareClose {
+    pub(crate) history_sequence: u64,
+    pub(crate) success: bool,
+    pub(crate) delivery: Option<TerminalStatus>,
+    pub(crate) code: Option<String>,
+}
+
 #[derive(Debug, Default)]
 pub(crate) struct HistoryIndex {
     has_harness_commands: bool,
@@ -82,6 +111,11 @@ pub(crate) struct HistoryIndex {
     consumers_close_issued: BTreeSet<ConsumerId>,
     group_consumers_create_issued: BTreeSet<ConsumerId>,
     group_consumers_close_issued: BTreeSet<ConsumerId>,
+    share_consumers_create_issued: BTreeSet<ConsumerId>,
+    share_receives_issued: BTreeSet<OperationId>,
+    share_acknowledgements_issued: BTreeSet<OperationId>,
+    share_batches_drop_issued: BTreeSet<OperationId>,
+    share_consumers_close_issued: BTreeSet<ConsumerId>,
     operations_issued: BTreeSet<OperationId>,
     topics_create_issued: BTreeSet<OperationId>,
     topic_partitions_create_issued: BTreeSet<OperationId>,
@@ -117,6 +151,11 @@ pub(crate) struct HistoryIndex {
     pub(crate) consumers_closed: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) group_consumers_created: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) group_consumers_closed: BTreeMap<ConsumerId, Vec<u64>>,
+    pub(crate) share_consumers_created: BTreeMap<ConsumerId, Vec<u64>>,
+    pub(crate) share_receives: BTreeMap<OperationId, Vec<IndexedShareReceive>>,
+    pub(crate) share_acknowledgements: BTreeMap<OperationId, Vec<IndexedShareAcknowledgement>>,
+    pub(crate) share_batches_dropped: BTreeMap<OperationId, Vec<u64>>,
+    pub(crate) share_consumers_closed: BTreeMap<ConsumerId, Vec<IndexedShareClose>>,
     pub(crate) flushes: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) producers_closed: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) clients_shutdown: BTreeMap<ClientId, Vec<u64>>,
@@ -136,6 +175,9 @@ impl HistoryIndex {
     pub(crate) fn action_issued(&self, action: &ScenarioAction) -> bool {
         if !self.has_harness_commands {
             return true;
+        }
+        if let Some(issued) = self.share_action_issued(action) {
+            return issued;
         }
         match action {
             ScenarioAction::CreateClient { client_id } => {
@@ -175,17 +217,17 @@ impl HistoryIndex {
             ScenarioAction::CreateTopic { operation_id, .. } => {
                 self.topics_create_issued.contains(operation_id)
             }
-            ScenarioAction::CreatePartitions { operation_id, .. } => {
-                self.topic_partitions_create_issued.contains(operation_id)
+            ScenarioAction::CreatePartitions(action) => self
+                .topic_partitions_create_issued
+                .contains(&action.operation_id),
+            ScenarioAction::DescribeTopic(action) => {
+                self.topics_describe_issued.contains(&action.operation_id)
             }
-            ScenarioAction::DescribeTopic { operation_id, .. } => {
-                self.topics_describe_issued.contains(operation_id)
+            ScenarioAction::ListTopics(action) => {
+                self.topics_list_issued.contains(&action.operation_id)
             }
-            ScenarioAction::ListTopics { operation_id, .. } => {
-                self.topics_list_issued.contains(operation_id)
-            }
-            ScenarioAction::ListOffsets { operation_id, .. } => {
-                self.offsets_list_issued.contains(operation_id)
+            ScenarioAction::ListOffsets(action) => {
+                self.offsets_list_issued.contains(&action.operation_id)
             }
             ScenarioAction::CreateTransactionalProducer { producer_id, .. } => self
                 .transactional_producers_create_issued
@@ -204,7 +246,19 @@ impl HistoryIndex {
             ScenarioAction::ShutdownClient { client_id } => {
                 self.clients_shutdown_issued.contains(client_id)
             }
-            ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::RestartBroker { .. } => true,
+            ScenarioAction::SetBrokerBehavior { .. }
+            | ScenarioAction::RestartBroker { .. }
+            | ScenarioAction::StopBroker { .. }
+            | ScenarioAction::StartBroker { .. }
+            | ScenarioAction::StopPartitionLeader { .. }
+            | ScenarioAction::RestorePartitionLeader { .. } => true,
+            ScenarioAction::CreateShareConsumer { .. }
+            | ScenarioAction::ShareReceive { .. }
+            | ScenarioAction::ShareAcknowledge { .. }
+            | ScenarioAction::DropShareBatch { .. }
+            | ScenarioAction::CloseShareConsumer { .. } => {
+                unreachable!("share actions are indexed before generic actions")
+            }
         }
     }
 

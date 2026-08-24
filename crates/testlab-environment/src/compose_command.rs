@@ -64,6 +64,26 @@ pub(super) fn restart(prefix: &[String], service: &str, operation: u32) -> Comma
     )
 }
 
+pub(super) fn stop(prefix: &[String], service: &str, operation: u32) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerStop,
+        prefix,
+        vec!["stop".to_owned(), service.to_owned()],
+        format!("broker-stop-{service}-{operation:05}.txt"),
+        format!("broker-stop-{service}-{operation:05}.stderr.txt"),
+    )
+}
+
+pub(super) fn start(prefix: &[String], service: &str, operation: u32) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerStart,
+        prefix,
+        vec!["start".to_owned(), service.to_owned()],
+        format!("broker-start-{service}-{operation:05}.txt"),
+        format!("broker-start-{service}-{operation:05}.stderr.txt"),
+    )
+}
+
 pub(super) fn restart_readiness(
     prefix: &[String],
     service: &str,
@@ -142,6 +162,32 @@ pub(super) fn scram_setup(
     )
 }
 
+pub(super) fn feature_setup(
+    prefix: &[String],
+    service: &str,
+    client_port: u16,
+    name: &str,
+    level: u16,
+) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerFeatureSetup,
+        prefix,
+        vec![
+            "exec".to_owned(),
+            "--no-TTY".to_owned(),
+            service.to_owned(),
+            "/opt/kafka/bin/kafka-features.sh".to_owned(),
+            "--bootstrap-server".to_owned(),
+            format!("localhost:{client_port}"),
+            "upgrade".to_owned(),
+            "--feature".to_owned(),
+            format!("{name}={level}"),
+        ],
+        format!("broker-feature-{name}-{level}.txt"),
+        format!("broker-feature-{name}-{level}.stderr.txt"),
+    )
+}
+
 pub(super) fn copy_tls_ca(prefix: &[String], service: &str, destination: &Path) -> CommandSpec {
     compose_owned(
         EnvironmentOperationKind::BrokerSecuritySetup,
@@ -208,7 +254,7 @@ fn compose(
     )
 }
 
-fn compose_owned(
+pub(super) fn compose_owned(
     kind: EnvironmentOperationKind,
     prefix: &[String],
     tail: Vec<String>,

@@ -73,12 +73,47 @@ impl HostPorts {
     pub(super) fn release(&mut self) {
         self.reservations.clear();
     }
+
+    pub(super) fn apply_to(
+        &self,
+        environment: &mut [(String, String)],
+    ) -> Result<(), ComposeFailure> {
+        let first = self.ports.first().copied().ok_or_else(empty)?;
+        replace(environment, "KAFKA_HOST_PORT", first)?;
+        for (index, port) in self.ports.iter().copied().enumerate() {
+            replace(environment, &format!("KAFKA_HOST_PORT_{}", index + 1), port)?;
+        }
+        Ok(())
+    }
+}
+
+fn replace(
+    environment: &mut [(String, String)],
+    name: &str,
+    port: u16,
+) -> Result<(), ComposeFailure> {
+    let mut matches = environment.iter_mut().filter(|(key, _)| key == name);
+    let Some((_, value)) = matches.next() else {
+        return Err(missing(name));
+    };
+    if matches.next().is_some() {
+        return Err(missing(name));
+    }
+    *value = port.to_string();
+    Ok(())
 }
 
 fn empty() -> ComposeFailure {
     ComposeFailure::new(
         "environment_host_port_invalid",
         "at least one nonzero host port is required",
+    )
+}
+
+fn missing(name: &str) -> ComposeFailure {
+    ComposeFailure::new(
+        "environment_host_port_invalid",
+        format!("expected one Compose environment value named {name}"),
     )
 }
 

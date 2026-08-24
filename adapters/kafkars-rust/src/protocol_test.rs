@@ -86,6 +86,47 @@ fn public_client_failure_is_a_correlated_normal_event() {
     ));
 }
 
+#[test]
+fn abort_exits_without_claiming_open_resources_were_settled() {
+    let client = ClientId::new("client-open").unwrap_or_else(|error| panic!("client id: {error}"));
+    let commands = vec![
+        command(
+            "hello",
+            AdapterCommand::Hello {
+                run_id: RunId::new("run-abort").unwrap_or_else(|error| panic!("run id: {error}")),
+                scenario_id: ScenarioId::new("producer.failed")
+                    .unwrap_or_else(|error| panic!("scenario id: {error}")),
+                broker_endpoints: vec!["127.0.0.1:1".to_owned()],
+                security: AdapterSecurity::Plaintext,
+            },
+        ),
+        command("client", AdapterCommand::CreateClient { client_id: client }),
+        command("abort", AdapterCommand::Abort),
+    ];
+    let input = commands
+        .iter()
+        .map(|command| {
+            serde_json::to_string(command).unwrap_or_else(|error| panic!("encode command: {error}"))
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n";
+    let mut output = Vec::new();
+
+    run_session(Cursor::new(input), &mut output)
+        .unwrap_or_else(|error| panic!("abort protocol session: {error}"));
+
+    let last = String::from_utf8(output)
+        .unwrap_or_else(|error| panic!("decode protocol output: {error}"))
+        .lines()
+        .last()
+        .and_then(|line| serde_json::from_str::<AdapterEventEnvelope>(line).ok());
+    assert!(matches!(
+        last.map(|event| event.event),
+        Some(AdapterEvent::Aborted)
+    ));
+}
+
 fn command(value: &str, command: AdapterCommand) -> CommandEnvelope {
     let id = CommandId::new(value).unwrap_or_else(|error| panic!("command id: {error}"));
     CommandEnvelope::new(id, command)

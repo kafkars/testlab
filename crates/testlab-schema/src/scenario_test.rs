@@ -176,6 +176,63 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
     );
 }
 
+#[test]
+fn broker_and_partition_stops_require_exact_restoration() {
+    let source = r#"
+schema_version = 13
+id = "environment.paired-control"
+title = "paired control"
+description = "every retained broker control is restored"
+timeout_ms = 1000
+requires = []
+assertions = []
+
+[[steps]]
+id = "stop-broker"
+kind = "stop_broker"
+broker_ordinal = 1
+timeout_ms = 500
+
+[[steps]]
+id = "start-broker"
+kind = "start_broker"
+broker_ordinal = 1
+timeout_ms = 500
+
+[[steps]]
+id = "stop-leader"
+kind = "stop_partition_leader"
+topic = "records"
+partition = 0
+timeout_ms = 500
+
+[[steps]]
+id = "restore-leader"
+kind = "restore_partition_leader"
+topic = "records"
+partition = 0
+timeout_ms = 500
+"#;
+    let mut scenario: Scenario =
+        toml::from_str(source).unwrap_or_else(|error| panic!("parse controls: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("paired controls: {error}"));
+    scenario.steps.pop();
+
+    let error = match scenario.validate() {
+        Ok(()) => panic!("unrestored partition leader must fail"),
+        Err(error) => error,
+    };
+
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem.contains("was not restored"))
+    );
+}
+
 fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
     let client = id(ClientId::new("client-1"));
     let producer = id(ProducerId::new("producer-1"));

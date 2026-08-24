@@ -26,6 +26,32 @@ fn one_exact_package_archive_is_discovered() {
 }
 
 #[test]
+fn similarly_prefixed_packages_do_not_make_archive_identity_ambiguous() {
+    let fixture = fixture_directory();
+    let _cleanup = Cleanup(fixture.clone());
+    must(fs::create_dir_all(&fixture), "create candidate fixture");
+    must(
+        fs::write(fixture.join("kafka-driver-0.1.0.crate"), b"driver"),
+        "write driver archive",
+    );
+    must(
+        fs::write(
+            fixture.join("kafka-driver-core-0.1.0.crate"),
+            b"driver core",
+        ),
+        "write driver core archive",
+    );
+
+    let (path, version) = must(
+        find_archive(&fixture, "kafka-driver"),
+        "find exact driver archive",
+    );
+
+    assert_eq!(path, fixture.join("kafka-driver-0.1.0.crate"));
+    assert_eq!(version, "0.1.0");
+}
+
+#[test]
 fn ambiguous_package_archives_are_rejected() {
     let fixture = fixture_directory();
     let _cleanup = Cleanup(fixture.clone());
@@ -58,6 +84,12 @@ fn adapter_manifest_uses_every_extracted_package() {
     assert!(manifest.contains("/sources/kafkars"));
     assert!(manifest.contains("/sources/kafka-client-core"));
     assert!(manifest.contains("/sources/kafka-client-engine"));
+    assert!(manifest.contains("/sources/kafka-driver"));
+    assert!(manifest.contains("/sources/kafka-driver-core"));
+    assert!(manifest.contains("/sources/kafka-driver-transport"));
+    assert!(manifest.contains("/sources/kafka-wire"));
+    assert!(manifest.contains("/sources/kafka-wire-core"));
+    assert!(manifest.contains("/sources/kafka-wire-records"));
     assert!(manifest.contains("/testlab root/adapters/kafkars-rust/src/lib.rs"));
 }
 
@@ -71,15 +103,25 @@ fn every_package_digest_contributes_to_bundle_identity() {
 }
 
 fn artifacts() -> Vec<PackageArtifact> {
-    ["kafka-client-core", "kafka-client-engine", "kafkars"]
-        .into_iter()
-        .map(|name| PackageArtifact {
-            name: name.to_owned(),
-            version: "0.1.0".to_owned(),
-            digest: "a".repeat(64),
-            source: PathBuf::from(format!("/sources/{name}")),
-        })
-        .collect()
+    [
+        "kafka-client-core",
+        "kafka-client-engine",
+        "kafkars",
+        "kafka-driver",
+        "kafka-driver-core",
+        "kafka-driver-transport",
+        "kafka-wire",
+        "kafka-wire-core",
+        "kafka-wire-records",
+    ]
+    .into_iter()
+    .map(|name| PackageArtifact {
+        name: name.to_owned(),
+        version: "0.1.0".to_owned(),
+        digest: "a".repeat(64),
+        source: PathBuf::from(format!("/sources/{name}")),
+    })
+    .collect()
 }
 
 fn fixture_directory() -> PathBuf {
