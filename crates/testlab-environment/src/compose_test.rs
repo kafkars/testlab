@@ -159,6 +159,52 @@ fn tls_ca_copy_is_a_correlated_security_operation() {
     assert!(!args.contains("ca.key"));
 }
 
+#[test]
+fn feature_setup_follows_readiness_and_precedes_client_security() {
+    let fixture = Fixture::with_feature_level("share.version", 1);
+    let mut environment = fixture.environment();
+
+    let setup = environment.start(Duration::from_secs(2));
+    let _cleanup = environment.finish(Duration::from_secs(2));
+
+    let feature = setup
+        .operations
+        .iter()
+        .position(|operation| operation.kind == EnvironmentOperationKind::BrokerFeatureSetup)
+        .unwrap_or_else(|| panic!("missing broker feature setup operation"));
+    let last_readiness = setup
+        .operations
+        .iter()
+        .rposition(|operation| operation.kind == EnvironmentOperationKind::Readiness)
+        .unwrap_or_else(|| panic!("missing readiness operation"));
+    assert!(last_readiness < feature);
+    let security = setup
+        .operations
+        .iter()
+        .position(|operation| operation.kind == EnvironmentOperationKind::BrokerSecuritySetup)
+        .unwrap_or_else(|| panic!("missing broker security setup operation"));
+    assert!(feature < security);
+    assert_eq!(
+        setup.operations[feature].args,
+        [
+            "compose",
+            "--project-name",
+            setup.operations[feature].args[2].as_str(),
+            "--file",
+            "clusters/kafka.yml",
+            "exec",
+            "--no-TTY",
+            "broker",
+            "/opt/kafka/bin/kafka-features.sh",
+            "--bootstrap-server",
+            "localhost:9092",
+            "upgrade",
+            "--feature",
+            "share.version=1",
+        ]
+    );
+}
+
 fn assert_unique_operation_ids(operations: &[testlab_schema::EnvironmentOperation]) {
     for (index, operation) in operations.iter().enumerate() {
         assert!(

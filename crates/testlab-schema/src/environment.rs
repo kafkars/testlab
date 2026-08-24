@@ -1,6 +1,6 @@
 //! Environment manifests identify independently controlled broker topologies.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path};
 
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use thiserror::Error;
 use crate::EnvironmentId;
 
 /// Current environment manifest version.
-pub const ENVIRONMENT_SCHEMA_VERSION: u16 = 1;
+pub const ENVIRONMENT_SCHEMA_VERSION: u16 = 2;
 
 /// One independently controlled scenario environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -44,6 +44,7 @@ impl EnvironmentManifest {
                 compose_files,
                 broker_services,
                 client_port,
+                feature_levels,
             } => validate_compose(
                 broker,
                 image,
@@ -51,6 +52,7 @@ impl EnvironmentManifest {
                 compose_files,
                 broker_services,
                 *client_port,
+                feature_levels,
             ),
         }
     }
@@ -78,6 +80,9 @@ pub enum EnvironmentDriver {
         broker_services: Vec<String>,
         /// Container port used for client bootstrap discovery.
         client_port: u16,
+        /// Explicit broker feature levels established after readiness.
+        #[serde(default)]
+        feature_levels: BTreeMap<String, u16>,
     },
 }
 
@@ -132,6 +137,7 @@ fn validate_compose(
     compose_files: &[String],
     broker_services: &[String],
     client_port: u16,
+    feature_levels: &BTreeMap<String, u16>,
 ) -> Result<(), EnvironmentError> {
     if broker.implementation.trim().is_empty() || broker.version.trim().is_empty() {
         return Err(EnvironmentError::BrokerIdentityEmpty);
@@ -143,8 +149,23 @@ fn validate_compose(
     if client_port == 0 {
         return Err(EnvironmentError::ClientPortZero);
     }
+    validate_feature_names(feature_levels)?;
     validate_paths(compose_files)?;
     validate_services(cluster_size, broker_services)
+}
+
+fn validate_feature_names(feature_levels: &BTreeMap<String, u16>) -> Result<(), EnvironmentError> {
+    for name in feature_levels.keys() {
+        let valid = name.chars().enumerate().all(|(index, character)| {
+            character.is_ascii_lowercase()
+                || character.is_ascii_digit()
+                || (index > 0 && matches!(character, '.' | '-'))
+        });
+        if name.is_empty() || !valid {
+            return Err(EnvironmentError::FeatureNameInvalid(name.clone()));
+        }
+    }
+    Ok(())
 }
 
 fn validate_image(image: &str) -> Result<(), EnvironmentError> {
@@ -234,6 +255,9 @@ pub enum EnvironmentError {
     /// The topology declared port zero.
     #[error("environment client_port must be greater than zero")]
     ClientPortZero,
+    /// One broker feature name was not portable.
+    #[error("invalid broker feature name {0}")]
+    FeatureNameInvalid(String),
     /// The Compose file list was empty.
     #[error("Docker Compose environment must declare at least one Compose file")]
     ComposeFilesEmpty,

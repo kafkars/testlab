@@ -3,7 +3,6 @@
 use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
-use std::thread;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{AdapterSecurity, EnvironmentDriver, RunId, TransportSecurity};
@@ -13,9 +12,6 @@ use crate::compose_ports::HostPorts;
 use crate::compose_support::{compose_prefix, failure_code, project_name, remaining};
 use crate::compose_types::{ComposeFailure, ComposePhase, ComposeRequest};
 use crate::security::ClientSecurity;
-
-const READINESS_ATTEMPT_MAX: Duration = Duration::from_secs(5);
-const READINESS_RETRY_DELAY: Duration = Duration::from_millis(250);
 
 /// One isolated Compose project that must be explicitly finished for evidence.
 #[must_use = "call finish so owned containers, networks, and volumes are removed"]
@@ -29,6 +25,7 @@ pub struct DockerComposeEnvironment {
     pub(super) broker_services: Vec<String>,
     pub(super) client_port: u16,
     pub(super) cluster_size: u16,
+    pub(super) feature_levels: BTreeMap<String, u16>,
     host_ports: HostPorts,
     pub(super) started_unix_ms: u64,
     pub(super) started: Instant,
@@ -99,6 +96,7 @@ impl DockerComposeEnvironment {
             compose_files,
             broker_services,
             client_port,
+            feature_levels,
             ..
         } = &request.environment.driver
         else {
@@ -132,6 +130,7 @@ impl DockerComposeEnvironment {
             broker_services: broker_services.clone(),
             client_port: *client_port,
             cluster_size: *cluster_size,
+            feature_levels: feature_levels.clone(),
             host_ports,
             started_unix_ms: request.started_unix_ms,
             started: Instant::now(),
@@ -188,6 +187,9 @@ impl DockerComposeEnvironment {
             if !self.wait_ready(&mut phase, &service, deadline) {
                 return phase;
             }
+        }
+        if !self.prepare_broker_features(&mut phase, deadline) {
+            return phase;
         }
         if !self.prepare_client_security(&mut phase, deadline) {
             return phase;
@@ -258,42 +260,6 @@ impl DockerComposeEnvironment {
                 phase.fail(error.code, error.diagnostic);
                 false
             }
-        }
-    }
-
-    fn wait_ready(&mut self, phase: &mut ComposePhase, service: &str, deadline: Instant) -> bool {
-        let mut attempt = 1_u32;
-        loop {
-            let timeout = remaining(deadline).min(READINESS_ATTEMPT_MAX);
-            let spec = compose_command::readiness(&self.prefix, service, self.client_port, attempt);
-            match self.execute(spec, timeout) {
-                Ok(output) => {
-                    if phase.retain(output) {
-                        return true;
-                    }
-                }
-                Err(error) => {
-                    phase.fail(error.code, error.diagnostic);
-                    return false;
-                }
-            }
-            if remaining(deadline).is_zero() {
-                phase.fail(
-                    "environment_readiness_failed",
-                    format!("broker service {service} did not become ready"),
-                );
-                return false;
-            }
-            thread::sleep(READINESS_RETRY_DELAY.min(remaining(deadline)));
-            attempt = if let Some(value) = attempt.checked_add(1) {
-                value
-            } else {
-                phase.fail(
-                    "environment_operation_overflow",
-                    "readiness attempt overflowed",
-                );
-                return false;
-            };
         }
     }
 }

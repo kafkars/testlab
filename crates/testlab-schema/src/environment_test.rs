@@ -1,5 +1,7 @@
 //! Environment manifest validation evidence.
 
+use std::collections::BTreeMap;
+
 use super::{
     Authentication, BrokerIdentity, EnvironmentDriver, EnvironmentError, EnvironmentId,
     EnvironmentManifest, SecurityProfile, TransportSecurity,
@@ -69,9 +71,25 @@ fn compose_paths_cannot_escape_the_catalog() {
     ));
 }
 
+#[test]
+fn feature_levels_require_portable_names() {
+    let mut manifest = environment();
+    let EnvironmentDriver::DockerCompose { feature_levels, .. } = &mut manifest.driver else {
+        panic!("fixture must use Docker Compose");
+    };
+    feature_levels.insert("share version".to_owned(), 1);
+
+    assert_eq!(
+        manifest.validate(),
+        Err(EnvironmentError::FeatureNameInvalid(
+            "share version".to_owned()
+        ))
+    );
+}
+
 fn environment() -> EnvironmentManifest {
     EnvironmentManifest {
-        schema_version: 1,
+        schema_version: 2,
         id: EnvironmentId::new("apache-kafka-4.3.1-plaintext")
             .unwrap_or_else(|error| panic!("fixture id: {error}")),
         title: "Apache Kafka 4.3.1 three-broker plaintext".to_owned(),
@@ -93,6 +111,7 @@ fn environment() -> EnvironmentManifest {
                 "kafka-3".to_owned(),
             ],
             client_port: 19_092,
+            feature_levels: BTreeMap::new(),
         },
     }
 }

@@ -162,6 +162,32 @@ pub(super) fn scram_setup(
     )
 }
 
+pub(super) fn feature_setup(
+    prefix: &[String],
+    service: &str,
+    client_port: u16,
+    name: &str,
+    level: u16,
+) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerFeatureSetup,
+        prefix,
+        vec![
+            "exec".to_owned(),
+            "--no-TTY".to_owned(),
+            service.to_owned(),
+            "/opt/kafka/bin/kafka-features.sh".to_owned(),
+            "--bootstrap-server".to_owned(),
+            format!("localhost:{client_port}"),
+            "upgrade".to_owned(),
+            "--feature".to_owned(),
+            format!("{name}={level}"),
+        ],
+        format!("broker-feature-{name}-{level}.txt"),
+        format!("broker-feature-{name}-{level}.stderr.txt"),
+    )
+}
+
 pub(super) fn copy_tls_ca(prefix: &[String], service: &str, destination: &Path) -> CommandSpec {
     compose_owned(
         EnvironmentOperationKind::BrokerSecuritySetup,

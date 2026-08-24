@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 id = "apache-kafka-4.1.2-single-plaintext"
 title = "Apache Kafka 4.1.2 single-broker plaintext"
 
@@ -8,7 +8,8 @@ image = "apache/kafka@sha256:5cc2a2fd93fa2687b44015eee04fb2c3edd9e526bd64bf8bec5
 cluster_size = 1
 compose_files = ["clusters/apache-kafka/compose/single-plaintext.yml", "clusters/apache-kafka/compose/single-share.yml"]
 broker_services = ["broker"]
-client_port = 9092
+client_port = 19092
+feature_levels = { "share.version" = 1 }
 
 [driver.broker]
 implementation = "apache-kafka"

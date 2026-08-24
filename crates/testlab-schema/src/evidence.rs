@@ -118,6 +118,8 @@ pub enum EnvironmentOperationKind {
     Readiness,
     /// Provision environment-owned broker authentication state.
     BrokerSecuritySetup,
+    /// Establish one explicit broker feature level after readiness.
+    BrokerFeatureSetup,
     /// Provision scenario-owned broker resources.
     BrokerProvision,
     /// Restart one declared broker service and retain its terminal result.

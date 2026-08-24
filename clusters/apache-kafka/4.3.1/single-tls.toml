@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 id = "apache-kafka-4.3.1-single-tls"
 title = "Apache Kafka 4.3.1 single-broker custom-root TLS"
 

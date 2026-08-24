@@ -1,5 +1,6 @@
 //! Shared Compose test fixtures retain fake terminal behavior outside behavioral tests.
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -54,6 +55,16 @@ impl Fixture {
         }
     }
 
+    pub(super) fn with_feature_level(name: &str, level: u16) -> Self {
+        let mut fixture = Self::with_authentication(false, Authentication::ScramSha256);
+        let EnvironmentDriver::DockerCompose { feature_levels, .. } = &mut fixture.manifest.driver
+        else {
+            panic!("fixture must use Docker Compose");
+        };
+        feature_levels.insert(name.to_owned(), level);
+        fixture
+    }
+
     pub(super) fn environment(&self) -> DockerComposeEnvironment {
         DockerComposeEnvironment::new_with_program(
             ComposeRequest {
@@ -82,7 +93,7 @@ impl Drop for Fixture {
 
 fn manifest(security: SecurityProfile) -> EnvironmentManifest {
     EnvironmentManifest {
-        schema_version: 1,
+        schema_version: 2,
         id: EnvironmentId::new("apache-kafka-test")
             .unwrap_or_else(|error| panic!("fixture environment id: {error}")),
         title: "Apache Kafka test fixture".to_owned(),
@@ -97,6 +108,7 @@ fn manifest(security: SecurityProfile) -> EnvironmentManifest {
             compose_files: vec!["clusters/kafka.yml".to_owned()],
             broker_services: vec!["broker".to_owned()],
             client_port: 9092,
+            feature_levels: BTreeMap::new(),
         },
     }
 }
