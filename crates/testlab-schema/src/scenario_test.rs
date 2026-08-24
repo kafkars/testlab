@@ -179,7 +179,7 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
 #[test]
 fn broker_and_partition_stops_require_exact_restoration() {
     let source = r#"
-schema_version = 11
+schema_version = 13
 id = "environment.paired-control"
 title = "paired control"
 description = "every retained broker control is restored"

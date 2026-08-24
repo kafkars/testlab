@@ -1,0 +1,111 @@
+schema_version = 13
+id = "kafka.admin-describe-topic"
+title = "packaged admin describes independently exercised topic partitions"
+description = "The packaged client's public admin describes one harness-provisioned topic as partitions 0, 1, and 2, then one exact independently observed record exercises each described partition."
+timeout_ms = 90000
+requires = ["producer", "producer_batch", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-1"
+topic = "testlab-kafkars-admin-described"
+expected_partitions = [0, 1, 2]
+timeout_ms = 20000
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "exercise-described-partitions"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-described-0"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-described"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "described-0" }
+value = { encoding = "hex", data = "006465736372696265642d30ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-described-0" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps.operations]]
+operation_id = "op-described-1"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-described"
+partition = 1
+sequence = 2
+key = { encoding = "utf8", data = "described-1" }
+value = { encoding = "hex", data = "006465736372696265642d31ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-described-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps.operations]]
+operation_id = "op-described-2"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-described"
+partition = 2
+sequence = 3
+key = { encoding = "utf8", data = "described-2" }
+value = { encoding = "hex", data = "006465736372696265642d32ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-described-2" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-described-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-described-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-described-2"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

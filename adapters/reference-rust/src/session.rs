@@ -82,16 +82,7 @@ fn dispatch<W: Write>(
         AdapterCommand::CreateProducer {
             client_id,
             producer_id,
-        } => {
-            state.create_producer(client_id, producer_id.clone())?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::ProducerCreated { producer_id },
-                ),
-            )?;
-        }
+        } => dispatch_create_producer(state, writer, command_id, client_id, producer_id)?,
         AdapterCommand::Send {
             producer_id,
             operation_id,
@@ -121,6 +112,10 @@ fn dispatch<W: Write>(
         | AdapterCommand::DropShareBatch { .. }
         | AdapterCommand::CloseShareConsumer { .. }
         | AdapterCommand::CreateTopic { .. }
+        | AdapterCommand::CreatePartitions { .. }
+        | AdapterCommand::DescribeTopic { .. }
+        | AdapterCommand::ListTopics { .. }
+        | AdapterCommand::ListOffsets { .. }
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::FenceTransaction { .. }
@@ -161,6 +156,20 @@ fn dispatch<W: Write>(
         }
     }
     Ok(false)
+}
+
+fn dispatch_create_producer<W: Write>(
+    state: &mut AdapterState,
+    writer: &mut W,
+    command_id: testlab_schema::CommandId,
+    client_id: testlab_schema::ClientId,
+    producer_id: testlab_schema::ProducerId,
+) -> Result<(), AdapterError> {
+    state.create_producer(client_id, producer_id.clone())?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(command_id, AdapterEvent::ProducerCreated { producer_id }),
+    )
 }
 
 fn dispatch_hello<W: Write>(

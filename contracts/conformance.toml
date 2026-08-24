@@ -25,6 +25,30 @@ statement = "Each requested public topic creation emits exactly one completion n
 category = "admin"
 
 [[contract]]
+id = "ADMIN-002"
+title = "Admin partition creation settles exactly once"
+statement = "Each requested public partition-count increase emits exactly one completion naming the exact operation and topic."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-003"
+title = "Admin topic description matches exercised partitions"
+statement = "Each requested public topic description emits exactly one completion naming the exact operation and topic and reporting the declared partition indices, each independently exercised by a broker-visible record."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-004"
+title = "Admin topic listing contains required observed topics"
+statement = "Each requested public all-topic listing emits exactly one byte-sorted unique completion containing every declared required topic whose existence is independently established by a broker-visible record."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-005"
+title = "Admin latest-offset listing matches broker observations"
+statement = "Each requested public latest-offset query emits exactly one completion for the exact topic-partition and returns the declared end offset one past its greatest independently observed broker offset."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

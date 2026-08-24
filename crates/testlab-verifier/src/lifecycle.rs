@@ -117,6 +117,10 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::Receive { .. }
             | ScenarioAction::GroupReceive { .. }
             | ScenarioAction::CreateTopic { .. }
+            | ScenarioAction::CreatePartitions(_)
+            | ScenarioAction::DescribeTopic(_)
+            | ScenarioAction::ListTopics(_)
+            | ScenarioAction::ListOffsets(_)
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }
             | ScenarioAction::CreateShareConsumer { .. }

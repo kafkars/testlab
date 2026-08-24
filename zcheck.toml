@@ -1,0 +1,118 @@
+schema = 1
+default = "check"
+
+[execution]
+jobs = 4
+default_timeout = "30m"
+repository_state = "preserve"
+
+[tasks.architecture]
+description = "Enforce the reviewed repository architecture policy."
+run = ["zrail", "check"]
+env = { LANG = "C", LC_ALL = "C", LC_CTYPE = "C" }
+tools = ["zrail"]
+inputs = ["zrail.toml", "zrail.lock"]
+
+[tasks.rust-lint]
+description = "Validate Rust formatting, lints, and documentation."
+run = ["scripts/check-rust-lint"]
+tools = ["bash", "cargo"]
+resources = ["cargo-target"]
+inputs = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "rust-toolchain.toml",
+  "clippy.toml",
+  "adapters",
+  "crates",
+  "scripts/check-rust-lint",
+  "scripts/portable-environment",
+]
+
+[tasks.rust-test]
+description = "Build and test the complete Rust workspace."
+run = ["scripts/check-rust-test"]
+tools = ["bash", "cargo"]
+resources = ["cargo-target"]
+inputs = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "rust-toolchain.toml",
+  "adapters",
+  "crates",
+  "scripts/check-rust-test",
+  "scripts/portable-environment",
+]
+
+[tasks.scenarios]
+description = "Validate every registered scenario and qualification manifest."
+run = ["scripts/check-scenarios"]
+tools = ["bash", "cargo"]
+resources = ["cargo-target"]
+inputs = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "rust-toolchain.toml",
+  "adapters",
+  "clusters",
+  "contracts",
+  "crates",
+  "packs",
+  "qualifications",
+  "scenarios",
+  "scripts/check-scenarios",
+  "scripts/portable-environment",
+  "subjects",
+]
+
+[tasks.reference-pack]
+description = "Run the reference adapter pack and seal its evidence."
+run = ["scripts/run-reference-pack"]
+needs = ["scenarios"]
+tools = ["bash", "cargo"]
+resources = ["cargo-target"]
+inputs = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "rust-toolchain.toml",
+  "adapters",
+  "clusters",
+  "contracts",
+  "crates",
+  "packs",
+  "qualifications",
+  "scenarios",
+  "scripts/portable-environment",
+  "scripts/run-reference-pack",
+  "subjects",
+]
+
+[tasks.reference-qualification]
+description = "Run the repeated reference qualification and seal its evidence."
+run = ["scripts/run-reference-qualification"]
+needs = ["scenarios"]
+tools = ["bash", "cargo"]
+resources = ["cargo-target"]
+inputs = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "rust-toolchain.toml",
+  "adapters",
+  "clusters",
+  "contracts",
+  "crates",
+  "packs",
+  "qualifications",
+  "scenarios",
+  "scripts/portable-environment",
+  "scripts/run-reference-qualification",
+  "subjects",
+]
+
+[tasks.repository-selftest]
+description = "Validate catalogs and produce the CI reference-pack evidence."
+needs = ["reference-pack"]
+
+[tasks.check]
+description = "Run complete local Kafka testlab qualification."
+needs = ["architecture", "rust-lint", "rust-test", "reference-qualification"]

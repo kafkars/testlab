@@ -98,7 +98,11 @@ pub(crate) fn validate_action(
         | ScenarioAction::CloseShareConsumer { .. }) => {
             crate::share_action_validation::validate(action, state, problems);
         }
-        action @ ScenarioAction::CreateTopic { .. } => {
+        action @ (ScenarioAction::CreateTopic { .. }
+        | ScenarioAction::CreatePartitions(_)
+        | ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListOffsets(_)) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,
@@ -118,16 +122,7 @@ pub(crate) fn validate_action(
         ScenarioAction::CloseProducer { producer_id } => {
             close_producer(producer_id, &mut state.producers, problems);
         }
-        ScenarioAction::ShutdownClient { client_id } => {
-            shutdown_client(
-                client_id,
-                &mut state.clients,
-                &state.producers,
-                &state.consumers,
-                &state.transactions,
-                problems,
-            );
-        }
+        ScenarioAction::ShutdownClient { client_id } => shutdown_client(client_id, state, problems),
     }
 }
 
@@ -244,15 +239,9 @@ fn close_producer(
     }
 }
 
-fn shutdown_client(
-    client_id: &ClientId,
-    clients: &mut ClientStates,
-    producers: &ProducerStates,
-    consumers: &ConsumerStates,
-    transactions: &TransactionStates,
-    problems: &mut Vec<String>,
-) {
-    let open = producers
+fn shutdown_client(client_id: &ClientId, state: &mut ActionStates, problems: &mut Vec<String>) {
+    let open = state
+        .producers
         .iter()
         .filter(|(_, (owner, closed))| owner == client_id && !closed)
         .map(|(producer, _)| producer.to_string())
@@ -263,7 +252,8 @@ fn shutdown_client(
             open.join(", ")
         ));
     }
-    let open_consumers = crate::consumer_action_validation::open_for_client(consumers, client_id);
+    let open_consumers =
+        crate::consumer_action_validation::open_for_client(&state.consumers, client_id);
     if !open_consumers.is_empty() {
         problems.push(format!(
             "client {client_id} shut down with open consumers {}",
@@ -271,14 +261,14 @@ fn shutdown_client(
         ));
     }
     let open_transactions =
-        crate::transaction_action_validation::open_for_client(transactions, client_id);
+        crate::transaction_action_validation::open_for_client(&state.transactions, client_id);
     if !open_transactions.is_empty() {
         problems.push(format!(
             "client {client_id} shut down with open transactional producers {}",
             open_transactions.join(", ")
         ));
     }
-    match clients.get_mut(client_id) {
+    match state.clients.get_mut(client_id) {
         Some(shutdown) if !*shutdown => *shutdown = true,
         Some(_) => {
             problems.push(format!("client {client_id} shut down more than once"));

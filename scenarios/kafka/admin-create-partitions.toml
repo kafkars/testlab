@@ -1,0 +1,79 @@
+schema_version = 13
+id = "kafka.admin-create-partitions"
+title = "packaged admin expands a Kafka topic to a usable partition"
+description = "The packaged client's public admin creates a one-partition topic and requests expansion to a total of three partitions, then the packaged producer writes one independently observed exact record proving newly addressed partition 2 usable."
+timeout_ms = 90000
+requires = ["producer", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-create-1"
+topic = "testlab-kafkars-admin-partitions"
+partitions = 1
+replication_factor = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "create-partitions"
+kind = "create_partitions"
+client_id = "client-1"
+operation_id = "admin-partitions-1"
+topic = "testlab-kafkars-admin-partitions"
+total_count = 3
+timeout_ms = 20000
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-expanded-partition"
+
+[steps.record]
+topic = "testlab-kafkars-admin-partitions"
+partition = 2
+sequence = 1
+key = { encoding = "hex", data = "0061646d696e2d706172746974696f6e73ff" }
+value = { encoding = "hex", data = "00657870616e646564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-expanded-partition" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-expanded-partition"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

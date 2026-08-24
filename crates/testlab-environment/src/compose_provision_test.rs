@@ -39,7 +39,7 @@ fn operation_records_cluster_replication_factor() {
 fn share_groups_are_preconfigured_for_deterministic_earliest_start() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 11
+schema_version = 13
 id = "share.provisioning"
 title = "share provisioning"
 description = "share group provisioning fixture"
@@ -92,7 +92,7 @@ close_timeout_ms = 1000
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 11
+schema_version = 13
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -120,38 +120,39 @@ operations = [
 }
 
 #[test]
-fn admin_created_topics_are_not_preprovisioned() {
-    let scenario: Scenario = toml::from_str(
-        r#"
-schema_version = 11
-id = "admin.explicit-topic"
-title = "admin topic"
-description = "admin topic provisioning fixture"
-timeout_ms = 1000
-requires = ["producer", "admin", "lifecycle"]
-assertions = []
-
-[[steps]]
-id = "create-topic"
-kind = "create_topic"
-client_id = "client-1"
-operation_id = "admin-create-1"
-topic = "admin-owned"
-partitions = 1
-replication_factor = 1
-timeout_ms = 1000
-
-[[steps]]
-id = "send"
-kind = "send"
-producer_id = "producer-1"
-operation_id = "op-1"
-record = { topic = "admin-owned", partition = 0, sequence = 1 }
-"#,
-    )
+fn admin_created_and_expanded_topics_are_not_preprovisioned() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-create-partitions.toml"
+    ))
     .unwrap_or_else(|error| panic!("parse scenario: {error}"));
 
     assert!(topics(&scenario).is_empty());
+}
+
+#[test]
+fn read_only_admin_topics_are_preprovisioned_from_their_markers() {
+    for (path, expected) in [
+        (
+            "../../scenarios/kafka/admin-describe-topic.toml",
+            BTreeMap::from([("testlab-kafkars-admin-described".to_owned(), 3)]),
+        ),
+        (
+            "../../scenarios/kafka/admin-list-topics.toml",
+            BTreeMap::from([("testlab-kafkars-admin-listed".to_owned(), 1)]),
+        ),
+        (
+            "../../scenarios/kafka/admin-list-offsets.toml",
+            BTreeMap::from([("testlab-kafkars-admin-offsets".to_owned(), 1)]),
+        ),
+    ] {
+        let manifest =
+            std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(path))
+                .unwrap_or_else(|error| panic!("read {path}: {error}"));
+        let scenario: Scenario =
+            toml::from_str(&manifest).unwrap_or_else(|error| panic!("parse {path}: {error}"));
+
+        assert_eq!(topics(&scenario), expected, "unexpected topics for {path}");
+    }
 }
 
 #[test]

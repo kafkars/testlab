@@ -1,11 +1,31 @@
-//! Observer normalization tests prove exact bytes and required correlation metadata.
+//! Observer tests prove issued targeting, exact bytes, and correlation metadata.
+
+use std::collections::BTreeSet;
 
 use rdkafka::error::KafkaError;
 use rdkafka::types::RDKafkaErrorCode;
-use testlab_schema::ByteEncoding;
+use testlab_schema::{ByteEncoding, OperationId, Scenario};
 
-use crate::observer::is_transient;
+use crate::observer::{is_transient, targets};
 use crate::observer_record::{CapturedRecord, normalize};
+
+#[test]
+fn unissued_partition_send_is_excluded_from_observation_targets() {
+    let scenario = partition_expansion_scenario();
+
+    assert!(targets(&scenario, &BTreeSet::new()).is_empty());
+}
+
+#[test]
+fn issued_partition_send_is_included_in_observation_targets() {
+    let scenario = partition_expansion_scenario();
+    let issued = BTreeSet::from([id(OperationId::new("op-expanded-partition"))]);
+
+    assert_eq!(
+        targets(&scenario, &issued),
+        BTreeSet::from([("testlab-kafkars-admin-partitions".to_owned(), 2)])
+    );
+}
 
 #[test]
 fn observation_preserves_null_binary_and_ordered_headers() {
@@ -73,4 +93,18 @@ fn only_bounded_consumer_startup_errors_are_retried() {
     assert!(!is_transient(&KafkaError::MessageConsumption(
         RDKafkaErrorCode::TopicAuthorizationFailed,
     )));
+}
+
+fn partition_expansion_scenario() -> Scenario {
+    toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-create-partitions.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse partition expansion scenario: {error}"))
+}
+
+fn id<T, E>(result: Result<T, E>) -> T
+where
+    E: std::fmt::Display,
+{
+    result.unwrap_or_else(|error| panic!("fixture identity: {error}"))
 }

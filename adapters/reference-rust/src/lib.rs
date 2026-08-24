@@ -12,3 +12,5 @@ pub use session::{AdapterError, run_stdio};
 
 #[cfg(test)]
 mod session_test;
+#[cfg(test)]
+mod session_unsupported_test;

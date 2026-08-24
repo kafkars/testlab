@@ -1,4 +1,4 @@
-schema_version = 11
+schema_version = 13
 id = "kafka.share-group-membership-ownership"
 title = "simultaneous share members preserve acquisition ownership"
 description = "Two live members hold distinct records from one partition, a held batch survives membership change, and an unfinished close redelivers to a survivor."

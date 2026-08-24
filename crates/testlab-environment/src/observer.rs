@@ -9,7 +9,7 @@ use rdkafka::error::KafkaError;
 use rdkafka::message::{Headers, Message};
 use rdkafka::topic_partition_list::{Offset, TopicPartitionList};
 use rdkafka::types::RDKafkaErrorCode;
-use testlab_schema::{BrokerObservation, RunId, Scenario, ScenarioAction};
+use testlab_schema::{BrokerObservation, OperationId, RunId, Scenario, ScenarioAction};
 
 use crate::observer_error::ObserverError;
 use crate::observer_record::{CapturedRecord, normalize};
@@ -22,6 +22,7 @@ pub(super) struct ObserverRequest<'a> {
     pub(super) endpoint: &'a str,
     pub(super) run_id: &'a RunId,
     pub(super) scenario: &'a Scenario,
+    pub(super) issued_operations: &'a BTreeSet<OperationId>,
     pub(super) timeout: Duration,
     pub(super) security: &'a ClientSecurity,
 }
@@ -39,7 +40,7 @@ type Assignment = (TopicPartitionList, Cursors);
 pub(super) fn capture(
     request: ObserverRequest<'_>,
 ) -> Result<Vec<BrokerObservation>, ObserverError> {
-    let targets = targets(request.scenario);
+    let targets = targets(request.scenario, request.issued_operations);
     if targets.is_empty() {
         return Ok(Vec::new());
     }
@@ -68,20 +69,30 @@ fn consumer(
     config.create().map_err(ObserverError::Kafka)
 }
 
-fn targets(scenario: &Scenario) -> BTreeSet<(String, i32)> {
+pub(super) fn targets(
+    scenario: &Scenario,
+    issued_operations: &BTreeSet<OperationId>,
+) -> BTreeSet<(String, i32)> {
     let mut targets = BTreeSet::new();
     for step in &scenario.steps {
         match &step.action {
-            ScenarioAction::Send { record, .. } => {
+            ScenarioAction::Send {
+                operation_id,
+                record,
+                ..
+            } if issued_operations.contains(operation_id) => {
                 targets.insert((record.topic.clone(), record.partition));
             }
             ScenarioAction::SendBatch { operations, .. }
             | ScenarioAction::ExecuteTransaction { operations, .. } => targets.extend(
                 operations
                     .iter()
+                    .filter(|operation| issued_operations.contains(&operation.operation_id))
                     .map(|operation| (operation.record.topic.clone(), operation.record.partition)),
             ),
-            ScenarioAction::FenceTransaction { operation, .. } => {
+            ScenarioAction::FenceTransaction { operation, .. }
+                if issued_operations.contains(&operation.operation_id) =>
+            {
                 targets.insert((operation.record.topic.clone(), operation.record.partition));
             }
             _ => {}

@@ -1,13 +1,12 @@
-//! Expected event shapes constrain each sequential protocol-v14 command.
+//! Expected event shapes constrain each sequential protocol-v15 command.
 
 use std::collections::BTreeSet;
 
 use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
 
 use crate::run_error::RunFailure;
-use crate::runner_protocol_family::{
-    classify_admin, classify_group, classify_transaction, same_event_family,
-};
+use crate::runner_protocol_admin::classify_admin;
+use crate::runner_protocol_family::{classify_group, classify_transaction, same_event_family};
 
 #[derive(Clone, Debug)]
 pub(crate) enum ExpectedEvent {
@@ -35,6 +34,22 @@ pub(crate) enum ExpectedEvent {
     TopicCreated {
         operation_id: OperationId,
         topic: String,
+    },
+    TopicPartitionsCreated {
+        operation_id: OperationId,
+        topic: String,
+    },
+    TopicDescribed {
+        operation_id: OperationId,
+        topic: String,
+    },
+    TopicsListed {
+        operation_id: OperationId,
+    },
+    OffsetListed {
+        operation_id: OperationId,
+        topic: String,
+        partition: i32,
     },
     TransactionalProducerCreated(ProducerId),
     TransactionCompleted {

@@ -6,28 +6,9 @@ use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     let pair = match action {
-        ScenarioAction::CreateClient { client_id } => (
-            AdapterCommand::CreateClient {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientCreated(client_id.clone()),
-        ),
-        ScenarioAction::AwaitClientReady { client_id } => (
-            AdapterCommand::AwaitClientReady {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientReady(client_id.clone()),
-        ),
-        ScenarioAction::CreateProducer {
-            client_id,
-            producer_id,
-        } => (
-            AdapterCommand::CreateProducer {
-                client_id: client_id.clone(),
-                producer_id: producer_id.clone(),
-            },
-            ExpectedEvent::ProducerCreated(producer_id.clone()),
-        ),
+        action @ (ScenarioAction::CreateClient { .. }
+        | ScenarioAction::AwaitClientReady { .. }
+        | ScenarioAction::CreateProducer { .. }) => return creation(action),
         ScenarioAction::Send {
             producer_id,
             operation_id,
@@ -70,7 +51,13 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::CloseShareConsumer { .. }) => {
             return crate::session_command_consumer::translate(action);
         }
-        action @ ScenarioAction::CreateTopic { .. } => return admin(action),
+        action @ (ScenarioAction::CreateTopic { .. }
+        | ScenarioAction::CreatePartitions(_)
+        | ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListOffsets(_)) => {
+            return crate::session_command_admin::translate(action);
+        }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::FenceTransaction { .. }
@@ -101,6 +88,35 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::RestorePartitionLeader { .. } => {
             return None;
         }
+    };
+    Some(pair)
+}
+
+fn creation(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
+    let pair = match action {
+        ScenarioAction::CreateClient { client_id } => (
+            AdapterCommand::CreateClient {
+                client_id: client_id.clone(),
+            },
+            ExpectedEvent::ClientCreated(client_id.clone()),
+        ),
+        ScenarioAction::AwaitClientReady { client_id } => (
+            AdapterCommand::AwaitClientReady {
+                client_id: client_id.clone(),
+            },
+            ExpectedEvent::ClientReady(client_id.clone()),
+        ),
+        ScenarioAction::CreateProducer {
+            client_id,
+            producer_id,
+        } => (
+            AdapterCommand::CreateProducer {
+                client_id: client_id.clone(),
+                producer_id: producer_id.clone(),
+            },
+            ExpectedEvent::ProducerCreated(producer_id.clone()),
+        ),
+        _ => return None,
     };
     Some(pair)
 }
@@ -182,32 +198,4 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
         _ => return None,
     };
     Some(pair)
-}
-
-fn admin(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    let ScenarioAction::CreateTopic {
-        client_id,
-        operation_id,
-        topic,
-        partitions,
-        replication_factor,
-        timeout_ms,
-    } = action
-    else {
-        return None;
-    };
-    Some((
-        AdapterCommand::CreateTopic {
-            client_id: client_id.clone(),
-            operation_id: operation_id.clone(),
-            topic: topic.clone(),
-            partitions: *partitions,
-            replication_factor: *replication_factor,
-            timeout_ms: *timeout_ms,
-        },
-        ExpectedEvent::TopicCreated {
-            operation_id: operation_id.clone(),
-            topic: topic.clone(),
-        },
-    ))
 }

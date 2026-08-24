@@ -42,8 +42,7 @@ support compatibility or release claims.
 Validate the repository and its reference qualification:
 
 ```sh
-scripts/check
-scripts/run-reference-qualification
+zcheck
 ```
 
 Qualify a packaged Kafkars checkout against real Kafka with Docker:
@@ -75,7 +74,7 @@ Kafkars CI can invoke the same boundary without owning broker setup:
 | Kafka | Apache Kafka 3.7.2 through 4.3.1 |
 | Topology | Single broker and three-broker clusters |
 | Security | Plaintext, TLS, SASL/PLAIN, and SCRAM-SHA-256/512 |
-| Behavior | Produce, consume, groups, admin, transactions, fencing, restart, and rolling recovery |
+| Behavior | Produce, assigned/group/share consume, admin, transactions, fencing, restart, and rolling recovery |
 | Truth | Adapter history checked against independent librdkafka observation |
 
 Kafka images are pinned by digest. Scenario topics must have leaders and full

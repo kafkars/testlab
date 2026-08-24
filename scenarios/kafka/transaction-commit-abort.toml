@@ -1,4 +1,4 @@
-schema_version = 11
+schema_version = 13
 id = "kafka.transaction-commit-abort"
 title = "packaged transactions commit and abort with read-committed isolation"
 description = "One packaged transactional producer commits an exact record, aborts another, and commits a sentinel; the independent read-committed observer must see only both committed records."

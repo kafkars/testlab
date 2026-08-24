@@ -2,7 +2,7 @@
 
 ## Transport
 
-Protocol v13 is UTF-8 JSON Lines over stdin and stdout.
+Protocol v15 is UTF-8 JSON Lines over stdin and stdout.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -37,6 +37,10 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `drop_share_batch`
 - `close_share_consumer`
 - `create_topic`
+- `create_partitions`
+- `describe_topic`
+- `list_topics`
+- `list_offsets`
 - `create_transactional_producer`
 - `execute_transaction`
 - `fence_transaction`
@@ -45,6 +49,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `close_producer`
 - `shutdown_client`
 - `finish`
+- `abort`
 
 Model-broker controls and real-cluster broker restarts are owned directly by
 testctl and do not cross the adapter boundary. A restart occurs between public
@@ -73,6 +78,10 @@ client commands while the same adapter process and client handles remain alive.
 - `share_batch_dropped`
 - `share_consumer_closed`
 - `topic_created`
+- `topic_partitions_created`
+- `topic_described`
+- `topics_listed`
+- `offset_listed`
 - `transactional_producer_created`
 - `transaction_completed`
 - `transaction_fence_completed`
@@ -82,6 +91,7 @@ client commands while the same adapter process and client handles remain alive.
 - `client_shutdown`
 - `command_failed`
 - `finished`
+- `aborted`
 - `fatal`
 
 A send emits one admission decision. Accepted operations later emit exactly one
@@ -108,10 +118,29 @@ certainty of failure; Testlab never infers a stronger terminal. Delivery counts
 and positive membership fences remain in the correlated receive event so
 redelivery and concurrent-member claims are deterministic.
 
-Topic creation uses the packaged client's public admin handle and returns one
-exact per-topic batch outcome. Admin-created scenario topics are deliberately
-excluded from independent environment provisioning, and broker auto-creation is
-disabled, so a later broker-visible producer record proves the topic was usable.
+Topic creation and partition expansion use the packaged client's public admin
+handle and return one exact per-topic batch outcome. Admin-created scenario
+topics are deliberately excluded from independent environment provisioning,
+and broker auto-creation is disabled. A later independently observed producer
+record proves a created topic was usable; a record on a newly added partition
+proves that partition was usable without manufacturing an independently
+observed exact final partition count.
+
+Named topic description, all-topic listing, and offset listing also use the
+packaged public admin handle. Their adapter commands omit the scenario's
+expected partitions, required topics, and expected offset. A named description
+must report the exact declared partition indices, each of which is later
+exercised by an independently observed record. An all-topic listing preserves
+the public byte-sorted unique order and must contain the declared required
+topics, whose existence is likewise established by independent record
+observations. These checks do not claim exhaustive topic
+listing, internal-topic filtering, topic IDs, or replica topology.
+
+The initial offset-listing slice selects `latest` for one isolated partition
+after two acknowledged records and requires end offset 2. Independent record
+observations at offsets 0 and 1 establish the claim without treating an adapter
+echo as broker truth. Other offset positions, timestamps, and leader epochs are
+outside this slice.
 
 One `execute_transaction` command owns a complete linear begin, ordered send,
 and commit-or-abort sequence because the public transaction token borrows its
@@ -142,6 +171,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v13 is an exact semantic contract. New capabilities may be declared
+Protocol v15 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

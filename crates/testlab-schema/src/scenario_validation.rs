@@ -101,11 +101,8 @@ fn validate_assertions(
                 assertion.operation_id
             ));
         }
-        validate_assertion_semantics(
-            assertion,
-            transaction_sends.get(&assertion.operation_id).copied(),
-            problems,
-        );
+        let transaction = transaction_sends.get(&assertion.operation_id).copied();
+        validate_assertion_semantics(assertion, transaction, problems);
     }
     for operation in operations {
         if !asserted.contains(operation) {

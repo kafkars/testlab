@@ -152,9 +152,11 @@ fn execute_compose(
     } else {
         Ok(())
     };
+    let issued_operations = crate::issued_operations::from_history(recorder.entries());
     let observation = if setup_result.is_ok() && provision_result.is_ok() && adapter.is_some() {
         environment.observe(
             request.scenario,
+            &issued_operations,
             work_deadline.remaining().unwrap_or(Duration::ZERO),
         )
     } else {

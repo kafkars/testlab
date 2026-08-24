@@ -2,6 +2,8 @@
 
 mod adapter;
 mod admin_action_validation;
+mod admin_offset_position;
+mod admin_scenario_action;
 mod bytes;
 mod consumer_action_validation;
 mod contract;
@@ -33,6 +35,10 @@ mod transaction_action_validation;
 mod verdict;
 
 pub use adapter::{AdapterDescriptor, Capability};
+pub use admin_offset_position::AdminOffsetPosition;
+pub use admin_scenario_action::{
+    CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
+};
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
 pub use environment::{
@@ -76,6 +82,16 @@ pub use share::{ShareConsumedRecord, ShareDisposition};
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};
 
+#[cfg(test)]
+mod admin_action_validation_test;
+#[cfg(test)]
+mod admin_protocol_test;
+#[cfg(test)]
+mod admin_query_ownership_test;
+#[cfg(test)]
+mod admin_query_protocol_test;
+#[cfg(test)]
+mod admin_query_validation_test;
 #[cfg(test)]
 mod bytes_test;
 #[cfg(test)]

@@ -3,7 +3,7 @@
 use testlab_schema::{AdapterCommand, AdapterEvent, HistoryEntry, HistoryPayload};
 
 use super::{
-    HistoryIndex, IndexedCommandFailure, IndexedReceive, IndexedTerminal, IndexedTopicCreation,
+    HistoryIndex, IndexedCommandFailure, IndexedReceive, IndexedTerminal,
     IndexedTransactionCompletion, push,
 };
 
@@ -19,7 +19,8 @@ impl HistoryIndex {
     }
 
     fn record_event(&mut self, event: &AdapterEvent, sequence: u64) {
-        if self.record_share_event(event, sequence)
+        if self.record_admin_event(event, sequence)
+            || self.record_share_event(event, sequence)
             || self.record_transaction_event(event, sequence)
             || self.record_consumer_event(event, sequence)
         {
@@ -53,17 +54,6 @@ impl HistoryIndex {
             AdapterEvent::ProducerCreated { producer_id } => {
                 push(&mut self.producers_created, producer_id.clone(), sequence);
             }
-            AdapterEvent::TopicCreated {
-                operation_id,
-                topic,
-            } => self
-                .topics_created
-                .entry(operation_id.clone())
-                .or_default()
-                .push(IndexedTopicCreation {
-                    history_sequence: sequence,
-                    topic: topic.clone(),
-                }),
             AdapterEvent::FlushCompleted { producer_id } => {
                 push(&mut self.flushes, producer_id.clone(), sequence);
             }
@@ -96,6 +86,11 @@ impl HistoryIndex {
             | AdapterEvent::GroupConsumerCreated { .. }
             | AdapterEvent::GroupReceiveCompleted { .. }
             | AdapterEvent::GroupConsumerClosed { .. }
+            | AdapterEvent::TopicCreated { .. }
+            | AdapterEvent::TopicPartitionsCreated { .. }
+            | AdapterEvent::TopicDescribed { .. }
+            | AdapterEvent::TopicsListed { .. }
+            | AdapterEvent::OffsetListed { .. }
             | AdapterEvent::TransactionalProducerCreated { .. }
             | AdapterEvent::TransactionCompleted { .. }
             | AdapterEvent::TransactionFenceCompleted { .. }
@@ -206,7 +201,7 @@ impl HistoryIndex {
 
     fn record_command(&mut self, command: &AdapterCommand) {
         self.has_harness_commands = true;
-        if self.record_share_command(command) {
+        if self.record_admin_command(command) || self.record_share_command(command) {
             return;
         }
         match command {
@@ -248,9 +243,6 @@ impl HistoryIndex {
                 self.group_consumers_close_issued
                     .insert(consumer_id.clone());
             }
-            AdapterCommand::CreateTopic { operation_id, .. } => {
-                self.topics_create_issued.insert(operation_id.clone());
-            }
             AdapterCommand::CreateTransactionalProducer { producer_id, .. } => {
                 self.transactional_producers_create_issued
                     .insert(producer_id.clone());
@@ -287,12 +279,17 @@ impl HistoryIndex {
             }
             AdapterCommand::Finish => self.finish_issued = true,
             AdapterCommand::Abort | AdapterCommand::Hello { .. } => {}
-            AdapterCommand::CreateShareConsumer { .. }
+            AdapterCommand::CreateTopic { .. }
+            | AdapterCommand::CreatePartitions { .. }
+            | AdapterCommand::DescribeTopic { .. }
+            | AdapterCommand::ListTopics { .. }
+            | AdapterCommand::ListOffsets { .. }
+            | AdapterCommand::CreateShareConsumer { .. }
             | AdapterCommand::ShareReceive { .. }
             | AdapterCommand::ShareAcknowledge { .. }
             | AdapterCommand::DropShareBatch { .. }
             | AdapterCommand::CloseShareConsumer { .. } => {
-                unreachable!("share commands are indexed before generic commands")
+                unreachable!("specialized commands are indexed before generic commands")
             }
         }
     }

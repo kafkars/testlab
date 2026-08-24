@@ -5,7 +5,7 @@
    runner.
 3. Keep adapters black-box and process-isolated.
 4. Add deterministic evidence for every verifier rule.
-5. Run `scripts/check` and `scripts/run-reference-pack`.
+5. Run `zcheck` and `zcheck run reference-pack`.
 
 A new public protocol or manifest field requires a version bump. A new release
 claim must be backed by sealed evidence, not console output.

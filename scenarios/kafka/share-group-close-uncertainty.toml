@@ -1,4 +1,4 @@
-schema_version = 11
+schema_version = 13
 id = "kafka.share-group-close-uncertainty"
 title = "share close reports truthful certainty during broker loss"
 description = "A share member closes with an unfinished acquisition while its sole broker is stopped and must expose an explicit non-success terminal with delivery certainty."

@@ -23,7 +23,11 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::ShareAcknowledge { .. }
         | ScenarioAction::DropShareBatch { .. }
         | ScenarioAction::CloseShareConsumer { .. } => Some(Capability::ShareConsumer),
-        ScenarioAction::CreateTopic { .. } => Some(Capability::Admin),
+        ScenarioAction::CreateTopic { .. }
+        | ScenarioAction::CreatePartitions(_)
+        | ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListOffsets(_) => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::FenceTransaction { .. }

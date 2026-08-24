@@ -4,32 +4,7 @@ use testlab_schema::AdapterEvent;
 
 use crate::run_error::RunFailure;
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
-
-pub(super) fn classify_admin(
-    expected: &ExpectedEvent,
-    event: &AdapterEvent,
-) -> Option<Result<EventDisposition, RunFailure>> {
-    let (
-        ExpectedEvent::TopicCreated {
-            operation_id: expected_operation,
-            topic: expected_topic,
-        },
-        AdapterEvent::TopicCreated {
-            operation_id: actual_operation,
-            topic: actual_topic,
-        },
-    ) = (expected, event)
-    else {
-        return None;
-    };
-    Some(
-        if expected_operation == actual_operation && expected_topic == actual_topic {
-            Ok(EventDisposition::Complete)
-        } else {
-            Err(identity_mismatch(event, expected))
-        },
-    )
-}
+use crate::runner_protocol_admin::same_admin_event_family;
 
 pub(super) fn classify_group(
     expected: &ExpectedEvent,
@@ -133,7 +108,9 @@ pub(super) fn classify_transaction(
 }
 
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
-    same_base_event_family(expected, event) || same_extended_event_family(expected, event)
+    same_admin_event_family(expected, event)
+        || same_base_event_family(expected, event)
+        || same_extended_event_family(expected, event)
 }
 
 fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
@@ -214,9 +191,6 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
         ) | (
             ExpectedEvent::ShareConsumerClosed(_),
             AdapterEvent::ShareConsumerClosed { .. }
-        ) | (
-            ExpectedEvent::TopicCreated { .. },
-            AdapterEvent::TopicCreated { .. }
         ) | (
             ExpectedEvent::TransactionalProducerCreated(_),
             AdapterEvent::TransactionalProducerCreated { .. }

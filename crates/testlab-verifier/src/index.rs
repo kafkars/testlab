@@ -8,6 +8,7 @@ use testlab_schema::{
     TransactionDisposition,
 };
 
+mod admin_recording;
 mod recording;
 mod share;
 
@@ -33,9 +34,30 @@ pub(crate) struct IndexedReceive {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct IndexedTopicCreation {
+pub(crate) struct IndexedAdminTopicCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) topic: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedTopicDescription {
+    pub(crate) history_sequence: u64,
+    pub(crate) topic: String,
+    pub(crate) partitions: Vec<i32>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedTopicsList {
+    pub(crate) history_sequence: u64,
+    pub(crate) topics: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedOffsetList {
+    pub(crate) history_sequence: u64,
+    pub(crate) topic: String,
+    pub(crate) partition: i32,
+    pub(crate) offset: Option<i64>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -96,6 +118,10 @@ pub(crate) struct HistoryIndex {
     share_consumers_close_issued: BTreeSet<ConsumerId>,
     operations_issued: BTreeSet<OperationId>,
     topics_create_issued: BTreeSet<OperationId>,
+    topic_partitions_create_issued: BTreeSet<OperationId>,
+    topics_describe_issued: BTreeSet<OperationId>,
+    topics_list_issued: BTreeSet<OperationId>,
+    offsets_list_issued: BTreeSet<OperationId>,
     transactional_producers_create_issued: BTreeSet<ProducerId>,
     transactions_execute_issued: BTreeSet<OperationId>,
     transactional_producers_close_issued: BTreeSet<ProducerId>,
@@ -107,7 +133,11 @@ pub(crate) struct HistoryIndex {
     pub(crate) accepted: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) rejected: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) terminals: BTreeMap<OperationId, Vec<IndexedTerminal>>,
-    pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedTopicCreation>>,
+    pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
+    pub(crate) topic_partitions_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
+    pub(crate) topics_described: BTreeMap<OperationId, Vec<IndexedTopicDescription>>,
+    pub(crate) topics_listed: BTreeMap<OperationId, Vec<IndexedTopicsList>>,
+    pub(crate) offsets_listed: BTreeMap<OperationId, Vec<IndexedOffsetList>>,
     pub(crate) transactional_producers_created: BTreeMap<ProducerId, Vec<u64>>,
     pub(crate) transactions_completed: BTreeMap<OperationId, Vec<IndexedTransactionCompletion>>,
     pub(crate) transactions_fenced: BTreeMap<OperationId, Vec<IndexedTransactionFence>>,
@@ -186,6 +216,18 @@ impl HistoryIndex {
             }
             ScenarioAction::CreateTopic { operation_id, .. } => {
                 self.topics_create_issued.contains(operation_id)
+            }
+            ScenarioAction::CreatePartitions(action) => self
+                .topic_partitions_create_issued
+                .contains(&action.operation_id),
+            ScenarioAction::DescribeTopic(action) => {
+                self.topics_describe_issued.contains(&action.operation_id)
+            }
+            ScenarioAction::ListTopics(action) => {
+                self.topics_list_issued.contains(&action.operation_id)
+            }
+            ScenarioAction::ListOffsets(action) => {
+                self.offsets_list_issued.contains(&action.operation_id)
             }
             ScenarioAction::CreateTransactionalProducer { producer_id, .. } => self
                 .transactional_producers_create_issued

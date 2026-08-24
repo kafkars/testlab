@@ -11,6 +11,10 @@ scenarios = [
   "scenarios/kafka/classic-group-broker-restart.toml",
   "scenarios/kafka/consumer-protocol-group-round-trip.toml",
   "scenarios/kafka/admin-create-topic.toml",
+  "scenarios/kafka/admin-create-partitions.toml",
+  "scenarios/kafka/admin-describe-topic.toml",
+  "scenarios/kafka/admin-list-topics.toml",
+  "scenarios/kafka/admin-list-offsets.toml",
   "scenarios/kafka/transaction-commit-abort.toml",
   "scenarios/kafka/transaction-fencing.toml",
 ]
