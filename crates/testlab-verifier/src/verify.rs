@@ -13,6 +13,7 @@ use crate::consumer::verify_consumers;
 use crate::index::HistoryIndex;
 use crate::lifecycle::verify_lifecycle;
 use crate::protocol::verify_protocol;
+use crate::share::verify_share;
 use crate::support::{observation_references, references, terminal_references, violation};
 use crate::transaction::verify_transactions;
 
@@ -34,6 +35,7 @@ pub fn verify(
     verify_transactions(scenario, &index, observations, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
+    verify_share(scenario, &index, &mut violations);
     crate::observations::verify_unknown(&sends, &observed, &mut violations);
     verify_lifecycle(scenario, &index, &mut violations);
     if violations.is_empty() {

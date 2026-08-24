@@ -20,7 +20,7 @@ fn checked_in_catalog_is_complete() {
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 17);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 35);
+    assert_eq!(summary.contracts, 40);
 }
 
 #[test]

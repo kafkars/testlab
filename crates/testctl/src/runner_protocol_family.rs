@@ -190,6 +190,26 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
                 AdapterEvent::GroupConsumerClosed { .. }
             )
             | (
+                ExpectedEvent::ShareConsumerCreated(_),
+                AdapterEvent::ShareConsumerCreated { .. }
+            )
+            | (
+                ExpectedEvent::ShareReceiveCompleted(_),
+                AdapterEvent::ShareReceiveCompleted { .. }
+            )
+            | (
+                ExpectedEvent::ShareAcknowledgementCompleted(_),
+                AdapterEvent::ShareAcknowledgementCompleted { .. }
+            )
+            | (
+                ExpectedEvent::ShareBatchDropped(_),
+                AdapterEvent::ShareBatchDropped { .. }
+            )
+            | (
+                ExpectedEvent::ShareConsumerClosed(_),
+                AdapterEvent::ShareConsumerClosed { .. }
+            )
+            | (
                 ExpectedEvent::TopicCreated { .. },
                 AdapterEvent::TopicCreated { .. }
             )

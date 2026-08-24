@@ -62,7 +62,14 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::CloseAssignedConsumer { .. }
         | ScenarioAction::CreateGroupConsumer { .. }
         | ScenarioAction::GroupReceive { .. }
-        | ScenarioAction::CloseGroupConsumer { .. }) => return consumer(action),
+        | ScenarioAction::CloseGroupConsumer { .. }
+        | ScenarioAction::CreateShareConsumer { .. }
+        | ScenarioAction::ShareReceive { .. }
+        | ScenarioAction::ShareAcknowledge { .. }
+        | ScenarioAction::DropShareBatch { .. }
+        | ScenarioAction::CloseShareConsumer { .. }) => {
+            return crate::session_command_consumer::translate(action);
+        }
         action @ ScenarioAction::CreateTopic { .. } => return admin(action),
         action @ (ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
@@ -198,87 +205,4 @@ fn admin(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
             topic: topic.clone(),
         },
     ))
-}
-
-fn consumer(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    let pair = match action {
-        ScenarioAction::CreateAssignedConsumer {
-            client_id,
-            consumer_id,
-        } => (
-            AdapterCommand::CreateAssignedConsumer {
-                client_id: client_id.clone(),
-                consumer_id: consumer_id.clone(),
-            },
-            ExpectedEvent::AssignedConsumerCreated(consumer_id.clone()),
-        ),
-        ScenarioAction::AssignBeginning {
-            consumer_id,
-            topic,
-            partition,
-        } => (
-            AdapterCommand::AssignBeginning {
-                consumer_id: consumer_id.clone(),
-                topic: topic.clone(),
-                partition: *partition,
-            },
-            ExpectedEvent::AssignmentCompleted(consumer_id.clone()),
-        ),
-        ScenarioAction::Receive {
-            consumer_id,
-            receive_id,
-            timeout_ms,
-            ..
-        } => (
-            AdapterCommand::Receive {
-                consumer_id: consumer_id.clone(),
-                receive_id: receive_id.clone(),
-                timeout_ms: *timeout_ms,
-            },
-            ExpectedEvent::ReceiveCompleted(receive_id.clone()),
-        ),
-        ScenarioAction::CloseAssignedConsumer { consumer_id } => (
-            AdapterCommand::CloseAssignedConsumer {
-                consumer_id: consumer_id.clone(),
-            },
-            ExpectedEvent::AssignedConsumerClosed(consumer_id.clone()),
-        ),
-        ScenarioAction::CreateGroupConsumer {
-            client_id,
-            consumer_id,
-            group_id,
-            topic,
-            protocol,
-        } => (
-            AdapterCommand::CreateGroupConsumer {
-                client_id: client_id.clone(),
-                consumer_id: consumer_id.clone(),
-                group_id: group_id.clone(),
-                topic: topic.clone(),
-                protocol: *protocol,
-            },
-            ExpectedEvent::GroupConsumerCreated(consumer_id.clone()),
-        ),
-        ScenarioAction::GroupReceive {
-            consumer_id,
-            receive_id,
-            timeout_ms,
-            ..
-        } => (
-            AdapterCommand::GroupReceive {
-                consumer_id: consumer_id.clone(),
-                receive_id: receive_id.clone(),
-                timeout_ms: *timeout_ms,
-            },
-            ExpectedEvent::GroupReceiveCompleted(receive_id.clone()),
-        ),
-        ScenarioAction::CloseGroupConsumer { consumer_id } => (
-            AdapterCommand::CloseGroupConsumer {
-                consumer_id: consumer_id.clone(),
-            },
-            ExpectedEvent::GroupConsumerClosed(consumer_id.clone()),
-        ),
-        _ => return None,
-    };
-    Some(pair)
 }

@@ -19,6 +19,7 @@ pub(crate) struct ActionStates {
     pub(crate) operation_ids: BTreeSet<OperationId>,
     pub(crate) sends: BTreeSet<OperationId>,
     pub(crate) transaction_sends: TransactionSends,
+    pub(crate) share_batches: crate::share_action_validation::ShareBatchStates,
 }
 
 pub(crate) fn validate_action(
@@ -84,6 +85,13 @@ pub(crate) fn validate_action(
         | ScenarioAction::GroupReceive { .. }
         | ScenarioAction::CloseGroupConsumer { .. }) => {
             crate::consumer_action_validation::validate(action, state, problems);
+        }
+        action @ (ScenarioAction::CreateShareConsumer { .. }
+        | ScenarioAction::ShareReceive { .. }
+        | ScenarioAction::ShareAcknowledge { .. }
+        | ScenarioAction::DropShareBatch { .. }
+        | ScenarioAction::CloseShareConsumer { .. }) => {
+            crate::share_action_validation::validate(action, state, problems);
         }
         action @ ScenarioAction::CreateTopic { .. } => {
             crate::admin_action_validation::validate(

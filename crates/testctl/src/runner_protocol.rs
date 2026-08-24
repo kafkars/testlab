@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v12 command.
+//! Expected event shapes constrain each sequential protocol-v13 command.
 
 use std::collections::BTreeSet;
 
@@ -27,6 +27,11 @@ pub(crate) enum ExpectedEvent {
     GroupConsumerCreated(ConsumerId),
     GroupReceiveCompleted(OperationId),
     GroupConsumerClosed(ConsumerId),
+    ShareConsumerCreated(ConsumerId),
+    ShareReceiveCompleted(OperationId),
+    ShareAcknowledgementCompleted(OperationId),
+    ShareBatchDropped(OperationId),
+    ShareConsumerClosed(ConsumerId),
     TopicCreated {
         operation_id: OperationId,
         topic: String,
@@ -60,6 +65,9 @@ impl ExpectedEvent {
             return Ok(EventDisposition::Complete);
         }
         if let Some(disposition) = classify_group(self, event) {
+            return disposition;
+        }
+        if let Some(disposition) = crate::runner_protocol_share::classify(self, event) {
             return disposition;
         }
         if let Some(disposition) = classify_admin(self, event) {

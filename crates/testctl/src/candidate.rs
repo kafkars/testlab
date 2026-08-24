@@ -203,7 +203,8 @@ fn build_adapter(manifest: &Path, target: &Path) -> Result<(), AppError> {
         .arg("--manifest-path")
         .arg(manifest)
         .arg("--target-dir")
-        .arg(target);
+        .arg(target)
+        .env("RUSTFLAGS", "--cfg kafkars_share_candidate");
     run(&mut command, "build packaged Kafkars adapter")
 }
 

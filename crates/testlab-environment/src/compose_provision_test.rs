@@ -34,7 +34,7 @@ fn operation_records_cluster_replication_factor() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 10
+schema_version = 11
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -65,7 +65,7 @@ operations = [
 fn admin_created_topics_are_not_preprovisioned() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 10
+schema_version = 11
 id = "admin.explicit-topic"
 title = "admin topic"
 description = "admin topic provisioning fixture"

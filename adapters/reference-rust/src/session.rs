@@ -117,6 +117,11 @@ fn dispatch<W: Write>(
         | AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
         | AdapterCommand::CloseGroupConsumer { .. }
+        | AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. }
         | AdapterCommand::CreateTopic { .. }
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }

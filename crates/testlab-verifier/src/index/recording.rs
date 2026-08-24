@@ -19,7 +19,8 @@ impl HistoryIndex {
     }
 
     fn record_event(&mut self, event: &AdapterEvent, sequence: u64) {
-        if self.record_transaction_event(event, sequence)
+        if self.record_share_event(event, sequence)
+            || self.record_transaction_event(event, sequence)
             || self.record_consumer_event(event, sequence)
         {
             return;
@@ -82,6 +83,11 @@ impl HistoryIndex {
             AdapterEvent::Finished => self.finished.push(sequence),
             AdapterEvent::Ready { descriptor } => self.ready.push((sequence, descriptor.clone())),
             AdapterEvent::BatchCompleted { .. }
+            | AdapterEvent::ShareConsumerCreated { .. }
+            | AdapterEvent::ShareReceiveCompleted { .. }
+            | AdapterEvent::ShareAcknowledgementCompleted { .. }
+            | AdapterEvent::ShareBatchDropped { .. }
+            | AdapterEvent::ShareConsumerClosed { .. }
             | AdapterEvent::AssignedConsumerCreated { .. }
             | AdapterEvent::AssignmentCompleted { .. }
             | AdapterEvent::ReceiveCompleted { .. }
@@ -199,6 +205,9 @@ impl HistoryIndex {
 
     fn record_command(&mut self, command: &AdapterCommand) {
         self.has_harness_commands = true;
+        if self.record_share_command(command) {
+            return;
+        }
         match command {
             AdapterCommand::CreateClient { client_id } => {
                 self.clients_create_issued.insert(client_id.clone());
@@ -277,6 +286,13 @@ impl HistoryIndex {
             }
             AdapterCommand::Finish => self.finish_issued = true,
             AdapterCommand::Hello { .. } => {}
+            AdapterCommand::CreateShareConsumer { .. }
+            | AdapterCommand::ShareReceive { .. }
+            | AdapterCommand::ShareAcknowledge { .. }
+            | AdapterCommand::DropShareBatch { .. }
+            | AdapterCommand::CloseShareConsumer { .. } => {
+                unreachable!("share commands are indexed before generic commands")
+            }
         }
     }
 }

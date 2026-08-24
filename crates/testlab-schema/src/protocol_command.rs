@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AdapterSecurity, BatchRecord, ClientId, ConsumerId, GroupProtocol, OperationId, ProducerId,
-    RecordSpec, RunId, ScenarioId, TransactionDisposition,
+    RecordSpec, RunId, ScenarioId, ShareDisposition, TransactionDisposition,
 };
 
 /// Public operation requested from an adapter.
@@ -110,6 +110,55 @@ pub enum AdapterCommand {
     /// Closes one classic group consumer.
     CloseGroupConsumer {
         /// Consumer to close.
+        consumer_id: ConsumerId,
+    },
+    /// Registers one unique share-group member.
+    CreateShareConsumer {
+        /// Existing client that owns the member.
+        client_id: ClientId,
+        /// New scenario-local share-consumer identity.
+        consumer_id: ConsumerId,
+        /// Exact Kafka share-group identity.
+        group_id: String,
+        /// Sole subscribed topic.
+        topic: String,
+        /// Complete first-heartbeat bound.
+        membership_timeout_ms: u64,
+        /// Complete graceful-close bound.
+        close_timeout_ms: u64,
+    },
+    /// Receives and retains one exact share batch for later disposition.
+    ShareReceive {
+        /// Existing share consumer.
+        consumer_id: ConsumerId,
+        /// Stable retained-batch identity.
+        receive_id: OperationId,
+        /// Complete public observation bound.
+        timeout_ms: u64,
+    },
+    /// Consumes one retained share batch into a uniform disposition.
+    ShareAcknowledge {
+        /// Existing share consumer that owns the session.
+        consumer_id: ConsumerId,
+        /// Retained batch consumed by this acknowledgement.
+        receive_id: OperationId,
+        /// Stable acknowledgement identity.
+        acknowledgement_id: OperationId,
+        /// Uniform public record disposition.
+        disposition: ShareDisposition,
+        /// Complete acknowledgement bound.
+        timeout_ms: u64,
+    },
+    /// Drops one retained batch without sending an acknowledgement.
+    DropShareBatch {
+        /// Share consumer that produced the batch.
+        consumer_id: ConsumerId,
+        /// Retained batch abandoned without acknowledgement.
+        receive_id: OperationId,
+    },
+    /// Closes one unique share-group member.
+    CloseShareConsumer {
+        /// Unique share consumer consumed by close.
         consumer_id: ConsumerId,
     },
     /// Creates one Kafka topic through the public admin surface.

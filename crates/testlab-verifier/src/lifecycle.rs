@@ -104,7 +104,12 @@ pub(crate) fn verify_lifecycle(
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }
             | ScenarioAction::CreateTransactionalProducer { .. }
-            | ScenarioAction::CloseTransactionalProducer { .. } => {}
+            | ScenarioAction::CloseTransactionalProducer { .. }
+            | ScenarioAction::CreateShareConsumer { .. }
+            | ScenarioAction::ShareReceive { .. }
+            | ScenarioAction::ShareAcknowledge { .. }
+            | ScenarioAction::DropShareBatch { .. }
+            | ScenarioAction::CloseShareConsumer { .. } => {}
         }
     }
     verify_finish(index, violations);

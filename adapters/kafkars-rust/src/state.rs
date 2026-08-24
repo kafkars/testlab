@@ -1,14 +1,14 @@
 //! Adapter state owns public Kafkars handles under protocol identities.
 
-use std::collections::BTreeMap;
-use std::time::Duration;
+use std::{collections::BTreeMap, time::Duration};
 
 use crate::admission_retry::retry_safe;
 use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::resolve;
 use crate::group_consumers::GroupConsumers;
-use crate::transactional_producers::OwnedTransactionalProducer;
-use crate::transactional_producers::TransactionalProducers;
+#[cfg(kafkars_share_candidate)]
+use crate::share_consumers::ShareConsumers;
+use crate::transactional_producers::{OwnedTransactionalProducer, TransactionalProducers};
 use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
 use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, GroupProtocol, ProducerId};
 
@@ -24,6 +24,8 @@ pub(crate) struct AdapterState {
     producers: BTreeMap<ProducerId, ProducerOwner>,
     consumers: AssignedConsumers,
     group_consumers: GroupConsumers,
+    #[cfg(kafkars_share_candidate)]
+    pub(crate) share_consumers: ShareConsumers,
     transactional_producers: TransactionalProducers,
 }
 
@@ -176,7 +178,7 @@ impl AdapterState {
         client_id: ClientId,
         consumer_id: ConsumerId,
     ) -> Result<(), StateError> {
-        if self.group_consumers.contains(&consumer_id) {
+        if self.group_consumers.contains(&consumer_id) || self.share_contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
         let client = self
@@ -194,7 +196,7 @@ impl AdapterState {
         topic: String,
         protocol: GroupProtocol,
     ) -> Result<(), StateError> {
-        if self.consumers.contains(&consumer_id) {
+        if self.consumers.contains(&consumer_id) || self.share_contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
         let client = self
@@ -266,6 +268,7 @@ impl AdapterState {
         }
         if self.consumers.has_owner(client_id)
             || self.group_consumers.has_owner(client_id)
+            || self.share_has_owner(client_id)
             || self.transactional_producers.has_owner(client_id)
         {
             return Err(StateError::OpenConsumer(client_id.clone()));
@@ -278,13 +281,11 @@ impl AdapterState {
     }
 
     pub(crate) fn finish(&self) -> Result<(), StateError> {
-        if !self.producers.is_empty() {
+        if !self.producers.is_empty() || !self.transactional_producers.is_empty() {
             return Err(StateError::UnclosedProducers);
         }
-        if !self.transactional_producers.is_empty() {
-            return Err(StateError::UnclosedProducers);
-        }
-        if !self.consumers.is_empty() || !self.group_consumers.is_empty() {
+        if !self.consumers.is_empty() || !self.group_consumers.is_empty() || !self.share_is_empty()
+        {
             return Err(StateError::UnclosedConsumers);
         }
         if !self.clients.is_empty() {

@@ -1,5 +1,7 @@
 //! State errors distinguish adapter lifecycle misuse from public client failures.
 
+#[cfg(kafkars_share_candidate)]
+use testlab_schema::OperationId;
 use testlab_schema::{ClientId, ConsumerId, ProducerId};
 use thiserror::Error;
 
@@ -23,6 +25,21 @@ pub(crate) enum StateError {
     DuplicateConsumer(ConsumerId),
     #[error("consumer {0} does not exist")]
     MissingConsumer(ConsumerId),
+    #[cfg(kafkars_share_candidate)]
+    #[error("share batch {0} already exists")]
+    DuplicateShareBatch(OperationId),
+    #[cfg(kafkars_share_candidate)]
+    #[error("share batch {0} does not exist")]
+    MissingShareBatch(OperationId),
+    #[cfg(kafkars_share_candidate)]
+    #[error("share batch {receive_id} is not owned by consumer {consumer_id}")]
+    ShareBatchOwner {
+        receive_id: OperationId,
+        consumer_id: ConsumerId,
+    },
+    #[cfg(kafkars_share_candidate)]
+    #[error("packaged Kafkars share surface was invalid: {0}")]
+    ShareSurface(String),
     #[error("client {0} still owns an open producer")]
     OpenProducer(ClientId),
     #[error("client {0} still owns an open consumer")]

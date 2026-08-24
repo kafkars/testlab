@@ -15,6 +15,8 @@ use crate::protocol_consumer;
 use crate::protocol_group;
 use crate::protocol_lifecycle;
 use crate::protocol_send;
+#[cfg(kafkars_share_candidate)]
+use crate::protocol_share;
 use crate::state::AdapterState;
 use crate::transaction_execute;
 use crate::transaction_fence;
@@ -137,6 +139,24 @@ fn dispatch<W: Write>(
         | AdapterCommand::CloseGroupConsumer { .. }) => {
             protocol_group::dispatch(state, writer, command_id, command)?;
         }
+        #[cfg(kafkars_share_candidate)]
+        command @ (AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. }) => {
+            protocol_share::dispatch(state, writer, command_id, command)?;
+        }
+        #[cfg(not(kafkars_share_candidate))]
+        AdapterCommand::CreateShareConsumer { .. }
+        | AdapterCommand::ShareReceive { .. }
+        | AdapterCommand::ShareAcknowledge { .. }
+        | AdapterCommand::DropShareBatch { .. }
+        | AdapterCommand::CloseShareConsumer { .. } => {
+            return Err(AdapterError::State(
+                "published adapter does not expose the candidate share capability".to_owned(),
+            ));
+        }
         command @ AdapterCommand::CreateTopic { .. } => {
             protocol_admin::dispatch(state, writer, command_id, command)?;
         }
@@ -178,22 +198,29 @@ fn dispatch_hello<W: Write>(
 }
 
 fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
+    let capabilities = BTreeSet::from([
+        Capability::Producer,
+        Capability::ProducerBatch,
+        Capability::Lifecycle,
+        Capability::ClientReadiness,
+        Capability::AssignedConsumer,
+        Capability::ConsumerGroups,
+        Capability::ConsumerProtocolGroups,
+        Capability::Admin,
+        Capability::Transactions,
+    ]);
+    #[cfg(kafkars_share_candidate)]
+    let capabilities = {
+        let mut capabilities = capabilities;
+        capabilities.insert(Capability::ShareConsumer);
+        capabilities
+    };
     Ok(AdapterDescriptor {
         id: AdapterId::new("kafkars-rust")?,
         implementation: "packaged kafkars Rust client".to_owned(),
         version: "0.0.1".to_owned(),
         protocol_version: PROTOCOL_VERSION,
-        capabilities: BTreeSet::from([
-            Capability::Producer,
-            Capability::ProducerBatch,
-            Capability::Lifecycle,
-            Capability::ClientReadiness,
-            Capability::AssignedConsumer,
-            Capability::ConsumerGroups,
-            Capability::ConsumerProtocolGroups,
-            Capability::Admin,
-            Capability::Transactions,
-        ]),
+        capabilities,
     })
 }
 

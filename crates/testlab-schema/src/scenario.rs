@@ -2,17 +2,15 @@
 
 use std::collections::BTreeSet;
 
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
-
 use crate::{
     BatchRecord, BrokerBehavior, Capability, ClientId, ConsumerId, GroupProtocol,
-    OperationAssertion, OperationId, ProducerId, RecordSpec, ScenarioId, StepId,
-    TransactionDisposition,
+    OperationAssertion, OperationId, ProducerId, RecordSpec, ScenarioError, ScenarioId,
+    ScenarioStep, ShareDisposition, TransactionDisposition,
 };
+use serde::{Deserialize, Serialize};
 
 /// Current scenario manifest version.
-pub const SCENARIO_SCHEMA_VERSION: u16 = 10;
+pub const SCENARIO_SCHEMA_VERSION: u16 = 11;
 
 /// One complete black-box scenario.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -44,17 +42,7 @@ impl Scenario {
     }
 }
 
-/// One named scenario action.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ScenarioStep {
-    /// Stable step identity.
-    pub id: StepId,
-    /// Action payload.
-    #[serde(flatten)]
-    pub action: ScenarioAction,
-}
-
-/// Scenario action vocabulary for scenario schema v10.
+/// Scenario action vocabulary for scenario schema v11.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -164,6 +152,61 @@ pub enum ScenarioAction {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
+    /// Registers one unique KIP-932 share-group member.
+    CreateShareConsumer {
+        /// Existing client that owns the unique member.
+        client_id: ClientId,
+        /// New scenario-local share-consumer identity.
+        consumer_id: ConsumerId,
+        /// Exact Kafka share-group identity.
+        group_id: String,
+        /// Sole subscribed topic.
+        topic: String,
+        /// Complete first-heartbeat bound.
+        membership_timeout_ms: u64,
+        /// Complete graceful-close bound.
+        close_timeout_ms: u64,
+    },
+    /// Retains one exact share batch for a later acknowledgement or drop.
+    ShareReceive {
+        /// Existing unique share consumer.
+        consumer_id: ConsumerId,
+        /// Stable retained-batch identity.
+        receive_id: OperationId,
+        /// Producer operation whose exact record must appear.
+        expected_operation_id: OperationId,
+        /// Smallest accepted broker delivery count.
+        minimum_delivery_count: i16,
+        /// Complete public observation bound.
+        timeout_ms: u64,
+    },
+    /// Acknowledges every record in one retained share batch uniformly.
+    ShareAcknowledge {
+        /// Existing share consumer that owns the broker session.
+        consumer_id: ConsumerId,
+        /// Retained batch consumed by this acknowledgement.
+        receive_id: OperationId,
+        /// Stable acknowledgement operation identity.
+        acknowledgement_id: OperationId,
+        /// Uniform public record disposition.
+        disposition: ShareDisposition,
+        /// Complete acknowledgement bound.
+        timeout_ms: u64,
+    },
+    /// Drops one retained share batch without a broker acknowledgement.
+    DropShareBatch {
+        /// Share consumer that produced the retained batch.
+        consumer_id: ConsumerId,
+        /// Retained batch abandoned without acknowledgement.
+        receive_id: OperationId,
+    },
+    /// Closes one unique share member and declares whether success is required.
+    CloseShareConsumer {
+        /// Unique share consumer consumed by close.
+        consumer_id: ConsumerId,
+        /// Whether the public close must report success.
+        expect_success: bool,
+    },
     /// Creates one topic through the packaged client's public admin surface.
     CreateTopic {
         /// Existing client whose admin handle is used.
@@ -246,12 +289,4 @@ pub enum ScenarioAction {
         /// Client to shut down.
         client_id: ClientId,
     },
-}
-
-/// Invalid scenario with all reviewable problems retained.
-#[derive(Clone, Debug, Eq, Error, PartialEq)]
-#[error("invalid scenario: {problems:?}")]
-pub struct ScenarioError {
-    /// Every discovered validation problem.
-    pub problems: Vec<String>,
 }

@@ -12,8 +12,19 @@ mod protocol_consumer;
 mod protocol_group;
 mod protocol_lifecycle;
 mod protocol_send;
+#[cfg(kafkars_share_candidate)]
+mod protocol_share;
+#[cfg(kafkars_share_candidate)]
+mod share_consumers;
+#[cfg(kafkars_share_candidate)]
+mod share_consumers_acknowledge;
+#[cfg(kafkars_share_candidate)]
+mod share_consumers_close;
+#[cfg(kafkars_share_candidate)]
+mod share_consumers_receive;
 mod state;
 mod state_error;
+mod state_share;
 mod transaction_execute;
 mod transaction_fence;
 mod transactional_producers;

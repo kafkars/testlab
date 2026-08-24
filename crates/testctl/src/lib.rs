@@ -19,8 +19,10 @@ mod runner;
 mod runner_environment;
 mod runner_protocol;
 mod runner_protocol_family;
+mod runner_protocol_share;
 mod session;
 mod session_command;
+mod session_command_consumer;
 mod time;
 
 pub use app::run_cli;
@@ -36,6 +38,8 @@ mod qualification_test;
 mod recorder_test;
 #[cfg(test)]
 mod runner_docker_test;
+#[cfg(test)]
+mod runner_protocol_share_test;
 #[cfg(test)]
 mod runner_protocol_test;
 #[cfg(test)]

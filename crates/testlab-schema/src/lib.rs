@@ -20,8 +20,11 @@ mod receive_action_validation;
 mod record;
 mod scenario;
 mod scenario_action_validation;
+mod scenario_error;
 mod scenario_types;
 mod scenario_validation;
+mod share;
+mod share_action_validation;
 mod subject;
 mod transaction_action_validation;
 mod verdict;
@@ -59,12 +62,13 @@ pub use qualification_evidence::{
     QualificationEvidenceManifest, QualificationRunEvidence,
 };
 pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
-pub use scenario::{
-    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioError, ScenarioStep,
-};
+pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction};
+pub use scenario_error::ScenarioError;
 pub use scenario_types::{
-    BatchRecord, BrokerBehavior, OperationAssertion, TransactionDisposition, VisibilityExpectation,
+    BatchRecord, BrokerBehavior, OperationAssertion, ScenarioStep, TransactionDisposition,
+    VisibilityExpectation,
 };
+pub use share::{ShareConsumedRecord, ShareDisposition};
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use verdict::{Verdict, VerdictStatus, Violation};
 

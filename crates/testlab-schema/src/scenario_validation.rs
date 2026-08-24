@@ -63,6 +63,9 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     for producer in crate::transaction_action_validation::unclosed(state.transactions) {
         problems.push(format!("transactional producer {producer} was not closed"));
     }
+    for receive in crate::share_action_validation::unsettled(&state.share_batches) {
+        problems.push(format!("share batch {receive} was not settled"));
+    }
     for (client, shutdown) in state.clients {
         if !shutdown {
             problems.push(format!("client {client} was not shut down"));
@@ -83,6 +86,11 @@ fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
             GroupProtocol::Classic => Capability::ConsumerGroups,
             GroupProtocol::Consumer => Capability::ConsumerProtocolGroups,
         }),
+        ScenarioAction::CreateShareConsumer { .. }
+        | ScenarioAction::ShareReceive { .. }
+        | ScenarioAction::ShareAcknowledge { .. }
+        | ScenarioAction::DropShareBatch { .. }
+        | ScenarioAction::CloseShareConsumer { .. } => Some(Capability::ShareConsumer),
         ScenarioAction::CreateTopic { .. } => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
@@ -131,6 +139,13 @@ fn validate_required_capabilities(
         usage.contains(&Capability::ConsumerProtocolGroups),
         Capability::ConsumerProtocolGroups,
         "KIP-848 group-consumer steps require the consumer_protocol_groups capability",
+        scenario,
+        problems,
+    );
+    require(
+        usage.contains(&Capability::ShareConsumer),
+        Capability::ShareConsumer,
+        "share-consumer steps require the share_consumer capability",
         scenario,
         problems,
     );

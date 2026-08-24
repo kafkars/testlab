@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
-    ProducerId, TerminalStatus, TransactionDisposition,
+    ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus, TransactionDisposition,
 };
 
 /// Normalized public event emitted by an adapter.
@@ -101,6 +101,55 @@ pub enum AdapterEvent {
     GroupConsumerClosed {
         /// Closed consumer.
         consumer_id: ConsumerId,
+    },
+    /// One share-group member registered.
+    ShareConsumerCreated {
+        /// Created share consumer.
+        consumer_id: ConsumerId,
+    },
+    /// One share batch was retained behind its receive identity.
+    ShareReceiveCompleted {
+        /// Share consumer that retained the batch.
+        consumer_id: ConsumerId,
+        /// Stable retained-batch identity.
+        receive_id: OperationId,
+        /// Exact records returned by the public API.
+        records: Vec<ShareConsumedRecord>,
+        /// Positive broker member epoch when observed.
+        member_epoch: Option<i32>,
+        /// Positive local assignment fence when observed.
+        assignment_epoch: Option<u64>,
+    },
+    /// One retained share batch reached an acknowledged broker terminal.
+    ShareAcknowledgementCompleted {
+        /// Stable acknowledgement identity.
+        acknowledgement_id: OperationId,
+        /// Retained batch consumed by the acknowledgement.
+        receive_id: OperationId,
+        /// Public disposition sent for every record.
+        disposition: ShareDisposition,
+        /// Whether every partition reached a successful broker terminal.
+        success: bool,
+        /// Exact delivery certainty for a failed acknowledgement.
+        delivery: Option<TerminalStatus>,
+        /// Stable normalized failure code, when failed.
+        code: Option<String>,
+    },
+    /// One retained batch was dropped without network acknowledgement.
+    ShareBatchDropped {
+        /// Retained batch abandoned without acknowledgement.
+        receive_id: OperationId,
+    },
+    /// One share close reached its public terminal, including uncertainty.
+    ShareConsumerClosed {
+        /// Unique share consumer consumed by close.
+        consumer_id: ConsumerId,
+        /// Whether the public close succeeded.
+        success: bool,
+        /// Exact delivery certainty for a failed close.
+        delivery: Option<TerminalStatus>,
+        /// Stable normalized failure code, when failed.
+        code: Option<String>,
     },
     /// One public admin topic creation completed successfully.
     TopicCreated {
