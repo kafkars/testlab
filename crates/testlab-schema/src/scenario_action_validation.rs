@@ -20,6 +20,8 @@ pub(crate) struct ActionStates {
     pub(crate) sends: BTreeSet<OperationId>,
     pub(crate) transaction_sends: TransactionSends,
     pub(crate) share_batches: crate::share_action_validation::ShareBatchStates,
+    pub(crate) leader_disruptions: BTreeSet<(String, i32)>,
+    pub(crate) stopped_brokers: BTreeSet<u16>,
 }
 
 pub(crate) fn validate_action(
@@ -46,10 +48,13 @@ pub(crate) fn validate_action(
             problems,
         ),
         ScenarioAction::SetBrokerBehavior { .. } => {}
-        ScenarioAction::RestartBroker {
-            broker_ordinal,
-            timeout_ms,
-        } => validate_broker_restart(*broker_ordinal, *timeout_ms, problems),
+        action @ (ScenarioAction::RestartBroker { .. }
+        | ScenarioAction::StopBroker { .. }
+        | ScenarioAction::StartBroker { .. }
+        | ScenarioAction::StopPartitionLeader { .. }
+        | ScenarioAction::RestorePartitionLeader { .. }) => {
+            crate::scenario_environment_action_validation::validate(action, state, problems);
+        }
         ScenarioAction::Send {
             producer_id,
             operation_id,
@@ -123,15 +128,6 @@ pub(crate) fn validate_action(
                 problems,
             );
         }
-    }
-}
-
-fn validate_broker_restart(broker_ordinal: u16, timeout_ms: u64, problems: &mut Vec<String>) {
-    if broker_ordinal == 0 {
-        problems.push("broker restart ordinal must be one-based".to_owned());
-    }
-    if !(100..=600_000).contains(&timeout_ms) {
-        problems.push("broker restart timeout_ms must be between 100 and 600000".to_owned());
     }
 }
 

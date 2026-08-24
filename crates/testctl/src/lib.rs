@@ -23,6 +23,7 @@ mod runner_protocol_share;
 mod session;
 mod session_command;
 mod session_command_consumer;
+mod session_environment_control;
 mod time;
 
 pub use app::run_cli;

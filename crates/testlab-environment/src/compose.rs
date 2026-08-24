@@ -1,5 +1,6 @@
 //! Docker Compose lifecycle owns immutable setup, readiness, snapshots, and cleanup.
 
+use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
 use std::thread;
@@ -32,6 +33,8 @@ pub struct DockerComposeEnvironment {
     pub(super) started_unix_ms: u64,
     pub(super) started: Instant,
     pub(super) next_operation: u32,
+    pub(super) stopped_partition_leaders: BTreeMap<(String, i32), u16>,
+    pub(super) stopped_brokers: Vec<u16>,
     up_attempted: bool,
 }
 
@@ -133,6 +136,8 @@ impl DockerComposeEnvironment {
             started_unix_ms: request.started_unix_ms,
             started: Instant::now(),
             next_operation: 0,
+            stopped_partition_leaders: BTreeMap::new(),
+            stopped_brokers: Vec::new(),
             up_attempted: false,
         })
     }

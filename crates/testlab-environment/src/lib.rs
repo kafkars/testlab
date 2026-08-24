@@ -5,6 +5,7 @@ mod compose_command;
 mod compose_disruption;
 mod compose_execute;
 mod compose_observe;
+mod compose_partition_leader;
 mod compose_ports;
 mod compose_provision;
 mod compose_security;
@@ -26,6 +27,8 @@ pub use terminal::{TerminalOutput, TerminalRequest, run_terminal};
 
 #[cfg(test)]
 mod compose_disruption_test;
+#[cfg(test)]
+mod compose_partition_leader_test;
 #[cfg(test)]
 mod compose_ports_test;
 #[cfg(test)]

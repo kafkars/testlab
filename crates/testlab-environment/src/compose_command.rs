@@ -64,6 +64,26 @@ pub(super) fn restart(prefix: &[String], service: &str, operation: u32) -> Comma
     )
 }
 
+pub(super) fn stop(prefix: &[String], service: &str, operation: u32) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerStop,
+        prefix,
+        vec!["stop".to_owned(), service.to_owned()],
+        format!("broker-stop-{service}-{operation:05}.txt"),
+        format!("broker-stop-{service}-{operation:05}.stderr.txt"),
+    )
+}
+
+pub(super) fn start(prefix: &[String], service: &str, operation: u32) -> CommandSpec {
+    compose_owned(
+        EnvironmentOperationKind::BrokerStart,
+        prefix,
+        vec!["start".to_owned(), service.to_owned()],
+        format!("broker-start-{service}-{operation:05}.txt"),
+        format!("broker-start-{service}-{operation:05}.stderr.txt"),
+    )
+}
+
 pub(super) fn restart_readiness(
     prefix: &[String],
     service: &str,

@@ -17,6 +17,9 @@ pub(crate) fn verify_lifecycle(
         if verify_transaction_lifecycle(&step.action, index, violations) {
             continue;
         }
+        if has_no_lifecycle_terminal(&step.action) {
+            continue;
+        }
         match &step.action {
             ScenarioAction::CreateClient { client_id } => check(
                 "LIFE-001",
@@ -94,8 +97,21 @@ pub(crate) fn verify_lifecycle(
                 references(index.clients_shutdown.get(client_id).map(Vec::as_slice)),
                 violations,
             ),
-            ScenarioAction::SetBrokerBehavior { .. }
+            _ => unreachable!("non-lifecycle action was filtered before lifecycle matching"),
+        }
+    }
+    verify_finish(index, violations);
+}
+
+fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
+    matches!(
+        action,
+        ScenarioAction::SetBrokerBehavior { .. }
             | ScenarioAction::RestartBroker { .. }
+            | ScenarioAction::StopBroker { .. }
+            | ScenarioAction::StartBroker { .. }
+            | ScenarioAction::StopPartitionLeader { .. }
+            | ScenarioAction::RestorePartitionLeader { .. }
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::Receive { .. }
@@ -103,16 +119,12 @@ pub(crate) fn verify_lifecycle(
             | ScenarioAction::CreateTopic { .. }
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }
-            | ScenarioAction::CreateTransactionalProducer { .. }
-            | ScenarioAction::CloseTransactionalProducer { .. }
             | ScenarioAction::CreateShareConsumer { .. }
             | ScenarioAction::ShareReceive { .. }
             | ScenarioAction::ShareAcknowledge { .. }
             | ScenarioAction::DropShareBatch { .. }
-            | ScenarioAction::CloseShareConsumer { .. } => {}
-        }
-    }
-    verify_finish(index, violations);
+            | ScenarioAction::CloseShareConsumer { .. }
+    )
 }
 
 fn verify_finish(index: &HistoryIndex, violations: &mut Vec<Violation>) {

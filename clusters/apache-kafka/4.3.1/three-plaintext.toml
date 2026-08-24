@@ -6,7 +6,7 @@ title = "Apache Kafka 4.3.1 three-broker plaintext"
 kind = "docker_compose"
 image = "apache/kafka@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837"
 cluster_size = 3
-compose_files = ["clusters/apache-kafka/compose/three-plaintext.yml"]
+compose_files = ["clusters/apache-kafka/compose/three-plaintext.yml", "clusters/apache-kafka/compose/three-share.yml"]
 broker_services = ["broker-1", "broker-2", "broker-3"]
 client_port = 19092
 

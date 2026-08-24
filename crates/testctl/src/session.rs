@@ -2,7 +2,6 @@
 
 use std::collections::BTreeSet;
 use std::path::Path;
-use std::time::Duration;
 
 use testlab_broker::RunningBroker;
 use testlab_environment::{ComposeArtifact, DockerComposeEnvironment};
@@ -110,7 +109,7 @@ fn settle_process(
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum StepOutcome {
+pub(crate) enum StepOutcome {
     Continue,
     ClientFailed,
 }
@@ -123,23 +122,10 @@ fn execute_step(
     protocol: &mut ProtocolSession,
     action: &ScenarioAction,
 ) -> Result<StepOutcome, RunFailure> {
-    match action {
-        ScenarioAction::SetBrokerBehavior { behavior } => {
-            return control_model_broker(environment, recorder, *behavior);
-        }
-        ScenarioAction::RestartBroker {
-            broker_ordinal,
-            timeout_ms,
-        } => {
-            return restart_compose_broker(
-                environment,
-                recorder,
-                deadline,
-                *broker_ordinal,
-                *timeout_ms,
-            );
-        }
-        _ => {}
+    if let Some(result) =
+        crate::session_environment_control::execute(environment, recorder, deadline, action)
+    {
+        return result;
     }
     let (command, expected) = crate::session_command::translate(action).ok_or_else(|| {
         RunFailure::harness(
@@ -153,50 +139,6 @@ fn execute_step(
     } else {
         Ok(StepOutcome::Continue)
     }
-}
-
-fn control_model_broker(
-    environment: &SessionEnvironment<'_>,
-    recorder: &mut HistoryRecorder,
-    behavior: testlab_schema::BrokerBehavior,
-) -> Result<StepOutcome, RunFailure> {
-    let SessionEnvironment::Model(broker) = environment else {
-        return Err(RunFailure::harness(
-            "environment_control_unsupported",
-            "scenario requested model-broker control from a real Kafka environment",
-        ));
-    };
-    broker.set_next_behavior(behavior).map_err(|error| {
-        RunFailure::harness(
-            "environment_control_failed",
-            format!("failed to control model broker: {error}"),
-        )
-    })?;
-    recorder.broker_control(behavior)?;
-    Ok(StepOutcome::Continue)
-}
-
-fn restart_compose_broker(
-    environment: &mut SessionEnvironment<'_>,
-    recorder: &mut HistoryRecorder,
-    deadline: Deadline,
-    broker_ordinal: u16,
-    timeout_ms: u64,
-) -> Result<StepOutcome, RunFailure> {
-    let SessionEnvironment::Compose {
-        controller,
-        artifacts,
-    } = environment
-    else {
-        return Err(RunFailure::harness(
-            "environment_control_unsupported",
-            "scenario requested a broker restart from the model environment",
-        ));
-    };
-    let timeout = Duration::from_millis(timeout_ms).min(deadline.remaining()?);
-    let phase = controller.restart_broker(broker_ordinal, timeout);
-    crate::runner_environment::record_phase(phase, recorder, artifacts)?;
-    Ok(StepOutcome::Continue)
 }
 
 fn descriptor_from(event: AdapterEventEnvelope) -> Result<AdapterDescriptor, RunFailure> {

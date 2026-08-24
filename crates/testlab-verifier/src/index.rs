@@ -204,7 +204,12 @@ impl HistoryIndex {
             ScenarioAction::ShutdownClient { client_id } => {
                 self.clients_shutdown_issued.contains(client_id)
             }
-            ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::RestartBroker { .. } => true,
+            ScenarioAction::SetBrokerBehavior { .. }
+            | ScenarioAction::RestartBroker { .. }
+            | ScenarioAction::StopBroker { .. }
+            | ScenarioAction::StartBroker { .. }
+            | ScenarioAction::StopPartitionLeader { .. }
+            | ScenarioAction::RestorePartitionLeader { .. } => true,
             ScenarioAction::CreateShareConsumer { .. }
             | ScenarioAction::ShareReceive { .. }
             | ScenarioAction::ShareAcknowledge { .. }

@@ -93,7 +93,12 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             },
             ExpectedEvent::ClientShutdown(client_id.clone()),
         ),
-        ScenarioAction::SetBrokerBehavior { .. } | ScenarioAction::RestartBroker { .. } => {
+        ScenarioAction::SetBrokerBehavior { .. }
+        | ScenarioAction::RestartBroker { .. }
+        | ScenarioAction::StopBroker { .. }
+        | ScenarioAction::StartBroker { .. }
+        | ScenarioAction::StopPartitionLeader { .. }
+        | ScenarioAction::RestorePartitionLeader { .. } => {
             return None;
         }
     };

@@ -133,6 +133,10 @@ pub(super) fn classify_transaction(
 }
 
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
+    same_base_event_family(expected, event) || same_extended_event_family(expected, event)
+}
+
+fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
     matches!(
         (expected, event),
         (ExpectedEvent::Ready, AdapterEvent::Ready { .. })
@@ -189,66 +193,59 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
                 ExpectedEvent::GroupConsumerClosed(_),
                 AdapterEvent::GroupConsumerClosed { .. }
             )
-            | (
-                ExpectedEvent::ShareConsumerCreated(_),
-                AdapterEvent::ShareConsumerCreated { .. }
-            )
-            | (
-                ExpectedEvent::ShareReceiveCompleted(_),
-                AdapterEvent::ShareReceiveCompleted { .. }
-            )
-            | (
-                ExpectedEvent::ShareAcknowledgementCompleted(_),
-                AdapterEvent::ShareAcknowledgementCompleted { .. }
-            )
-            | (
-                ExpectedEvent::ShareBatchDropped(_),
-                AdapterEvent::ShareBatchDropped { .. }
-            )
-            | (
-                ExpectedEvent::ShareConsumerClosed(_),
-                AdapterEvent::ShareConsumerClosed { .. }
-            )
-            | (
-                ExpectedEvent::TopicCreated { .. },
-                AdapterEvent::TopicCreated { .. }
-            )
-            | (
-                ExpectedEvent::TransactionalProducerCreated(_),
-                AdapterEvent::TransactionalProducerCreated { .. }
-            )
-            | (
-                ExpectedEvent::TransactionCompleted { .. },
-                AdapterEvent::OperationAccepted { .. }
-                    | AdapterEvent::OperationRejected { .. }
-                    | AdapterEvent::OperationTerminal { .. }
-                    | AdapterEvent::TransactionCompleted { .. }
-            )
-            | (
-                ExpectedEvent::TransactionFenceCompleted { .. },
-                AdapterEvent::OperationAccepted { .. }
-                    | AdapterEvent::OperationRejected { .. }
-                    | AdapterEvent::OperationTerminal { .. }
-                    | AdapterEvent::TransactionalProducerCreated { .. }
-                    | AdapterEvent::TransactionFenceCompleted { .. }
-            )
-            | (
-                ExpectedEvent::TransactionalProducerClosed(_),
-                AdapterEvent::TransactionalProducerClosed { .. }
-            )
-            | (
-                ExpectedEvent::FlushCompleted(_),
-                AdapterEvent::FlushCompleted { .. }
-            )
-            | (
-                ExpectedEvent::ProducerClosed(_),
-                AdapterEvent::ProducerClosed { .. }
-            )
-            | (
-                ExpectedEvent::ClientShutdown(_),
-                AdapterEvent::ClientShutdown { .. }
-            )
-            | (ExpectedEvent::Finished, AdapterEvent::Finished)
+    )
+}
+
+fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
+    matches!(
+        (expected, event),
+        (
+            ExpectedEvent::ShareConsumerCreated(_),
+            AdapterEvent::ShareConsumerCreated { .. }
+        ) | (
+            ExpectedEvent::ShareReceiveCompleted(_),
+            AdapterEvent::ShareReceiveCompleted { .. }
+        ) | (
+            ExpectedEvent::ShareAcknowledgementCompleted(_),
+            AdapterEvent::ShareAcknowledgementCompleted { .. }
+        ) | (
+            ExpectedEvent::ShareBatchDropped(_),
+            AdapterEvent::ShareBatchDropped { .. }
+        ) | (
+            ExpectedEvent::ShareConsumerClosed(_),
+            AdapterEvent::ShareConsumerClosed { .. }
+        ) | (
+            ExpectedEvent::TopicCreated { .. },
+            AdapterEvent::TopicCreated { .. }
+        ) | (
+            ExpectedEvent::TransactionalProducerCreated(_),
+            AdapterEvent::TransactionalProducerCreated { .. }
+        ) | (
+            ExpectedEvent::TransactionCompleted { .. },
+            AdapterEvent::OperationAccepted { .. }
+                | AdapterEvent::OperationRejected { .. }
+                | AdapterEvent::OperationTerminal { .. }
+                | AdapterEvent::TransactionCompleted { .. }
+        ) | (
+            ExpectedEvent::TransactionFenceCompleted { .. },
+            AdapterEvent::OperationAccepted { .. }
+                | AdapterEvent::OperationRejected { .. }
+                | AdapterEvent::OperationTerminal { .. }
+                | AdapterEvent::TransactionalProducerCreated { .. }
+                | AdapterEvent::TransactionFenceCompleted { .. }
+        ) | (
+            ExpectedEvent::TransactionalProducerClosed(_),
+            AdapterEvent::TransactionalProducerClosed { .. }
+        ) | (
+            ExpectedEvent::FlushCompleted(_),
+            AdapterEvent::FlushCompleted { .. }
+        ) | (
+            ExpectedEvent::ProducerClosed(_),
+            AdapterEvent::ProducerClosed { .. }
+        ) | (
+            ExpectedEvent::ClientShutdown(_),
+            AdapterEvent::ClientShutdown { .. }
+        ) | (ExpectedEvent::Finished, AdapterEvent::Finished)
     )
 }
 

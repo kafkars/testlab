@@ -66,6 +66,14 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     for receive in crate::share_action_validation::unsettled(&state.share_batches) {
         problems.push(format!("share batch {receive} was not settled"));
     }
+    for (topic, partition) in state.leader_disruptions {
+        problems.push(format!(
+            "partition leader {topic}:{partition} was not restored"
+        ));
+    }
+    for broker in state.stopped_brokers {
+        problems.push(format!("broker {broker} was not restarted"));
+    }
     for (client, shutdown) in state.clients {
         if !shutdown {
             problems.push(format!("client {client} was not shut down"));

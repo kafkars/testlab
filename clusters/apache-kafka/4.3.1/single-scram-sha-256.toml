@@ -9,6 +9,7 @@ cluster_size = 1
 compose_files = [
   "clusters/apache-kafka/compose/single-plaintext.yml",
   "clusters/apache-kafka/compose/single-sasl.yml",
+  "clusters/apache-kafka/compose/single-share.yml",
 ]
 broker_services = ["broker"]
 client_port = 19092
