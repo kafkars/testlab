@@ -66,3 +66,15 @@ pub(crate) fn retry_until<T, E>(
         }
     }
 }
+
+pub(crate) fn retry_until_with_remaining<T, E>(
+    deadline: Instant,
+    mut operation: impl FnMut(Duration) -> Result<T, E>,
+    retryable: impl Fn(&E) -> bool,
+) -> Result<T, E> {
+    retry_until(
+        deadline,
+        || operation(deadline.saturating_duration_since(Instant::now())),
+        retryable,
+    )
+}

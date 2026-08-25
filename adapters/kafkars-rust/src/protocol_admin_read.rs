@@ -1,15 +1,16 @@
 //! Read-only admin commands preserve exact packaged public result identities.
 
 use std::io::Write;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use kafkars::{ListOffsetsQuery, OffsetSpec, ReadIsolation, TopicPartition};
+use kafkars::{ListOffsetsQuery, OffsetSpec, ReadIsolation, RetryAdvice, TopicPartition};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminOffsetPosition, ClientId, CommandId,
     OperationId,
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_until_with_remaining;
 use crate::protocol::emit;
 use crate::protocol_admin_result::{
     DescribedTopicResult, described_partitions, listed_consumer_group_offset, listed_offset,
@@ -195,19 +196,29 @@ fn list_offset<W: Write>(
     command_id: CommandId,
     input: ListOffsetInput,
 ) -> Result<(), AdapterError> {
-    let spec = match input.position {
-        AdminOffsetPosition::Latest => OffsetSpec::latest(),
-    };
-    let query = ListOffsetsQuery::new(input.topic.clone(), input.partition, spec);
-    let result = state
-        .client(&input.client_id)?
-        .admin()
-        .list_offsets([query])
-        .read_isolation(ReadIsolation::ReadCommitted)
-        .deadline_after(Duration::from_millis(input.timeout_ms))
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let started = Instant::now();
+    let deadline = started
+        .checked_add(Duration::from_millis(input.timeout_ms))
+        .unwrap_or(started);
+    let client = state.client(&input.client_id)?;
+    let result = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            let spec = match input.position {
+                AdminOffsetPosition::Latest => OffsetSpec::latest(),
+            };
+            let query = ListOffsetsQuery::new(input.topic.clone(), input.partition, spec);
+            client
+                .admin()
+                .list_offsets([query])
+                .read_isolation(ReadIsolation::ReadCommitted)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        |error| error.retry_advice() == RetryAdvice::RetrySafe,
+    )
+    .map_err(AdapterError::Client)?;
     let entries = result
         .into_offsets()
         .into_entries()

@@ -2,7 +2,7 @@
 
 use std::time::{Duration, Instant};
 
-use super::admission_retry::{retry_owned_until, retry_until};
+use super::admission_retry::{retry_owned_until, retry_until, retry_until_with_remaining};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum AttemptError {
@@ -77,4 +77,28 @@ fn owned_retry_uses_only_the_exact_returned_input() {
 
     assert_eq!(output, Ok(vec![1, 2, 3, 4]));
     assert_eq!(attempts, 2);
+}
+
+#[test]
+fn deadline_aware_retry_never_resets_the_remaining_timeout() {
+    let timeout = Duration::from_secs(1);
+    let deadline = Instant::now() + timeout;
+    let mut attempts = Vec::new();
+    let result = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            attempts.push(remaining);
+            if attempts.len() == 1 {
+                Err(AttemptError::Retryable)
+            } else {
+                Ok(11)
+            }
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+
+    assert_eq!(result, Ok(11));
+    assert_eq!(attempts.len(), 2);
+    assert!(attempts[0] <= timeout);
+    assert!(attempts[1] <= attempts[0]);
 }
