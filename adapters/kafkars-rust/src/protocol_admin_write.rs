@@ -1,12 +1,13 @@
 //! Admin write commands require one exact public topic result before success.
 
 use std::io::Write;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use kafkars::{NewPartitions, NewTopic};
+use kafkars::{NewPartitions, NewTopic, RetryAdvice};
 use testlab_schema::{AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandId};
 
 use crate::AdapterError;
+use crate::admission_retry::retry_until_with_remaining;
 use crate::protocol::emit;
 use crate::protocol_admin_result::validate_single_topic_result;
 use crate::state::AdapterState;
@@ -26,16 +27,26 @@ pub(crate) fn dispatch<W: Write>(
             replication_factor,
             timeout_ms,
         } => {
-            let request =
-                NewTopic::new(topic.clone(), partitions).replication_factor(replication_factor);
-            let result = state
-                .client(&client_id)?
-                .admin()
-                .create_topics([request])
-                .deadline_after(Duration::from_millis(timeout_ms))
-                .submit()
-                .wait()
-                .map_err(AdapterError::Client)?;
+            let started = Instant::now();
+            let deadline = started
+                .checked_add(Duration::from_millis(timeout_ms))
+                .unwrap_or(started);
+            let client = state.client(&client_id)?;
+            let result = retry_until_with_remaining(
+                deadline,
+                |remaining| {
+                    let request = NewTopic::new(topic.clone(), partitions)
+                        .replication_factor(replication_factor);
+                    client
+                        .admin()
+                        .create_topics([request])
+                        .deadline_after(remaining)
+                        .submit()
+                        .wait()
+                },
+                |error| error.retry_advice() == RetryAdvice::RetrySafe,
+            )
+            .map_err(AdapterError::Client)?;
             validate_single_topic_result(result.into_entries(), &operation_id, &topic)?;
             emit(
                 writer,
@@ -55,15 +66,25 @@ pub(crate) fn dispatch<W: Write>(
             total_count,
             timeout_ms,
         } => {
-            let request = NewPartitions::new(topic.clone(), total_count);
-            let result = state
-                .client(&client_id)?
-                .admin()
-                .create_partitions([request])
-                .deadline_after(Duration::from_millis(timeout_ms))
-                .submit()
-                .wait()
-                .map_err(AdapterError::Client)?;
+            let started = Instant::now();
+            let deadline = started
+                .checked_add(Duration::from_millis(timeout_ms))
+                .unwrap_or(started);
+            let client = state.client(&client_id)?;
+            let result = retry_until_with_remaining(
+                deadline,
+                |remaining| {
+                    let request = NewPartitions::new(topic.clone(), total_count);
+                    client
+                        .admin()
+                        .create_partitions([request])
+                        .deadline_after(remaining)
+                        .submit()
+                        .wait()
+                },
+                |error| error.retry_advice() == RetryAdvice::RetrySafe,
+            )
+            .map_err(AdapterError::Client)?;
             validate_single_topic_result(result.into_entries(), &operation_id, &topic)?;
             emit(
                 writer,
