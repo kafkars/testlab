@@ -490,7 +490,7 @@ sha256 = "c72b46bca8b2e3e0f22bf505e89c5282fa6928eb99077b17142ec219ee02546c"
 
 [[gate.input]]
 path = "action.yml"
-sha256 = "5232fd24d184581f7729143b3a3d82389849b401f5eeeb3a79c7083689eb2a58"
+sha256 = "99837bc6ede1f31e5e7d98e6e1a9f3105a8974d99f411086dc389f7fcf3f6a2e"
 
 [[gate.input]]
 path = "clippy.toml"
