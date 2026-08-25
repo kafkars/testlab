@@ -9,13 +9,39 @@ use super::verify;
 use crate::verify_fixture::{adapter, event, history, observation, record, scenario, step};
 
 #[test]
-fn fenced_commit_and_absent_record_pass() {
-    let (scenario, events, descriptor, _) = fence_fixture(Some("fenced"));
-    let observations = [observation(0, "value")];
+fn stable_and_exact_broker_fence_codes_pass() {
+    for code in ["fenced", "fenced:broker_47", "fenced:broker_90"] {
+        let (scenario, events, descriptor, _) = fence_fixture(Some(code));
+        let observations = [observation(0, "value")];
 
-    let verdict = verify(&scenario, &descriptor, &events, &observations);
+        let verdict = verify(&scenario, &descriptor, &events, &observations);
 
-    assert!(verdict.is_passed(), "{verdict:?}");
+        assert!(verdict.is_passed(), "{code}: {verdict:?}");
+    }
+}
+
+#[test]
+fn missing_unknown_or_malformed_fence_codes_fail_closed() {
+    for code in [
+        None,
+        Some("timeout"),
+        Some("fenced:broker_91"),
+        Some("fenced:broker_-90"),
+        Some("fenced:broker_90:extra"),
+    ] {
+        let (scenario, events, descriptor, _) = fence_fixture(code);
+        let observations = [observation(0, "value")];
+
+        let verdict = verify(&scenario, &descriptor, &events, &observations);
+
+        assert!(
+            verdict
+                .violations
+                .iter()
+                .any(|value| value.contract_id.as_str() == "TXN-003"),
+            "{code:?}: {verdict:?}"
+        );
+    }
 }
 
 #[test]

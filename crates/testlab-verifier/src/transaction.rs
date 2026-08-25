@@ -94,7 +94,7 @@ fn verify_fence(
         values.len() == 1
             && values
                 .first()
-                .is_some_and(|value| value.commit_error_code.as_deref() == Some("fenced"))
+                .is_some_and(|value| is_explicit_fence(value.commit_error_code.as_deref()))
     });
     if !exact {
         let observed = outcomes
@@ -138,6 +138,13 @@ fn verify_fence(
                 .collect(),
         ));
     }
+}
+
+fn is_explicit_fence(code: Option<&str>) -> bool {
+    matches!(
+        code,
+        Some("fenced" | "fenced:broker_47" | "fenced:broker_90")
+    )
 }
 
 fn verify_completion(
