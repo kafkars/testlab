@@ -1,10 +1,11 @@
 //! Candidate tests pin archive discovery and content-addressed adapter inputs.
 
+use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::candidate::find_archive;
+use crate::candidate::{find_archive, kafkars_package_command};
 use crate::candidate_manifest::{PackageArtifact, adapter_manifest, bundle_digest};
 
 static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
@@ -100,6 +101,21 @@ fn every_package_digest_contributes_to_bundle_identity() {
     changed[0].digest = "f".repeat(64);
 
     assert_ne!(bundle_digest(&first), bundle_digest(&changed));
+}
+
+#[test]
+fn candidate_packaging_uses_the_reviewed_workspace_overlay_toolchain() {
+    let command = kafkars_package_command();
+
+    assert_eq!(command.get_program(), OsStr::new("rustup"));
+    assert_eq!(
+        command.get_args().collect::<Vec<_>>(),
+        ["run", "1.90.0", "cargo"].map(OsStr::new)
+    );
+    assert!(
+        include_str!("../../../action.yml")
+            .contains("rustup toolchain install 1.90.0 --profile minimal")
+    );
 }
 
 fn artifacts() -> Vec<PackageArtifact> {

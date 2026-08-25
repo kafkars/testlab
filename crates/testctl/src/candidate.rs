@@ -30,6 +30,7 @@ const PACKAGE_NAMES: [&str; 9] = [
     "kafka-wire-core",
     "kafka-wire-records",
 ];
+const PACKAGE_CARGO_TOOLCHAIN: &str = "1.90.0";
 
 #[derive(Debug)]
 pub(crate) struct PreparedCandidate {
@@ -68,18 +69,26 @@ pub(crate) fn prepare_kafkars(
     let driver_manifest = sibling_manifest(sibling_root, "kafka-driver")?;
     let wire_manifest = sibling_manifest(sibling_root, "kafka-protocol")?;
     package(
+        kafkars_package_command(),
         &manifest,
         &package_target,
         &KAFKARS_PACKAGE_NAMES,
         allow_dirty,
     )?;
     package(
+        Command::new("cargo"),
         &driver_manifest,
         &package_target,
         &DRIVER_PACKAGE_NAMES,
         false,
     )?;
-    package(&wire_manifest, &package_target, &WIRE_PACKAGE_NAMES, false)?;
+    package(
+        Command::new("cargo"),
+        &wire_manifest,
+        &package_target,
+        &WIRE_PACKAGE_NAMES,
+        false,
+    )?;
     let artifacts = extract_packages(&directory, &package_target.join("package"))?;
     let adapter_manifest = write_adapter_manifest(repository.root(), &directory, &artifacts)?;
     build_adapter(&adapter_manifest, &directory.join("adapter-target"))?;
@@ -91,12 +100,12 @@ pub(crate) fn prepare_kafkars(
 }
 
 fn package(
+    mut command: Command,
     manifest: &Path,
     target: &Path,
     package_names: &[&str],
     allow_dirty: bool,
 ) -> Result<(), AppError> {
-    let mut command = Command::new("cargo");
     command
         .arg("package")
         .arg("--manifest-path")
@@ -112,6 +121,12 @@ fn package(
         command.arg("--package").arg(name);
     }
     run(&mut command, "package Kafkars public crates")
+}
+
+pub(crate) fn kafkars_package_command() -> Command {
+    let mut command = Command::new("rustup");
+    command.arg("run").arg(PACKAGE_CARGO_TOOLCHAIN).arg("cargo");
+    command
 }
 
 fn sibling_manifest(parent: &Path, sibling: &str) -> Result<PathBuf, AppError> {

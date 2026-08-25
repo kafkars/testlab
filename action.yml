@@ -47,9 +47,11 @@ runs:
         sudo apt-get update
         sudo apt-get install --yes --no-install-recommends libcurl4-openssl-dev
 
-    - name: Install pinned Rust toolchain
+    - name: Install pinned Rust toolchains
       shell: bash
-      run: rustup toolchain install 1.88.0 --profile minimal
+      run: |
+        rustup toolchain install 1.88.0 --profile minimal
+        rustup toolchain install 1.90.0 --profile minimal
 
     - id: qualify
       name: Package and qualify Kafkars
