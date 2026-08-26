@@ -6,14 +6,19 @@ use std::process::Command;
 
 use sha2::{Digest, Sha256};
 
-use crate::candidate_manifest::{PackageArtifact, write_adapter_manifest, write_subject};
+use crate::candidate_manifest::{
+    PackageArtifact, PackageSource, write_adapter_manifest, write_subject,
+};
+use crate::candidate_provenance::{
+    CandidateDependencyMode, dependency_mode, published_artifacts, verify_published_resolution,
+};
 use crate::catalog::Repository;
 use crate::identity::new_run_id;
 use crate::run_error::AppError;
 use crate::time::unix_ms;
 
 const KAFKARS_PACKAGE_NAMES: [&str; 3] = ["kafka-client-core", "kafka-client-engine", "kafkars"];
-const DRIVER_PACKAGE_NAMES: [&str; 3] = [
+const DRIVERS: [&str; 3] = [
     "kafka-driver",
     "kafka-driver-core",
     "kafka-driver-transport",
@@ -30,8 +35,6 @@ const PACKAGE_NAMES: [&str; 9] = [
     "kafka-wire-core",
     "kafka-wire-records",
 ];
-const PACKAGE_CARGO_TOOLCHAIN: &str = "1.90.0";
-
 #[derive(Debug)]
 pub(crate) struct PreparedCandidate {
     pub(crate) directory: PathBuf,
@@ -51,6 +54,7 @@ pub(crate) fn prepare_kafkars(
             manifest.display()
         )));
     }
+    let mode = dependency_mode(&manifest)?;
     let identity = new_run_id("candidate", candidate_time()?)?;
     let directory = repository
         .root()
@@ -63,11 +67,6 @@ pub(crate) fn prepare_kafkars(
             error,
         )
     })?;
-    let sibling_root = kafkars_root.parent().ok_or_else(|| {
-        AppError::Candidate("Kafkars root has no sibling dependency directory".to_owned())
-    })?;
-    let driver_manifest = sibling_manifest(sibling_root, "kafka-driver")?;
-    let wire_manifest = sibling_manifest(sibling_root, "kafka-protocol")?;
     package(
         kafkars_package_command(),
         &manifest,
@@ -75,23 +74,52 @@ pub(crate) fn prepare_kafkars(
         &KAFKARS_PACKAGE_NAMES,
         allow_dirty,
     )?;
-    package(
-        Command::new("cargo"),
-        &driver_manifest,
-        &package_target,
-        &DRIVER_PACKAGE_NAMES,
-        false,
-    )?;
-    package(
-        Command::new("cargo"),
-        &wire_manifest,
-        &package_target,
-        &WIRE_PACKAGE_NAMES,
-        false,
-    )?;
-    let artifacts = extract_packages(&directory, &package_target.join("package"))?;
+    if matches!(&mode, CandidateDependencyMode::SiblingSource) {
+        let sibling_root = kafkars_root.parent().ok_or_else(|| {
+            AppError::Candidate("Kafkars root has no sibling dependency directory".to_owned())
+        })?;
+        package(
+            Command::new("cargo"),
+            &sibling_manifest(sibling_root, "kafka-driver")?,
+            &package_target,
+            &DRIVERS,
+            false,
+        )?;
+        package(
+            Command::new("cargo"),
+            &sibling_manifest(sibling_root, "kafka-protocol")?,
+            &package_target,
+            &WIRE_PACKAGE_NAMES,
+            false,
+        )?;
+    }
+    let artifact_names: &[&str] = match &mode {
+        CandidateDependencyMode::SiblingSource => &PACKAGE_NAMES,
+        CandidateDependencyMode::PublishedRegistry(_) => &KAFKARS_PACKAGE_NAMES,
+    };
+    let mut artifacts =
+        extract_packages(&directory, &package_target.join("package"), artifact_names)?;
+    let published = match &mode {
+        CandidateDependencyMode::SiblingSource => None,
+        CandidateDependencyMode::PublishedRegistry(requirements) => Some(published_artifacts(
+            &directory.join("sources/kafka-client-engine/Cargo.toml"),
+            &kafkars_root.join("Cargo.lock"),
+            requirements,
+        )?),
+    };
+    if let Some(published) = &published {
+        artifacts.extend(published.iter().cloned());
+    }
     let adapter_manifest = write_adapter_manifest(repository.root(), &directory, &artifacts)?;
-    build_adapter(&adapter_manifest, &directory.join("adapter-target"))?;
+    resolve_adapter(&adapter_manifest)?;
+    if let Some(published) = &published {
+        verify_published_resolution(&directory.join("adapter/Cargo.lock"), published)?;
+    }
+    let adapter_target = directory.join("adapter-target");
+    run(
+        &mut build_command(&adapter_manifest, &adapter_target),
+        "build packaged adapter",
+    )?;
     let subject_path = write_subject(repository.root(), &directory, &artifacts)?;
     Ok(PreparedCandidate {
         directory,
@@ -125,7 +153,7 @@ fn package(
 
 pub(crate) fn kafkars_package_command() -> Command {
     let mut command = Command::new("rustup");
-    command.arg("run").arg(PACKAGE_CARGO_TOOLCHAIN).arg("cargo");
+    command.arg("run").arg("1.90.0").arg("cargo");
     command
 }
 
@@ -144,12 +172,13 @@ fn sibling_manifest(parent: &Path, sibling: &str) -> Result<PathBuf, AppError> {
 fn extract_packages(
     directory: &Path,
     package_directory: &Path,
+    package_names: &[&str],
 ) -> Result<Vec<PackageArtifact>, AppError> {
     let sources = directory.join("sources");
     fs::create_dir_all(&sources)
         .map_err(|error| AppError::io(format!("failed to create {}", sources.display()), error))?;
     let mut artifacts = Vec::new();
-    for name in PACKAGE_NAMES {
+    for name in package_names {
         let (archive, version) = find_archive(package_directory, name)?;
         let mut command = Command::new("tar");
         command
@@ -169,10 +198,10 @@ fn extract_packages(
             )
         })?;
         artifacts.push(PackageArtifact {
-            name: name.to_owned(),
+            name: (*name).to_owned(),
             version,
             digest: digest(&archive)?,
-            source,
+            source: PackageSource::Extracted(source),
         });
     }
     Ok(artifacts)
@@ -208,19 +237,29 @@ pub(crate) fn find_archive(directory: &Path, package: &str) -> Result<(PathBuf, 
     }
     matches
         .pop()
-        .ok_or_else(|| AppError::Candidate(format!("lost discovered {package} package archive")))
+        .ok_or_else(|| AppError::Candidate(format!("lost {package} archive")))
 }
 
-fn build_adapter(manifest: &Path, target: &Path) -> Result<(), AppError> {
+pub(crate) fn build_command(manifest: &Path, target: &Path) -> Command {
     let mut command = Command::new("cargo");
     command
         .arg("build")
         .arg("--manifest-path")
         .arg(manifest)
+        .arg("--locked")
         .arg("--target-dir")
         .arg(target)
         .env("RUSTFLAGS", "--cfg kafkars_share_candidate");
-    run(&mut command, "build packaged Kafkars adapter")
+    command
+}
+
+fn resolve_adapter(manifest: &Path) -> Result<(), AppError> {
+    let mut command = Command::new("cargo");
+    command
+        .arg("generate-lockfile")
+        .arg("--manifest-path")
+        .arg(manifest);
+    run(&mut command, "resolve packaged Kafkars adapter")
 }
 
 fn digest(path: &Path) -> Result<String, AppError> {
@@ -231,7 +270,7 @@ fn digest(path: &Path) -> Result<String, AppError> {
 
 fn canonical_directory(path: &Path, label: &str) -> Result<PathBuf, AppError> {
     let path = fs::canonicalize(path)
-        .map_err(|error| AppError::io(format!("failed to resolve {}", path.display()), error))?;
+        .map_err(|error| AppError::io(format!("resolve {}", path.display()), error))?;
     if !path.is_dir() {
         return Err(AppError::Candidate(format!(
             "{label} is not a directory: {}",

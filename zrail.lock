@@ -766,7 +766,7 @@ sha256 = "272d53c89045c5ffe977a4cc9fe47cce957ef09a6e607cafacd0e6bd836bd7f0"
 
 [[gate.input]]
 path = "scripts/qualify-kafkars-candidate"
-sha256 = "b01d3fe14f697b3b7ea6c2b5e75aa7c1793f4c2342c6bdffa93b77c9299b76b4"
+sha256 = "c08fd9cafcef5911673a1ebad49e3561f6b3a04261a4f94c06df62f1e04bfe97"
 
 [[gate.input]]
 path = "scripts/run-kafkars-qualification"

@@ -55,7 +55,13 @@ scripts/qualify-kafkars-candidate ../kafkars release
 The `pr` tier is a repeated public-surface smoke test. The `release` tier runs
 the complete version, security, topology, transaction, and disruption matrix.
 The candidate is packaged first, then the adapter is built only against those
-artifacts and Kafkars's exact reviewed driver and wire revisions.
+artifacts and Kafkars's exact reviewed driver and wire packages. Legacy
+sibling-source candidates package and content-address all nine local crates.
+Published-dependency candidates must declare exact registry versions; Testlab
+binds the six driver and wire artifacts to the unique crates.io checksums in the
+candidate lock, verifies the extracted engine manifest, and rejects any adapter
+resolution drift before the locked build. Each recorded registry identity is
+Cargo's locked, verified crate-archive SHA-256.
 
 Kafkars CI can invoke the same boundary without owning broker setup:
 

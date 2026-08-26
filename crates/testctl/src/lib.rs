@@ -3,6 +3,7 @@
 mod app;
 mod candidate;
 mod candidate_manifest;
+mod candidate_provenance;
 mod catalog;
 mod catalog_io;
 mod evidence;
@@ -33,6 +34,8 @@ mod time;
 pub use app::run_cli;
 pub use run_error::AppError;
 
+#[cfg(test)]
+mod candidate_provenance_test;
 #[cfg(test)]
 mod candidate_test;
 #[cfg(test)]

@@ -5,8 +5,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::candidate::{find_archive, kafkars_package_command};
-use crate::candidate_manifest::{PackageArtifact, adapter_manifest, bundle_digest};
+use crate::candidate::{build_command, find_archive, kafkars_package_command};
+use crate::candidate_manifest::{PackageArtifact, PackageSource, adapter_manifest, bundle_digest};
 
 static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
@@ -95,6 +95,23 @@ fn adapter_manifest_uses_every_extracted_package() {
 }
 
 #[test]
+fn adapter_manifest_leaves_exact_registry_support_unpatched() {
+    let mut artifacts = artifacts();
+    for artifact in &mut artifacts[3..] {
+        artifact.source = PackageSource::Registry;
+    }
+
+    let manifest = must(
+        adapter_manifest(Path::new("/testlab root"), &artifacts),
+        "render registry adapter manifest",
+    );
+
+    assert!(manifest.contains("kafka-client-engine = { path"));
+    assert!(!manifest.contains("kafka-driver = { path"));
+    assert!(!manifest.contains("kafka-wire-records = { path"));
+}
+
+#[test]
 fn every_package_digest_contributes_to_bundle_identity() {
     let first = artifacts();
     let mut changed = first.clone();
@@ -118,6 +135,28 @@ fn candidate_packaging_uses_the_reviewed_workspace_overlay_toolchain() {
     );
 }
 
+#[test]
+fn candidate_adapter_build_uses_the_generated_lock() {
+    let command = build_command(
+        Path::new("/candidate/Cargo.toml"),
+        Path::new("/adapter-target"),
+    );
+
+    assert_eq!(command.get_program(), OsStr::new("cargo"));
+    assert_eq!(
+        command.get_args().collect::<Vec<_>>(),
+        [
+            "build",
+            "--manifest-path",
+            "/candidate/Cargo.toml",
+            "--locked",
+            "--target-dir",
+            "/adapter-target",
+        ]
+        .map(OsStr::new)
+    );
+}
+
 fn artifacts() -> Vec<PackageArtifact> {
     [
         "kafka-client-core",
@@ -135,7 +174,7 @@ fn artifacts() -> Vec<PackageArtifact> {
         name: name.to_owned(),
         version: "0.1.0".to_owned(),
         digest: "a".repeat(64),
-        source: PathBuf::from(format!("/sources/{name}")),
+        source: PackageSource::Extracted(PathBuf::from(format!("/sources/{name}"))),
     })
     .collect()
 }

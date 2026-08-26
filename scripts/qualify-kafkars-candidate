@@ -32,12 +32,13 @@ if [[ ! -f "$kafkars_root/Cargo.toml" ]]; then
   exit 2
 fi
 bootstrap_siblings="$kafkars_root/scripts/bootstrap-siblings"
-if [[ ! -x "$bootstrap_siblings" ]]; then
-  echo "missing executable Kafkars sibling bootstrap: $bootstrap_siblings" >&2
-  exit 2
+if [[ -e "$bootstrap_siblings" || -L "$bootstrap_siblings" ]]; then
+  if [[ ! -f "$bootstrap_siblings" || ! -x "$bootstrap_siblings" ]]; then
+    echo "Kafkars sibling bootstrap must be an executable regular file: $bootstrap_siblings" >&2
+    exit 2
+  fi
+  "$bootstrap_siblings"
 fi
-
-"$bootstrap_siblings"
 
 evidence_directory="${TESTLAB_EVIDENCE_DIR:-${repository_root}/target/kafkars-candidate-${qualification_name}-evidence}"
 arguments=(

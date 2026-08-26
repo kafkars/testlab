@@ -14,7 +14,57 @@ pub(crate) struct PackageArtifact {
     pub(crate) name: String,
     pub(crate) version: String,
     pub(crate) digest: String,
-    pub(crate) source: PathBuf,
+    pub(crate) source: PackageSource,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum PackageSource {
+    Extracted(PathBuf),
+    Registry,
+}
+
+pub(crate) fn is_complete_semver(version: &str) -> bool {
+    let (version, build) = version
+        .split_once('+')
+        .map_or((version, None), |(version, build)| (version, Some(build)));
+    if build.is_some_and(|build| !valid_identifiers(build, false)) {
+        return false;
+    }
+    let (core, prerelease) = version
+        .split_once('-')
+        .map_or((version, None), |(core, prerelease)| {
+            (core, Some(prerelease))
+        });
+    if prerelease.is_some_and(|prerelease| !valid_identifiers(prerelease, true)) {
+        return false;
+    }
+    let mut core = core.split('.');
+    let components = [core.next(), core.next(), core.next()];
+    core.next().is_none()
+        && components
+            .into_iter()
+            .all(|component| component.is_some_and(valid_core_number))
+}
+
+fn valid_core_number(value: &str) -> bool {
+    !value.is_empty()
+        && value.bytes().all(|byte| byte.is_ascii_digit())
+        && (value.len() == 1 || !value.starts_with('0'))
+        && value.parse::<u64>().is_ok()
+}
+
+fn valid_identifiers(value: &str, reject_numeric_zeroes: bool) -> bool {
+    !value.is_empty()
+        && value.split('.').all(|identifier| {
+            !identifier.is_empty()
+                && identifier
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+                && (!reject_numeric_zeroes
+                    || !identifier.bytes().all(|byte| byte.is_ascii_digit())
+                    || identifier.len() == 1
+                    || !identifier.starts_with('0'))
+        })
 }
 
 pub(crate) fn write_adapter_manifest(
@@ -36,14 +86,19 @@ pub(crate) fn adapter_manifest(
     root: &Path,
     artifacts: &[PackageArtifact],
 ) -> Result<String, AppError> {
-    let source = |name: &str| {
+    let source = |name: &str| -> Result<String, AppError> {
         artifacts
             .iter()
             .find(|artifact| artifact.name == name)
-            .map(|artifact| toml_path(&artifact.source))
-            .transpose()?
             .ok_or_else(|| AppError::Candidate(format!("missing packaged source {name}")))
+            .and_then(|artifact| match &artifact.source {
+                PackageSource::Extracted(path) => toml_path(path),
+                PackageSource::Registry => Err(AppError::Candidate(format!(
+                    "packaged source {name} unexpectedly resolved from a registry"
+                ))),
+            })
     };
+    let support_patches = support_patches(artifacts, &source)?;
     Ok(format!(
         include_str!("candidate_adapter.toml"),
         adapter_lib = toml_path(&root.join("adapters/kafkars-rust/src/lib.rs"))?,
@@ -52,13 +107,42 @@ pub(crate) fn adapter_manifest(
         core = source("kafka-client-core")?,
         engine = source("kafka-client-engine")?,
         kafkars = source("kafkars")?,
-        driver = source("kafka-driver")?,
-        driver_core = source("kafka-driver-core")?,
-        driver_transport = source("kafka-driver-transport")?,
-        wire = source("kafka-wire")?,
-        wire_core = source("kafka-wire-core")?,
-        wire_records = source("kafka-wire-records")?,
+        support_patches = support_patches,
     ))
+}
+
+fn support_patches(
+    artifacts: &[PackageArtifact],
+    source: &impl Fn(&str) -> Result<String, AppError>,
+) -> Result<String, AppError> {
+    let support = [
+        "kafka-driver",
+        "kafka-driver-core",
+        "kafka-driver-transport",
+        "kafka-wire",
+        "kafka-wire-core",
+        "kafka-wire-records",
+    ];
+    let registry_count = support
+        .iter()
+        .filter(|name| {
+            artifacts.iter().any(|artifact| {
+                artifact.name == **name && matches!(&artifact.source, PackageSource::Registry)
+            })
+        })
+        .count();
+    if registry_count == support.len() {
+        return Ok(String::new());
+    }
+    if registry_count != 0 {
+        return Err(AppError::Candidate(
+            "driver and wire package sources must use one provenance mode".to_owned(),
+        ));
+    }
+    support
+        .iter()
+        .map(|name| Ok(format!("{name} = {{ path = {} }}\n", source(name)?)))
+        .collect::<Result<String, AppError>>()
 }
 
 pub(crate) fn write_subject(
