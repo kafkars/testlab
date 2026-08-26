@@ -2,7 +2,9 @@
 
 use std::time::{Duration, Instant};
 
-use super::admission_retry::{retry_owned_until, retry_until, retry_until_with_remaining};
+use super::admission_retry::{
+    retry_owned_until, retry_unadmitted_batch_until, retry_until, retry_until_with_remaining,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum AttemptError {
@@ -77,6 +79,95 @@ fn owned_retry_uses_only_the_exact_returned_input() {
 
     assert_eq!(output, Ok(vec![1, 2, 3, 4]));
     assert_eq!(attempts, 2);
+}
+
+#[test]
+fn wholly_unadmitted_batch_retries_the_exact_returned_records() {
+    let mut attempts = Vec::new();
+    let (accepted, rejection) = retry_unadmitted_batch_until(
+        Instant::now() + Duration::from_secs(1),
+        vec![1, 2, 3],
+        |records| {
+            attempts.push(records.clone());
+            if attempts.len() == 1 {
+                (Vec::new(), Some((records, AttemptError::Retryable)))
+            } else {
+                (records, None)
+            }
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+
+    assert_eq!(accepted, vec![1, 2, 3]);
+    assert_eq!(rejection, None);
+    assert_eq!(attempts, vec![vec![1, 2, 3], vec![1, 2, 3]]);
+}
+
+#[test]
+fn partial_prefix_and_terminal_batch_rejections_are_not_retried() {
+    let mut partial_attempts = 0;
+    let partial = retry_unadmitted_batch_until(
+        Instant::now() + Duration::from_secs(1),
+        vec![1, 2, 3],
+        |mut records| {
+            partial_attempts += 1;
+            let suffix = records.split_off(1);
+            (records, Some((suffix, AttemptError::Retryable)))
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+    let mut terminal_attempts = 0;
+    let terminal = retry_unadmitted_batch_until(
+        Instant::now() + Duration::from_secs(1),
+        vec![1, 2, 3],
+        |records| {
+            terminal_attempts += 1;
+            (Vec::<i32>::new(), Some((records, AttemptError::Terminal)))
+        },
+        |error| *error == AttemptError::Retryable,
+    );
+
+    assert_eq!(partial.0, vec![1]);
+    assert_eq!(partial.1, Some((vec![2, 3], AttemptError::Retryable)));
+    assert_eq!(partial_attempts, 1);
+    assert_eq!(terminal.0, Vec::<i32>::new());
+    assert_eq!(terminal.1, Some((vec![1, 2, 3], AttemptError::Terminal)));
+    assert_eq!(terminal_attempts, 1);
+}
+
+#[test]
+fn batch_retry_expiring_during_the_pause_preserves_the_exact_rejection() {
+    for marker in 0..16 {
+        let deadline = Instant::now() + Duration::from_millis(5);
+        let return_at = deadline
+            .checked_sub(Duration::from_micros(750))
+            .unwrap_or(deadline);
+        let mut attempts = 0;
+        let result = retry_unadmitted_batch_until(
+            deadline,
+            vec![marker],
+            |records| {
+                attempts += 1;
+                while Instant::now() < return_at {
+                    std::hint::spin_loop();
+                }
+                (
+                    Vec::<usize>::new(),
+                    Some((records, AttemptError::Retryable)),
+                )
+            },
+            |error| *error == AttemptError::Retryable,
+        );
+
+        assert_eq!(
+            result,
+            (
+                Vec::<usize>::new(),
+                Some((vec![marker], AttemptError::Retryable))
+            )
+        );
+        assert_eq!(attempts, 1);
+    }
 }
 
 #[test]

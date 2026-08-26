@@ -8,7 +8,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
-use crate::admission_retry::retry_owned_safe;
+use crate::admission_retry::{retry_owned_safe, retry_unadmitted_batch_safe};
 use crate::normalize;
 use crate::protocol::emit;
 use crate::state::AdapterState;
@@ -92,15 +92,14 @@ pub(crate) fn dispatch_batch<W: Write>(
         .into_iter()
         .map(|operation| normalize::record(operation.record))
         .collect::<Result<Vec<_>, _>>()?;
-    let (deliveries, rejection) = state
-        .producer(producer_id)?
-        .send_batch(records)
-        .wait()
-        .into_parts();
+    let producer = state.producer(producer_id)?;
+    let (deliveries, rejection) = retry_unadmitted_batch_safe(records, |records| {
+        let (deliveries, rejection) = producer.send_batch(records).wait().into_parts();
+        (deliveries, rejection.map(kafkars::TrySendError::into_parts))
+    });
     let accepted = deliveries.len();
     let (rejected, rejection_code) = match rejection {
-        Some(rejection) => {
-            let (records, error) = rejection.into_parts();
+        Some((records, error)) => {
             eprintln!("Kafkars rejected batch suffix: {error}");
             (records.len(), Some(normalize::error_code(&error)))
         }
