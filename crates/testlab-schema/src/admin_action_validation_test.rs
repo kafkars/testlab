@@ -3,8 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    Capability, ClientId, CreatePartitionsAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
-    ScenarioAction, ScenarioId, ScenarioStep, StepId,
+    Capability, ClientId, CreatePartitionsAction, CreateTopicAction, OperationId,
+    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
 use crate::admin_action_validation::validate;
 
@@ -181,14 +181,16 @@ fn create_partitions_shares_identity_space_with_topic_creation() {
     let mut problems = Vec::new();
 
     validate(
-        &ScenarioAction::CreateTopic {
+        &ScenarioAction::CreateTopic(CreateTopicAction {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
             topic: "records".to_owned(),
             partitions: 1,
             replication_factor: 1,
+            validate_only: false,
+            expected_error_code: None,
             timeout_ms: 1_000,
-        },
+        }),
         &clients,
         &mut operation_ids,
         &mut problems,
@@ -219,6 +221,9 @@ fn create_partitions(
         operation_id,
         topic,
         total_count,
+        validate_only: false,
+        expected_current_count: None,
+        expected_error_code: None,
         timeout_ms,
     })
 }

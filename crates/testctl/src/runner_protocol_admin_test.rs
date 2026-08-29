@@ -1,6 +1,9 @@
 //! Admin protocol tests keep result assertions out of execution validity.
 
-use testlab_schema::{AdapterEvent, OperationId};
+use testlab_schema::{
+    AdapterEvent, AdminConsumerGroupOffsetListing, AdminOffsetListing, AdminRecordsDeleted,
+    AdminTopicDescription, AdminTopicsListing, OperationId,
+};
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
 
@@ -14,21 +17,21 @@ fn describe_completion_checks_identity_but_not_semantic_partitions() {
 
     assert_eq!(
         expected
-            .classify(&AdapterEvent::TopicDescribed {
+            .classify(&AdapterEvent::TopicDescribed(AdminTopicDescription {
                 operation_id: operation_id.clone(),
                 topic: "orders".to_owned(),
                 partitions: vec![9],
-            })
+            }))
             .unwrap_or_else(|error| panic!("describe classification: {error}")),
         EventDisposition::Complete
     );
     assert!(
         expected
-            .classify(&AdapterEvent::TopicDescribed {
+            .classify(&AdapterEvent::TopicDescribed(AdminTopicDescription {
                 operation_id,
                 topic: "payments".to_owned(),
                 partitions: vec![0],
-            })
+            }))
             .is_err()
     );
 }
@@ -42,10 +45,10 @@ fn list_topics_completion_checks_operation_identity_only() {
 
     assert_eq!(
         expected
-            .classify(&AdapterEvent::TopicsListed {
+            .classify(&AdapterEvent::TopicsListed(AdminTopicsListing {
                 operation_id,
                 topics: Vec::new(),
-            })
+            }))
             .unwrap_or_else(|error| panic!("list topics classification: {error}")),
         EventDisposition::Complete
     );
@@ -62,23 +65,23 @@ fn list_offset_completion_checks_topic_partition_and_operation() {
 
     assert_eq!(
         expected
-            .classify(&AdapterEvent::OffsetListed {
+            .classify(&AdapterEvent::OffsetListed(AdminOffsetListing {
                 operation_id: operation_id.clone(),
                 topic: "orders".to_owned(),
                 partition: 2,
                 offset: None,
-            })
+            }))
             .unwrap_or_else(|error| panic!("list offset classification: {error}")),
         EventDisposition::Complete
     );
     assert!(
         expected
-            .classify(&AdapterEvent::OffsetListed {
+            .classify(&AdapterEvent::OffsetListed(AdminOffsetListing {
                 operation_id,
                 topic: "orders".to_owned(),
                 partition: 1,
                 offset: Some(2),
-            })
+            }))
             .is_err()
     );
 }
@@ -95,25 +98,61 @@ fn group_offset_completion_checks_every_stable_identity() {
 
     assert_eq!(
         expected
-            .classify(&AdapterEvent::ConsumerGroupOffsetListed {
-                operation_id: operation_id.clone(),
-                group_id: "group-1".to_owned(),
-                topic: "orders".to_owned(),
-                partition: 2,
-                offset: None,
-            })
+            .classify(&AdapterEvent::ConsumerGroupOffsetListed(
+                AdminConsumerGroupOffsetListing {
+                    operation_id: operation_id.clone(),
+                    group_id: "group-1".to_owned(),
+                    topic: "orders".to_owned(),
+                    partition: 2,
+                    offset: None,
+                },
+            ))
             .unwrap_or_else(|error| panic!("group offset classification: {error}")),
         EventDisposition::Complete
     );
     assert!(
         expected
-            .classify(&AdapterEvent::ConsumerGroupOffsetListed {
-                operation_id,
-                group_id: "other-group".to_owned(),
+            .classify(&AdapterEvent::ConsumerGroupOffsetListed(
+                AdminConsumerGroupOffsetListing {
+                    operation_id,
+                    group_id: "other-group".to_owned(),
+                    topic: "orders".to_owned(),
+                    partition: 2,
+                    offset: Some(42),
+                },
+            ))
+            .is_err()
+    );
+}
+
+#[test]
+fn record_deletion_checks_identity_but_leaves_watermark_truth_to_verification() {
+    let operation_id = id(OperationId::new("delete-records-1"));
+    let expected = ExpectedEvent::RecordsDeleted {
+        operation_id: operation_id.clone(),
+        topic: "orders".to_owned(),
+        partition: 2,
+    };
+
+    assert_eq!(
+        expected
+            .classify(&AdapterEvent::RecordsDeleted(AdminRecordsDeleted {
+                operation_id: operation_id.clone(),
                 topic: "orders".to_owned(),
                 partition: 2,
-                offset: Some(42),
-            })
+                low_watermark: 99,
+            }))
+            .unwrap_or_else(|error| panic!("delete records classification: {error}")),
+        EventDisposition::Complete
+    );
+    assert!(
+        expected
+            .classify(&AdapterEvent::RecordsDeleted(AdminRecordsDeleted {
+                operation_id,
+                topic: "orders".to_owned(),
+                partition: 1,
+                low_watermark: 2,
+            }))
             .is_err()
     );
 }

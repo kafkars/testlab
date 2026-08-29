@@ -1,0 +1,95 @@
+schema_version = 37
+id = "kafka.transaction-coordinator-failover"
+title = "transactional producer recovers across its observed coordinator election"
+description = "After one committed transaction, Testlab independently selects and stops that exact transaction coordinator, proves a distinct replacement, and the live packaged producer commits independently visible work while the original coordinator remains offline."
+timeout_ms = 210000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-coordinator-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 45000
+
+[[steps]]
+id = "commit-before-election"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-before-election"
+disposition = "commit"
+timeout_ms = 45000
+[[steps.operations]]
+operation_id = "op-before-election"
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-coordinator"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "before-coordinator-election" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-election" } }]
+
+[[steps]]
+id = "stop-transaction-coordinator"
+kind = "stop_broker_role"
+timeout_ms = 45000
+[steps.target]
+role = "transaction_coordinator"
+transactional_id = "testlab-transaction-coordinator-owner"
+
+[[steps]]
+id = "commit-after-election"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-after-election"
+disposition = "commit"
+timeout_ms = 60000
+[[steps.operations]]
+operation_id = "op-after-election"
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-coordinator"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "after-coordinator-election" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-election" } }]
+
+[[steps]]
+id = "restore-transaction-coordinator"
+kind = "restore_broker_role"
+timeout_ms = 45000
+[steps.target]
+role = "transaction_coordinator"
+transactional_id = "testlab-transaction-coordinator-owner"
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-before-election"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-election"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

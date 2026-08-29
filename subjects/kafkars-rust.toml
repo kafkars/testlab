@@ -1,8 +1,8 @@
 schema_version = 2
-id = "kafkars-rust-0.0.1"
-display_name = "packaged kafkars Rust client 0.0.1"
+id = "kafkars-rust-0.0.2-rc.1-e556a2f0"
+display_name = "packaged Kafkars Rust client 0.0.2-rc.1 (e556a2f0)"
 artifacts = [
-  { name = "kafkars", version = "0.0.1", sha256 = "81734b75223779203b3346962a2349e43b219697da267c95fcd862cc2fece456" },
+  { name = "kafkars", version = "0.0.2-rc.1", sha256 = "1cc6c5ba21459e10db637d9198e919cf8e13bfd9ec50ddd52b611af502d6c556" },
 ]
 command = "target/debug/testlab-kafkars-adapter"
 args = []

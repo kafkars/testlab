@@ -77,6 +77,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
             accepted: true,
             terminal: Some(terminal),
             visibility,
+            expected_error_code: None,
         }],
     }
 }
@@ -148,7 +149,7 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
                 operation_id: operation,
                 status,
                 code: None,
-                offset: None,
+                offset: (status == TerminalStatus::Acknowledged).then_some(0),
             },
         ),
         event(

@@ -1,0 +1,87 @@
+schema_version = 37
+id = "kafka.concurrent-producer-consumer"
+title = "one packaged client produces while its assigned consumer receives"
+description = "One harness-owned barrier releases an assigned-consumer receive and a producer send from the same packaged client; join evidence preserves both identities and the exact broker-visible record."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "concurrent_actors", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-concurrent-producer-consumer"
+partition = 0
+
+[[steps]]
+id = "start-produce-consume"
+kind = "start_concurrent_actors"
+concurrency_id = "produce-consume"
+
+[[steps.actors]]
+kind = "assigned_receive"
+actor_id = "receive-actor"
+consumer_id = "consumer-1"
+receive_id = "receive-concurrent"
+expected_operation_id = "op-concurrent"
+timeout_ms = 30000
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-actor"
+producer_id = "producer-1"
+operation_id = "op-concurrent"
+record = { topic = "testlab-kafkars-concurrent-producer-consumer", partition = 0, sequence = 1, key = { encoding = "utf8", data = "same-client" }, value = { encoding = "hex", data = "00636f6e63757272656e74ff" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-concurrent" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "join-produce-consume"
+kind = "join_concurrent_actors"
+concurrency_id = "produce-consume"
+timeout_ms = 40000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-concurrent"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -6,6 +6,7 @@ use testlab_schema::{
 
 use crate::index::HistoryIndex;
 use crate::support::violation;
+use crate::verify_index::observations_by_operation;
 
 pub(crate) fn verify_transactions(
     scenario: &Scenario,
@@ -13,6 +14,7 @@ pub(crate) fn verify_transactions(
     observations: &[BrokerObservation],
     violations: &mut Vec<Violation>,
 ) {
+    let observed = observations_by_operation(observations);
     for step in &scenario.steps {
         if !index.action_issued(&step.action) {
             continue;
@@ -25,15 +27,43 @@ pub(crate) fn verify_transactions(
                 ..
             } => {
                 verify_completion(transaction_id, *disposition, index, violations);
-                for operation in operations {
-                    verify_visibility(
-                        transaction_id,
-                        &operation.operation_id,
-                        *disposition,
-                        observations,
-                        violations,
-                    );
-                }
+                crate::transaction_boundaries::verify_staging(
+                    transaction_id,
+                    operations,
+                    index,
+                    violations,
+                );
+                crate::transaction_records::verify(
+                    transaction_id,
+                    operations,
+                    *disposition,
+                    index,
+                    &observed,
+                    violations,
+                );
+            }
+            ScenarioAction::ExecuteTransactionalTransform(action) => {
+                verify_completion(
+                    &action.transaction_id,
+                    action.disposition,
+                    index,
+                    violations,
+                );
+                crate::transaction_boundaries::verify_staging(
+                    &action.transaction_id,
+                    &action.operations,
+                    index,
+                    violations,
+                );
+                crate::transaction_records::verify(
+                    &action.transaction_id,
+                    &action.operations,
+                    action.disposition,
+                    index,
+                    &observed,
+                    violations,
+                );
+                crate::transaction_offsets::verify(scenario, action, index, &observed, violations);
             }
             ScenarioAction::FenceTransaction {
                 transaction_id,
@@ -49,37 +79,7 @@ pub(crate) fn verify_transactions(
             _ => {}
         }
     }
-}
-
-fn verify_visibility(
-    transaction_id: &testlab_schema::OperationId,
-    operation_id: &testlab_schema::OperationId,
-    disposition: TransactionDisposition,
-    observations: &[BrokerObservation],
-    violations: &mut Vec<Violation>,
-) {
-    let matching = observations
-        .iter()
-        .filter(|value| value.operation_id == *operation_id)
-        .collect::<Vec<_>>();
-    let visible = match disposition {
-        TransactionDisposition::Commit => matching.len() == 1,
-        TransactionDisposition::Abort => matching.is_empty(),
-    };
-    if !visible {
-        violations.push(violation(
-            "TXN-002",
-            format!(
-                "transaction {transaction_id} expected {disposition:?} visibility for operation {operation_id}, observed {}",
-                matching.len()
-            ),
-            Some(operation_id.clone()),
-            matching
-                .iter()
-                .map(|value| format!("broker-observation:{}", value.observation))
-                .collect(),
-        ));
-    }
+    crate::transaction_boundaries::verify_successive(scenario, index, violations);
 }
 
 fn verify_fence(

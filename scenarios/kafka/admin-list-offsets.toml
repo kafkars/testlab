@@ -1,4 +1,4 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.admin-list-offsets"
 title = "packaged admin lists the independently evidenced latest offset"
 description = "After two acknowledged records reach one isolated partition, the packaged client's public latest-offset query returns end offset 2, one past the greatest independently observed broker offset."

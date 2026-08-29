@@ -1,25 +1,20 @@
 //! Scenario actions declare bounded public calls and external broker controls.
-
-use serde::{Deserialize, Serialize};
-
-use crate::{
-    BatchRecord, BrokerBehavior, ClientId, ConsumerId, GroupProtocol, OperationId, ProducerId,
-    RecordSpec, ShareDisposition, TransactionDisposition,
-};
-/// Scenario action vocabulary for scenario schema v14.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#![allow(missing_docs, reason = "admin variants use public payload types")]
+use crate::{ClientId, ConsumerId, OperationId, ProducerId};
+/// Scenario action vocabulary for scenario schema v37.
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
-    /// Creates one public client.
     CreateClient {
-        /// New client identity.
         client_id: ClientId,
     },
+    CreateConfiguredClient(crate::CreateConfiguredClientAction),
     /// Waits for one explicit public client readiness probe.
     AwaitClientReady {
         /// Existing client identity.
         client_id: ClientId,
     },
+    ObserveClientMetrics(crate::ObserveClientMetricsAction),
     /// Creates one public producer.
     CreateProducer {
         /// Owning client.
@@ -27,11 +22,13 @@ pub enum ScenarioAction {
         /// New producer identity.
         producer_id: ProducerId,
     },
-    /// Selects the next self-test broker outcome.
     SetBrokerBehavior {
         /// Next model-broker behavior.
-        behavior: BrokerBehavior,
+        behavior: crate::BrokerBehavior,
     },
+    ArmProtocolFault(crate::ProtocolFaultAction),
+    AlterNetworkFault(crate::NetworkFaultAction),
+    CutNetworkConnections(crate::NetworkConnectionCutAction),
     /// Restarts one environment-owned broker and waits for Kafka readiness.
     RestartBroker {
         /// One-based declared broker ordinal.
@@ -53,24 +50,22 @@ pub enum ScenarioAction {
         /// Complete start and readiness bound.
         timeout_ms: u64,
     },
-    /// Stops the independently observed leader for one exact partition.
-    StopPartitionLeader {
-        /// Exact topic.
-        topic: String,
-        /// Exact partition.
-        partition: i32,
+    /// Stops the independently observed owner of one exact Kafka role.
+    StopBrokerRole {
+        /// Exact role target discovered outside the packaged adapter.
+        target: crate::BrokerRoleTarget,
         /// Complete election bound.
         timeout_ms: u64,
     },
-    /// Restarts the broker previously stopped for one exact partition.
-    RestorePartitionLeader {
-        /// Exact topic used to identify the stopped broker.
-        topic: String,
-        /// Exact partition used to identify the stopped broker.
-        partition: i32,
+    /// Restarts the broker retained by one prior role stop.
+    RestoreBrokerRole {
+        /// Exact role target used by the paired stop.
+        target: crate::BrokerRoleTarget,
         /// Complete restoration bound.
         timeout_ms: u64,
     },
+    /// Establishes or removes one independently observed broker policy.
+    AlterBrokerPolicy(crate::BrokerPolicyAction),
     /// Offers one record.
     Send {
         /// Existing producer.
@@ -78,15 +73,17 @@ pub enum ScenarioAction {
         /// Stable operation identity.
         operation_id: OperationId,
         /// Exact record.
-        record: RecordSpec,
+        record: crate::RecordSpec,
     },
-    /// Offers an ordered record batch through one public call.
+    CancelProducerSend(crate::CancelProducerSendCommand),
     SendBatch {
         /// Existing producer.
         producer_id: ProducerId,
         /// Ordered operations.
-        operations: Vec<BatchRecord>,
+        operations: Vec<crate::BatchRecord>,
     },
+    StartConcurrentActors(crate::StartConcurrentActorsAction),
+    JoinConcurrentActors(crate::JoinConcurrentActorsAction),
     /// Claims one directly assigned public consumer.
     CreateAssignedConsumer {
         /// Owning client.
@@ -103,6 +100,9 @@ pub enum ScenarioAction {
         /// Exact partition.
         partition: i32,
     },
+    /// Replaces one direct assignment with multiple partitions at their beginnings.
+    AssignBeginningBatch(crate::AssignBeginningBatchAction),
+    ControlAssignedConsumer(crate::AssignedConsumerControlAction),
     /// Bounded receive that must expose one previously sent exact record.
     Receive {
         /// Existing assigned consumer.
@@ -121,16 +121,15 @@ pub enum ScenarioAction {
     },
     /// Registers one consumer-group member with an explicit protocol.
     CreateGroupConsumer {
-        /// Owning client.
         client_id: ClientId,
-        /// New consumer identity.
         consumer_id: ConsumerId,
-        /// Exact group identity.
         group_id: String,
         /// Subscribed topic.
         topic: String,
         /// Group protocol.
-        protocol: GroupProtocol,
+        protocol: crate::GroupProtocol,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        configuration: Option<crate::GroupConsumerConfiguration>,
     },
     /// Receives one group batch and commits its assignment-fenced checkpoint.
     GroupReceive {
@@ -140,28 +139,34 @@ pub enum ScenarioAction {
         receive_id: OperationId,
         /// Expected producer operation.
         expected_operation_id: OperationId,
+        /// Exact normalized public failure expected instead of a completion.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        expected_error_code: Option<String>,
         /// Complete receive and commit bound.
         timeout_ms: u64,
     },
-    /// Closes one classic group consumer.
+    /// Observes one stable complete assignment across declared live group members.
+    ObserveGroupAssignments(crate::ObserveGroupAssignmentsAction),
+    /// Receives and commits an exact record set across declared live group members.
+    GroupReceiveSet(crate::GroupReceiveSetAction),
+    ControlGroupConsumer(crate::GroupConsumerControlAction),
+    ShutdownGroupConsumer(crate::GroupConsumerShutdownAction),
     CloseGroupConsumer {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
     /// Registers one unique KIP-932 share-group member.
     CreateShareConsumer {
-        /// Owning client.
         client_id: ClientId,
-        /// New share consumer identity.
         consumer_id: ConsumerId,
-        /// Exact share-group identity.
         group_id: String,
-        /// Subscribed topic.
         topic: String,
         /// Complete membership-start bound.
         membership_timeout_ms: u64,
         /// Complete close bound.
         close_timeout_ms: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        configuration: Option<crate::ShareConsumerFetchConfiguration>,
     },
     /// Retains one exact share batch for a later acknowledgement or drop.
     ShareReceive {
@@ -169,14 +174,17 @@ pub enum ScenarioAction {
         consumer_id: ConsumerId,
         /// Stable retained-batch identity.
         receive_id: OperationId,
-        /// Expected producer operation.
-        expected_operation_id: OperationId,
+        /// Ordered producer operations expected in this public batch.
+        expected_operation_ids: Vec<OperationId>,
         /// Smallest accepted delivery count.
         minimum_delivery_count: i16,
+        /// Exact public acquisition count expected for the retained batch.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        expected_acquisition_count: Option<usize>,
         /// Complete receive bound.
         timeout_ms: u64,
     },
-    /// Acknowledges every record in one retained share batch uniformly.
+    /// Acknowledges every record in one retained share batch by record order.
     ShareAcknowledge {
         /// Existing share consumer.
         consumer_id: ConsumerId,
@@ -184,8 +192,8 @@ pub enum ScenarioAction {
         receive_id: OperationId,
         /// Stable acknowledgement identity.
         acknowledgement_id: OperationId,
-        /// Uniform disposition.
-        disposition: ShareDisposition,
+        /// One disposition per record in the retained public batch.
+        dispositions: Vec<crate::ShareDisposition>,
         /// Complete acknowledgement bound.
         timeout_ms: u64,
     },
@@ -203,31 +211,28 @@ pub enum ScenarioAction {
         /// Required public result.
         expect_success: bool,
     },
-    /// Creates one topic through the packaged client's public admin surface.
-    CreateTopic {
-        /// Existing client.
-        client_id: ClientId,
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Topic to create.
-        topic: String,
-        /// Positive partition count.
-        partitions: i32,
-        /// Positive replication factor.
-        replication_factor: i16,
-        /// Complete admin bound.
-        timeout_ms: u64,
-    },
-    /// Increases one Kafka topic to a requested total partition count.
+    CreateTopic(crate::CreateTopicAction),
+    CreateTopicsBatch(crate::CreateTopicsBatchAction),
     CreatePartitions(crate::CreatePartitionsAction),
-    /// Describes one Kafka topic through the public admin surface.
+    DeleteTopic(crate::DeleteTopicAction),
     DescribeTopic(crate::DescribeTopicAction),
-    /// Lists Kafka topics visible through the public admin surface.
     ListTopics(crate::ListTopicsAction),
-    /// Lists one offset position through the public admin surface.
     ListOffsets(crate::ListOffsetsAction),
-    /// Lists one committed consumer-group offset through the public admin surface.
+    DeleteRecords(crate::DeleteRecordsAction),
+    DescribeTopicConfig(crate::DescribeTopicConfigAction),
+    AlterTopicConfig(crate::AlterTopicConfigAction),
+    DescribeCluster(crate::DescribeClusterAction),
+    ListConsumerGroups(crate::ListConsumerGroupsAction),
+    DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsAction),
+    ListConsumerGroupOffsetsBatch(crate::ListConsumerGroupOffsetsBatchAction),
+    ListConsumerGroupsOffsets(crate::ListConsumerGroupsOffsetsAction),
+    AlterConsumerGroupOffset(crate::AlterConsumerGroupOffsetAction),
+    AlterConsumerGroupOffsets(crate::AlterConsumerGroupOffsetsAction),
+    DeleteConsumerGroupOffset(crate::DeleteConsumerGroupOffsetAction),
+    DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsAction),
+    DeleteConsumerGroup(crate::DeleteConsumerGroupAction),
+    DescribeClassicGroups(crate::DescribeClassicGroupsAction),
     /// Initializes one uniquely controlled public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.
@@ -240,6 +245,9 @@ pub enum ScenarioAction {
         transaction_timeout_ms: u64,
         /// Complete initialization bound.
         initialization_timeout_ms: u64,
+        /// Exact normalized public initialization failure.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        expected_error_code: Option<String>,
     },
     /// Runs one linear transaction through send and commit or abort.
     ExecuteTransaction {
@@ -248,12 +256,14 @@ pub enum ScenarioAction {
         /// Stable transaction identity.
         transaction_id: OperationId,
         /// Ordered staged operations.
-        operations: Vec<BatchRecord>,
+        operations: Vec<crate::BatchRecord>,
         /// Requested transaction outcome.
-        disposition: TransactionDisposition,
+        disposition: crate::TransactionDisposition,
         /// Complete transaction bound.
         timeout_ms: u64,
     },
+    /// Atomically transforms one group-consumer batch and checkpoint.
+    ExecuteTransactionalTransform(crate::TransactionalTransformAction),
     /// Stages one record, initializes a replacement owner, and observes the old commit result.
     FenceTransaction {
         /// Existing transactional producer.
@@ -261,7 +271,7 @@ pub enum ScenarioAction {
         /// Stable transaction identity.
         transaction_id: OperationId,
         /// Operation staged before fencing.
-        operation: BatchRecord,
+        operation: crate::BatchRecord,
         /// Owning client for the replacement.
         replacement_client_id: ClientId,
         /// Replacement producer identity.
@@ -275,24 +285,16 @@ pub enum ScenarioAction {
         /// Complete fencing bound.
         timeout_ms: u64,
     },
-    /// Closes one idle transactional producer.
-    CloseTransactionalProducer {
-        /// Transactional producer to close.
-        producer_id: ProducerId,
-    },
-    /// Flushes one open producer.
+    CloseTransactionalProducer(crate::CloseTransactionalProducerAction),
     Flush {
         /// Producer to flush.
         producer_id: ProducerId,
     },
-    /// Closes one open producer.
     CloseProducer {
         /// Producer to close.
         producer_id: ProducerId,
     },
-    /// Shuts down one client after its producers close.
     ShutdownClient {
-        /// Client to shut down.
         client_id: ClientId,
     },
 }

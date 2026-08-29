@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use testlab_schema::{
-    Authentication, BrokerIdentity, EnvironmentDriver, EnvironmentId, EnvironmentManifest, RunId,
-    SecurityProfile, TransportSecurity,
+    Authentication, BrokerIdentity, ENVIRONMENT_SCHEMA_VERSION, EnvironmentDriver, EnvironmentId,
+    EnvironmentManifest, RunId, SecurityProfile, TransportSecurity,
 };
 
 use crate::{ComposeRequest, DockerComposeEnvironment};
@@ -110,6 +110,16 @@ impl Fixture {
         fixture
     }
 
+    pub(super) fn with_network_proxy() -> Self {
+        let mut fixture = Self::new(false);
+        let EnvironmentDriver::DockerCompose { network_proxy, .. } = &mut fixture.manifest.driver
+        else {
+            panic!("fixture must use Docker Compose");
+        };
+        *network_proxy = true;
+        fixture
+    }
+
     pub(super) fn environment(&self) -> DockerComposeEnvironment {
         DockerComposeEnvironment::new_with_program(
             ComposeRequest {
@@ -138,7 +148,7 @@ impl Drop for Fixture {
 
 fn manifest(security: SecurityProfile) -> EnvironmentManifest {
     EnvironmentManifest {
-        schema_version: 2,
+        schema_version: ENVIRONMENT_SCHEMA_VERSION,
         id: EnvironmentId::new("apache-kafka-test")
             .unwrap_or_else(|error| panic!("fixture environment id: {error}")),
         title: "Apache Kafka test fixture".to_owned(),
@@ -154,6 +164,7 @@ fn manifest(security: SecurityProfile) -> EnvironmentManifest {
             broker_services: vec!["broker".to_owned()],
             client_port: 9092,
             feature_levels: BTreeMap::new(),
+            network_proxy: false,
         },
     }
 }

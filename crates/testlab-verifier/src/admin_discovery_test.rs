@@ -1,40 +1,41 @@
 //! Discovery verifier tests require exact public results and independent broker truth.
 
 use testlab_schema::{
-    AdapterEvent, AdminOffsetPosition, BrokerObservation, ByteString, DescribeTopicAction,
-    ListOffsetsAction, ListTopicsAction, OperationId, RecordSpec, ScenarioAction, TerminalStatus,
-    VisibilityExpectation,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription,
+    AdminTopicsListing, BrokerObservation, BrokerPartitionOffsets, BrokerStateObservation,
+    BrokerTopicState, DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload,
+    ListOffsetsAction, ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId,
+    ScenarioAction, TerminalStatus, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
 use crate::index::HistoryIndex;
-use crate::verify_fixture::{event, scenario, step};
+use crate::verify_fixture::{command, event, scenario, step};
 
 #[test]
-fn exact_description_with_every_partition_exercised_passes() {
+fn exact_description_matches_independent_metadata() {
     let operation_id = operation("describe-1");
     let scenario = admin_scenario(ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id: client(),
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
-        expected_partitions: vec![0, 1, 2],
+        expected_partitions: Some(vec![0, 1, 2]),
+        expected_error_code: None,
         timeout_ms: 1_000,
     }));
-    let history = [event(
-        1,
-        AdapterEvent::TopicDescribed {
-            operation_id,
-            topic: "described".to_owned(),
-            partitions: vec![0, 1, 2],
-        },
-    )];
-    let observations = [
-        observed(0, "described", 0, 0),
-        observed(1, "described", 1, 0),
-        observed(2, "described", 2, 0),
+    let history = [
+        event(
+            1,
+            AdapterEvent::TopicDescribed(AdminTopicDescription {
+                operation_id: operation_id.clone(),
+                topic: "described".to_owned(),
+                partitions: vec![0, 1, 2],
+            }),
+        ),
+        topic_state(2, operation_id, "described", vec![0, 1, 2]),
     ];
 
-    assert!(admin_violations(&scenario, &history, &observations).is_empty());
+    assert!(admin_violations(&scenario, &history, &[]).is_empty());
 }
 
 #[test]
@@ -44,26 +45,23 @@ fn description_missing_independent_partition_fails() {
         client_id: client(),
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
-        expected_partitions: vec![0, 1, 2],
+        expected_partitions: Some(vec![0, 1, 2]),
+        expected_error_code: None,
         timeout_ms: 1_000,
     }));
-    let history = [event(
-        1,
-        AdapterEvent::TopicDescribed {
-            operation_id,
-            topic: "described".to_owned(),
-            partitions: vec![0, 1, 2],
-        },
-    )];
-    let observations = [
-        observed(0, "described", 0, 0),
-        observed(1, "described", 1, 0),
+    let history = [
+        event(
+            1,
+            AdapterEvent::TopicDescribed(AdminTopicDescription {
+                operation_id: operation_id.clone(),
+                topic: "described".to_owned(),
+                partitions: vec![0, 1, 2],
+            }),
+        ),
+        topic_state(2, operation_id, "described", vec![0, 1]),
     ];
 
-    assert_contract(
-        &admin_violations(&scenario, &history, &observations),
-        "ADMIN-003",
-    );
+    assert_contract(&admin_violations(&scenario, &history, &[]), "ADMIN-003");
 }
 
 #[test]
@@ -78,91 +76,91 @@ fn topic_list_requires_sorted_public_membership_and_independent_marker() {
     }));
     let good = [event(
         1,
-        AdapterEvent::TopicsListed {
+        AdapterEvent::TopicsListed(AdminTopicsListing {
             operation_id: operation_id.clone(),
             topics: vec!["another".to_owned(), "marker".to_owned()],
-        },
+        }),
     )];
-    let observations = [observed(0, "marker", 0, 0)];
-    assert!(admin_violations(&scenario, &good, &observations).is_empty());
+    let marker = topic_state(2, operation_id.clone(), "marker", vec![0]);
+    assert!(admin_violations(&scenario, &[good[0].clone(), marker.clone()], &[]).is_empty());
     assert_contract(&admin_violations(&scenario, &good, &[]), "ADMIN-004");
 
     let duplicate = [
         event(
             1,
-            AdapterEvent::TopicsListed {
+            AdapterEvent::TopicsListed(AdminTopicsListing {
                 operation_id: operation_id.clone(),
                 topics: vec!["marker".to_owned()],
-            },
+            }),
         ),
         event(
             2,
-            AdapterEvent::TopicsListed {
+            AdapterEvent::TopicsListed(AdminTopicsListing {
                 operation_id: operation_id.clone(),
                 topics: vec!["marker".to_owned()],
-            },
+            }),
         ),
+        topic_state(3, operation_id.clone(), "marker", vec![0]),
     ];
-    assert_contract(
-        &admin_violations(&scenario, &duplicate, &observations),
-        "ADMIN-004",
-    );
+    assert_contract(&admin_violations(&scenario, &duplicate, &[]), "ADMIN-004");
 
-    let unsorted = [event(
-        1,
-        AdapterEvent::TopicsListed {
-            operation_id,
-            topics: vec!["marker".to_owned(), "another".to_owned()],
-        },
-    )];
-    assert_contract(
-        &admin_violations(&scenario, &unsorted, &observations),
-        "ADMIN-004",
-    );
+    let unsorted = [
+        event(
+            1,
+            AdapterEvent::TopicsListed(AdminTopicsListing {
+                operation_id: operation_id.clone(),
+                topics: vec!["marker".to_owned(), "another".to_owned()],
+            }),
+        ),
+        marker,
+    ];
+    assert_contract(&admin_violations(&scenario, &unsorted, &[]), "ADMIN-004");
 }
 
 #[test]
-fn latest_offset_matches_one_past_independent_maximum() {
+fn latest_offset_matches_independent_high_watermark() {
     let operation_id = operation("offset-1");
     let scenario = offset_scenario(operation_id.clone(), 2);
-    let history = [event(
+    let public = event(
         1,
-        AdapterEvent::OffsetListed {
+        AdapterEvent::OffsetListed(AdminOffsetListing {
             operation_id: operation_id.clone(),
             topic: "offsets".to_owned(),
             partition: 0,
             offset: Some(2),
-        },
-    )];
-    let observations = [observed(0, "offsets", 0, 0), observed(1, "offsets", 0, 1)];
-
-    assert!(admin_violations(&scenario, &history, &observations).is_empty());
-    let wrong_observations = [observed(0, "other-topic", 0, 0)];
-    assert_contract(
-        &admin_violations(&scenario, &history, &wrong_observations),
-        "ADMIN-005",
+        }),
     );
+    let history = [
+        public.clone(),
+        partition_offsets(2, operation_id.clone(), "offsets", 0, 0, 2),
+    ];
+
+    assert!(admin_violations(&scenario, &history, &[]).is_empty());
+    let wrong = [
+        public,
+        partition_offsets(2, operation_id, "other-topic", 0, 0, 2),
+    ];
+    assert_contract(&admin_violations(&scenario, &wrong, &[]), "ADMIN-005");
 }
 
 #[test]
 fn latest_offset_rejects_none_or_a_value_beyond_broker_truth() {
     let operation_id = operation("offset-1");
     let scenario = offset_scenario(operation_id.clone(), 2);
-    let observations = [observed(0, "offsets", 0, 0), observed(1, "offsets", 0, 1)];
     for offset in [None, Some(3)] {
-        let history = [event(
-            1,
-            AdapterEvent::OffsetListed {
-                operation_id: operation_id.clone(),
-                topic: "offsets".to_owned(),
-                partition: 0,
-                offset,
-            },
-        )];
-        assert_contract(
-            &admin_violations(&scenario, &history, &observations),
-            "ADMIN-005",
-        );
+        let history = [
+            event(
+                1,
+                AdapterEvent::OffsetListed(AdminOffsetListing {
+                    operation_id: operation_id.clone(),
+                    topic: "offsets".to_owned(),
+                    partition: 0,
+                    offset,
+                }),
+            ),
+            partition_offsets(2, operation_id.clone(), "offsets", 0, 0, 2),
+        ];
+        assert_contract(&admin_violations(&scenario, &history, &[]), "ADMIN-005");
     }
 }
 
@@ -173,7 +171,8 @@ fn offset_scenario(operation_id: OperationId, expected_offset: i64) -> testlab_s
         topic: "offsets".to_owned(),
         partition: 0,
         position: AdminOffsetPosition::Latest,
-        expected_offset,
+        expected_offset: Some(expected_offset),
+        expected_error_code: None,
         timeout_ms: 1_000,
     }))
 }
@@ -192,30 +191,84 @@ fn admin_violations(
     history: &[testlab_schema::HistoryEntry],
     observations: &[BrokerObservation],
 ) -> Vec<testlab_schema::Violation> {
-    let index = HistoryIndex::build(history);
+    let mut issued = vec![command(0, admin_command(&scenario.steps[2].action))];
+    issued.extend_from_slice(history);
+    let index = HistoryIndex::build(&issued);
     let mut violations = Vec::new();
     verify_admin(scenario, &index, observations, &mut violations);
     violations
 }
 
-fn observed(observation: u64, topic: &str, partition: i32, offset: i64) -> BrokerObservation {
-    let record = RecordSpec {
-        topic: topic.to_owned(),
-        partition,
-        sequence: observation,
-        key: None,
-        value: Some(ByteString::utf8("marker")),
-        headers: Vec::new(),
-    };
-    let digest = record
-        .digest()
-        .unwrap_or_else(|error| panic!("record digest: {error}"));
-    BrokerObservation {
-        observation,
-        offset,
-        operation_id: operation(&format!("marker-{observation}")),
-        record,
-        digest,
+fn admin_command(action: &ScenarioAction) -> AdapterCommand {
+    match action {
+        ScenarioAction::DescribeTopic(value) => {
+            AdapterCommand::DescribeTopic(DescribeTopicCommand {
+                client_id: value.client_id.clone(),
+                operation_id: value.operation_id.clone(),
+                topic: value.topic.clone(),
+                timeout_ms: value.timeout_ms,
+            })
+        }
+        ScenarioAction::ListTopics(value) => AdapterCommand::ListTopics(ListTopicsCommand {
+            client_id: value.client_id.clone(),
+            operation_id: value.operation_id.clone(),
+            include_internal: value.include_internal,
+            timeout_ms: value.timeout_ms,
+        }),
+        ScenarioAction::ListOffsets(value) => AdapterCommand::ListOffsets(ListOffsetsCommand {
+            client_id: value.client_id.clone(),
+            operation_id: value.operation_id.clone(),
+            topic: value.topic.clone(),
+            partition: value.partition,
+            position: value.position,
+            timeout_ms: value.timeout_ms,
+        }),
+        _ => panic!("fixture action is not an admin discovery operation"),
+    }
+}
+
+fn topic_state(
+    sequence: u64,
+    operation_id: OperationId,
+    topic: &str,
+    partitions: Vec<i32>,
+) -> HistoryEntry {
+    HistoryEntry {
+        sequence,
+        observed_unix_ms: sequence,
+        payload: HistoryPayload::BrokerStateObservation {
+            observation: BrokerStateObservation::Topic(BrokerTopicState {
+                observation: sequence,
+                operation_id,
+                topic: topic.to_owned(),
+                exists: true,
+                partitions,
+            }),
+        },
+    }
+}
+
+fn partition_offsets(
+    sequence: u64,
+    operation_id: OperationId,
+    topic: &str,
+    partition: i32,
+    low_watermark: i64,
+    high_watermark: i64,
+) -> HistoryEntry {
+    HistoryEntry {
+        sequence,
+        observed_unix_ms: sequence,
+        payload: HistoryPayload::BrokerStateObservation {
+            observation: BrokerStateObservation::PartitionOffsets(BrokerPartitionOffsets {
+                observation: sequence,
+                operation_id,
+                topic: topic.to_owned(),
+                partition,
+                low_watermark,
+                high_watermark,
+            }),
+        },
     }
 }
 

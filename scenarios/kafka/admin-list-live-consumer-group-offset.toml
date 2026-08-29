@@ -1,0 +1,94 @@
+schema_version = 37
+id = "kafka.admin-list-live-consumer-group-offset"
+title = "packaged admin lists an independently observed live-group offset without stability fencing"
+description = "A classic group publicly consumes and commits one exact record, then remains open while the packaged admin lists its offset with require_stable disabled and an immediate independent query confirms offset 1."
+timeout_ms = 120000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-offset-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-live-group-offset-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-live-group-offset"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "live-group-offset" }
+value = { encoding = "utf8", data = "checkpoint-one" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-live-group-offset-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-admin-live-offset-group"
+topic = "testlab-kafkars-admin-live-group-offset"
+protocol = "classic"
+
+[[steps]]
+id = "receive-and-commit"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-live-group-offset"
+expected_operation_id = "op-live-group-offset-marker"
+timeout_ms = 30000
+
+[[steps]]
+id = "list-live-group-offset"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-live-group-offset-list"
+group_id = "testlab-admin-live-offset-group"
+topic = "testlab-kafkars-admin-live-group-offset"
+partition = 0
+require_stable = false
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-live-group-offset-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

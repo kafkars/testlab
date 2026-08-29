@@ -1,0 +1,8 @@
+schema_version = 1
+id = "kafkars-share-batches"
+title = "packaged Kafkars Share batch acquisition and disposition coverage"
+scenarios = [
+  "scenarios/kafka/share-group-mixed-release.toml",
+  "scenarios/kafka/share-group-mixed-reject.toml",
+  "scenarios/kafka/share-group-batch-drop.toml",
+]

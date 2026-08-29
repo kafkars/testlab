@@ -1,0 +1,185 @@
+schema_version = 37
+id = "kafka.classic-group-offset-resume"
+title = "a replacement classic member resumes from the committed offset"
+description = "A first classic member commits offset 1, independent broker evidence confirms it, and a new client and broker member in the same group receives only the next exact record before independently confirmed offset 2."
+timeout_ms = 240000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client-1"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client-1"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer-1"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-first"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-before-restart"
+
+[steps.record]
+topic = "testlab-kafkars-classic-offset-resume"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "before-restart" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-restart" } }]
+
+[[steps]]
+id = "create-member-1"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-classic-offset-resume-group"
+topic = "testlab-kafkars-classic-offset-resume"
+protocol = "classic"
+
+[[steps]]
+id = "observe-member-1"
+kind = "observe_group_assignments"
+operation_id = "observe-member-1"
+consumer_ids = ["consumer-1"]
+partitions = [{ topic = "testlab-kafkars-classic-offset-resume", partition = 0 }]
+timeout_ms = 45000
+
+[[steps]]
+id = "receive-first"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-before-restart"
+expected_operation_id = "op-before-restart"
+timeout_ms = 45000
+
+[[steps]]
+id = "confirm-offset-1"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "list-offset-1"
+group_id = "testlab-classic-offset-resume-group"
+topic = "testlab-kafkars-classic-offset-resume"
+partition = 0
+require_stable = false
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "close-member-1"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "close-producer-1"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client-1"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[steps]]
+id = "create-client-2"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "ready-client-2"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "create-producer-2"
+kind = "create_producer"
+client_id = "client-2"
+producer_id = "producer-2"
+
+[[steps]]
+id = "create-member-2"
+kind = "create_group_consumer"
+client_id = "client-2"
+consumer_id = "consumer-2"
+group_id = "testlab-classic-offset-resume-group"
+topic = "testlab-kafkars-classic-offset-resume"
+protocol = "classic"
+
+[[steps]]
+id = "observe-member-2"
+kind = "observe_group_assignments"
+operation_id = "observe-member-2"
+consumer_ids = ["consumer-2"]
+partitions = [{ topic = "testlab-kafkars-classic-offset-resume", partition = 0 }]
+timeout_ms = 45000
+
+[[steps]]
+id = "send-second"
+kind = "send"
+producer_id = "producer-2"
+operation_id = "op-after-restart"
+
+[steps.record]
+topic = "testlab-kafkars-classic-offset-resume"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "after-restart" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-restart" } }]
+
+[[steps]]
+id = "receive-second-only"
+kind = "group_receive"
+consumer_id = "consumer-2"
+receive_id = "receive-after-restart"
+expected_operation_id = "op-after-restart"
+timeout_ms = 45000
+
+[[steps]]
+id = "confirm-offset-2"
+kind = "list_consumer_group_offsets"
+client_id = "client-2"
+operation_id = "list-offset-2"
+group_id = "testlab-classic-offset-resume-group"
+topic = "testlab-kafkars-classic-offset-resume"
+partition = 0
+require_stable = false
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "close-member-2"
+kind = "close_group_consumer"
+consumer_id = "consumer-2"
+
+[[steps]]
+id = "flush-producer-2"
+kind = "flush"
+producer_id = "producer-2"
+
+[[steps]]
+id = "close-producer-2"
+kind = "close_producer"
+producer_id = "producer-2"
+
+[[steps]]
+id = "shutdown-client-2"
+kind = "shutdown_client"
+client_id = "client-2"
+
+[[assertions]]
+operation_id = "op-before-restart"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-restart"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

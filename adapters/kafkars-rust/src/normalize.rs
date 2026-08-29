@@ -1,6 +1,6 @@
 //! Public Kafkars values map to protocol records without inferred certainty.
 
-use kafkars::{DeliveryStatus, ErrorKind, Header, KafkaError, Record};
+use crate::kafkars_api::{DeliveryStatus, ErrorKind, Header, KafkaError, Record};
 use testlab_schema::{RecordSpec, TerminalStatus};
 
 use crate::AdapterError;
@@ -48,7 +48,6 @@ pub(crate) fn error_code(error: &KafkaError) -> String {
         ErrorKind::Broker => "broker",
         ErrorKind::Compatibility => "compatibility",
         ErrorKind::Fenced => "fenced",
-        #[cfg(kafkars_share_candidate)]
         ErrorKind::Identity => "identity",
         ErrorKind::InvalidRecord => "invalid_record",
         ErrorKind::Routing => "routing",

@@ -1,0 +1,124 @@
+schema_version = 37
+id = "kafka.share-group-mixed-release"
+title = "Share batches apply record-specific accept and release decisions"
+description = "One public Share batch acquires three ordered records, acknowledges them with mixed decisions, and independently proves that only the released record returns with an increased delivery count."
+timeout_ms = 180000
+requires = ["producer", "producer_batch", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-share-batch"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-accept-first"
+record = { topic = "testlab-share-mixed-release", partition = 0, sequence = 1, value = { encoding = "utf8", data = "accept-first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-accept-first" } }] }
+
+[[steps.operations]]
+operation_id = "op-release-middle"
+record = { topic = "testlab-share-mixed-release", partition = 0, sequence = 2, value = { encoding = "utf8", data = "release-middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-release-middle" } }] }
+
+[[steps.operations]]
+operation_id = "op-accept-last"
+record = { topic = "testlab-share-mixed-release", partition = 0, sequence = 3, value = { encoding = "utf8", data = "accept-last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-accept-last" } }] }
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-mixed-release"
+topic = "testlab-share-mixed-release"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "receive-ordered-batch"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-initial"
+expected_operation_ids = ["op-accept-first", "op-release-middle", "op-accept-last"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-mixed-batch"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-initial"
+acknowledgement_id = "ack-mixed"
+dispositions = ["accept", "release", "accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "receive-released-record"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-released"
+expected_operation_ids = ["op-release-middle"]
+minimum_delivery_count = 2
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-redelivery"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-released"
+acknowledgement_id = "ack-redelivery"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-accept-first"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-release-middle"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-accept-last"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

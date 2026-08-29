@@ -58,7 +58,7 @@ pub(crate) fn verify_consumers(
             .iter()
             .filter(|record| exact_record(record, expected))
             .count();
-        if exact != 1 {
+        if receive.records.len() != 1 || exact != 1 {
             violations.push(violation(
                 "CONS-002",
                 format!(
@@ -84,6 +84,7 @@ fn expectation(
             consumer_id,
             receive_id,
             expected_operation_id,
+            expected_error_code: None,
             ..
         } => Some((receive_id, expected_operation_id, Some(consumer_id))),
         _ => None,
@@ -126,7 +127,10 @@ fn verify_group_protocol(
     }
 }
 
-fn sent_record<'a>(scenario: &'a Scenario, target: &OperationId) -> Option<&'a RecordSpec> {
+pub(crate) fn sent_record<'a>(
+    scenario: &'a Scenario,
+    target: &OperationId,
+) -> Option<&'a RecordSpec> {
     for step in &scenario.steps {
         match &step.action {
             ScenarioAction::Send {
@@ -142,13 +146,25 @@ fn sent_record<'a>(scenario: &'a Scenario, target: &OperationId) -> Option<&'a R
                     return Some(&operation.record);
                 }
             }
+            ScenarioAction::StartConcurrentActors(action) => {
+                if let Some(record) = action.actors.iter().find_map(|actor| match actor {
+                    testlab_schema::ConcurrentActor::ProducerSend {
+                        operation_id,
+                        record,
+                        ..
+                    } if operation_id == target => Some(record),
+                    _ => None,
+                }) {
+                    return Some(record);
+                }
+            }
             _ => {}
         }
     }
     None
 }
 
-fn exact_record(actual: &ConsumedRecord, expected: &RecordSpec) -> bool {
+pub(crate) fn exact_record(actual: &ConsumedRecord, expected: &RecordSpec) -> bool {
     actual.topic == expected.topic
         && actual.partition == expected.partition
         && exact_bytes(actual.key.as_ref(), expected.key.as_ref())

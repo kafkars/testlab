@@ -1,0 +1,29 @@
+schema_version = 37
+id = "kafka.admin-describe-cluster"
+title = "packaged admin describes the independently observed Kafka cluster"
+description = "The packaged client's public cluster description reports the cluster identity and broker IDs that an independent librdkafka query observes in the declared environment topology."
+timeout_ms = 60000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-cluster"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-describe-cluster-1"
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

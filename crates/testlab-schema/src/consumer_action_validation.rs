@@ -2,16 +2,31 @@
 
 use std::collections::BTreeMap;
 
-use crate::{ClientId, ConsumerId, OperationId};
+use crate::{ClientId, ConsumerId, GroupProtocol, OperationId};
 use crate::{ScenarioAction, scenario_action_validation::ActionStates};
 
 pub(crate) type ConsumerStates = BTreeMap<ConsumerId, ConsumerState>;
 
 #[derive(Clone, Debug)]
 pub(crate) struct ConsumerState {
-    owner: ClientId,
-    assigned: bool,
-    closed: bool,
+    pub(crate) owner: ClientId,
+    pub(crate) assigned: bool,
+    pub(crate) closed: bool,
+    pub(crate) group: Option<ConsumerGroupState>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ConsumerGroupState {
+    pub(crate) group_id: String,
+    pub(crate) topic: String,
+    pub(crate) protocol: GroupProtocol,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct ConsumerGroupInput<'a> {
+    pub(crate) group_id: &'a str,
+    pub(crate) topic: &'a str,
+    pub(crate) protocol: Option<GroupProtocol>,
 }
 
 pub(crate) fn validate(
@@ -41,6 +56,16 @@ pub(crate) fn validate(
             &mut state.consumers,
             problems,
         ),
+        ScenarioAction::AssignBeginningBatch(_)
+        | ScenarioAction::ObserveGroupAssignments(_)
+        | ScenarioAction::GroupReceiveSet(_) => {
+            crate::consumer_group_ownership_validation::validate(action, state, problems);
+        }
+        ScenarioAction::ControlAssignedConsumer(_)
+        | ScenarioAction::ControlGroupConsumer(_)
+        | ScenarioAction::ShutdownGroupConsumer(_) => {
+            crate::consumer_control_validation::validate(action, state, problems);
+        }
         ScenarioAction::Receive {
             consumer_id,
             receive_id,
@@ -52,6 +77,7 @@ pub(crate) fn validate(
             receive_id,
             expected_operation_id,
             timeout_ms,
+            ..
         } => crate::receive_action_validation::validate(
             consumer_id,
             receive_id,
@@ -66,12 +92,16 @@ pub(crate) fn validate(
             consumer_id,
             group_id,
             topic,
+            protocol,
             ..
         } => create_group(
             client_id,
             consumer_id,
-            group_id,
-            topic,
+            ConsumerGroupInput {
+                group_id,
+                topic,
+                protocol: Some(*protocol),
+            },
             &state.clients,
             &mut state.consumers,
             problems,
@@ -81,6 +111,17 @@ pub(crate) fn validate(
             close(consumer_id, &mut state.consumers, problems);
         }
         _ => {}
+    }
+    if let ScenarioAction::GroupReceive {
+        receive_id,
+        expected_error_code: Some(code),
+        ..
+    } = action
+        && code != crate::GROUP_AUTHORIZATION_ERROR_CODE
+    {
+        problems.push(format!(
+            "group receive {receive_id} has unsupported expected error code {code}"
+        ));
     }
 }
 
@@ -107,6 +148,7 @@ pub(crate) fn create(
                 owner: client_id.clone(),
                 assigned: false,
                 closed: false,
+                group: None,
             },
         )
         .is_some()
@@ -139,8 +181,7 @@ pub(crate) fn assign(
 pub(crate) fn create_group(
     client_id: &ClientId,
     consumer_id: &ConsumerId,
-    group_id: &str,
-    topic: &str,
+    group: ConsumerGroupInput<'_>,
     clients: &BTreeMap<ClientId, bool>,
     consumers: &mut ConsumerStates,
     problems: &mut Vec<String>,
@@ -148,9 +189,14 @@ pub(crate) fn create_group(
     create(client_id, consumer_id, clients, consumers, problems);
     if let Some(state) = consumers.get_mut(consumer_id) {
         state.assigned = true;
+        state.group = group.protocol.map(|protocol| ConsumerGroupState {
+            group_id: group.group_id.to_owned(),
+            topic: group.topic.to_owned(),
+            protocol,
+        });
     }
-    validate_name(consumer_id, "group", group_id, 255, problems);
-    validate_name(consumer_id, "topic", topic, 249, problems);
+    validate_name(consumer_id, "group", group.group_id, 255, problems);
+    validate_name(consumer_id, "topic", group.topic, 249, problems);
 }
 
 pub(crate) fn receive(
@@ -197,7 +243,7 @@ pub(crate) fn unclosed(consumers: ConsumerStates) -> Vec<ConsumerId> {
         .collect()
 }
 
-fn open<'a>(
+pub(crate) fn open<'a>(
     consumer_id: &ConsumerId,
     consumers: &'a mut ConsumerStates,
     problems: &mut Vec<String>,

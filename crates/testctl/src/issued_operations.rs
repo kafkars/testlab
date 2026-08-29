@@ -35,6 +35,17 @@ pub(crate) fn from_history(history: &[HistoryEntry]) -> IssuedOperations {
                     .record_operations
                     .insert(operation.operation_id.clone());
             }
+            AdapterCommand::StartConcurrentActors(command) => {
+                issued
+                    .record_operations
+                    .extend(command.actors.iter().filter_map(|actor| match actor {
+                        testlab_schema::ConcurrentActorCommand::ProducerSend {
+                            operation_id,
+                            ..
+                        } => Some(operation_id.clone()),
+                        testlab_schema::ConcurrentActorCommand::AssignedReceive { .. } => None,
+                    }));
+            }
             AdapterCommand::ListConsumerGroupOffsets(action) => {
                 issued.group_offset_commands.push(action.clone());
             }

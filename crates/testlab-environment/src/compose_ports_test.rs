@@ -57,6 +57,24 @@ fn reassignment_rejects_an_incomplete_compose_environment() {
 }
 
 #[test]
+fn named_ports_append_one_value_per_broker() {
+    let ports = HostPorts::fixed(49_092, 2)
+        .unwrap_or_else(|error| panic!("create fixed host ports: {error}"));
+    let mut environment = Vec::new();
+
+    ports.append_named(&mut environment, "KAFKA_BACKEND_HOST_PORT");
+
+    assert_eq!(
+        environment,
+        [
+            ("KAFKA_BACKEND_HOST_PORT".to_owned(), "49092".to_owned()),
+            ("KAFKA_BACKEND_HOST_PORT_1".to_owned(), "49092".to_owned()),
+            ("KAFKA_BACKEND_HOST_PORT_2".to_owned(), "49093".to_owned()),
+        ]
+    );
+}
+
+#[test]
 fn empty_or_wrapping_ranges_are_rejected() {
     assert!(HostPorts::fixed(0, 1).is_err());
     assert!(HostPorts::fixed(u16::MAX, 2).is_err());

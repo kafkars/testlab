@@ -3,7 +3,8 @@
 use std::collections::BTreeSet;
 
 use testlab_schema::{
-    AdapterEvent, ConsumerId, OperationId, ProducerId, TerminalStatus, TransactionDisposition,
+    AdapterEvent, AdminTopicCompletion, ConsumerId, GroupAssignmentsObservation,
+    GroupReceiveSetCompletion, OperationId, ProducerId, TerminalStatus, TransactionDisposition,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -102,6 +103,47 @@ fn group_receive_completion_requires_commit_event_identity() {
 }
 
 #[test]
+fn group_ownership_completions_require_exact_operation_identity() {
+    let observation = id(OperationId::new("observe-1"));
+    let receive = id(OperationId::new("receive-set-1"));
+    assert_eq!(
+        ExpectedEvent::GroupAssignmentsObserved(observation.clone())
+            .classify(&AdapterEvent::GroupAssignmentsObserved(
+                GroupAssignmentsObservation {
+                    operation_id: observation,
+                    transitions: Vec::new(),
+                    assignments: Vec::new(),
+                }
+            ))
+            .unwrap_or_else(|error| panic!("classify assignment observation: {error}")),
+        EventDisposition::Complete
+    );
+    assert_eq!(
+        ExpectedEvent::GroupReceiveSetCompleted(receive.clone())
+            .classify(&AdapterEvent::GroupReceiveSetCompleted(
+                GroupReceiveSetCompletion {
+                    receive_id: receive,
+                    members: Vec::new(),
+                }
+            ))
+            .unwrap_or_else(|error| panic!("classify group receive set: {error}")),
+        EventDisposition::Complete
+    );
+    let wrong = id(OperationId::new("wrong"));
+    assert!(
+        ExpectedEvent::GroupAssignmentsObserved(wrong)
+            .classify(&AdapterEvent::GroupAssignmentsObserved(
+                GroupAssignmentsObservation {
+                    operation_id: id(OperationId::new("observe-1")),
+                    transitions: Vec::new(),
+                    assignments: Vec::new(),
+                }
+            ))
+            .is_err()
+    );
+}
+
+#[test]
 fn admin_completion_requires_exact_operation_and_topic() {
     let operation_id = id(OperationId::new("admin-create-1"));
     assert_eq!(
@@ -109,10 +151,10 @@ fn admin_completion_requires_exact_operation_and_topic() {
             operation_id: operation_id.clone(),
             topic: "orders".to_owned(),
         }
-        .classify(&AdapterEvent::TopicCreated {
+        .classify(&AdapterEvent::TopicCreated(AdminTopicCompletion {
             operation_id,
             topic: "orders".to_owned(),
-        })
+        }))
         .unwrap_or_else(|error| panic!("classify admin completion: {error}")),
         EventDisposition::Complete
     );
@@ -128,19 +170,23 @@ fn partition_creation_requires_exact_operation_and_topic() {
 
     assert_eq!(
         expected
-            .classify(&AdapterEvent::TopicPartitionsCreated {
-                operation_id: operation_id.clone(),
-                topic: "orders".to_owned(),
-            })
+            .classify(&AdapterEvent::TopicPartitionsCreated(
+                AdminTopicCompletion {
+                    operation_id: operation_id.clone(),
+                    topic: "orders".to_owned(),
+                }
+            ))
             .unwrap_or_else(|error| panic!("classify partition creation: {error}")),
         EventDisposition::Complete
     );
     assert!(
         expected
-            .classify(&AdapterEvent::TopicPartitionsCreated {
-                operation_id,
-                topic: "payments".to_owned(),
-            })
+            .classify(&AdapterEvent::TopicPartitionsCreated(
+                AdminTopicCompletion {
+                    operation_id,
+                    topic: "payments".to_owned(),
+                }
+            ))
             .is_err()
     );
 }

@@ -1,0 +1,97 @@
+schema_version = 37
+id = "kafka.assigned-consumer-null-empty"
+title = "assigned consumer distinguishes tombstones from empty values"
+description = "One directly assigned public consumer returns an exact null-valued tombstone and a distinct empty key and value with independently matched offsets."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-consumer-null-empty"
+partition = 0
+
+[[steps]]
+id = "send-tombstone"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-tombstone"
+record = { topic = "testlab-kafkars-consumer-null-empty", partition = 0, sequence = 1, key = { encoding = "utf8", data = "tombstone-key" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-tombstone" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "receive-tombstone"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-tombstone"
+expected_operation_id = "op-tombstone"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-empty"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-empty"
+record = { topic = "testlab-kafkars-consumer-null-empty", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "receive-empty"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-empty"
+expected_operation_id = "op-empty"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-tombstone"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

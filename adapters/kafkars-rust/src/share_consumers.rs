@@ -4,8 +4,12 @@ use std::collections::BTreeMap;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{Client, RetryAdvice, ShareConsumer, ShareConsumerBatch, ShareConsumerFetchConfig};
-use testlab_schema::{ClientId, ConsumerId, OperationId, ShareDisposition};
+use crate::kafkars_api::{
+    Client, RetryAdvice, ShareConsumer, ShareConsumerBatch, ShareConsumerFetchConfig,
+};
+use testlab_schema::{
+    ClientId, ConsumerId, OperationId, ShareConsumerFetchConfiguration, ShareDisposition,
+};
 
 use crate::share_consumers_acknowledge;
 use crate::share_consumers_close;
@@ -13,6 +17,7 @@ use crate::share_consumers_receive;
 use crate::state::StateError;
 
 const POLL_SLICE: Duration = Duration::from_millis(10);
+const MAX_SHARE_BATCH_RECORDS: u32 = 31;
 
 #[derive(Default)]
 pub(crate) struct ShareConsumers {
@@ -31,39 +36,39 @@ struct BatchOwner {
     batch: ShareConsumerBatch,
 }
 
+pub(crate) struct ShareConsumerRegistration {
+    pub(crate) client_id: ClientId,
+    pub(crate) consumer_id: ConsumerId,
+    pub(crate) group_id: String,
+    pub(crate) topic: String,
+    pub(crate) membership_timeout: Duration,
+    pub(crate) close_timeout: Duration,
+    pub(crate) configuration: Option<ShareConsumerFetchConfiguration>,
+}
+
 pub(crate) use share_consumers_acknowledge::ShareAcknowledgeOutcome;
 pub(crate) use share_consumers_close::ShareCloseOutcome;
 pub(crate) use share_consumers_receive::ShareReceiveFacts;
 
 impl ShareConsumers {
-    #[expect(
-        clippy::too_many_arguments,
-        reason = "the adapter preserves each explicit public share-consumer bound"
-    )]
     pub(crate) fn create(
         &mut self,
         client: &Client,
-        client_id: ClientId,
-        consumer_id: ConsumerId,
-        group_id: String,
-        topic: String,
-        membership_timeout: Duration,
-        close_timeout: Duration,
+        registration: ShareConsumerRegistration,
     ) -> Result<(), StateError> {
-        if self.owners.contains_key(&consumer_id) {
-            return Err(StateError::DuplicateConsumer(consumer_id));
+        if self.owners.contains_key(&registration.consumer_id) {
+            return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
         let started = Instant::now();
-        let deadline = started.checked_add(membership_timeout).unwrap_or(started);
+        let deadline = started
+            .checked_add(registration.membership_timeout)
+            .unwrap_or(started);
+        let fetch = public_fetch_configuration(registration.configuration)?;
         let mut builder = client
-            .share_consumer(group_id)
-            .subscribe([topic.as_str()])
-            .fetch_config(
-                ShareConsumerFetchConfig::default()
-                    .with_max_records(1)
-                    .with_batch_size(1),
-            )
-            .close_timeout(close_timeout);
+            .share_consumer(registration.group_id)
+            .subscribe([registration.topic.as_str()])
+            .fetch_config(fetch)
+            .close_timeout(registration.close_timeout);
         let consumer = loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
             match builder.membership_start_timeout(remaining).build() {
@@ -79,13 +84,13 @@ impl ShareConsumers {
                 }
             }
         };
-        share_consumers_receive::await_assignment(&consumer, &topic, deadline)?;
+        share_consumers_receive::await_assignment(&consumer, &registration.topic, deadline)?;
         self.owners.insert(
-            consumer_id,
+            registration.consumer_id,
             ShareOwner {
-                client_id,
+                client_id: registration.client_id,
                 consumer,
-                close_timeout,
+                close_timeout: registration.close_timeout,
             },
         );
         Ok(())
@@ -121,7 +126,7 @@ impl ShareConsumers {
         &mut self,
         consumer_id: &ConsumerId,
         receive_id: &OperationId,
-        disposition: ShareDisposition,
+        dispositions: Vec<ShareDisposition>,
         timeout: Duration,
     ) -> Result<ShareAcknowledgeOutcome, StateError> {
         let batch = self.take_batch(consumer_id, receive_id)?;
@@ -130,7 +135,7 @@ impl ShareConsumers {
             .get_mut(consumer_id)
             .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))?
             .consumer;
-        share_consumers_acknowledge::acknowledge(consumer, batch, disposition, timeout)
+        share_consumers_acknowledge::acknowledge(consumer, batch, dispositions, timeout)
     }
 
     pub(crate) fn drop_batch(
@@ -217,6 +222,22 @@ impl ShareConsumers {
             drop(self.batches.remove(&receive_id));
         }
     }
+}
+
+pub(crate) fn public_fetch_configuration(
+    configuration: Option<ShareConsumerFetchConfiguration>,
+) -> Result<ShareConsumerFetchConfig, StateError> {
+    let configuration = configuration.unwrap_or(ShareConsumerFetchConfiguration {
+        max_records: MAX_SHARE_BATCH_RECORDS,
+        batch_size: MAX_SHARE_BATCH_RECORDS,
+    });
+    let max_records = usize::try_from(configuration.max_records)
+        .map_err(|error| StateError::ShareSurface(error.to_string()))?;
+    let batch_size = usize::try_from(configuration.batch_size)
+        .map_err(|error| StateError::ShareSurface(error.to_string()))?;
+    Ok(ShareConsumerFetchConfig::default()
+        .with_max_records(max_records)
+        .with_batch_size(batch_size))
 }
 
 impl std::fmt::Debug for ShareConsumers {

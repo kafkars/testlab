@@ -1,0 +1,104 @@
+schema_version = 37
+id = "kafka.admin-list-offsets-paired"
+title = "packaged admin lists earliest and latest offsets for the same partition"
+description = "After two acknowledged records reach one isolated partition, consecutive public queries report earliest offset 0 and latest end offset 2 for that exact partition, grounded in the same independent broker record evidence."
+timeout_ms = 100000
+requires = ["producer", "producer_batch", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-offset-range-markers"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-offset-range-zero"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-offset-range"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "offset-range-zero" }
+value = { encoding = "hex", data = "006f66667365742d72616e67652d30ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-offset-range-zero" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps.operations]]
+operation_id = "op-offset-range-one"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-offset-range"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "offset-range-one" }
+value = { encoding = "hex", data = "006f66667365742d72616e67652d31ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-offset-range-one" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "list-earliest-offset"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-list-offset-range-earliest"
+topic = "testlab-kafkars-admin-offset-range"
+partition = 0
+position = "earliest"
+expected_offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "list-latest-offset"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-list-offset-range-latest"
+topic = "testlab-kafkars-admin-offset-range"
+partition = 0
+position = "latest"
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-offset-range-zero"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-offset-range-one"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -1,0 +1,157 @@
+schema_version = 37
+id = "kafka.concurrent-two-client-pipeline"
+title = "two packaged clients produce and consume across two partitions"
+description = "Two clients release two producer sends and two directly assigned receives through one four-actor barrier; every actor joins in caller order while independent observation proves both records."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "concurrent_actors", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client-a"
+kind = "create_client"
+client_id = "client-a"
+
+[[steps]]
+id = "create-client-b"
+kind = "create_client"
+client_id = "client-b"
+
+[[steps]]
+id = "ready-client-a"
+kind = "await_client_ready"
+client_id = "client-a"
+
+[[steps]]
+id = "ready-client-b"
+kind = "await_client_ready"
+client_id = "client-b"
+
+[[steps]]
+id = "create-producer-a"
+kind = "create_producer"
+client_id = "client-a"
+producer_id = "producer-a"
+
+[[steps]]
+id = "create-producer-b"
+kind = "create_producer"
+client_id = "client-b"
+producer_id = "producer-b"
+
+[[steps]]
+id = "create-consumer-a"
+kind = "create_assigned_consumer"
+client_id = "client-a"
+consumer_id = "consumer-a"
+
+[[steps]]
+id = "create-consumer-b"
+kind = "create_assigned_consumer"
+client_id = "client-b"
+consumer_id = "consumer-b"
+
+[[steps]]
+id = "assign-consumer-a"
+kind = "assign_beginning"
+consumer_id = "consumer-a"
+topic = "testlab-kafkars-concurrent-two-client-pipeline"
+partition = 0
+
+[[steps]]
+id = "assign-consumer-b"
+kind = "assign_beginning"
+consumer_id = "consumer-b"
+topic = "testlab-kafkars-concurrent-two-client-pipeline"
+partition = 1
+
+[[steps]]
+id = "start-two-client-pipeline"
+kind = "start_concurrent_actors"
+concurrency_id = "two-client-pipeline"
+
+[[steps.actors]]
+kind = "assigned_receive"
+actor_id = "receive-a"
+consumer_id = "consumer-a"
+receive_id = "receive-a"
+expected_operation_id = "op-b-to-a"
+timeout_ms = 30000
+
+[[steps.actors]]
+kind = "assigned_receive"
+actor_id = "receive-b"
+consumer_id = "consumer-b"
+receive_id = "receive-b"
+expected_operation_id = "op-a-to-b"
+timeout_ms = 30000
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-a"
+producer_id = "producer-a"
+operation_id = "op-a-to-b"
+record = { topic = "testlab-kafkars-concurrent-two-client-pipeline", partition = 1, sequence = 1, key = { encoding = "utf8", data = "from-a" }, value = { encoding = "utf8", data = "to-partition-1" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-a-to-b" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-b"
+producer_id = "producer-b"
+operation_id = "op-b-to-a"
+record = { topic = "testlab-kafkars-concurrent-two-client-pipeline", partition = 0, sequence = 2, key = { encoding = "utf8", data = "from-b" }, value = { encoding = "utf8", data = "to-partition-0" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-b-to-a" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "join-two-client-pipeline"
+kind = "join_concurrent_actors"
+concurrency_id = "two-client-pipeline"
+timeout_ms = 40000
+
+[[steps]]
+id = "close-consumer-a"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-a"
+
+[[steps]]
+id = "close-consumer-b"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-b"
+
+[[steps]]
+id = "flush-producer-a"
+kind = "flush"
+producer_id = "producer-a"
+
+[[steps]]
+id = "flush-producer-b"
+kind = "flush"
+producer_id = "producer-b"
+
+[[steps]]
+id = "close-producer-a"
+kind = "close_producer"
+producer_id = "producer-a"
+
+[[steps]]
+id = "close-producer-b"
+kind = "close_producer"
+producer_id = "producer-b"
+
+[[steps]]
+id = "shutdown-client-a"
+kind = "shutdown_client"
+client_id = "client-a"
+
+[[steps]]
+id = "shutdown-client-b"
+kind = "shutdown_client"
+client_id = "client-b"
+
+[[assertions]]
+operation_id = "op-a-to-b"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-b-to-a"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

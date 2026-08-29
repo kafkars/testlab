@@ -3,7 +3,7 @@
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{
+use crate::kafkars_api::{
     KafkaError, RetryAdvice, ShareConsumer, ShareConsumerBatch,
     ShareDisposition as PublicDisposition,
 };
@@ -21,17 +21,27 @@ pub(crate) struct ShareAcknowledgeOutcome {
 pub(crate) fn acknowledge(
     consumer: &mut ShareConsumer,
     batch: ShareConsumerBatch,
-    disposition: ShareDisposition,
+    dispositions: Vec<ShareDisposition>,
     timeout: Duration,
 ) -> Result<ShareAcknowledgeOutcome, StateError> {
-    let public = match disposition {
-        ShareDisposition::Accept => PublicDisposition::Accept,
-        ShareDisposition::Release => PublicDisposition::Release,
-        ShareDisposition::Reject => PublicDisposition::Reject,
-    };
+    if batch.len() != dispositions.len() {
+        return Err(StateError::ShareSurface(format!(
+            "share batch has {} records but {} dispositions were supplied",
+            batch.len(),
+            dispositions.len()
+        )));
+    }
     let decisions = batch
         .records()
-        .map(|record| record.decision(public))
+        .zip(dispositions)
+        .map(|(record, disposition)| {
+            let public = match disposition {
+                ShareDisposition::Accept => PublicDisposition::Accept,
+                ShareDisposition::Release => PublicDisposition::Release,
+                ShareDisposition::Reject => PublicDisposition::Reject,
+            };
+            record.decision(public)
+        })
         .collect();
     let mut acknowledgement = batch
         .into_acknowledgement(decisions)

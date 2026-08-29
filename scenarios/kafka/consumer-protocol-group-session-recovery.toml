@@ -1,0 +1,197 @@
+schema_version = 37
+id = "kafka.consumer-protocol-group-session-recovery"
+title = "one KIP-848 member recovers while every broker is disrupted"
+description = "Testlab stops each broker in turn while one KIP-848 member remains live, observes a valid public assignment after every disruption, and proves committed forward progress after the stop that necessarily disrupts its original group coordinator."
+timeout_ms = 420000
+requires = ["producer", "consumer_protocol_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-consumer-protocol-session-group"
+topic = "testlab-kafkars-consumer-protocol-session"
+protocol = "consumer"
+
+[[steps]]
+id = "observe-initial-assignment"
+kind = "observe_group_assignments"
+operation_id = "observe-initial-assignment"
+consumer_ids = ["consumer-1"]
+partitions = [{ topic = "testlab-kafkars-consumer-protocol-session", partition = 0 }]
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-broker-1"
+kind = "stop_broker"
+broker_ordinal = 1
+timeout_ms = 10000
+
+[[steps]]
+id = "observe-after-broker-1"
+kind = "observe_group_assignments"
+operation_id = "observe-after-broker-1"
+consumer_ids = ["consumer-1"]
+partitions = [{ topic = "testlab-kafkars-consumer-protocol-session", partition = 0 }]
+timeout_ms = 45000
+
+[[steps]]
+id = "send-after-broker-1"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-broker-1"
+[steps.record]
+topic = "testlab-kafkars-consumer-protocol-session"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "progress-after-broker-1" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-1" } }]
+
+[[steps]]
+id = "receive-after-broker-1"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-after-broker-1"
+expected_operation_id = "op-after-broker-1"
+timeout_ms = 45000
+
+[[steps]]
+id = "start-broker-1"
+kind = "start_broker"
+broker_ordinal = 1
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-broker-2"
+kind = "stop_broker"
+broker_ordinal = 2
+timeout_ms = 10000
+
+[[steps]]
+id = "observe-after-broker-2"
+kind = "observe_group_assignments"
+operation_id = "observe-after-broker-2"
+consumer_ids = ["consumer-1"]
+partitions = [{ topic = "testlab-kafkars-consumer-protocol-session", partition = 0 }]
+timeout_ms = 45000
+
+[[steps]]
+id = "send-after-broker-2"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-broker-2"
+[steps.record]
+topic = "testlab-kafkars-consumer-protocol-session"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "progress-after-broker-2" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-2" } }]
+
+[[steps]]
+id = "receive-after-broker-2"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-after-broker-2"
+expected_operation_id = "op-after-broker-2"
+timeout_ms = 45000
+
+[[steps]]
+id = "start-broker-2"
+kind = "start_broker"
+broker_ordinal = 2
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-broker-3"
+kind = "stop_broker"
+broker_ordinal = 3
+timeout_ms = 10000
+
+[[steps]]
+id = "observe-after-broker-3"
+kind = "observe_group_assignments"
+operation_id = "observe-after-broker-3"
+consumer_ids = ["consumer-1"]
+partitions = [{ topic = "testlab-kafkars-consumer-protocol-session", partition = 0 }]
+timeout_ms = 45000
+
+[[steps]]
+id = "send-after-broker-3"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-broker-3"
+[steps.record]
+topic = "testlab-kafkars-consumer-protocol-session"
+partition = 0
+sequence = 3
+value = { encoding = "utf8", data = "progress-after-broker-3" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-3" } }]
+
+[[steps]]
+id = "receive-after-broker-3"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-after-broker-3"
+expected_operation_id = "op-after-broker-3"
+timeout_ms = 45000
+
+[[steps]]
+id = "start-broker-3"
+kind = "start_broker"
+broker_ordinal = 3
+timeout_ms = 45000
+
+[[steps]]
+id = "close-member"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-after-broker-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-broker-2"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-broker-3"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

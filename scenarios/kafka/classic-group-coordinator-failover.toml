@@ -1,0 +1,119 @@
+schema_version = 37
+id = "kafka.classic-group-coordinator-failover"
+title = "classic member recovers across its observed coordinator election"
+description = "After a classic member commits initial work, Testlab independently selects and stops that exact group coordinator, proves a distinct replacement, and the live member commits exact new work while the original coordinator remains offline."
+timeout_ms = 210000
+requires = ["producer", "consumer_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-before-election"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-before-election"
+[steps.record]
+topic = "testlab-kafkars-classic-coordinator"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "before-coordinator-election" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-election" } }]
+
+[[steps]]
+id = "create-group-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-classic-coordinator-group"
+topic = "testlab-kafkars-classic-coordinator"
+protocol = "classic"
+
+[[steps]]
+id = "receive-before-election"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-before-election"
+expected_operation_id = "op-before-election"
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-group-coordinator"
+kind = "stop_broker_role"
+timeout_ms = 45000
+[steps.target]
+role = "group_coordinator"
+group_id = "testlab-classic-coordinator-group"
+
+[[steps]]
+id = "send-after-election"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-election"
+[steps.record]
+topic = "testlab-kafkars-classic-coordinator"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "after-coordinator-election" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-election" } }]
+
+[[steps]]
+id = "receive-after-election"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-after-election"
+expected_operation_id = "op-after-election"
+timeout_ms = 60000
+
+[[steps]]
+id = "restore-group-coordinator"
+kind = "restore_broker_role"
+timeout_ms = 45000
+[steps.target]
+role = "group_coordinator"
+group_id = "testlab-classic-coordinator-group"
+
+[[steps]]
+id = "close-group-member"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-before-election"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-election"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

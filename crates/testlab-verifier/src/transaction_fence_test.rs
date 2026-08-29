@@ -114,6 +114,7 @@ fn fence_scenario(ids: &FenceIds) -> testlab_schema::Scenario {
                 transactional_id: "fixture-fenced-owner".to_owned(),
                 transaction_timeout_ms: 1_000,
                 initialization_timeout_ms: 1_000,
+                expected_error_code: None,
             },
         ),
     );
@@ -142,18 +143,22 @@ fn fence_scenario(ids: &FenceIds) -> testlab_schema::Scenario {
         shutdown,
         step(
             "close-transactional-original",
-            ScenarioAction::CloseTransactionalProducer {
-                producer_id: ids.original.clone(),
-            },
+            ScenarioAction::CloseTransactionalProducer(
+                testlab_schema::CloseTransactionalProducerAction {
+                    producer_id: ids.original.clone(),
+                },
+            ),
         ),
     );
     scenario.steps.insert(
         shutdown + 1,
         step(
             "close-transactional-replacement",
-            ScenarioAction::CloseTransactionalProducer {
-                producer_id: ids.replacement.clone(),
-            },
+            ScenarioAction::CloseTransactionalProducer(
+                testlab_schema::CloseTransactionalProducerAction {
+                    producer_id: ids.replacement.clone(),
+                },
+            ),
         ),
     );
     scenario.assertions.push(OperationAssertion {
@@ -161,6 +166,7 @@ fn fence_scenario(ids: &FenceIds) -> testlab_schema::Scenario {
         accepted: true,
         terminal: Some(TerminalStatus::TransactionStaged),
         visibility: VisibilityExpectation::Absent,
+        expected_error_code: None,
     });
     scenario
 }

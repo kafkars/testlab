@@ -1,0 +1,81 @@
+schema_version = 37
+id = "kafka.admin-create-topics-batch-partial"
+title = "packaged admin preserves ordered partial topic-creation outcomes"
+description = "One public CreateTopics batch creates a fresh topic first and reports an exact duplicate-topic error for an existing topic second; ordered public outcomes and immediate independent metadata prove both resource results without collapsing the batch into one failure."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-existing-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-batch-create-existing"
+topic = "testlab-kafkars-admin-batch-existing"
+partitions = 2
+replication_factor = 1
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "create-topics-batch-partial"
+kind = "create_topics_batch"
+client_id = "client-1"
+operation_id = "admin-create-topics-batch-partial"
+timeout_ms = 30000
+
+[[steps.topics]]
+topic = "testlab-kafkars-admin-batch-fresh"
+partitions = 3
+replication_factor = 1
+
+[[steps.topics]]
+topic = "testlab-kafkars-admin-batch-existing"
+partitions = 2
+replication_factor = 1
+expected_error_code = "broker:broker_36"
+
+[[steps]]
+id = "describe-fresh-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-batch-describe-fresh"
+topic = "testlab-kafkars-admin-batch-fresh"
+expected_partitions = [0, 1, 2]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-existing-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-batch-describe-existing"
+topic = "testlab-kafkars-admin-batch-existing"
+expected_partitions = [0, 1]
+timeout_ms = 20000
+
+[[steps]]
+id = "list-batch-topics"
+kind = "list_topics"
+client_id = "client-1"
+operation_id = "admin-batch-list-topics"
+include_internal = false
+required_topics = [
+  "testlab-kafkars-admin-batch-fresh",
+  "testlab-kafkars-admin-batch-existing",
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

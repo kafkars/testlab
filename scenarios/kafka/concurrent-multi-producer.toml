@@ -1,0 +1,131 @@
+schema_version = 37
+id = "kafka.concurrent-multi-producer"
+title = "multiple packaged producers send through one concurrent boundary"
+description = "Two packaged clients release four identified sends across two public producers through one harness-owned start barrier; every joined outcome and independently observed record remains exact."
+timeout_ms = 120000
+requires = ["producer", "concurrent_actors", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client-a"
+kind = "create_client"
+client_id = "client-a"
+
+[[steps]]
+id = "create-client-b"
+kind = "create_client"
+client_id = "client-b"
+
+[[steps]]
+id = "ready-client-a"
+kind = "await_client_ready"
+client_id = "client-a"
+
+[[steps]]
+id = "ready-client-b"
+kind = "await_client_ready"
+client_id = "client-b"
+
+[[steps]]
+id = "create-producer-a"
+kind = "create_producer"
+client_id = "client-a"
+producer_id = "producer-a"
+
+[[steps]]
+id = "create-producer-b"
+kind = "create_producer"
+client_id = "client-b"
+producer_id = "producer-b"
+
+[[steps]]
+id = "start-concurrent-sends"
+kind = "start_concurrent_actors"
+concurrency_id = "concurrent-sends"
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-a-0"
+producer_id = "producer-a"
+operation_id = "op-a-0"
+record = { topic = "testlab-kafkars-concurrent-multi-producer", partition = 0, sequence = 1, key = { encoding = "utf8", data = "a-0" }, value = { encoding = "utf8", data = "client-a-partition-0" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-a-0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-b-0"
+producer_id = "producer-b"
+operation_id = "op-b-0"
+record = { topic = "testlab-kafkars-concurrent-multi-producer", partition = 0, sequence = 2, key = { encoding = "utf8", data = "b-0" }, value = { encoding = "utf8", data = "client-b-partition-0" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-b-0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-a-1"
+producer_id = "producer-a"
+operation_id = "op-a-1"
+record = { topic = "testlab-kafkars-concurrent-multi-producer", partition = 1, sequence = 3, key = { encoding = "utf8", data = "a-1" }, value = { encoding = "utf8", data = "client-a-partition-1" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-a-1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps.actors]]
+kind = "producer_send"
+actor_id = "send-b-1"
+producer_id = "producer-b"
+operation_id = "op-b-1"
+record = { topic = "testlab-kafkars-concurrent-multi-producer", partition = 1, sequence = 4, key = { encoding = "utf8", data = "b-1" }, value = { encoding = "utf8", data = "client-b-partition-1" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-b-1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } }] }
+
+[[steps]]
+id = "join-concurrent-sends"
+kind = "join_concurrent_actors"
+concurrency_id = "concurrent-sends"
+timeout_ms = 30000
+
+[[steps]]
+id = "flush-producer-a"
+kind = "flush"
+producer_id = "producer-a"
+
+[[steps]]
+id = "flush-producer-b"
+kind = "flush"
+producer_id = "producer-b"
+
+[[steps]]
+id = "close-producer-a"
+kind = "close_producer"
+producer_id = "producer-a"
+
+[[steps]]
+id = "close-producer-b"
+kind = "close_producer"
+producer_id = "producer-b"
+
+[[steps]]
+id = "shutdown-client-a"
+kind = "shutdown_client"
+client_id = "client-a"
+
+[[steps]]
+id = "shutdown-client-b"
+kind = "shutdown_client"
+client_id = "client-b"
+
+[[assertions]]
+operation_id = "op-a-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-b-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-a-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-b-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

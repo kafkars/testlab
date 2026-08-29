@@ -45,3 +45,19 @@ pub struct ListConsumerGroupOffsetsCommand {
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
+
+/// Public result for one exact committed-offset listing.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminConsumerGroupOffsetListing {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka consumer-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact nonnegative partition.
+    pub partition: i32,
+    /// Reported committed offset, or no offset when Kafka has no value.
+    pub offset: Option<i64>,
+}

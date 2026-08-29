@@ -1,0 +1,152 @@
+schema_version = 37
+id = "kafka.assigned-consumer-multi-partition"
+title = "one assigned consumer receives exact records from multiple partitions"
+description = "The packaged client replaces one direct assignment with three partitions in one public call and receives one exact record from each without replacing that assignment again."
+timeout_ms = 180000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-three-partitions"
+kind = "assign_beginning_batch"
+consumer_id = "consumer-1"
+partitions = [
+  { topic = "testlab-kafkars-assigned-multi", partition = 0 },
+  { topic = "testlab-kafkars-assigned-multi", partition = 1 },
+  { topic = "testlab-kafkars-assigned-multi", partition = 2 },
+]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-partition-0"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-partition-0"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-multi"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "partition-0" }
+value = { encoding = "utf8", data = "first" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-partition-0" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "receive-partition-0"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-partition-0"
+expected_operation_id = "op-partition-0"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-partition-1"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-partition-1"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-multi"
+partition = 1
+sequence = 2
+key = { encoding = "utf8", data = "partition-1" }
+value = { encoding = "utf8", data = "second" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-partition-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-partition-1"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-partition-1"
+expected_operation_id = "op-partition-1"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-partition-2"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-partition-2"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-multi"
+partition = 2
+sequence = 3
+key = { encoding = "utf8", data = "partition-2" }
+value = { encoding = "utf8", data = "third" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-partition-2" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "receive-partition-2"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-partition-2"
+expected_operation_id = "op-partition-2"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-partition-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-partition-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-partition-2"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

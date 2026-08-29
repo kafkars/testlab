@@ -1,9 +1,10 @@
 //! Verdict tests distinguish untouched group-offset steps from contradictory evidence.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, BrokerStateObservation, HistoryEntry, HistoryPayload,
-    ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand, ScenarioAction,
-    TerminalStatus, Verdict, VisibilityExpectation,
+    AdapterCommand, AdapterEvent, AdminConsumerGroupOffsetListing, BrokerConsumerGroupOffset,
+    BrokerStateObservation, HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsAction,
+    ListConsumerGroupOffsetsCommand, ScenarioAction, TerminalStatus, Verdict,
+    VisibilityExpectation,
 };
 
 use super::verify;
@@ -112,13 +113,13 @@ fn group_command(topic: &str) -> ListConsumerGroupOffsetsCommand {
 fn public(sequence: u64) -> HistoryEntry {
     event(
         sequence,
-        AdapterEvent::ConsumerGroupOffsetListed {
+        AdapterEvent::ConsumerGroupOffsetListed(AdminConsumerGroupOffsetListing {
             operation_id: operation(),
             group_id: GROUP_ID.to_owned(),
             topic: TOPIC.to_owned(),
             partition: 0,
             offset: Some(1),
-        },
+        }),
     )
 }
 
@@ -127,14 +128,14 @@ fn independent(sequence: u64, observation: u64) -> HistoryEntry {
         sequence,
         observed_unix_ms: sequence,
         payload: HistoryPayload::BrokerStateObservation {
-            observation: BrokerStateObservation::ConsumerGroupOffset {
+            observation: BrokerStateObservation::ConsumerGroupOffset(BrokerConsumerGroupOffset {
                 observation,
                 operation_id: operation(),
                 group_id: GROUP_ID.to_owned(),
                 topic: TOPIC.to_owned(),
                 partition: 0,
                 offset: Some(1),
-            },
+            }),
         },
     }
 }

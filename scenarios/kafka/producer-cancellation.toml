@@ -1,0 +1,60 @@
+schema_version = 37
+id = "kafka.producer-cancellation"
+title = "packaged producer cancellation preserves stage-aware truth"
+description = "The packaged producer accepts one exact record, exposes two public cancellation outcomes on the retained delivery observer, and reports the authoritative terminal without strengthening a too-late result into a not-sent promise."
+timeout_ms = 60000
+requires = ["producer", "producer_cancellation", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "cancel-send-twice"
+kind = "cancel_producer_send"
+producer_id = "producer-1"
+operation_id = "cancel-send-1"
+timeout_ms = 30000
+
+[steps.record]
+topic = "testlab-kafkars-producer-cancellation"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "cancel-key" }
+value = { encoding = "utf8", data = "cancel-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "cancel-send-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "cancel-send-1"
+accepted = true
+visibility = "zero_or_one"

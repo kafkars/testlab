@@ -1,0 +1,6 @@
+schema_version = 1
+id = "kafkars-client-metrics"
+title = "packaged Kafkars public client metrics"
+scenarios = [
+  "scenarios/kafka/client-metrics-producer.toml",
+]

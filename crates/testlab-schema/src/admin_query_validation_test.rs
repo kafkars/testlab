@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     AdminOffsetPosition, ClientId, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
-    OperationId, ScenarioAction,
+    OperationId, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 use crate::admin_action_validation::validate;
 
@@ -72,10 +72,14 @@ fn describe_topic_rejects_invalid_expected_partitions() {
         );
     }
 
-    assert_problem(&problems, "expected_partitions must not be empty");
-    assert_problem(&problems, "expected_partitions has 10001 entries");
-    assert_problem(&problems, "expected_partitions must be nonnegative");
-    assert_problem(&problems, "expected_partitions must be sorted and unique");
+    assert_problem(
+        &problems,
+        "expected_partitions must contain 1 to 10000 entries",
+    );
+    assert_problem(
+        &problems,
+        "expected_partitions must be sorted unique nonnegative indices",
+    );
 }
 
 #[test]
@@ -108,10 +112,11 @@ fn list_topics_rejects_invalid_required_topics() {
         );
     }
 
-    assert_problem(&problems, "required_topics must not be empty");
-    assert_problem(&problems, "required_topics has 33 entries");
-    assert_problem(&problems, "required_topics contains an invalid topic");
-    assert_problem(&problems, "required_topics contains a duplicate topic");
+    assert_problem(&problems, "required_topics must contain 1 to 32 entries");
+    assert_problem(
+        &problems,
+        "required_topics must contain unique valid topics",
+    );
 }
 
 #[test]
@@ -126,7 +131,8 @@ fn list_offsets_rejects_invalid_common_and_offset_fields() {
         topic: "a".repeat(250),
         partition: -1,
         position: AdminOffsetPosition::Latest,
-        expected_offset: -1,
+        expected_offset: Some(-1),
+        expected_error_code: None,
         timeout_ms: 99,
     });
 
@@ -138,6 +144,85 @@ fn list_offsets_rejects_invalid_common_and_offset_fields() {
     assert_problem(&problems, "timeout_ms must be between 100 and 60000");
 }
 
+#[test]
+fn query_expectations_require_exactly_one_result_or_error() {
+    let client_id = client("client-1");
+    let clients = BTreeMap::from([(client_id.clone(), false)]);
+    let mut operation_ids = BTreeSet::new();
+    let mut problems = Vec::new();
+    let actions = [
+        ScenarioAction::DescribeTopic(DescribeTopicAction {
+            client_id: client_id.clone(),
+            operation_id: operation("admin-describe-both"),
+            topic: "records".to_owned(),
+            expected_partitions: Some(vec![0]),
+            expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
+            timeout_ms: 1_000,
+        }),
+        ScenarioAction::ListOffsets(ListOffsetsAction {
+            client_id,
+            operation_id: operation("admin-offset-neither"),
+            topic: "records".to_owned(),
+            partition: 1,
+            position: AdminOffsetPosition::Latest,
+            expected_offset: None,
+            expected_error_code: None,
+            timeout_ms: 1_000,
+        }),
+    ];
+
+    for action in &actions {
+        validate(action, &clients, &mut operation_ids, &mut problems);
+    }
+    assert_eq!(
+        problems
+            .iter()
+            .filter(|problem| problem.contains("must declare exactly one"))
+            .count(),
+        actions.len(),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn missing_offset_partition_requires_positive_index_and_exact_code() {
+    let clients = BTreeMap::from([(client("client-1"), false)]);
+    let mut operation_ids = BTreeSet::new();
+    let mut problems = Vec::new();
+    for (operation_id, partition, code) in [
+        (
+            "admin-offset-valid",
+            1,
+            UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+        ),
+        (
+            "admin-offset-zero",
+            0,
+            UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+        ),
+        ("admin-offset-wrong-code", 2, "broker:broker_36"),
+    ] {
+        let action = ScenarioAction::ListOffsets(ListOffsetsAction {
+            client_id: client("client-1"),
+            operation_id: operation(operation_id),
+            topic: "records".to_owned(),
+            partition,
+            position: AdminOffsetPosition::Latest,
+            expected_offset: None,
+            expected_error_code: Some(code.to_owned()),
+            timeout_ms: 1_000,
+        });
+        validate(&action, &clients, &mut operation_ids, &mut problems);
+    }
+
+    assert_problem(
+        &problems,
+        "expected missing partition must query a positive partition",
+    );
+    assert_problem(&problems, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE);
+    assert_eq!(problems.len(), 2, "{problems:?}");
+}
+
 fn describe_topic(
     client_id: ClientId,
     operation_id: OperationId,
@@ -147,7 +232,8 @@ fn describe_topic(
         client_id,
         operation_id,
         topic: "records".to_owned(),
-        expected_partitions,
+        expected_partitions: Some(expected_partitions),
+        expected_error_code: None,
         timeout_ms: 1_000,
     })
 }
@@ -178,7 +264,8 @@ fn list_offsets(
         topic: "records".to_owned(),
         partition,
         position: AdminOffsetPosition::Latest,
-        expected_offset,
+        expected_offset: Some(expected_offset),
+        expected_error_code: None,
         timeout_ms: 1_000,
     })
 }

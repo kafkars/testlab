@@ -12,8 +12,9 @@ pub(crate) fn receive_succeeded(
 ) -> Option<bool> {
     let ScenarioAction::ShareReceive {
         receive_id,
-        expected_operation_id,
+        expected_operation_ids,
         minimum_delivery_count,
+        expected_acquisition_count,
         ..
     } = action
     else {
@@ -22,16 +23,21 @@ pub(crate) fn receive_succeeded(
     let AdapterEvent::ShareReceiveCompleted {
         receive_id: actual_receive,
         records,
+        acquisition_count,
         ..
     } = event
     else {
         return Some(false);
     };
-    let expected = sent_record(scenario, expected_operation_id);
+    let expected = expected_operation_ids
+        .iter()
+        .map(|operation_id| sent_record(scenario, operation_id))
+        .collect::<Option<Vec<_>>>();
     Some(
         actual_receive == receive_id
+            && expected_acquisition_count.is_none_or(|expected| *acquisition_count == expected)
             && expected
-                .is_some_and(|expected| exact_receive(records, expected, *minimum_delivery_count)),
+                .is_some_and(|expected| exact_receive(records, &expected, *minimum_delivery_count)),
     )
 }
 
@@ -52,12 +58,14 @@ fn sent_record<'a>(scenario: &'a Scenario, target: &OperationId) -> Option<&'a R
 
 fn exact_receive(
     records: &[ShareConsumedRecord],
-    expected: &RecordSpec,
+    expected: &[&RecordSpec],
     minimum_delivery_count: i16,
 ) -> bool {
-    records.len() == 1
-        && records[0].delivery_count >= minimum_delivery_count
-        && exact_record(&records[0].record, expected)
+    records.len() == expected.len()
+        && records.iter().zip(expected).all(|(record, expected)| {
+            record.delivery_count >= minimum_delivery_count
+                && exact_record(&record.record, expected)
+        })
 }
 
 fn exact_record(actual: &ConsumedRecord, expected: &RecordSpec) -> bool {

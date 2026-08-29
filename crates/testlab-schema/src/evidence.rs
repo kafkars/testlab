@@ -4,11 +4,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     AdapterDescriptor, AdapterEventEnvelope, BrokerBehavior, CommandEnvelope, EnvironmentId,
-    EnvironmentOperationId, OperationId, RecordSpec, RunId, ScenarioId, SubjectId, VerdictStatus,
+    EnvironmentOperationId, NetworkProxyControl, NetworkProxyObservation, OperationId,
+    ProtocolAdversaryObservation, ProtocolFaultAction, RecordSpec, RunId, ScenarioId, SubjectId,
+    VerdictStatus,
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 6;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 26;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -30,21 +32,18 @@ pub struct BrokerObservation {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum BrokerStateObservation {
+    /// One topic metadata snapshot independently read from Kafka.
+    Topic(crate::BrokerTopicState),
+    /// One cluster metadata snapshot independently read from Kafka.
+    Cluster(crate::BrokerClusterState),
+    /// One consumer-group state independently read from Kafka.
+    ConsumerGroup(crate::BrokerConsumerGroupState),
     /// One committed consumer-group offset independently read from Kafka.
-    ConsumerGroupOffset {
-        /// Monotonic observation ordinal from the environment.
-        observation: u64,
-        /// Admin operation whose claim this fact checks independently.
-        operation_id: OperationId,
-        /// Exact Kafka consumer-group identity.
-        group_id: String,
-        /// Exact Kafka topic name.
-        topic: String,
-        /// Exact partition.
-        partition: i32,
-        /// Committed offset, or absence when Kafka reported none.
-        offset: Option<i64>,
-    },
+    ConsumerGroupOffset(crate::BrokerConsumerGroupOffset),
+    /// One selected non-sensitive topic configuration independently read from Kafka.
+    TopicConfig(crate::BrokerTopicConfigState),
+    /// One partition watermark pair independently read from Kafka.
+    PartitionOffsets(crate::BrokerPartitionOffsets),
 }
 
 /// One ordered entry in the complete run history.
@@ -77,6 +76,26 @@ pub enum HistoryPayload {
     BrokerControl {
         /// Selected behavior.
         behavior: BrokerBehavior,
+    },
+    /// One stable scenario control sent to the protocol adversary.
+    AdversaryControl {
+        /// Exact validated control.
+        control: ProtocolFaultAction,
+    },
+    /// One Kafka request independently observed by the adversary environment.
+    AdversaryObservation {
+        /// Exact request and response-side observation.
+        observation: ProtocolAdversaryObservation,
+    },
+    /// One stable scenario control acknowledged by the external network proxy.
+    NetworkProxyControl {
+        /// Exact validated control.
+        control: NetworkProxyControl,
+    },
+    /// One independently summarized network fault effect.
+    NetworkProxyObservation {
+        /// Exact proxy observation.
+        observation: NetworkProxyObservation,
     },
     /// External record observation.
     BrokerObservation {
@@ -150,11 +169,17 @@ pub enum EnvironmentOperationKind {
     BrokerProvision,
     /// Restart one declared broker service and retain its terminal result.
     BrokerRestart,
-    /// Independently observe one partition leader before or after disruption.
-    BrokerLeaderObserve,
-    /// Stop one independently selected partition leader.
+    /// Independently observe one exact broker role before or after disruption.
+    BrokerRoleObserve,
+    /// Alter one exact broker ACL or quota through the external environment.
+    BrokerPolicyAlter,
+    /// Query one exact broker ACL or quota through the external environment.
+    BrokerPolicyQuery,
+    /// Retain one normalized fact parsed from a successful broker policy query.
+    BrokerPolicyObserve,
+    /// Stop the independently selected owner of one broker role.
     BrokerStop,
-    /// Start one previously stopped partition leader.
+    /// Start the previously stopped owner of one broker role.
     BrokerStart,
     /// Snapshot broker-visible records and targeted broker state independently.
     BrokerObserve,
@@ -164,6 +189,10 @@ pub enum EnvironmentOperationKind {
     ComposeLogs,
     /// Stop the project and remove owned volumes.
     ComposeDown,
+    /// Run and supervise one external Kafka protocol adversary process.
+    ProtocolAdversary,
+    /// Run and supervise one external real-cluster network proxy process.
+    NetworkProxy,
 }
 
 /// Terminal status for one environment operation.

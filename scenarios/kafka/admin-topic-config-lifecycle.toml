@@ -1,0 +1,53 @@
+schema_version = 37
+id = "kafka.admin-topic-config-lifecycle"
+title = "packaged admin changes an independently observed Kafka topic configuration"
+description = "The packaged client's public admin describes cleanup.policy as delete, replaces it with compact through an incremental SET operation, and describes the new value; immediate independent configuration queries confirm every public result and transition."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-cleanup-policy-before"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-topic-config-before"
+topic = "testlab-kafkars-admin-topic-config"
+config_name = "cleanup.policy"
+expected_value = "delete"
+timeout_ms = 20000
+
+[[steps]]
+id = "set-cleanup-policy"
+kind = "alter_topic_config"
+client_id = "client-1"
+operation_id = "admin-topic-config-alter"
+topic = "testlab-kafkars-admin-topic-config"
+config_name = "cleanup.policy"
+value = "compact"
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-cleanup-policy-after"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-topic-config-after"
+topic = "testlab-kafkars-admin-topic-config"
+config_name = "cleanup.policy"
+expected_value = "compact"
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

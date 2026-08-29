@@ -1,0 +1,82 @@
+schema_version = 37
+id = "kafka.producer-null-empty-batch"
+title = "ordered producer batch preserves null and empty fields"
+description = "One public batch sends all null and empty key-value combinations to one partition; independent records preserve each distinction and caller order."
+timeout_ms = 90000
+requires = ["producer", "producer_batch", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-null-empty-batch"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-null-null"
+record = { topic = "testlab-kafkars-null-empty-batch", partition = 0, sequence = 1, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-null-null" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-empty-empty"
+record = { topic = "testlab-kafkars-null-empty-batch", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-empty-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.operations]]
+operation_id = "op-null-empty"
+record = { topic = "testlab-kafkars-null-empty-batch", partition = 0, sequence = 3, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-null-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps.operations]]
+operation_id = "op-empty-null"
+record = { topic = "testlab-kafkars-null-empty-batch", partition = 0, sequence = 4, key = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-empty-null" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } }] }
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-null-null"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-empty-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-null-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-empty-null"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

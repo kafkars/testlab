@@ -1,0 +1,115 @@
+schema_version = 37
+id = "kafka.consumer-protocol-group-latest-offset-reset"
+title = "KIP-848 group latest reset skips an existing record"
+description = "A configured KIP-848 member stabilizes after one broker-visible record already exists, then latest-offset reset returns and commits only the exact later record."
+timeout_ms = 150000
+requires = ["producer", "consumer_protocol_groups", "group_consumer_configuration", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-existing-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-existing"
+
+[steps.record]
+topic = "testlab-consumer-protocol-latest-reset"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "existing" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-existing" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-configured-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-consumer-protocol-latest-reset-group"
+topic = "testlab-consumer-protocol-latest-reset"
+protocol = "consumer"
+
+[steps.configuration]
+offset_reset = "latest"
+read_isolation = "read_uncommitted"
+
+[[steps]]
+id = "observe-assignment"
+kind = "observe_group_assignments"
+operation_id = "observe-latest-assignment"
+consumer_ids = ["consumer-1"]
+partitions = [{ topic = "testlab-consumer-protocol-latest-reset", partition = 0 }]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-current-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-current"
+
+[steps.record]
+topic = "testlab-consumer-protocol-latest-reset"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "current" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-current" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-current-record"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-current"
+expected_operation_id = "op-current"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-existing"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-current"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

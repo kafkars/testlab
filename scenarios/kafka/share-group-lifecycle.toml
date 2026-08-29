@@ -1,4 +1,4 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.share-group-lifecycle"
 title = "packaged share consumer preserves acknowledgement dispositions"
 description = "One share member proves accept, release, reject, and unacknowledged-drop behavior with exact records and delivery counts."
@@ -53,7 +53,7 @@ id = "receive-accept"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-accept"
-expected_operation_id = "op-accept"
+expected_operation_ids = ["op-accept"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -63,7 +63,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-accept"
 acknowledgement_id = "ack-accept"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -88,7 +88,7 @@ id = "receive-release"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-release-1"
-expected_operation_id = "op-release"
+expected_operation_ids = ["op-release"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -98,7 +98,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-release-1"
 acknowledgement_id = "ack-release"
-disposition = "release"
+dispositions = ["release"]
 timeout_ms = 30000
 
 [[steps]]
@@ -106,7 +106,7 @@ id = "receive-released-again"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-release-2"
-expected_operation_id = "op-release"
+expected_operation_ids = ["op-release"]
 minimum_delivery_count = 2
 timeout_ms = 30000
 
@@ -116,7 +116,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-release-2"
 acknowledgement_id = "ack-release-final"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -141,7 +141,7 @@ id = "receive-reject"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-reject"
-expected_operation_id = "op-reject"
+expected_operation_ids = ["op-reject"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -151,7 +151,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-reject"
 acknowledgement_id = "ack-reject"
-disposition = "reject"
+dispositions = ["reject"]
 timeout_ms = 30000
 
 [[steps]]
@@ -176,7 +176,7 @@ id = "receive-after-reject"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-after-reject"
-expected_operation_id = "op-after-reject"
+expected_operation_ids = ["op-after-reject"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -186,7 +186,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-after-reject"
 acknowledgement_id = "ack-after-reject"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -211,7 +211,7 @@ id = "receive-drop"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-drop-1"
-expected_operation_id = "op-drop"
+expected_operation_ids = ["op-drop"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -226,7 +226,7 @@ id = "receive-dropped-again"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-drop-2"
-expected_operation_id = "op-drop"
+expected_operation_ids = ["op-drop"]
 minimum_delivery_count = 2
 timeout_ms = 30000
 
@@ -236,7 +236,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-drop-2"
 acknowledgement_id = "ack-drop-final"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]

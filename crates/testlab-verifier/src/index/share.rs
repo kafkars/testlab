@@ -20,6 +20,7 @@ impl HistoryIndex {
                 consumer_id,
                 receive_id,
                 records,
+                acquisition_count,
                 member_epoch,
                 assignment_epoch,
             } => self
@@ -30,13 +31,14 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     consumer_id: consumer_id.clone(),
                     records: records.clone(),
+                    acquisition_count: *acquisition_count,
                     member_epoch: *member_epoch,
                     assignment_epoch: *assignment_epoch,
                 }),
             AdapterEvent::ShareAcknowledgementCompleted {
                 acknowledgement_id,
                 receive_id,
-                disposition,
+                dispositions,
                 success,
                 delivery,
                 code,
@@ -47,7 +49,7 @@ impl HistoryIndex {
                 .push(IndexedShareAcknowledgement {
                     history_sequence: sequence,
                     receive_id: receive_id.clone(),
-                    disposition: *disposition,
+                    dispositions: dispositions.clone(),
                     success: *success,
                     delivery: *delivery,
                     code: code.clone(),

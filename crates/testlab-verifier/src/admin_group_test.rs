@@ -1,9 +1,9 @@
 //! Consumer-group admin tests require exact public and independently observed offsets.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, BrokerStateObservation, HistoryEntry, HistoryPayload,
-    ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand, ScenarioAction,
-    TerminalStatus, VisibilityExpectation,
+    AdapterCommand, AdapterEvent, AdminConsumerGroupOffsetListing, BrokerConsumerGroupOffset,
+    BrokerStateObservation, HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsAction,
+    ListConsumerGroupOffsetsCommand, ScenarioAction, TerminalStatus, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -211,13 +211,13 @@ fn group_command_payload(operation_id: &str) -> ListConsumerGroupOffsetsCommand 
 fn public(sequence: u64, identity: Identity<'_>, offset: Option<i64>) -> HistoryEntry {
     event(
         sequence,
-        AdapterEvent::ConsumerGroupOffsetListed {
+        AdapterEvent::ConsumerGroupOffsetListed(AdminConsumerGroupOffsetListing {
             operation_id: operation(identity.operation_id),
             group_id: identity.group_id.to_owned(),
             topic: identity.topic.to_owned(),
             partition: identity.partition,
             offset,
-        },
+        }),
     )
 }
 
@@ -231,14 +231,14 @@ fn independent(
         sequence,
         observed_unix_ms: sequence,
         payload: HistoryPayload::BrokerStateObservation {
-            observation: BrokerStateObservation::ConsumerGroupOffset {
+            observation: BrokerStateObservation::ConsumerGroupOffset(BrokerConsumerGroupOffset {
                 observation,
                 operation_id: operation(identity.operation_id),
                 group_id: identity.group_id.to_owned(),
                 topic: identity.topic.to_owned(),
                 partition: identity.partition,
                 offset,
-            },
+            }),
         },
     }
 }

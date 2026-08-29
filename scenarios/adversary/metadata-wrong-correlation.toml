@@ -1,0 +1,42 @@
+schema_version = 37
+id = "adversary.metadata-wrong-correlation"
+title = "metadata wrong correlation identity is rejected"
+description = "The external Kafka peer returns a valid Metadata body under a different correlation ID; the packaged client must not associate it with the public request."
+timeout_ms = 15000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "arm-wrong-correlation"
+kind = "arm_protocol_fault"
+operation_id = "adversary-metadata-wrong-correlation"
+api = "metadata"
+applications = 1
+
+[steps.fault]
+kind = "wrong_correlation_id"
+delta = 1
+
+[[steps]]
+id = "describe-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "describe-after-wrong-correlation"
+topic = "testlab-adversary-topic"
+expected_error_code = "transport"
+timeout_ms = 3000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

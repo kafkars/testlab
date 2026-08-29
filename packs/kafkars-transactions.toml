@@ -1,0 +1,12 @@
+schema_version = 1
+id = "kafkars-transactions"
+title = "packaged Kafkars transaction atomicity and ownership"
+scenarios = [
+  "scenarios/kafka/transaction-commit-abort.toml",
+  "scenarios/kafka/transaction-multi-record-commit.toml",
+  "scenarios/kafka/transaction-multi-record-abort.toml",
+  "scenarios/kafka/transaction-successive-boundaries.toml",
+  "scenarios/kafka/transaction-fencing.toml",
+  "scenarios/kafka/transactional-offset-classic.toml",
+  "scenarios/kafka/transactional-offset-consumer.toml",
+]

@@ -6,7 +6,7 @@ use std::task::{Context, Poll, Waker};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{RetryAdvice, ShareConsumer, ShareConsumerBatch};
+use crate::kafkars_api::{RetryAdvice, ShareConsumer, ShareConsumerBatch, ShareConsumerRecord};
 use testlab_schema::{ByteString, ConsumedRecord, HeaderSpec, ShareConsumedRecord};
 
 use crate::state::StateError;
@@ -15,6 +15,7 @@ const POLL_SLICE: Duration = Duration::from_millis(10);
 
 pub(crate) struct ShareReceiveFacts {
     pub(crate) records: Vec<ShareConsumedRecord>,
+    pub(crate) acquisition_count: usize,
     pub(crate) member_epoch: Option<i32>,
     pub(crate) assignment_epoch: Option<u64>,
 }
@@ -67,12 +68,14 @@ pub(crate) fn receive(
         return Ok((
             ShareReceiveFacts {
                 records: Vec::new(),
+                acquisition_count: 0,
                 member_epoch: None,
                 assignment_epoch: None,
             },
             None,
         ));
     };
+    let acquisition_count = batch.acquisition_count();
     let records = batch
         .records()
         .map(|record| normalize_record(&record))
@@ -81,6 +84,7 @@ pub(crate) fn receive(
     Ok((
         ShareReceiveFacts {
             records,
+            acquisition_count,
             member_epoch,
             assignment_epoch,
         },
@@ -131,9 +135,7 @@ fn assignment(
     }
 }
 
-fn normalize_record(
-    record: &kafkars::ShareConsumerRecord<'_>,
-) -> Result<ShareConsumedRecord, StateError> {
+fn normalize_record(record: &ShareConsumerRecord<'_>) -> Result<ShareConsumedRecord, StateError> {
     let partition = i32::try_from(record.partition())
         .map_err(|_| StateError::ShareSurface("share partition overflow".to_owned()))?;
     let headers = record

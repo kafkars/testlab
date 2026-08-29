@@ -21,6 +21,11 @@ pub(super) struct ClientSecurity {
 }
 
 impl ClientSecurity {
+    pub(super) fn supports_plaintext_wire(&self) -> bool {
+        self.profile.transport == TransportSecurity::Plaintext
+            && self.profile.authentication == Authentication::None
+    }
+
     pub(super) fn new(
         profile: SecurityProfile,
         ca_pem: Option<&Path>,

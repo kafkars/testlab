@@ -1,6 +1,6 @@
 //! Group-offset normalization tests enforce one exact public batch identity.
 
-use kafkars::{ErrorKind, KafkaError, StartPosition, TopicPartition};
+use crate::kafkars_api::{ErrorKind, KafkaError, StartPosition, TopicPartition};
 use testlab_schema::OperationId;
 
 use crate::AdapterError;

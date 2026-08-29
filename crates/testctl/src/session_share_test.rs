@@ -14,6 +14,7 @@ fn empty_or_wrong_share_receive_stops_before_dependent_acknowledgement() {
         consumer_id: consumer.clone(),
         receive_id: receive.clone(),
         records: Vec::new(),
+        acquisition_count: 0,
         member_epoch: Some(1),
         assignment_epoch: Some(1),
     };
@@ -36,6 +37,7 @@ fn empty_or_wrong_share_receive_stops_before_dependent_acknowledgement() {
             },
             delivery_count: 2,
         }],
+        acquisition_count: 1,
         member_epoch: Some(1),
         assignment_epoch: Some(1),
     };
@@ -63,12 +65,112 @@ fn one_exact_share_receive_with_minimum_delivery_count_continues() {
             },
             delivery_count: 2,
         }],
+        acquisition_count: 1,
         member_epoch: Some(3),
         assignment_epoch: Some(4),
     };
     assert_eq!(
         super::session_share::receive_succeeded(&scenario, &action, &event),
         Some(true)
+    );
+}
+
+#[test]
+fn share_receive_stops_on_wrong_public_acquisition_count() {
+    let (scenario, mut action, receive, consumer, expected) = fixture();
+    let ScenarioAction::ShareReceive {
+        expected_acquisition_count,
+        ..
+    } = &mut action
+    else {
+        panic!("share receive fixture missing");
+    };
+    *expected_acquisition_count = Some(1);
+    let event = AdapterEvent::ShareReceiveCompleted {
+        consumer_id: consumer,
+        receive_id: receive,
+        records: vec![ShareConsumedRecord {
+            record: ConsumedRecord {
+                topic: expected.topic,
+                partition: expected.partition,
+                offset: 9,
+                timestamp_millis: None,
+                key: expected.key,
+                value: expected.value,
+                headers: expected.headers,
+            },
+            delivery_count: 2,
+        }],
+        acquisition_count: 2,
+        member_epoch: Some(3),
+        assignment_epoch: Some(4),
+    };
+
+    assert_eq!(
+        super::session_share::receive_succeeded(&scenario, &action, &event),
+        Some(false)
+    );
+}
+
+#[test]
+fn ordered_multi_record_share_receive_continues_only_for_the_exact_batch() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/share-group-mixed-release.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse mixed Share scenario: {error}"));
+    let action = scenario
+        .steps
+        .iter()
+        .find_map(|step| match &step.action {
+            action @ ScenarioAction::ShareReceive { receive_id, .. }
+                if receive_id.as_str() == "receive-initial" =>
+            {
+                Some(action.clone())
+            }
+            _ => None,
+        })
+        .unwrap_or_else(|| panic!("initial Share receive missing"));
+    let operations = scenario
+        .steps
+        .iter()
+        .find_map(|step| match &step.action {
+            ScenarioAction::SendBatch { operations, .. } => Some(operations),
+            _ => None,
+        })
+        .unwrap_or_else(|| panic!("Share batch send missing"));
+    let mut records = operations
+        .iter()
+        .enumerate()
+        .map(|(offset, operation)| ShareConsumedRecord {
+            record: ConsumedRecord {
+                topic: operation.record.topic.clone(),
+                partition: operation.record.partition,
+                offset: i64::try_from(offset).unwrap_or_else(|error| panic!("offset: {error}")),
+                timestamp_millis: None,
+                key: operation.record.key.clone(),
+                value: operation.record.value.clone(),
+                headers: operation.record.headers.clone(),
+            },
+            delivery_count: 1,
+        })
+        .collect::<Vec<_>>();
+    let event = |records| AdapterEvent::ShareReceiveCompleted {
+        consumer_id: id(ConsumerId::new("share-1")),
+        receive_id: id(OperationId::new("receive-initial")),
+        records,
+        acquisition_count: 1,
+        member_epoch: Some(1),
+        assignment_epoch: Some(1),
+    };
+
+    assert_eq!(
+        super::session_share::receive_succeeded(&scenario, &action, &event(records.clone())),
+        Some(true)
+    );
+    records.swap(0, 1);
+    assert_eq!(
+        super::session_share::receive_succeeded(&scenario, &action, &event(records)),
+        Some(false)
     );
 }
 
@@ -98,8 +200,9 @@ fn fixture() -> (
     let action = ScenarioAction::ShareReceive {
         consumer_id: consumer.clone(),
         receive_id: receive.clone(),
-        expected_operation_id: operation,
+        expected_operation_ids: vec![operation],
         minimum_delivery_count: 2,
+        expected_acquisition_count: None,
         timeout_ms: 30_000,
     };
     let scenario = Scenario {

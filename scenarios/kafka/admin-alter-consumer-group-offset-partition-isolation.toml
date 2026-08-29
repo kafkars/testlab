@@ -1,0 +1,177 @@
+schema_version = 37
+id = "kafka.admin-alter-consumer-group-offset-partition-isolation"
+title = "packaged admin alters one consumer-group partition without changing its neighbor"
+description = "A classic group commits offset 1 on two partitions in separate deterministic receives, then the packaged admin alters only partition 0 to offset 0; independent listings prove partition 0 changed while partition 1 remained at offset 1."
+timeout_ms = 220000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-partition-zero-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-partition-isolation-zero"
+
+[steps.record]
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "partition-zero" }
+value = { encoding = "utf8", data = "checkpoint-one" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-partition-isolation-zero" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-partition-zero"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-admin-offset-partition-isolation-group"
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+protocol = "classic"
+
+[[steps]]
+id = "receive-partition-zero"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-partition-isolation-zero"
+expected_operation_id = "op-partition-isolation-zero"
+timeout_ms = 30000
+
+[[steps]]
+id = "send-partition-one-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-partition-isolation-one"
+
+[steps.record]
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 1
+sequence = 2
+key = { encoding = "utf8", data = "partition-one" }
+value = { encoding = "utf8", data = "checkpoint-one" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-partition-isolation-one" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-partition-one"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-partition-one"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-partition-isolation-one"
+expected_operation_id = "op-partition-isolation-one"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "list-partition-zero-before-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-partition-isolation-zero-before"
+group_id = "testlab-admin-offset-partition-isolation-group"
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 0
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "list-partition-one-before-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-partition-isolation-one-before"
+group_id = "testlab-admin-offset-partition-isolation-group"
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 1
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "alter-partition-zero"
+kind = "alter_consumer_group_offset"
+client_id = "client-1"
+operation_id = "admin-partition-isolation-zero-alter"
+group_id = "testlab-admin-offset-partition-isolation-group"
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 0
+offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "list-partition-zero-after-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-partition-isolation-zero-after"
+group_id = "testlab-admin-offset-partition-isolation-group"
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 0
+require_stable = true
+expected_offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "list-partition-one-after-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-partition-isolation-one-after"
+group_id = "testlab-admin-offset-partition-isolation-group"
+topic = "testlab-kafkars-admin-offset-partition-isolation"
+partition = 1
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-partition-isolation-zero"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-partition-isolation-one"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

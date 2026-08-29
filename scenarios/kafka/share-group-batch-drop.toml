@@ -1,0 +1,121 @@
+schema_version = 37
+id = "kafka.share-group-batch-drop"
+title = "dropping a Share batch redelivers its complete record set"
+description = "One public three-record Share batch is dropped without acknowledgement and the complete ordered set must return with increased delivery counts before being accepted."
+timeout_ms = 180000
+requires = ["producer", "producer_batch", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-share-batch"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-drop-first"
+record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 1, value = { encoding = "utf8", data = "first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-first" } }] }
+
+[[steps.operations]]
+operation_id = "op-drop-middle"
+record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 2, value = { encoding = "utf8", data = "middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-middle" } }] }
+
+[[steps.operations]]
+operation_id = "op-drop-last"
+record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 3, value = { encoding = "utf8", data = "last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-last" } }] }
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-batch-drop"
+topic = "testlab-share-batch-drop"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "receive-initial-batch"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-initial"
+expected_operation_ids = ["op-drop-first", "op-drop-middle", "op-drop-last"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "drop-initial-batch"
+kind = "drop_share_batch"
+consumer_id = "share-1"
+receive_id = "receive-initial"
+
+[[steps]]
+id = "receive-redelivered-batch"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-redelivered"
+expected_operation_ids = ["op-drop-first", "op-drop-middle", "op-drop-last"]
+minimum_delivery_count = 2
+timeout_ms = 60000
+
+[[steps]]
+id = "accept-redelivered-batch"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-redelivered"
+acknowledgement_id = "ack-redelivered"
+dispositions = ["accept", "accept", "accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-drop-first"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-drop-middle"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-drop-last"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

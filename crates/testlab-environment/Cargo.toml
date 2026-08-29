@@ -8,9 +8,14 @@ repository.workspace = true
 description = "Owned external environment effects for kafkars testlab"
 
 [dependencies]
+bytes.workspace = true
 futures-executor.workspace = true
 hex.workspace = true
+kafka-wire.workspace = true
+kafka-wire-core.workspace = true
 rdkafka.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 testlab-schema.workspace = true
 thiserror.workspace = true
 

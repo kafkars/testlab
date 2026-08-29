@@ -1,0 +1,117 @@
+schema_version = 37
+id = "kafka.classic-group-read-committed"
+title = "classic group read committed hides an aborted record"
+description = "A configured classic member starts at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."
+timeout_ms = 180000
+requires = ["producer", "consumer_groups", "group_consumer_configuration", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-classic-read-committed-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "abort-hidden-record"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-aborted"
+disposition = "abort"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "op-aborted"
+record = { topic = "testlab-classic-read-committed", partition = 0, sequence = 1, value = { encoding = "utf8", data = "aborted" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-aborted" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-visible-sentinel"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-visible"
+
+[steps.record]
+topic = "testlab-classic-read-committed"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "visible" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-visible" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "create-configured-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-classic-read-committed-group"
+topic = "testlab-classic-read-committed"
+protocol = "classic"
+
+[steps.configuration]
+offset_reset = "earliest"
+read_isolation = "read_committed"
+
+[[steps]]
+id = "receive-visible-sentinel"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-visible"
+expected_operation_id = "op-visible"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-aborted"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-visible"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

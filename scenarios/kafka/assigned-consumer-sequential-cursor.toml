@@ -1,0 +1,149 @@
+schema_version = 37
+id = "kafka.assigned-consumer-sequential-cursor"
+title = "one direct assignment advances through successive records"
+description = "A packaged directly assigned consumer retains one public cursor across three receive calls while repeated producer flushes and exact broker offsets remain independently correlated."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-assigned-cursor"
+partition = 0
+
+[[steps]]
+id = "send-first"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-first"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-cursor"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "cursor" }
+value = { encoding = "utf8", data = "first" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }]
+
+[[steps]]
+id = "flush-first"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-first"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-first"
+expected_operation_id = "op-first"
+timeout_ms = 20000
+
+[[steps]]
+id = "send-second"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-second"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-cursor"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "cursor" }
+value = { encoding = "utf8", data = "second" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }]
+
+[[steps]]
+id = "flush-second"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-second"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-second"
+expected_operation_id = "op-second"
+timeout_ms = 20000
+
+[[steps]]
+id = "send-third"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-third"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-cursor"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "cursor" }
+value = { encoding = "utf8", data = "third" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-third" } }]
+
+[[steps]]
+id = "flush-third"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-third"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-third"
+expected_operation_id = "op-third"
+timeout_ms = 20000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-first"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-second"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-third"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

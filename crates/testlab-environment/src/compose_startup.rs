@@ -6,7 +6,6 @@ use testlab_schema::{EnvironmentOperationKind, EnvironmentOperationStatus};
 
 use crate::compose::DockerComposeEnvironment;
 use crate::compose_command::{self, CommandSpec};
-use crate::compose_ports::HostPorts;
 use crate::compose_support::remaining;
 use crate::compose_types::ComposePhase;
 
@@ -27,7 +26,7 @@ impl DockerComposeEnvironment {
         {
             return phase;
         }
-        self.host_ports.release();
+        self.release_compose_ports();
         self.up_attempted = true;
         if !self.start_project(&mut phase, deadline) {
             return phase;
@@ -39,6 +38,7 @@ impl DockerComposeEnvironment {
         }
         if !self.prepare_broker_features(&mut phase, deadline)
             || !self.prepare_client_security(&mut phase, deadline)
+            || !self.start_network_proxy(&mut phase, deadline)
         {
             return phase;
         }
@@ -77,22 +77,14 @@ impl DockerComposeEnvironment {
         if !self.required(phase, recovery_down(&self.prefix, attempt), deadline) {
             return false;
         }
-        let replacement = match HostPorts::reserve(self.broker_services.len()) {
-            Ok(replacement) => replacement,
-            Err(error) => {
-                phase.fail(error.code, error.diagnostic);
-                return false;
-            }
-        };
-        if let Err(error) = replacement.apply_to(&mut self.environment) {
+        if let Err(error) = self.reassign_compose_ports() {
             phase.fail(error.code, error.diagnostic);
             return false;
         }
-        self.host_ports = replacement;
         if !self.required(phase, recovery_config(&self.prefix, attempt), deadline) {
             return false;
         }
-        self.host_ports.release();
+        self.release_compose_ports();
         self.required(phase, recovery_up(&self.prefix, attempt), deadline)
     }
 }

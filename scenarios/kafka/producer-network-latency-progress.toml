@@ -1,0 +1,199 @@
+schema_version = 37
+id = "kafka.producer-network-latency-progress"
+title = "packaged producer progresses through one-way network latency"
+description = "The external proxy independently delays client-to-broker and broker-to-client bytes in separate observed windows while the same packaged producer acknowledges exact records during and after both faults."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "latency-baseline"
+
+[steps.record]
+topic = "testlab-kafkars-network-latency"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "baseline" }
+value = { encoding = "utf8", data = "before-latency" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "latency-baseline" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "apply-client-delay"
+kind = "alter_network_fault"
+operation_id = "network-client-delay-apply"
+broker_ordinal = 1
+state = "present"
+timeout_ms = 5000
+
+[steps.fault]
+fault_kind = "delay"
+direction = "client_to_broker"
+delay_ms = 250
+
+[[steps]]
+id = "send-through-client-delay"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "latency-client-direction"
+
+[steps.record]
+topic = "testlab-kafkars-network-latency"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "client-delay" }
+value = { encoding = "utf8", data = "client-to-broker" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "latency-client-direction" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "remove-client-delay"
+kind = "alter_network_fault"
+operation_id = "network-client-delay-remove"
+broker_ordinal = 1
+state = "absent"
+timeout_ms = 5000
+
+[steps.fault]
+fault_kind = "delay"
+direction = "client_to_broker"
+delay_ms = 250
+
+[[steps]]
+id = "send-after-client-delay"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "latency-client-recovered"
+
+[steps.record]
+topic = "testlab-kafkars-network-latency"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "client-recovered" }
+value = { encoding = "utf8", data = "after-client-delay" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "latency-client-recovered" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "apply-broker-delay"
+kind = "alter_network_fault"
+operation_id = "network-broker-delay-apply"
+broker_ordinal = 1
+state = "present"
+timeout_ms = 5000
+
+[steps.fault]
+fault_kind = "delay"
+direction = "broker_to_client"
+delay_ms = 250
+
+[[steps]]
+id = "send-through-broker-delay"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "latency-broker-direction"
+
+[steps.record]
+topic = "testlab-kafkars-network-latency"
+partition = 0
+sequence = 4
+key = { encoding = "utf8", data = "broker-delay" }
+value = { encoding = "utf8", data = "broker-to-client" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "latency-broker-direction" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+]
+
+[[steps]]
+id = "remove-broker-delay"
+kind = "alter_network_fault"
+operation_id = "network-broker-delay-remove"
+broker_ordinal = 1
+state = "absent"
+timeout_ms = 5000
+
+[steps.fault]
+fault_kind = "delay"
+direction = "broker_to_client"
+delay_ms = 250
+
+[[steps]]
+id = "send-after-broker-delay"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "latency-broker-recovered"
+
+[steps.record]
+topic = "testlab-kafkars-network-latency"
+partition = 0
+sequence = 5
+key = { encoding = "utf8", data = "broker-recovered" }
+value = { encoding = "utf8", data = "after-broker-delay" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "latency-broker-recovered" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "5" } },
+]
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "latency-baseline"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "latency-client-direction"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "latency-client-recovered"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "latency-broker-direction"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "latency-broker-recovered"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

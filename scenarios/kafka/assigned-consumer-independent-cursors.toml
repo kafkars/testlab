@@ -1,0 +1,145 @@
+schema_version = 37
+id = "kafka.assigned-consumer-independent-cursors"
+title = "two direct consumers retain independent partition cursors"
+description = "Two packaged directly assigned consumers each read the same two broker records in order without sharing group ownership or cursor state."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer-a"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-a"
+
+[[steps]]
+id = "create-consumer-b"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-b"
+
+[[steps]]
+id = "assign-consumer-a"
+kind = "assign_beginning"
+consumer_id = "consumer-a"
+topic = "testlab-kafkars-independent-cursors"
+partition = 0
+
+[[steps]]
+id = "assign-consumer-b"
+kind = "assign_beginning"
+consumer_id = "consumer-b"
+topic = "testlab-kafkars-independent-cursors"
+partition = 0
+
+[[steps]]
+id = "send-first"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-first"
+
+[steps.record]
+topic = "testlab-kafkars-independent-cursors"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "shared" }
+value = { encoding = "utf8", data = "first" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }]
+
+[[steps]]
+id = "receive-first-a"
+kind = "receive"
+consumer_id = "consumer-a"
+receive_id = "receive-first-a"
+expected_operation_id = "op-first"
+timeout_ms = 20000
+
+[[steps]]
+id = "receive-first-b"
+kind = "receive"
+consumer_id = "consumer-b"
+receive_id = "receive-first-b"
+expected_operation_id = "op-first"
+timeout_ms = 20000
+
+[[steps]]
+id = "send-second"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-second"
+
+[steps.record]
+topic = "testlab-kafkars-independent-cursors"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "shared" }
+value = { encoding = "utf8", data = "second" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }]
+
+[[steps]]
+id = "receive-second-b"
+kind = "receive"
+consumer_id = "consumer-b"
+receive_id = "receive-second-b"
+expected_operation_id = "op-second"
+timeout_ms = 20000
+
+[[steps]]
+id = "receive-second-a"
+kind = "receive"
+consumer_id = "consumer-a"
+receive_id = "receive-second-a"
+expected_operation_id = "op-second"
+timeout_ms = 20000
+
+[[steps]]
+id = "close-consumer-a"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-a"
+
+[[steps]]
+id = "close-consumer-b"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-b"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-first"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-second"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -3,6 +3,8 @@
 use testlab_schema::{
     AdapterEventEnvelope, BrokerBehavior, BrokerObservation, BrokerStateObservation,
     CommandEnvelope, EnvironmentOperation, HarnessError, HistoryEntry, HistoryPayload,
+    NetworkProxyControl, NetworkProxyObservation, ProtocolAdversaryObservation,
+    ProtocolFaultAction,
 };
 
 use crate::run_error::RunFailure;
@@ -25,6 +27,34 @@ impl HistoryRecorder {
 
     pub(crate) fn broker_control(&mut self, behavior: BrokerBehavior) -> Result<(), RunFailure> {
         self.push(HistoryPayload::BrokerControl { behavior })
+    }
+
+    pub(crate) fn adversary_control(
+        &mut self,
+        control: ProtocolFaultAction,
+    ) -> Result<(), RunFailure> {
+        self.push(HistoryPayload::AdversaryControl { control })
+    }
+
+    pub(crate) fn adversary_observation(
+        &mut self,
+        observation: ProtocolAdversaryObservation,
+    ) -> Result<(), RunFailure> {
+        self.push(HistoryPayload::AdversaryObservation { observation })
+    }
+
+    pub(crate) fn network_proxy_control(
+        &mut self,
+        control: NetworkProxyControl,
+    ) -> Result<(), RunFailure> {
+        self.push(HistoryPayload::NetworkProxyControl { control })
+    }
+
+    pub(crate) fn network_proxy_observation(
+        &mut self,
+        observation: NetworkProxyObservation,
+    ) -> Result<(), RunFailure> {
+        self.push(HistoryPayload::NetworkProxyObservation { observation })
     }
 
     pub(crate) fn observation(&mut self, observation: BrokerObservation) -> Result<(), RunFailure> {

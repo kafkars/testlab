@@ -3,9 +3,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    AdminOffsetPosition, Capability, ClientId, CreatePartitionsAction, DescribeTopicAction,
-    ListOffsetsAction, ListTopicsAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
-    ScenarioAction, ScenarioId, ScenarioStep, StepId,
+    AdminOffsetPosition, Capability, ClientId, CreatePartitionsAction, CreateTopicAction,
+    DescribeTopicAction, ListOffsetsAction, ListTopicsAction, OperationId, SCENARIO_SCHEMA_VERSION,
+    Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
 use crate::admin_action_validation::validate;
 
@@ -103,19 +103,24 @@ fn admin_queries_require_the_admin_capability() {
 fn every_admin_action_records_the_admin_capability() {
     let client_id = client("client-1");
     let actions = vec![
-        ScenarioAction::CreateTopic {
+        ScenarioAction::CreateTopic(CreateTopicAction {
             client_id: client_id.clone(),
             operation_id: operation("admin-create"),
             topic: "records".to_owned(),
             partitions: 1,
             replication_factor: 1,
+            validate_only: false,
+            expected_error_code: None,
             timeout_ms: 1_000,
-        },
+        }),
         ScenarioAction::CreatePartitions(CreatePartitionsAction {
             client_id: client_id.clone(),
             operation_id: operation("admin-partitions"),
             topic: "records".to_owned(),
             total_count: 2,
+            validate_only: false,
+            expected_current_count: None,
+            expected_error_code: None,
             timeout_ms: 1_000,
         }),
         describe_topic(client_id.clone(), operation("admin-describe")),
@@ -139,7 +144,8 @@ fn describe_topic(client_id: ClientId, operation_id: OperationId) -> ScenarioAct
         client_id,
         operation_id,
         topic: "records".to_owned(),
-        expected_partitions: vec![0],
+        expected_partitions: Some(vec![0]),
+        expected_error_code: None,
         timeout_ms: 1_000,
     })
 }
@@ -170,7 +176,8 @@ fn list_offsets(
         topic: "records".to_owned(),
         partition,
         position: AdminOffsetPosition::Latest,
-        expected_offset,
+        expected_offset: Some(expected_offset),
+        expected_error_code: None,
         timeout_ms: 1_000,
     })
 }

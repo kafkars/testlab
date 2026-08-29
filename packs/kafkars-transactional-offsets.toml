@@ -1,0 +1,7 @@
+schema_version = 1
+id = "kafkars-transactional-offsets"
+title = "packaged Kafkars transactional group-checkpoint atomicity"
+scenarios = [
+  "scenarios/kafka/transactional-offset-classic.toml",
+  "scenarios/kafka/transactional-offset-consumer.toml",
+]

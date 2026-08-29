@@ -12,22 +12,40 @@ use crate::AdapterId;
 pub enum Capability {
     /// Public producer operations.
     Producer,
+    /// Stage-aware public producer cancellation.
+    ProducerCancellation,
+    /// Client-wide public producer configuration.
+    ProducerConfiguration,
     /// Public batch-producer operations.
     ProducerBatch,
+    /// Harness-scheduled concurrent packaged-client actors.
+    ConcurrentActors,
     /// Explicit close, shutdown, and finish behavior.
     Lifecycle,
     /// Explicit public client readiness probing.
     ClientReadiness,
+    /// Bounded public client operational metrics snapshots.
+    ClientMetrics,
     /// Testlab's self-test model broker transport.
     ModelBroker,
     /// Assigned-partition consumer operations.
     AssignedConsumer,
+    /// Positioning and mutation controls for assigned-partition consumers.
+    AssignedConsumerControls,
     /// Consumer group operations.
     ConsumerGroups,
     /// KIP-848 consumer group operations.
     ConsumerProtocolGroups,
+    /// Runtime pause, resume, and seek controls for hosted group consumers.
+    GroupConsumerControls,
+    /// Missing-offset and transactional-visibility group configuration.
+    GroupConsumerConfiguration,
+    /// Clone-shared shutdown and public event-stream termination for hosted groups.
+    GroupConsumerShutdown,
     /// KIP-932 share-group acquisition and acknowledgement operations.
     ShareConsumer,
+    /// Immutable public `ShareFetch` record and acquisition-range policy.
+    ShareConsumerConfiguration,
     /// Transactional producer operations.
     Transactions,
     /// Administrative operations.

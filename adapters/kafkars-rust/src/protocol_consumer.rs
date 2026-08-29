@@ -6,7 +6,7 @@ use std::pin::pin;
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
-use kafkars::ConsumerRecord;
+use crate::kafkars_api::{AssignedConsumer, ConsumerRecord};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, ByteString, CommandId, ConsumedRecord,
     ConsumerId, HeaderSpec, OperationId,
@@ -34,6 +34,37 @@ pub(crate) fn dispatch<W: Write>(
             topic,
             partition,
         } => assign(state, writer, command_id, consumer_id, &topic, partition),
+        AdapterCommand::AssignBeginningBatch(command) => {
+            state.assign_beginning_batch(
+                &command.consumer_id,
+                &command.partitions,
+                Duration::from_millis(command.timeout_ms),
+            )?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(
+                    command_id,
+                    AdapterEvent::AssignmentCompleted {
+                        consumer_id: command.consumer_id,
+                    },
+                ),
+            )
+        }
+        AdapterCommand::ControlAssignedConsumer(command) => {
+            let completion = testlab_schema::AssignedConsumerControlCompletion {
+                operation_id: command.operation_id.clone(),
+                consumer_id: command.consumer_id.clone(),
+                control: command.control.kind(),
+            };
+            state.control_assigned_consumer(&command)?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(
+                    command_id,
+                    AdapterEvent::AssignedConsumerControlCompleted(completion),
+                ),
+            )
+        }
         AdapterCommand::Receive {
             consumer_id,
             receive_id,
@@ -98,11 +129,19 @@ pub(crate) fn receive<W: Write>(
     receive_id: OperationId,
     timeout_ms: u64,
 ) -> Result<(), AdapterError> {
+    let records = receive_records(state.consumer_mut(consumer_id)?, timeout_ms)?;
+    emit_receive(writer, command_id, receive_id, records)
+}
+
+pub(crate) fn receive_records(
+    consumer: &mut AssignedConsumer,
+    timeout_ms: u64,
+) -> Result<Vec<ConsumedRecord>, AdapterError> {
     let timeout = Duration::from_millis(timeout_ms);
     let deadline = Instant::now()
         .checked_add(timeout)
         .ok_or_else(|| AdapterError::ConsumerRecord("receive deadline overflow".to_owned()))?;
-    let mut receive = pin!(state.consumer_mut(consumer_id)?.recv());
+    let mut receive = pin!(consumer.recv());
     let mut context = Context::from_waker(Waker::noop());
     let records = loop {
         match receive.as_mut().poll(&mut context) {
@@ -121,6 +160,15 @@ pub(crate) fn receive<W: Write>(
         }
         std::thread::sleep(POLL_SLICE);
     };
+    Ok(records)
+}
+
+pub(crate) fn emit_receive<W: Write>(
+    writer: &mut W,
+    command_id: CommandId,
+    receive_id: OperationId,
+    records: Vec<ConsumedRecord>,
+) -> Result<(), AdapterError> {
     emit(
         writer,
         &AdapterEventEnvelope::new(

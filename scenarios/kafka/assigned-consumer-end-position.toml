@@ -1,0 +1,91 @@
+schema_version = 37
+id = "kafka.assigned-consumer-end-position"
+title = "an assigned consumer starts at the resolved log end"
+description = "The packaged client resolves an empty partition end through the public replacement control and receives only a record produced afterward."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "assigned_consumer_controls", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-at-end"
+kind = "control_assigned_consumer"
+operation_id = "control-end"
+consumer_id = "consumer-1"
+timeout_ms = 30000
+
+[steps.control]
+kind = "replace"
+partitions = [
+  { topic = "testlab-kafkars-assigned-end", partition = 0, position = { kind = "end" } },
+]
+
+[[steps]]
+id = "send-after-end"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-end"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-end"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "after-end" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-end" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "receive-after-end"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-after-end"
+expected_operation_id = "op-after-end"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-after-end"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

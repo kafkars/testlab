@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{Client, RetryAdvice, TransactionalProducer};
+use crate::kafkars_api::{Client, RetryAdvice, TransactionalProducer};
 use testlab_schema::{ClientId, ProducerId};
 
 use crate::state::StateError;

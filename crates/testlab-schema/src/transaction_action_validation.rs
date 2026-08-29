@@ -7,13 +7,15 @@ use crate::{ClientId, OperationId, ProducerId, ScenarioAction, TransactionDispos
 
 pub(crate) type TransactionStates = BTreeMap<ProducerId, TransactionState>;
 pub(crate) type TransactionSends = BTreeMap<OperationId, TransactionRecordOutcome>;
-const MAX_TRANSACTION_RECORDS: usize = 31;
+pub(crate) const MAX_TRANSACTION_RECORDS: usize = 31;
 
 pub(crate) struct TransactionState {
-    client_id: ClientId,
+    pub(crate) client_id: ClientId,
     transactional_id: String,
-    closed: bool,
+    pub(crate) closed: bool,
 }
+
+pub(crate) use crate::transaction_state_validation::{open_for_client, unclosed};
 
 #[derive(Clone, Copy)]
 pub(crate) enum TransactionRecordOutcome {
@@ -33,12 +35,14 @@ pub(crate) fn validate(
             transactional_id,
             transaction_timeout_ms,
             initialization_timeout_ms,
+            expected_error_code,
         } => create(
             client_id,
             producer_id,
             transactional_id,
             *transaction_timeout_ms,
             *initialization_timeout_ms,
+            expected_error_code.as_deref(),
             state,
             problems,
         ),
@@ -57,6 +61,9 @@ pub(crate) fn validate(
             state,
             problems,
         ),
+        ScenarioAction::ExecuteTransactionalTransform(action) => {
+            crate::transaction_transform_validation::validate(action, state, problems);
+        }
         ScenarioAction::FenceTransaction {
             producer_id,
             transaction_id,
@@ -80,19 +87,24 @@ pub(crate) fn validate(
             state,
             problems,
         ),
-        ScenarioAction::CloseTransactionalProducer { producer_id } => {
-            close(producer_id, &mut state.transactions, problems);
+        ScenarioAction::CloseTransactionalProducer(action) => {
+            close(&action.producer_id, &mut state.transactions, problems);
         }
         _ => {}
     }
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "transaction initialization fields"
+)]
 fn create(
     client_id: &ClientId,
     producer_id: &ProducerId,
     transactional_id: &str,
     transaction_timeout_ms: u64,
     initialization_timeout_ms: u64,
+    expected_error_code: Option<&str>,
     state: &mut ActionStates,
     problems: &mut Vec<String>,
 ) {
@@ -105,20 +117,26 @@ fn create(
             "transactional producer {producer_id} uses missing client {client_id}"
         )),
     }
-    if state.producers.contains_key(producer_id)
-        || state
-            .transactions
-            .insert(
-                producer_id.clone(),
-                TransactionState {
-                    client_id: client_id.clone(),
-                    transactional_id: transactional_id.to_owned(),
-                    closed: false,
-                },
-            )
-            .is_some()
-    {
+    if state.producers.contains_key(producer_id) || state.transactions.contains_key(producer_id) {
         problems.push(format!("duplicate producer id {producer_id}"));
+    }
+    if expected_error_code.is_none() {
+        state.transactions.insert(
+            producer_id.clone(),
+            TransactionState {
+                client_id: client_id.clone(),
+                transactional_id: transactional_id.to_owned(),
+                closed: false,
+            },
+        );
+    }
+    if expected_error_code
+        .is_some_and(|code| code != crate::TRANSACTIONAL_ID_AUTHORIZATION_ERROR_CODE)
+    {
+        problems.push(format!(
+            "transactional producer {producer_id} has unsupported expected error code {}",
+            expected_error_code.unwrap_or_default()
+        ));
     }
     if transactional_id.is_empty() || transactional_id.len() > 249 {
         problems.push(format!(
@@ -205,13 +223,14 @@ fn fence(
         transactional_id,
         transaction_timeout_ms,
         initialization_timeout_ms,
+        None,
         state,
         problems,
     );
     validate_timeout(producer_id, "timeout_ms", timeout_ms, problems);
 }
 
-fn record_operation(
+pub(crate) fn record_operation(
     operation: &crate::BatchRecord,
     outcome: TransactionRecordOutcome,
     state: &mut ActionStates,
@@ -232,7 +251,7 @@ fn record_operation(
     }
 }
 
-fn require_open(
+pub(crate) fn require_open(
     producer_id: &ProducerId,
     transactions: &TransactionStates,
     problems: &mut Vec<String>,
@@ -264,7 +283,7 @@ fn close(
     }
 }
 
-fn validate_timeout(
+pub(crate) fn validate_timeout(
     producer_id: &ProducerId,
     name: &str,
     timeout_ms: u64,
@@ -275,22 +294,4 @@ fn validate_timeout(
             "transactional producer {producer_id} {name} must be between 100 and 600000"
         ));
     }
-}
-
-pub(crate) fn open_for_client(
-    transactions: &TransactionStates,
-    client_id: &ClientId,
-) -> Vec<String> {
-    transactions
-        .iter()
-        .filter(|(_, owner)| &owner.client_id == client_id && !owner.closed)
-        .map(|(producer, _)| producer.to_string())
-        .collect()
-}
-
-pub(crate) fn unclosed(transactions: TransactionStates) -> Vec<ProducerId> {
-    transactions
-        .into_iter()
-        .filter_map(|(producer, owner)| (!owner.closed).then_some(producer))
-        .collect()
 }

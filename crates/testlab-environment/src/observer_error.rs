@@ -17,6 +17,8 @@ pub(super) enum ObserverError {
     InvalidRecord(String),
     #[error("Kafka observer received invalid broker state: {0}")]
     InvalidBrokerState(String),
+    #[error("Kafka admin observation target is invalid: {0}")]
+    InvalidTarget(String),
     #[error("Kafka observer received an unexpected topic-partition {0}:{1}")]
     UnexpectedPartition(String, i32),
     #[error("Kafka observer offset overflowed")]
@@ -27,13 +29,16 @@ pub(super) enum ObserverError {
 
 impl ObserverError {
     pub(super) fn is_timeout(&self) -> bool {
+        matches!(self, Self::Deadline)
+            || matches!(self, Self::Kafka(error) if Self::kafka_is_timeout(error))
+    }
+
+    pub(super) fn kafka_is_timeout(error: &KafkaError) -> bool {
         matches!(
-            self,
-            Self::Deadline
-                | Self::Kafka(
-                    KafkaError::MetadataFetch(RDKafkaErrorCode::OperationTimedOut)
-                        | KafkaError::OffsetFetch(RDKafkaErrorCode::OperationTimedOut)
-                )
+            error,
+            KafkaError::MetadataFetch(RDKafkaErrorCode::OperationTimedOut)
+                | KafkaError::GroupListFetch(RDKafkaErrorCode::OperationTimedOut)
+                | KafkaError::OffsetFetch(RDKafkaErrorCode::OperationTimedOut)
         )
     }
 }

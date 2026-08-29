@@ -1,0 +1,90 @@
+schema_version = 37
+id = "kafka.admin-list-consumer-groups"
+title = "packaged admin lists an independently observed consumer group"
+description = "After a classic group publicly consumes and commits one exact record, the packaged client's public group listing contains that group and an independent librdkafka query confirms the same required identity."
+timeout_ms = 120000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-group-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-list-groups-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-groups-listed"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "list-groups" }
+value = { encoding = "utf8", data = "listed-group" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-list-groups-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-admin-listed-group"
+topic = "testlab-kafkars-admin-groups-listed"
+protocol = "classic"
+
+[[steps]]
+id = "receive-and-commit"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-list-groups"
+expected_operation_id = "op-list-groups-marker"
+timeout_ms = 30000
+
+[[steps]]
+id = "list-consumer-groups"
+kind = "list_consumer_groups"
+client_id = "client-1"
+operation_id = "admin-list-groups-1"
+required_group_ids = ["testlab-admin-listed-group"]
+timeout_ms = 20000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-list-groups-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

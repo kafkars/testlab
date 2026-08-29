@@ -2,10 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use crate::{
-    OperationId, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioError, TerminalStatus,
-    VisibilityExpectation,
-};
+use crate::{SCENARIO_SCHEMA_VERSION, Scenario, ScenarioError};
 
 pub(crate) fn validate(scenario: &Scenario) -> Result<(), ScenarioError> {
     let mut problems = Vec::new();
@@ -51,7 +48,15 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
         crate::scenario_action_validation::validate_action(&step.action, &mut state, problems);
     }
     crate::scenario_capability_validation::validate_required(scenario, &usage, &state, problems);
-    validate_assertions(scenario, &state.sends, &state.transaction_sends, problems);
+    crate::scenario_broker_policy_validation::validate(scenario, problems);
+    validate_role_targets(scenario, problems);
+    crate::admin_transition_validation::validate(scenario, problems);
+    crate::scenario_assertion_validation::validate(
+        scenario,
+        &state.sends,
+        &state.transaction_sends,
+        problems,
+    );
     for (producer, (_, closed)) in state.producers {
         if !closed {
             problems.push(format!("producer {producer} was not closed"));
@@ -66,13 +71,22 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     for receive in crate::share_action_validation::unsettled(&state.share_batches) {
         problems.push(format!("share batch {receive} was not settled"));
     }
-    for (topic, partition) in state.leader_disruptions {
-        problems.push(format!(
-            "partition leader {topic}:{partition} was not restored"
-        ));
+    for target in state.role_disruptions {
+        problems.push(format!("broker role {target:?} was not restored"));
     }
     for broker in state.stopped_brokers {
         problems.push(format!("broker {broker} was not restarted"));
+    }
+    for policy in state.broker_policies {
+        problems.push(format!("broker policy {policy:?} was not removed"));
+    }
+    for (broker, fault) in state.network_faults {
+        problems.push(format!(
+            "network fault {fault:?} on broker {broker} was not removed"
+        ));
+    }
+    if let Some(concurrency_id) = state.active_concurrency {
+        problems.push(format!("concurrent group {concurrency_id} was not joined"));
     }
     for (client, shutdown) in state.clients {
         if !shutdown {
@@ -81,110 +95,80 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     }
 }
 
-fn validate_assertions(
-    scenario: &Scenario,
-    operations: &BTreeSet<OperationId>,
-    transaction_sends: &crate::transaction_action_validation::TransactionSends,
-    problems: &mut Vec<String>,
-) {
-    let mut asserted = BTreeSet::new();
-    for assertion in &scenario.assertions {
-        if !operations.contains(&assertion.operation_id) {
-            problems.push(format!(
-                "assertion references missing operation {}",
-                assertion.operation_id
-            ));
-        }
-        if !asserted.insert(assertion.operation_id.clone()) {
-            problems.push(format!(
-                "duplicate assertion for operation {}",
-                assertion.operation_id
-            ));
-        }
-        let transaction = transaction_sends.get(&assertion.operation_id).copied();
-        validate_assertion_semantics(assertion, transaction, problems);
-    }
-    for operation in operations {
-        if !asserted.contains(operation) {
-            problems.push(format!("operation {operation} has no assertion"));
+fn validate_role_targets(scenario: &Scenario, problems: &mut Vec<String>) {
+    let partitions = scenario
+        .steps
+        .iter()
+        .flat_map(|step| record_partitions(&step.action))
+        .collect::<BTreeSet<_>>();
+    let mut groups = BTreeSet::new();
+    let mut transactions = BTreeSet::new();
+    for step in &scenario.steps {
+        match &step.action {
+            crate::ScenarioAction::CreateGroupConsumer { group_id, .. } => {
+                groups.insert(group_id.clone());
+            }
+            crate::ScenarioAction::CreateTransactionalProducer {
+                transactional_id, ..
+            } => {
+                transactions.insert(transactional_id.clone());
+            }
+            crate::ScenarioAction::StopBrokerRole { target, .. } => match target {
+                crate::BrokerRoleTarget::PartitionLeader { topic, partition }
+                    if !partitions.contains(&(topic.clone(), *partition)) =>
+                {
+                    problems.push(format!(
+                        "partition leader target {topic}:{partition} has no scenario record"
+                    ));
+                }
+                crate::BrokerRoleTarget::GroupCoordinator { group_id }
+                    if !groups.contains(group_id) =>
+                {
+                    problems.push(format!(
+                        "group coordinator target {group_id} was not initialized before its stop"
+                    ));
+                }
+                crate::BrokerRoleTarget::TransactionCoordinator { transactional_id }
+                    if !transactions.contains(transactional_id) =>
+                {
+                    problems.push(format!(
+                        "transaction coordinator target {transactional_id} was not initialized before its stop"
+                    ));
+                }
+                _ => {}
+            },
+            _ => {}
         }
     }
 }
 
-fn validate_assertion_semantics(
-    assertion: &crate::OperationAssertion,
-    transaction: Option<crate::transaction_action_validation::TransactionRecordOutcome>,
-    problems: &mut Vec<String>,
-) {
-    match (assertion.accepted, assertion.terminal) {
-        (true, None) => problems.push(format!(
-            "accepted operation {} requires a terminal expectation",
-            assertion.operation_id
-        )),
-        (false, Some(_)) => problems.push(format!(
-            "rejected operation {} must not declare a terminal expectation",
-            assertion.operation_id
-        )),
-        _ => {}
-    }
-    if !assertion.accepted && assertion.visibility != VisibilityExpectation::Absent {
-        problems.push(format!(
-            "rejected operation {} must expect absent visibility",
-            assertion.operation_id
-        ));
-    }
-    if let Some(outcome) = transaction {
-        validate_transaction_assertion(assertion, outcome, problems);
-    } else if assertion.terminal == Some(TerminalStatus::TransactionStaged) {
-        problems.push(format!(
-            "non-transactional operation {} cannot expect transaction_staged",
-            assertion.operation_id
-        ));
-    }
-    if assertion.terminal == Some(TerminalStatus::Acknowledged)
-        && assertion.visibility != VisibilityExpectation::ExactlyOnce
-    {
-        problems.push(format!(
-            "acknowledged operation {} must expect exactly-once visibility",
-            assertion.operation_id
-        ));
-    }
-    if assertion.terminal == Some(TerminalStatus::DefinitelyNotSent)
-        && assertion.visibility != VisibilityExpectation::Absent
-    {
-        problems.push(format!(
-            "definitely-not-sent operation {} must expect absent visibility",
-            assertion.operation_id
-        ));
-    }
-}
-
-fn validate_transaction_assertion(
-    assertion: &crate::OperationAssertion,
-    outcome: crate::transaction_action_validation::TransactionRecordOutcome,
-    problems: &mut Vec<String>,
-) {
-    if !assertion.accepted || assertion.terminal != Some(TerminalStatus::TransactionStaged) {
-        problems.push(format!(
-            "transactional operation {} must expect accepted transaction_staged delivery",
-            assertion.operation_id
-        ));
-    }
-    let expected = match outcome {
-        crate::transaction_action_validation::TransactionRecordOutcome::Completed(
-            crate::TransactionDisposition::Commit,
-        ) => VisibilityExpectation::ExactlyOnce,
-        crate::transaction_action_validation::TransactionRecordOutcome::Completed(
-            crate::TransactionDisposition::Abort,
-        )
-        | crate::transaction_action_validation::TransactionRecordOutcome::Fenced => {
-            VisibilityExpectation::Absent
+fn record_partitions(action: &crate::ScenarioAction) -> Vec<(String, i32)> {
+    match action {
+        crate::ScenarioAction::Send { record, .. }
+        | crate::ScenarioAction::CancelProducerSend(crate::CancelProducerSendCommand {
+            record,
+            ..
+        }) => {
+            vec![(record.topic.clone(), record.partition)]
         }
-    };
-    if assertion.visibility != expected {
-        problems.push(format!(
-            "transactional operation {} must expect {expected:?} visibility",
-            assertion.operation_id
-        ));
+        crate::ScenarioAction::SendBatch { operations, .. }
+        | crate::ScenarioAction::ExecuteTransaction { operations, .. } => operations
+            .iter()
+            .map(|operation| (operation.record.topic.clone(), operation.record.partition))
+            .collect(),
+        crate::ScenarioAction::FenceTransaction { operation, .. } => {
+            vec![(operation.record.topic.clone(), operation.record.partition)]
+        }
+        crate::ScenarioAction::StartConcurrentActors(action) => action
+            .actors
+            .iter()
+            .filter_map(|actor| match actor {
+                crate::ConcurrentActor::ProducerSend { record, .. } => {
+                    Some((record.topic.clone(), record.partition))
+                }
+                crate::ConcurrentActor::AssignedReceive { .. } => None,
+            })
+            .collect(),
+        _ => Vec::new(),
     }
 }

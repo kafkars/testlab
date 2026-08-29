@@ -1,0 +1,130 @@
+schema_version = 37
+id = "kafka.classic-group-authorization-recovery"
+title = "packaged classic group reports denial and recovers after permission restoration"
+description = "An independently observed group READ deny ACL forces the exact public group error, then its observed removal permits a new member of the same group to receive and commit the seeded record."
+timeout_ms = 150000
+requires = ["producer", "consumer_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "seed-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-seed"
+
+[steps.record]
+topic = "testlab-kafkars-policy-group"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "group" }
+value = { encoding = "utf8", data = "authorization-recovery" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-seed" } }]
+
+[[steps]]
+id = "flush-seed"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "deny-group-read"
+kind = "alter_broker_policy"
+state = "present"
+timeout_ms = 20000
+
+[steps.policy]
+policy_kind = "acl"
+operation = "read"
+
+[steps.policy.resource]
+resource_kind = "group"
+name = "testlab-policy-classic-group"
+
+[[steps]]
+id = "create-denied-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-denied"
+group_id = "testlab-policy-classic-group"
+topic = "testlab-kafkars-policy-group"
+protocol = "classic"
+
+[[steps]]
+id = "receive-denied"
+kind = "group_receive"
+consumer_id = "consumer-denied"
+receive_id = "receive-denied"
+expected_operation_id = "op-seed"
+expected_error_code = "broker:broker_30"
+timeout_ms = 30000
+
+[[steps]]
+id = "restore-group-read"
+kind = "alter_broker_policy"
+state = "absent"
+timeout_ms = 20000
+
+[steps.policy]
+policy_kind = "acl"
+operation = "read"
+
+[steps.policy.resource]
+resource_kind = "group"
+name = "testlab-policy-classic-group"
+
+[[steps]]
+id = "close-denied-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-denied"
+
+[[steps]]
+id = "create-recovery-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-recovered"
+group_id = "testlab-policy-classic-group"
+topic = "testlab-kafkars-policy-group"
+protocol = "classic"
+
+[[steps]]
+id = "receive-recovered"
+kind = "group_receive"
+consumer_id = "consumer-recovered"
+receive_id = "receive-recovered"
+expected_operation_id = "op-seed"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-recovery-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-recovered"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-seed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

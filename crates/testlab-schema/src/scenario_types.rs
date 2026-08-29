@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{OperationId, RecordSpec, ScenarioAction, StepId, TerminalStatus};
+use crate::{OperationId, ProducerId, RecordSpec, ScenarioAction, StepId, TerminalStatus};
 
 /// One named scenario action.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -22,6 +22,14 @@ pub struct BatchRecord {
     pub operation_id: OperationId,
     /// Exact logical record.
     pub record: RecordSpec,
+}
+
+/// Request to close one idle transactional producer.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CloseTransactionalProducerAction {
+    /// Transactional producer to close.
+    pub producer_id: ProducerId,
 }
 
 /// One-shot behavior supported by the self-test model broker.
@@ -58,10 +66,13 @@ pub struct OperationAssertion {
     pub operation_id: OperationId,
     /// Whether the public producer should accept ownership.
     pub accepted: bool,
-    /// Expected terminal status for an accepted operation.
+    /// Expected terminal status, omitted only for stage-aware cancellation.
     pub terminal: Option<TerminalStatus>,
     /// Expected independent visibility.
     pub visibility: VisibilityExpectation,
+    /// Exact normalized public operation failure when one is required.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_error_code: Option<String>,
 }
 
 /// Expected number of broker-visible records.

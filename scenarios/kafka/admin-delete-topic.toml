@@ -1,0 +1,39 @@
+schema_version = 37
+id = "kafka.admin-delete-topic"
+title = "packaged admin deletes an independently observed Kafka topic"
+description = "The packaged client's public admin first describes one harness-provisioned topic and then deletes it; independent broker-state observations prove the same topic existed before deletion and became absent afterward."
+timeout_ms = 90000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-topic-before-delete"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-delete-topic-before"
+topic = "testlab-kafkars-admin-deleted"
+expected_partitions = [0]
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-topic"
+kind = "delete_topic"
+client_id = "client-1"
+operation_id = "admin-delete-topic-1"
+topic = "testlab-kafkars-admin-deleted"
+timeout_ms = 30000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

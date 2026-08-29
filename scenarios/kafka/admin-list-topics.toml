@@ -1,7 +1,7 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.admin-list-topics"
 title = "packaged admin lists an independently observed Kafka topic"
-description = "The packaged client's public all-topic query includes one required harness-provisioned topic whose partition is later proven by one exact independent broker observation."
+description = "The packaged client's public all-topic query includes one required harness-provisioned topic whose existence is confirmed by an immediate independent metadata query and whose usability is later proven by one exact record observation."
 timeout_ms = 90000
 requires = ["producer", "admin", "lifecycle", "client_readiness"]
 

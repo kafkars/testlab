@@ -40,6 +40,9 @@ pub(crate) fn execute_environment(
 ) -> Result<(), RunFailure> {
     match &request.environment.driver {
         EnvironmentDriver::ModelBroker => execute_model(request, recorder, adapter, observations),
+        EnvironmentDriver::KafkaProtocolAdversary { topic } => {
+            crate::runner_adversary::execute(request, topic, recorder, adapter, artifacts)
+        }
         EnvironmentDriver::DockerCompose { .. } => execute_compose(
             request,
             recorder,
@@ -134,7 +137,7 @@ fn execute_compose(
         ComposePhase::default()
     };
     let provision_result = record_phase(provision, recorder, artifacts);
-    let broker_endpoints = environment.endpoints();
+    let broker_endpoints = environment.adapter_endpoints();
     let adapter_security = environment.adapter_security();
     let adapter_environment = environment.adapter_environment();
     let session_result = if setup_result.is_ok() && provision_result.is_ok() {
@@ -164,7 +167,7 @@ fn execute_compose(
         environment.observe(
             request.scenario,
             &issued_operations.record_operations,
-            &issued_operations.group_offset_commands,
+            &[],
             work_deadline.remaining().unwrap_or(Duration::ZERO),
         )
     } else {
@@ -177,6 +180,18 @@ fn execute_compose(
         state_observations,
         artifacts,
     );
+    collect_state_observations(recorder, state_observations);
+    let proxy_timeout = request
+        .deadline
+        .remaining()
+        .unwrap_or(Duration::ZERO)
+        .min(Duration::from_secs(5));
+    let proxy = environment.finish_network_proxy(proxy_timeout);
+    let proxy_observation_result = proxy
+        .observations
+        .into_iter()
+        .try_for_each(|observation| recorder.network_proxy_observation(observation));
+    let proxy_result = record_phase(proxy.phase, recorder, artifacts);
     let cleanup_timeout = request.deadline.remaining().unwrap_or(Duration::ZERO);
     let cleanup = environment.finish(cleanup_timeout);
     let cleanup_result = record_phase(cleanup, recorder, artifacts);
@@ -184,7 +199,23 @@ fn execute_compose(
     provision_result?;
     session_result?;
     observation_result?;
+    proxy_observation_result?;
+    proxy_result?;
     cleanup_result
+}
+
+fn collect_state_observations(
+    recorder: &HistoryRecorder,
+    state_observations: &mut Vec<BrokerStateObservation>,
+) {
+    state_observations.clear();
+    state_observations.extend(recorder.entries().iter().filter_map(|entry| {
+        let testlab_schema::HistoryPayload::BrokerStateObservation { observation } = &entry.payload
+        else {
+            return None;
+        };
+        Some(observation.clone())
+    }));
 }
 
 fn record_compose_observation(

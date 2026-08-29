@@ -96,6 +96,18 @@ pub(super) fn targets(
             {
                 targets.insert((operation.record.topic.clone(), operation.record.partition));
             }
+            ScenarioAction::StartConcurrentActors(action) => {
+                targets.extend(action.actors.iter().filter_map(|actor| match actor {
+                    testlab_schema::ConcurrentActor::ProducerSend {
+                        operation_id,
+                        record,
+                        ..
+                    } if issued_operations.contains(operation_id) => {
+                        Some((record.topic.clone(), record.partition))
+                    }
+                    _ => None,
+                }));
+            }
             _ => {}
         }
     }

@@ -1,0 +1,42 @@
+schema_version = 37
+id = "adversary.metadata-partial-frame"
+title = "metadata partial frame becomes a bounded public transport failure"
+description = "The external Kafka peer writes only seven bytes of a Metadata response frame and disconnects; the packaged client must return the declared public failure while environment evidence proves the exact partial write."
+timeout_ms = 15000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "arm-partial-metadata"
+kind = "arm_protocol_fault"
+operation_id = "adversary-metadata-partial"
+api = "metadata"
+applications = 1
+
+[steps.fault]
+kind = "partial_frame"
+bytes = 7
+
+[[steps]]
+id = "describe-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "describe-after-partial"
+topic = "testlab-adversary-topic"
+expected_error_code = "transport"
+timeout_ms = 3000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

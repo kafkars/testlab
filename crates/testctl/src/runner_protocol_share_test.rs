@@ -16,6 +16,7 @@ fn share_events_complete_only_the_exact_expected_identity() {
                 consumer_id: consumer.clone(),
                 receive_id: receive,
                 records: Vec::new(),
+                acquisition_count: 0,
                 member_epoch: Some(1),
                 assignment_epoch: Some(1),
             })
@@ -27,7 +28,7 @@ fn share_events_complete_only_the_exact_expected_identity() {
             .classify(&AdapterEvent::ShareAcknowledgementCompleted {
                 acknowledgement_id: acknowledgement,
                 receive_id: id(OperationId::new("share-receive-1")),
-                disposition: ShareDisposition::Release,
+                dispositions: vec![ShareDisposition::Release],
                 success: false,
                 delivery: Some(TerminalStatus::PossiblySent),
                 code: Some("transport".to_owned()),

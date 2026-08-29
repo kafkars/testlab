@@ -167,6 +167,7 @@ fn classic_group_exact_round_trip_requires_commit() {
                 group_id: "group-1".to_owned(),
                 topic: "records".to_owned(),
                 protocol: GroupProtocol::Classic,
+                configuration: None,
             },
         ),
         step(
@@ -176,6 +177,7 @@ fn classic_group_exact_round_trip_requires_commit() {
                 receive_id: receive.clone(),
                 expected_operation_id: id(OperationId::new("op-1")),
                 timeout_ms: 1_000,
+                expected_error_code: None,
             },
         ),
         step(

@@ -1,0 +1,113 @@
+schema_version = 37
+id = "kafka.assigned-consumer-exact-offset"
+title = "an assigned consumer starts at one exact offset"
+description = "Two records establish offsets zero and one before the public replacement control starts the direct consumer at offset one."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "assigned_consumer_controls", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-offset-zero"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-offset-zero"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-offset"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "offset-zero" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-offset-zero" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-offset-one"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-offset-one"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-offset"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "offset-one" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-offset-one" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-at-offset-one"
+kind = "control_assigned_consumer"
+operation_id = "control-offset-one"
+consumer_id = "consumer-1"
+timeout_ms = 30000
+
+[steps.control]
+kind = "replace"
+partitions = [
+  { topic = "testlab-kafkars-assigned-offset", partition = 0, position = { kind = "offset", offset = 1 } },
+]
+
+[[steps]]
+id = "receive-offset-one"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-offset-one"
+expected_operation_id = "op-offset-one"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-offset-zero"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-offset-one"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

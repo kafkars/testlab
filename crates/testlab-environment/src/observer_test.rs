@@ -28,6 +28,26 @@ fn issued_partition_send_is_included_in_observation_targets() {
 }
 
 #[test]
+fn issued_concurrent_sends_are_independent_observation_targets() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/concurrent-multi-producer.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse concurrent scenario: {error}"));
+    let issued = ["op-a-0", "op-b-1"]
+        .into_iter()
+        .map(|value| id(OperationId::new(value)))
+        .collect();
+
+    assert_eq!(
+        targets(&scenario, &issued),
+        BTreeSet::from([
+            ("testlab-kafkars-concurrent-multi-producer".to_owned(), 0),
+            ("testlab-kafkars-concurrent-multi-producer".to_owned(), 1),
+        ])
+    );
+}
+
+#[test]
 fn observation_preserves_null_binary_and_ordered_headers() {
     let observed = normalize(
         7,

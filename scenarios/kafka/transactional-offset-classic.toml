@@ -1,0 +1,219 @@
+schema_version = 37
+id = "kafka.transactional-offset-classic"
+title = "classic group checkpoints move atomically with transformed output"
+description = "A public classic member transfers one assignment-fenced checkpoint in a committed transaction and independently proves offset 1; a later aborted transfer hides its output and a replacement member receives the exact source record again."
+timeout_ms = 240000
+requires = ["producer", "consumer_groups", "admin", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-source-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "source-producer"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transform-producer"
+transactional_id = "testlab-classic-transform-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "send-committed-input"
+kind = "send"
+producer_id = "source-producer"
+operation_id = "op-classic-input-commit"
+
+[steps.record]
+topic = "testlab-kafkars-classic-transform-input"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "classic-commit" }
+value = { encoding = "hex", data = "00636c61737369632d636f6d6d6974ff" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-input-commit" } }]
+
+[[steps]]
+id = "create-commit-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "classic-member-commit"
+group_id = "testlab-classic-transform-group"
+topic = "testlab-kafkars-classic-transform-input"
+protocol = "classic"
+
+[[steps]]
+id = "commit-transform"
+kind = "execute_transactional_transform"
+producer_id = "transform-producer"
+consumer_id = "classic-member-commit"
+transaction_id = "classic-transform-commit"
+expected_input_operation_id = "op-classic-input-commit"
+disposition = "commit"
+timeout_ms = 45000
+
+[[steps.operations]]
+operation_id = "op-classic-output-commit"
+
+[steps.operations.record]
+topic = "testlab-kafkars-classic-transform-output"
+partition = 0
+sequence = 101
+key = { encoding = "utf8", data = "classic-output-commit" }
+value = { encoding = "utf8", data = "transformed-commit" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-output-commit" } }]
+
+[[steps]]
+id = "close-commit-member"
+kind = "close_group_consumer"
+consumer_id = "classic-member-commit"
+
+[[steps]]
+id = "observe-committed-checkpoint"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "classic-committed-checkpoint"
+group_id = "testlab-classic-transform-group"
+topic = "testlab-kafkars-classic-transform-input"
+partition = 0
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "send-aborted-input"
+kind = "send"
+producer_id = "source-producer"
+operation_id = "op-classic-input-abort"
+
+[steps.record]
+topic = "testlab-kafkars-classic-transform-input"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "classic-abort" }
+value = { encoding = "hex", data = "00636c61737369632d61626f7274ff" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-input-abort" } }]
+
+[[steps]]
+id = "create-abort-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "classic-member-abort"
+group_id = "testlab-classic-transform-group"
+topic = "testlab-kafkars-classic-transform-input"
+protocol = "classic"
+
+[[steps]]
+id = "abort-transform"
+kind = "execute_transactional_transform"
+producer_id = "transform-producer"
+consumer_id = "classic-member-abort"
+transaction_id = "classic-transform-abort"
+expected_input_operation_id = "op-classic-input-abort"
+disposition = "abort"
+timeout_ms = 45000
+
+[[steps.operations]]
+operation_id = "op-classic-output-abort"
+
+[steps.operations.record]
+topic = "testlab-kafkars-classic-transform-output"
+partition = 0
+sequence = 102
+key = { encoding = "utf8", data = "classic-output-abort" }
+value = { encoding = "utf8", data = "transformed-abort" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-output-abort" } }]
+
+[[steps]]
+id = "close-abort-member"
+kind = "close_group_consumer"
+consumer_id = "classic-member-abort"
+
+[[steps]]
+id = "create-restart-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "classic-member-restart"
+group_id = "testlab-classic-transform-group"
+topic = "testlab-kafkars-classic-transform-input"
+protocol = "classic"
+
+[[steps]]
+id = "receive-aborted-input-again"
+kind = "group_receive"
+consumer_id = "classic-member-restart"
+receive_id = "classic-abort-redelivery"
+expected_operation_id = "op-classic-input-abort"
+timeout_ms = 45000
+
+[[steps]]
+id = "close-restart-member"
+kind = "close_group_consumer"
+consumer_id = "classic-member-restart"
+
+[[steps]]
+id = "observe-recovered-checkpoint"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "classic-recovered-checkpoint"
+group_id = "testlab-classic-transform-group"
+topic = "testlab-kafkars-classic-transform-input"
+partition = 0
+require_stable = true
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transform-producer"
+
+[[steps]]
+id = "flush-source-producer"
+kind = "flush"
+producer_id = "source-producer"
+
+[[steps]]
+id = "close-source-producer"
+kind = "close_producer"
+producer_id = "source-producer"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-classic-input-commit"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-classic-output-commit"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-classic-input-abort"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-classic-output-abort"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"

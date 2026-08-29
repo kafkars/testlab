@@ -157,13 +157,15 @@ fn response(topic: &str, partition: i32, offset: Offset) -> TopicPartitionList {
 
 fn offset(observation: &BrokerStateObservation) -> Option<i64> {
     match observation {
-        BrokerStateObservation::ConsumerGroupOffset { offset, .. } => *offset,
+        BrokerStateObservation::ConsumerGroupOffset(value) => value.offset,
+        _ => panic!("unexpected broker state"),
     }
 }
 
 fn operation(observation: &BrokerStateObservation) -> &str {
     match observation {
-        BrokerStateObservation::ConsumerGroupOffset { operation_id, .. } => operation_id.as_str(),
+        BrokerStateObservation::ConsumerGroupOffset(value) => value.operation_id.as_str(),
+        _ => panic!("unexpected broker state"),
     }
 }
 

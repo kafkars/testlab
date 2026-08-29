@@ -1,16 +1,17 @@
 //! Docker Compose lifecycle owns immutable setup, readiness, snapshots, and cleanup.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::{Debug, Formatter};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-use testlab_schema::{AdapterSecurity, EnvironmentDriver, RunId, TransportSecurity};
+use testlab_schema::{AdapterSecurity, BrokerRoleTarget, OperationId, RunId};
 
 use crate::compose_command::{self, CommandSpec};
 use crate::compose_ports::HostPorts;
-use crate::compose_support::{compose_prefix, failure_code, project_name, remaining};
-use crate::compose_types::{ComposeFailure, ComposePhase, ComposeRequest};
+use crate::compose_support::{failure_code, remaining};
+use crate::compose_types::ComposePhase;
+use crate::network_proxy_process_types::RunningNetworkProxy;
 use crate::security::ClientSecurity;
 
 /// One isolated Compose project that must be explicitly finished for evidence.
@@ -27,11 +28,18 @@ pub struct DockerComposeEnvironment {
     pub(super) cluster_size: u16,
     pub(super) feature_levels: BTreeMap<String, u16>,
     pub(super) host_ports: HostPorts,
+    pub(super) backend_ports: Option<HostPorts>,
+    pub(super) observer_ports: Option<HostPorts>,
+    pub(super) proxy_program: Option<PathBuf>,
+    pub(super) network_proxy: Option<RunningNetworkProxy>,
     pub(super) started_unix_ms: u64,
     pub(super) started: Instant,
     pub(super) next_operation: u32,
-    pub(super) stopped_partition_leaders: BTreeMap<(String, i32), u16>,
+    pub(super) next_state_observation: u64,
+    pub(super) observed_admin_operations: BTreeSet<OperationId>,
+    pub(super) stopped_roles: BTreeMap<BrokerRoleTarget, u16>,
     pub(super) stopped_brokers: Vec<u16>,
+    pub(super) active_broker_policies: BTreeSet<testlab_schema::BrokerPolicy>,
     pub(super) up_attempted: bool,
 }
 
@@ -48,106 +56,24 @@ impl Debug for DockerComposeEnvironment {
 }
 
 impl DockerComposeEnvironment {
-    /// Resolves an immutable manifest into a side-effect-free lifecycle owner.
-    pub fn new(request: ComposeRequest<'_>) -> Result<Self, ComposeFailure> {
-        request.environment.validate().map_err(|error| {
-            ComposeFailure::new("environment_manifest_invalid", error.to_string())
-        })?;
-        let EnvironmentDriver::DockerCompose {
-            broker_services, ..
-        } = &request.environment.driver
-        else {
-            return Err(ComposeFailure::new(
-                "environment_driver_invalid",
-                "environment does not use the Docker Compose driver",
-            ));
-        };
-        let host_ports = HostPorts::reserve(broker_services.len())?;
-        Self::with_program(request, PathBuf::from("docker"), host_ports)
-    }
-
-    #[cfg(test)]
-    pub(crate) fn new_with_program(
-        request: ComposeRequest<'_>,
-        program: PathBuf,
-        host_port: u16,
-    ) -> Result<Self, ComposeFailure> {
-        let count = match &request.environment.driver {
-            EnvironmentDriver::DockerCompose {
-                broker_services, ..
-            } => broker_services.len(),
-            EnvironmentDriver::ModelBroker => 0,
-        };
-        Self::with_program(request, program, HostPorts::fixed(host_port, count)?)
-    }
-
-    fn with_program(
-        request: ComposeRequest<'_>,
-        program: PathBuf,
-        host_ports: HostPorts,
-    ) -> Result<Self, ComposeFailure> {
-        request.environment.validate().map_err(|error| {
-            ComposeFailure::new("environment_manifest_invalid", error.to_string())
-        })?;
-        let EnvironmentDriver::DockerCompose {
-            image,
-            cluster_size,
-            security,
-            compose_files,
-            broker_services,
-            client_port,
-            feature_levels,
-            ..
-        } = &request.environment.driver
-        else {
-            return Err(ComposeFailure::new(
-                "environment_driver_invalid",
-                "environment does not use the Docker Compose driver",
-            ));
-        };
-        let project = project_name(request.run_id);
-        let prefix = compose_prefix(&project, compose_files);
-        let security_directory = (security.transport == TransportSecurity::TlsCustom).then(|| {
-            request
-                .repository_root
-                .join("target/testlab-security")
-                .join(request.run_id.as_str())
-        });
-        let ca_pem = security_directory.as_ref().map(|path| path.join("ca.pem"));
-        let client_security = ClientSecurity::new(*security, ca_pem.as_deref())?;
-        let environment = client_security.compose_environment(
-            image,
-            host_ports.as_slice(),
-            security_directory.as_deref(),
-        );
-        Ok(Self {
-            repository_root: request.repository_root.to_path_buf(),
-            run_id: request.run_id.clone(),
-            program,
-            prefix,
-            environment,
-            client_security,
-            broker_services: broker_services.clone(),
-            client_port: *client_port,
-            cluster_size: *cluster_size,
-            feature_levels: feature_levels.clone(),
-            host_ports,
-            started_unix_ms: request.started_unix_ms,
-            started: Instant::now(),
-            next_operation: 0,
-            stopped_partition_leaders: BTreeMap::new(),
-            stopped_brokers: Vec::new(),
-            up_attempted: false,
-        })
-    }
-
-    /// Returns the loopback bootstrap endpoint advertised to the adapter.
+    /// Returns the independent observer bootstrap endpoint.
     pub fn endpoint(&self) -> String {
-        self.host_ports.endpoint()
+        self.observer_ports
+            .as_ref()
+            .unwrap_or(&self.host_ports)
+            .endpoint()
     }
 
-    /// Returns every independently reachable bootstrap endpoint in broker order.
+    /// Returns every independent observer endpoint in broker order.
     pub fn endpoints(&self) -> Vec<String> {
+        self.observer_ports
+            .as_ref()
+            .unwrap_or(&self.host_ports)
+            .endpoints()
+    }
+
+    /// Returns adapter-facing endpoints, including every proxy route when enabled.
+    pub fn adapter_endpoints(&self) -> Vec<String> {
         self.host_ports.endpoints()
     }
 
@@ -174,6 +100,20 @@ impl DockerComposeEnvironment {
             );
             return phase;
         };
+        if self.network_proxy.is_some() {
+            let proxy = self.finish_network_proxy(remaining(deadline) / 4);
+            phase.operations.extend(proxy.phase.operations);
+            phase.artifacts.extend(proxy.phase.artifacts);
+            if let Some(failure) = proxy.phase.failure {
+                phase.fail(failure.code, failure.diagnostic);
+            }
+            if !proxy.observations.is_empty() {
+                phase.fail(
+                    "network_proxy_observations_uncollected",
+                    "network proxy observations were not recorded before cleanup",
+                );
+            }
+        }
         let commands = [
             (
                 compose_command::ps(&self.prefix),

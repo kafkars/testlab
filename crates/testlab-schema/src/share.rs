@@ -4,6 +4,20 @@ use serde::{Deserialize, Serialize};
 
 use crate::ConsumedRecord;
 
+#[cfg(test)]
+#[path = "share_configuration_test.rs"]
+mod share_configuration_test;
+
+/// Portable `ShareFetch` acquisition policy fixed before membership starts.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ShareConsumerFetchConfiguration {
+    /// Soft record ceiling requested from Kafka for one `ShareFetch`.
+    pub max_records: u32,
+    /// Preferred record count for each acquired range.
+    pub batch_size: u32,
+}
+
 /// Application outcome for one acquired share record.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]

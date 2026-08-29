@@ -21,6 +21,8 @@ pub(crate) enum StateError {
     DuplicateProducer(ProducerId),
     #[error("producer {0} does not exist")]
     MissingProducer(ProducerId),
+    #[error("producer configuration was not portable: {0}")]
+    ProducerConfiguration(String),
     #[error("consumer {0} already exists")]
     DuplicateConsumer(ConsumerId),
     #[error("consumer {0} does not exist")]
@@ -50,8 +52,10 @@ pub(crate) enum StateError {
     UnclosedConsumers,
     #[error("adapter finished with open clients")]
     UnclosedClients,
+    #[error("adapter finished with unjoined concurrent actors")]
+    UnjoinedConcurrentActors,
     #[error("packaged Kafkars operation failed: {0}")]
-    Client(kafkars::KafkaError),
+    Client(crate::kafkars_api::KafkaError),
     #[error("adapter connection security failed: {0}")]
     Security(#[from] SecurityError),
 }

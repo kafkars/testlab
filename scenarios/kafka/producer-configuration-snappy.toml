@@ -1,0 +1,71 @@
+schema_version = 37
+id = "kafka.producer-configuration-snappy"
+title = "configured producer delivers with snappy compression"
+description = "A client built with the complete explicit public producer policy and snappy record-batch compression delivers one exact independently observed record."
+timeout_ms = 60000
+requires = ["producer", "producer_configuration", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-configured-client"
+kind = "create_configured_client"
+client_id = "client-snappy"
+
+[steps.configuration]
+delivery_timeout_ms = 20000
+compression = "snappy"
+max_retries = 3
+retry_backoff_ms = 10
+
+[steps.configuration.limits]
+retained_bytes = 8388608
+in_flight_records = 256
+waiting_records = 128
+waiting_bytes = 4194304
+batch_records = 32
+batch_bytes = 524288
+request_bytes = 1048576
+max_in_flight_requests_per_broker = 4
+linger_ms = 3
+
+[[steps]]
+id = "await-ready"
+kind = "await_client_ready"
+client_id = "client-snappy"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-snappy"
+producer_id = "producer-snappy"
+
+[[steps]]
+id = "send"
+kind = "send"
+producer_id = "producer-snappy"
+operation_id = "configured-snappy"
+
+[steps.record]
+topic = "testlab-kafkars-config-snappy"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "snappy" }
+value = { encoding = "utf8", data = "configured-producer-snappy-snappy-snappy-snappy-snappy" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "configured-snappy" } },
+]
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-snappy"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-snappy"
+
+[[assertions]]
+operation_id = "configured-snappy"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

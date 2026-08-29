@@ -11,6 +11,7 @@ use crate::AdapterError;
 use crate::normalize;
 use crate::protocol::emit;
 use crate::share_consumers::ShareAcknowledgeOutcome;
+use crate::share_consumers::ShareConsumerRegistration;
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch<W: Write>(
@@ -27,16 +28,20 @@ pub(crate) fn dispatch<W: Write>(
             topic,
             membership_timeout_ms,
             close_timeout_ms,
+            configuration,
         } => {
             let client = state.client(&client_id)?.clone();
             state.share_consumers.create(
                 &client,
-                client_id,
-                consumer_id.clone(),
-                group_id,
-                topic,
-                Duration::from_millis(membership_timeout_ms),
-                Duration::from_millis(close_timeout_ms),
+                ShareConsumerRegistration {
+                    client_id,
+                    consumer_id: consumer_id.clone(),
+                    group_id,
+                    topic,
+                    membership_timeout: Duration::from_millis(membership_timeout_ms),
+                    close_timeout: Duration::from_millis(close_timeout_ms),
+                    configuration,
+                },
             )?;
             AdapterEvent::ShareConsumerCreated { consumer_id }
         }
@@ -54,6 +59,7 @@ pub(crate) fn dispatch<W: Write>(
                 consumer_id,
                 receive_id,
                 records: facts.records,
+                acquisition_count: facts.acquisition_count,
                 member_epoch: facts.member_epoch,
                 assignment_epoch: facts.assignment_epoch,
             }
@@ -62,16 +68,16 @@ pub(crate) fn dispatch<W: Write>(
             consumer_id,
             receive_id,
             acknowledgement_id,
-            disposition,
+            dispositions,
             timeout_ms,
         } => {
             let outcome = state.share_consumers.acknowledge(
                 &consumer_id,
                 &receive_id,
-                disposition,
+                dispositions.clone(),
                 Duration::from_millis(timeout_ms),
             )?;
-            acknowledgement_event(acknowledgement_id, receive_id, disposition, outcome)
+            acknowledgement_event(acknowledgement_id, receive_id, dispositions, outcome)
         }
         AdapterCommand::DropShareBatch {
             consumer_id,
@@ -110,7 +116,7 @@ pub(crate) fn dispatch<W: Write>(
 fn acknowledgement_event(
     acknowledgement_id: testlab_schema::OperationId,
     receive_id: testlab_schema::OperationId,
-    disposition: testlab_schema::ShareDisposition,
+    dispositions: Vec<testlab_schema::ShareDisposition>,
     outcome: ShareAcknowledgeOutcome,
 ) -> AdapterEvent {
     let (success, delivery, code) = if let Some(error) = outcome.error {
@@ -128,7 +134,7 @@ fn acknowledgement_event(
     AdapterEvent::ShareAcknowledgementCompleted {
         acknowledgement_id,
         receive_id,
-        disposition,
+        dispositions,
         success,
         delivery,
         code,

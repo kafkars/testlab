@@ -1,0 +1,88 @@
+schema_version = 37
+id = "kafka.producer-repeated-readiness-flush"
+title = "repeated readiness and flush preserve producer progress"
+description = "One public client and producer tolerate repeated readiness probes and empty or successive flushes while later sends retain exact broker-visible coordinates."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client-first"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client-second"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "flush-empty-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-before-repeated-lifecycle"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-before-lifecycle"
+record = { topic = "testlab-kafkars-repeated-lifecycle", partition = 0, sequence = 1, key = { encoding = "utf8", data = "before" }, value = { encoding = "utf8", data = "before-repeated-lifecycle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-lifecycle" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "flush-after-first-send"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "ready-client-after-use"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "send-after-repeated-lifecycle"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-after-lifecycle"
+record = { topic = "testlab-kafkars-repeated-lifecycle", partition = 0, sequence = 2, key = { encoding = "utf8", data = "after" }, value = { encoding = "utf8", data = "after-repeated-lifecycle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-lifecycle" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-after-second-send"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "flush-again"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-before-lifecycle"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-after-lifecycle"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

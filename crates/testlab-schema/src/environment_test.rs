@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 
 use super::{
-    Authentication, BrokerIdentity, EnvironmentDriver, EnvironmentError, EnvironmentId,
-    EnvironmentManifest, SecurityProfile, TransportSecurity,
+    Authentication, BrokerIdentity, ENVIRONMENT_SCHEMA_VERSION, EnvironmentDriver,
+    EnvironmentError, EnvironmentId, EnvironmentManifest, SecurityProfile, TransportSecurity,
 };
 
 #[test]
@@ -87,9 +87,30 @@ fn feature_levels_require_portable_names() {
     );
 }
 
+#[test]
+fn network_proxy_requires_plaintext_without_authentication() {
+    let mut manifest = environment();
+    match &mut manifest.driver {
+        EnvironmentDriver::DockerCompose { network_proxy, .. } => *network_proxy = true,
+        _ => panic!("fixture must use Docker Compose"),
+    }
+    assert!(manifest.validate().is_ok());
+
+    match &mut manifest.driver {
+        EnvironmentDriver::DockerCompose { security, .. } => {
+            security.transport = TransportSecurity::TlsCustom;
+        }
+        _ => panic!("fixture must use Docker Compose"),
+    }
+    assert_eq!(
+        manifest.validate(),
+        Err(EnvironmentError::NetworkProxySecurityUnsupported)
+    );
+}
+
 fn environment() -> EnvironmentManifest {
     EnvironmentManifest {
-        schema_version: 2,
+        schema_version: ENVIRONMENT_SCHEMA_VERSION,
         id: EnvironmentId::new("apache-kafka-4.3.1-plaintext")
             .unwrap_or_else(|error| panic!("fixture id: {error}")),
         title: "Apache Kafka 4.3.1 three-broker plaintext".to_owned(),
@@ -112,6 +133,7 @@ fn environment() -> EnvironmentManifest {
             ],
             client_port: 19_092,
             feature_levels: BTreeMap::new(),
+            network_proxy: false,
         },
     }
 }

@@ -28,6 +28,20 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    /// Runs the private external real-cluster network proxy protocol.
+    #[command(hide = true)]
+    NetworkProxyWorker {
+        /// One broker route encoded as ORDINAL|LISTEN|UPSTREAM.
+        #[arg(long, required = true)]
+        route: Vec<String>,
+    },
+    /// Runs the private external Kafka adversary worker protocol.
+    #[command(hide = true)]
+    AdversaryWorker {
+        /// Sole baseline topic exposed by the adversary.
+        #[arg(long)]
+        topic: String,
+    },
     /// Validates every scenario, pack, subject, and contract manifest.
     Validate {
         /// Repository root.
@@ -107,6 +121,16 @@ enum Command {
 
 fn run(cli: Cli) -> Result<bool, AppError> {
     match cli.command {
+        Command::NetworkProxyWorker { route } => {
+            testlab_environment::run_network_proxy_worker(&route)
+                .map_err(|error| AppError::Catalog(error.to_string()))?;
+            Ok(true)
+        }
+        Command::AdversaryWorker { topic } => {
+            testlab_environment::run_adversary_worker(&topic)
+                .map_err(|error| AppError::Catalog(error.to_string()))?;
+            Ok(true)
+        }
         Command::Validate { root } => {
             let repository = Repository::open(&root)?;
             let summary = repository.validate_all()?;

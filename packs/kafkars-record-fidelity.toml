@@ -1,0 +1,14 @@
+schema_version = 1
+id = "kafkars-record-fidelity"
+title = "packaged Kafkars record fidelity and ordering"
+scenarios = [
+  "scenarios/kafka/producer-null-empty-batch.toml",
+  "scenarios/kafka/assigned-consumer-null-empty.toml",
+  "scenarios/kafka/assigned-consumer-header-fidelity.toml",
+  "scenarios/kafka/producer-sequential-ordering.toml",
+  "scenarios/kafka/classic-group-record-fidelity.toml",
+  "scenarios/kafka/consumer-protocol-group-record-fidelity.toml",
+  "scenarios/kafka/share-group-record-fidelity.toml",
+  "scenarios/kafka/transaction-multi-record-commit.toml",
+  "scenarios/kafka/transaction-successive-boundaries.toml",
+]

@@ -1,0 +1,123 @@
+schema_version = 37
+id = "kafka.producer-network-blackhole-recovery"
+title = "packaged producer preserves uncertainty through a network blackhole"
+description = "The external proxy stops all forwarding on a live broker route until the packaged producer reaches its public delivery bound, then observed restoration permits exact acknowledged progress without strengthening the timed-out send beyond possibly-sent."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "blackhole-baseline"
+
+[steps.record]
+topic = "testlab-kafkars-network-blackhole"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "baseline" }
+value = { encoding = "utf8", data = "before-blackhole" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "blackhole-baseline" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "apply-blackhole"
+kind = "alter_network_fault"
+operation_id = "network-blackhole-apply"
+broker_ordinal = 1
+state = "present"
+timeout_ms = 5000
+
+[steps.fault]
+fault_kind = "blackhole"
+
+[[steps]]
+id = "send-through-blackhole"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "blackhole-uncertain"
+
+[steps.record]
+topic = "testlab-kafkars-network-blackhole"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "uncertain" }
+value = { encoding = "utf8", data = "during-blackhole" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "blackhole-uncertain" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "remove-blackhole"
+kind = "alter_network_fault"
+operation_id = "network-blackhole-remove"
+broker_ordinal = 1
+state = "absent"
+timeout_ms = 5000
+
+[steps.fault]
+fault_kind = "blackhole"
+
+[[steps]]
+id = "send-after-blackhole"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "blackhole-recovered"
+
+[steps.record]
+topic = "testlab-kafkars-network-blackhole"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "recovered" }
+value = { encoding = "utf8", data = "after-blackhole" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "blackhole-recovered" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "blackhole-baseline"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "blackhole-uncertain"
+accepted = true
+terminal = "possibly_sent"
+visibility = "zero_or_one"
+
+[[assertions]]
+operation_id = "blackhole-recovered"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

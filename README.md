@@ -80,8 +80,8 @@ Kafkars CI can invoke the same boundary without owning broker setup:
 | Kafka | Apache Kafka 3.7.2 through 4.3.1 |
 | Topology | Single broker and three-broker clusters |
 | Security | Plaintext, TLS, SASL/PLAIN, and SCRAM-SHA-256/512 |
-| Behavior | Produce, assigned/group/share consume, admin, transactions, fencing, restart, and rolling recovery |
-| Truth | Adapter history checked against independent librdkafka observation |
+| Behavior | Produce across all public compression codecs with explicit limits/retry policy, stage-aware cancellation, complete public client metrics snapshots, assigned/group/share consume, configured Share record and acquisition-range limits, mixed Share batch decisions and redelivery, multi-handle lifecycle isolation, direct beginning/end/exact-offset positioning, assigned and classic/KIP-848 group seek, pause/resume, clone-shared shutdown, latest offset reset, read-committed isolation, incremental assignment and cursor independence, exact null/empty/tombstone/header fidelity, same-partition ordering, deterministic concurrent actors, admin, multi-record and consume-transform-produce transactions, fencing, restart, rolling recovery, broker-role failover, authorization recovery, and quotas |
+| Truth | Producer, consumer, and committed transaction records and coordinates checked against independent librdkafka observation; committed group checkpoints independently queried and aborted checkpoint transfers proved unchanged by exact redelivery |
 
 Kafka images are pinned by digest. Scenario topics must have leaders and full
 in-sync replicas before a client starts.

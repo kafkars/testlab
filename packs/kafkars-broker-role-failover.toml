@@ -1,0 +1,10 @@
+schema_version = 1
+id = "kafkars-broker-role-failover"
+title = "packaged Kafkars broker-role failover coverage"
+scenarios = [
+  "scenarios/kafka/producer-leader-failover.toml",
+  "scenarios/kafka/admin-controller-failover.toml",
+  "scenarios/kafka/classic-group-coordinator-failover.toml",
+  "scenarios/kafka/consumer-protocol-group-coordinator-failover.toml",
+  "scenarios/kafka/transaction-coordinator-failover.toml",
+]

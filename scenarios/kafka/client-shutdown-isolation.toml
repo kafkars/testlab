@@ -1,0 +1,112 @@
+schema_version = 37
+id = "kafka.client-shutdown-isolation"
+title = "shutting down one client preserves another client"
+description = "Two independent public clients produce successfully; after the first client shuts down, the second remains ready and makes exact broker-visible progress."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client-a"
+kind = "create_client"
+client_id = "client-a"
+
+[[steps]]
+id = "ready-client-a"
+kind = "await_client_ready"
+client_id = "client-a"
+
+[[steps]]
+id = "create-producer-a"
+kind = "create_producer"
+client_id = "client-a"
+producer_id = "producer-a"
+
+[[steps]]
+id = "create-client-b"
+kind = "create_client"
+client_id = "client-b"
+
+[[steps]]
+id = "ready-client-b"
+kind = "await_client_ready"
+client_id = "client-b"
+
+[[steps]]
+id = "create-producer-b"
+kind = "create_producer"
+client_id = "client-b"
+producer_id = "producer-b"
+
+[[steps]]
+id = "send-from-client-a"
+kind = "send"
+producer_id = "producer-a"
+operation_id = "op-client-a"
+record = { topic = "testlab-kafkars-client-shutdown-isolation", partition = 0, sequence = 1, key = { encoding = "utf8", data = "client-a" }, value = { encoding = "utf8", data = "before-client-a-shutdown" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-client-a" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "send-from-client-b-before-shutdown"
+kind = "send"
+producer_id = "producer-b"
+operation_id = "op-client-b-before"
+record = { topic = "testlab-kafkars-client-shutdown-isolation", partition = 0, sequence = 2, key = { encoding = "utf8", data = "client-b" }, value = { encoding = "utf8", data = "before-client-a-shutdown" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-client-b-before" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-producer-a"
+kind = "flush"
+producer_id = "producer-a"
+
+[[steps]]
+id = "close-producer-a"
+kind = "close_producer"
+producer_id = "producer-a"
+
+[[steps]]
+id = "shutdown-client-a"
+kind = "shutdown_client"
+client_id = "client-a"
+
+[[steps]]
+id = "ready-client-b-after-shutdown"
+kind = "await_client_ready"
+client_id = "client-b"
+
+[[steps]]
+id = "send-from-client-b-after-shutdown"
+kind = "send"
+producer_id = "producer-b"
+operation_id = "op-client-b-after"
+record = { topic = "testlab-kafkars-client-shutdown-isolation", partition = 0, sequence = 3, key = { encoding = "utf8", data = "client-b" }, value = { encoding = "utf8", data = "after-client-a-shutdown" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-client-b-after" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps]]
+id = "flush-producer-b"
+kind = "flush"
+producer_id = "producer-b"
+
+[[steps]]
+id = "close-producer-b"
+kind = "close_producer"
+producer_id = "producer-b"
+
+[[steps]]
+id = "shutdown-client-b"
+kind = "shutdown_client"
+client_id = "client-b"
+
+[[assertions]]
+operation_id = "op-client-a"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-client-b-before"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-client-b-after"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -1,0 +1,69 @@
+schema_version = 37
+id = "kafka.client-metrics-producer"
+title = "client metrics expose completed producer work"
+description = "A public metrics snapshot taken after a flushed acknowledged send exposes coherent call, failure, mailbox, latency, and idle producer state while the broker independently exposes the exact record."
+timeout_ms = 60000
+requires = ["producer", "lifecycle", "client_readiness", "client_metrics"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "metrics-client"
+
+[[steps]]
+id = "await-ready"
+kind = "await_client_ready"
+client_id = "metrics-client"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "metrics-client"
+producer_id = "metrics-producer"
+
+[[steps]]
+id = "send"
+kind = "send"
+producer_id = "metrics-producer"
+operation_id = "metrics-record"
+
+[steps.record]
+topic = "testlab-kafkars-client-metrics"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "metrics-key" }
+value = { encoding = "utf8", data = "metrics-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "metrics-record" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "metrics-producer"
+
+[[steps]]
+id = "observe-metrics"
+kind = "observe_client_metrics"
+client_id = "metrics-client"
+operation_id = "metrics-snapshot"
+minimum_produce_records = 1
+require_idle_producer = true
+require_accepting = true
+require_healthy = true
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "metrics-producer"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "metrics-client"
+
+[[assertions]]
+operation_id = "metrics-record"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

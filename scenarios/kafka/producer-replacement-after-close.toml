@@ -1,0 +1,84 @@
+schema_version = 37
+id = "kafka.producer-replacement-after-close"
+title = "one client creates a replacement producer after close"
+description = "A client closes its first public producer, creates a distinct replacement, and preserves exact broker-visible progress through the replacement handle."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-first-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-first"
+
+[[steps]]
+id = "send-from-first-producer"
+kind = "send"
+producer_id = "producer-first"
+operation_id = "op-first-producer"
+record = { topic = "testlab-kafkars-producer-replacement", partition = 0, sequence = 1, key = { encoding = "utf8", data = "first" }, value = { encoding = "utf8", data = "first-producer" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first-producer" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "flush-first-producer"
+kind = "flush"
+producer_id = "producer-first"
+
+[[steps]]
+id = "close-first-producer"
+kind = "close_producer"
+producer_id = "producer-first"
+
+[[steps]]
+id = "ready-client-before-replacement"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-replacement-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-replacement"
+
+[[steps]]
+id = "send-from-replacement-producer"
+kind = "send"
+producer_id = "producer-replacement"
+operation_id = "op-replacement-producer"
+record = { topic = "testlab-kafkars-producer-replacement", partition = 0, sequence = 2, key = { encoding = "utf8", data = "replacement" }, value = { encoding = "utf8", data = "replacement-producer" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-replacement-producer" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-replacement-producer"
+kind = "flush"
+producer_id = "producer-replacement"
+
+[[steps]]
+id = "close-replacement-producer"
+kind = "close_producer"
+producer_id = "producer-replacement"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-first-producer"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-replacement-producer"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

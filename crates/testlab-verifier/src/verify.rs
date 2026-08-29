@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterDescriptor, BrokerObservation, OperationAssertion, OperationId, RecordSpec, Scenario,
-    ScenarioAction, TerminalStatus, Verdict, Violation, VisibilityExpectation,
+    TerminalStatus, Verdict, Violation, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -16,6 +16,7 @@ use crate::protocol::verify_protocol;
 use crate::share::verify_share;
 use crate::support::{observation_references, references, terminal_references, violation};
 use crate::transaction::verify_transactions;
+use crate::verify_index::{assertions, observations_by_operation};
 
 /// Deterministically verifies one validly executed scenario.
 pub fn verify(
@@ -25,16 +26,29 @@ pub fn verify(
     observations: &[BrokerObservation],
 ) -> Verdict {
     let index = HistoryIndex::build(history);
-    let sends = sends(scenario, &index);
+    let sends = crate::producer_records::issued(scenario, &index);
     let assertions = assertions(scenario);
     let observed = observations_by_operation(observations);
     let mut violations = Vec::new();
     verify_protocol(adapter, &index, &mut violations);
-    verify_client_failures(&index, &mut violations);
+    crate::adversary::verify(scenario, &index, &mut violations);
+    crate::broker_role_recovery::verify(scenario, &index, &mut violations);
+    crate::broker_policy::verify(scenario, &index, observations, &mut violations);
+    crate::network_proxy::verify(scenario, &index, &mut violations);
+    crate::concurrent::verify(scenario, &index, observations, &mut violations);
+    verify_client_failures(scenario, &index, &mut violations);
+    crate::client_metrics::verify(scenario, &index, &mut violations);
+    crate::assigned_consumer_controls::verify(scenario, &index, &mut violations);
+    crate::group_consumer_controls::verify(scenario, &index, &mut violations);
+    crate::group_consumer_shutdown::verify(scenario, &index, &mut violations);
     verify_admin(scenario, &index, observations, &mut violations);
     verify_transactions(scenario, &index, observations, &mut violations);
+    crate::producer_cancellation::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
+    crate::record_offsets::verify(scenario, &index, observations, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
+    crate::group_ownership::verify(scenario, &index, &mut violations);
+    crate::group_recovery::verify(scenario, &index, &mut violations);
     verify_share(scenario, &index, &mut violations);
     crate::observations::verify_unknown(&sends, &observed, &mut violations);
     verify_lifecycle(scenario, &index, &mut violations);
@@ -43,67 +57,6 @@ pub fn verify(
     } else {
         Verdict::failed(violations)
     }
-}
-
-fn sends<'a>(
-    scenario: &'a Scenario,
-    index: &HistoryIndex,
-) -> BTreeMap<OperationId, &'a RecordSpec> {
-    let mut sends = BTreeMap::new();
-    for step in &scenario.steps {
-        if !index.action_issued(&step.action) {
-            continue;
-        }
-        match &step.action {
-            ScenarioAction::Send {
-                operation_id,
-                record,
-                ..
-            } => {
-                sends.insert(operation_id.clone(), record);
-            }
-            ScenarioAction::SendBatch { operations, .. } => {
-                sends.extend(
-                    operations
-                        .iter()
-                        .map(|operation| (operation.operation_id.clone(), &operation.record)),
-                );
-            }
-            ScenarioAction::ExecuteTransaction { operations, .. } => {
-                sends.extend(
-                    operations
-                        .iter()
-                        .map(|operation| (operation.operation_id.clone(), &operation.record)),
-                );
-            }
-            ScenarioAction::FenceTransaction { operation, .. } => {
-                sends.insert(operation.operation_id.clone(), &operation.record);
-            }
-            _ => {}
-        }
-    }
-    sends
-}
-
-fn assertions(scenario: &Scenario) -> BTreeMap<OperationId, &OperationAssertion> {
-    scenario
-        .assertions
-        .iter()
-        .map(|assertion| (assertion.operation_id.clone(), assertion))
-        .collect()
-}
-
-fn observations_by_operation(
-    observations: &[BrokerObservation],
-) -> BTreeMap<OperationId, Vec<&BrokerObservation>> {
-    let mut by_operation: BTreeMap<OperationId, Vec<&BrokerObservation>> = BTreeMap::new();
-    for observation in observations {
-        by_operation
-            .entry(observation.operation_id.clone())
-            .or_default()
-            .push(observation);
-    }
-    by_operation
 }
 
 fn verify_operations(
@@ -116,6 +69,7 @@ fn verify_operations(
     for (operation_id, record) in sends {
         let assertion = assertions.get(operation_id).copied();
         verify_admission(operation_id, assertion, index, violations);
+        crate::producer_error::verify(operation_id, assertion, index, violations);
         verify_terminal(operation_id, assertion, index, violations);
         verify_visibility(operation_id, assertion, index, observed, violations);
         verify_integrity(operation_id, record, observed, violations);

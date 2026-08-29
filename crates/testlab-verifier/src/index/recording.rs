@@ -1,25 +1,54 @@
 //! History recording classifies correlated commands and public adapter events.
 
-use testlab_schema::{AdapterCommand, AdapterEvent, HistoryEntry, HistoryPayload};
+use testlab_schema::{
+    AdapterEvent, AdapterEventEnvelope, CommandEnvelope, HistoryEntry, HistoryPayload,
+};
 
 use super::{
-    HistoryIndex, IndexedCommandFailure, IndexedReceive, IndexedTerminal,
+    HistoryIndex, IndexedCommandFailure, IndexedOperationError, IndexedTerminal,
     IndexedTransactionCompletion, push,
 };
 
 impl HistoryIndex {
     pub(super) fn record(&mut self, entry: &HistoryEntry) {
         match &entry.payload {
-            HistoryPayload::HarnessCommand { command } => self.record_command(&command.command),
-            HistoryPayload::AdapterEvent { event } => {
-                self.record_event(&event.event, entry.sequence);
+            HistoryPayload::HarnessCommand { command } => {
+                self.record_command(command, entry.sequence);
             }
-            HistoryPayload::BrokerStateObservation { observation: fact } => self.record_state(fact),
+            HistoryPayload::AdapterEvent { event } => {
+                self.record_event(event, entry.sequence);
+            }
+            HistoryPayload::BrokerStateObservation { observation: fact } => {
+                self.record_state(fact, entry.sequence);
+            }
+            HistoryPayload::EnvironmentOperation { operation } => {
+                self.environment_operations
+                    .push((entry.sequence, operation.clone()));
+            }
+            HistoryPayload::AdversaryControl { control } => {
+                self.adversary_controls
+                    .push((entry.sequence, control.clone()));
+            }
+            HistoryPayload::AdversaryObservation { observation } => {
+                self.adversary_observations
+                    .push((entry.sequence, observation.clone()));
+            }
+            HistoryPayload::NetworkProxyControl { control } => {
+                self.network_proxy_controls
+                    .push((entry.sequence, control.clone()));
+            }
+            HistoryPayload::NetworkProxyObservation { observation } => {
+                self.network_proxy_observations
+                    .push((entry.sequence, observation.clone()));
+            }
             _ => {}
         }
     }
 
-    fn record_event(&mut self, event: &AdapterEvent, sequence: u64) {
+    fn record_event(&mut self, envelope: &AdapterEventEnvelope, sequence: u64) {
+        self.adapter_events.push((sequence, envelope.clone()));
+        self.record_concurrent_event(envelope, sequence);
+        let event = &envelope.event;
         if self.record_admin_event(event, sequence)
             || self.record_share_event(event, sequence)
             || self.record_transaction_event(event, sequence)
@@ -31,20 +60,36 @@ impl HistoryIndex {
             AdapterEvent::OperationAccepted { operation_id } => {
                 push(&mut self.accepted, operation_id.clone(), sequence);
             }
-            AdapterEvent::OperationRejected { operation_id, .. } => {
+            AdapterEvent::OperationRejected { operation_id, code } => {
                 push(&mut self.rejected, operation_id.clone(), sequence);
+                self.record_operation_error(operation_id, code, sequence);
             }
             AdapterEvent::OperationTerminal {
                 operation_id,
                 status,
-                ..
-            } => self
-                .terminals
-                .entry(operation_id.clone())
+                code,
+                offset,
+            } => {
+                self.terminals
+                    .entry(operation_id.clone())
+                    .or_default()
+                    .push(IndexedTerminal {
+                        history_sequence: sequence,
+                        status: *status,
+                        code: code.clone(),
+                        offset: *offset,
+                    });
+                if let Some(code) = code {
+                    self.record_operation_error(operation_id, code, sequence);
+                }
+            }
+            AdapterEvent::ProducerCancellationCompleted(completion) => self
+                .producer_cancellations
+                .entry(completion.operation_id.clone())
                 .or_default()
-                .push(IndexedTerminal {
+                .push(super::IndexedProducerCancellation {
                     history_sequence: sequence,
-                    status: *status,
+                    outcomes: completion.outcomes.clone(),
                 }),
             AdapterEvent::ClientCreated { client_id } => {
                 push(&mut self.clients_created, client_id.clone(), sequence);
@@ -52,6 +97,14 @@ impl HistoryIndex {
             AdapterEvent::ClientReady { client_id } => {
                 push(&mut self.clients_ready, client_id.clone(), sequence);
             }
+            AdapterEvent::ClientMetricsObserved(observation) => self
+                .client_metrics
+                .entry(observation.operation_id.clone())
+                .or_default()
+                .push(super::IndexedClientMetrics {
+                    history_sequence: sequence,
+                    observation: *observation.clone(),
+                }),
             AdapterEvent::ProducerCreated { producer_id } => {
                 push(&mut self.producers_created, producer_id.clone(), sequence);
             }
@@ -67,80 +120,15 @@ impl HistoryIndex {
             AdapterEvent::CommandFailed { code, diagnostic } => {
                 self.command_failures.push(IndexedCommandFailure {
                     history_sequence: sequence,
+                    command_id: envelope.command_id.clone(),
                     code: code.clone(),
                     diagnostic: diagnostic.clone(),
                 });
             }
             AdapterEvent::Finished => self.finished.push(sequence),
             AdapterEvent::Ready { descriptor } => self.ready.push((sequence, descriptor.clone())),
-            AdapterEvent::Aborted
-            | AdapterEvent::BatchCompleted { .. }
-            | AdapterEvent::ShareConsumerCreated { .. }
-            | AdapterEvent::ShareReceiveCompleted { .. }
-            | AdapterEvent::ShareAcknowledgementCompleted { .. }
-            | AdapterEvent::ShareBatchDropped { .. }
-            | AdapterEvent::ShareConsumerClosed { .. }
-            | AdapterEvent::AssignedConsumerCreated { .. }
-            | AdapterEvent::AssignmentCompleted { .. }
-            | AdapterEvent::ReceiveCompleted { .. }
-            | AdapterEvent::AssignedConsumerClosed { .. }
-            | AdapterEvent::GroupConsumerCreated { .. }
-            | AdapterEvent::GroupReceiveCompleted { .. }
-            | AdapterEvent::GroupConsumerClosed { .. }
-            | AdapterEvent::TopicCreated { .. }
-            | AdapterEvent::TopicPartitionsCreated { .. }
-            | AdapterEvent::TopicDescribed { .. }
-            | AdapterEvent::TopicsListed { .. }
-            | AdapterEvent::OffsetListed { .. }
-            | AdapterEvent::ConsumerGroupOffsetListed { .. }
-            | AdapterEvent::TransactionalProducerCreated { .. }
-            | AdapterEvent::TransactionCompleted { .. }
-            | AdapterEvent::TransactionFenceCompleted { .. }
-            | AdapterEvent::TransactionalProducerClosed { .. }
-            | AdapterEvent::Fatal { .. } => {}
+            _ => {}
         }
-    }
-
-    fn record_consumer_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
-        match event {
-            AdapterEvent::AssignedConsumerCreated { consumer_id } => {
-                push(&mut self.consumers_created, consumer_id.clone(), sequence);
-            }
-            AdapterEvent::AssignmentCompleted { consumer_id } => {
-                push(&mut self.assignments, consumer_id.clone(), sequence);
-            }
-            AdapterEvent::ReceiveCompleted {
-                receive_id,
-                records,
-            } => self.record_receive(receive_id, records, None, None, sequence),
-            AdapterEvent::AssignedConsumerClosed { consumer_id } => {
-                push(&mut self.consumers_closed, consumer_id.clone(), sequence);
-            }
-            AdapterEvent::GroupConsumerCreated { consumer_id } => push(
-                &mut self.group_consumers_created,
-                consumer_id.clone(),
-                sequence,
-            ),
-            AdapterEvent::GroupReceiveCompleted {
-                receive_id,
-                records,
-                committed,
-                group_epoch,
-            } => self.record_receive(
-                receive_id,
-                records,
-                Some(*committed),
-                *group_epoch,
-                sequence,
-            ),
-            AdapterEvent::GroupConsumerClosed { consumer_id } => push(
-                &mut self.group_consumers_closed,
-                consumer_id.clone(),
-                sequence,
-            ),
-            _ => return false,
-        }
-        true
     }
 
     fn record_transaction_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
@@ -161,6 +149,22 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     disposition: *disposition,
                 }),
+            AdapterEvent::TransactionalTransformCompleted(completion) => {
+                self.transactions_completed
+                    .entry(completion.transaction_id.clone())
+                    .or_default()
+                    .push(IndexedTransactionCompletion {
+                        history_sequence: sequence,
+                        disposition: completion.disposition,
+                    });
+                self.transactional_transforms
+                    .entry(completion.transaction_id.clone())
+                    .or_default()
+                    .push(super::IndexedTransactionalTransform {
+                        history_sequence: sequence,
+                        completion: completion.clone(),
+                    });
+            }
             AdapterEvent::TransactionFenceCompleted {
                 transaction_id,
                 commit_error_code,
@@ -182,118 +186,33 @@ impl HistoryIndex {
         true
     }
 
-    fn record_receive(
-        &mut self,
-        receive_id: &testlab_schema::OperationId,
-        records: &[testlab_schema::ConsumedRecord],
-        committed: Option<bool>,
-        group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
-        sequence: u64,
-    ) {
-        self.receives
-            .entry(receive_id.clone())
-            .or_default()
-            .push(IndexedReceive {
-                history_sequence: sequence,
-                records: records.to_vec(),
-                committed,
-                group_epoch,
-            });
-    }
-
-    fn record_command(&mut self, command: &AdapterCommand) {
+    fn record_command(&mut self, envelope: &CommandEnvelope, sequence: u64) {
+        let command = &envelope.command;
         self.has_harness_commands = true;
-        if self.record_admin_command(command) || self.record_share_command(command) {
+        self.command_sequences.push(sequence);
+        self.commands
+            .push((sequence, envelope.command_id.clone(), command.clone()));
+        if self.record_concurrent_command(envelope, sequence)
+            || self.record_admin_command(&envelope.command_id, command, sequence)
+            || self.record_share_command(command)
+        {
             return;
         }
-        match command {
-            AdapterCommand::CreateClient { client_id } => {
-                self.clients_create_issued.insert(client_id.clone());
-            }
-            AdapterCommand::AwaitClientReady { client_id } => {
-                self.clients_ready_issued.insert(client_id.clone());
-            }
-            AdapterCommand::CreateProducer { producer_id, .. } => {
-                self.producers_create_issued.insert(producer_id.clone());
-            }
-            AdapterCommand::Send { operation_id, .. } => {
-                self.operations_issued.insert(operation_id.clone());
-            }
-            AdapterCommand::SendBatch { operations, .. } => self.operations_issued.extend(
-                operations
-                    .iter()
-                    .map(|operation| operation.operation_id.clone()),
-            ),
-            AdapterCommand::CreateAssignedConsumer { consumer_id, .. } => {
-                self.consumers_create_issued.insert(consumer_id.clone());
-            }
-            AdapterCommand::AssignBeginning { consumer_id, .. } => {
-                self.assignments_issued.insert(consumer_id.clone());
-            }
-            AdapterCommand::Receive { receive_id, .. }
-            | AdapterCommand::GroupReceive { receive_id, .. } => {
-                self.receives_issued.insert(receive_id.clone());
-            }
-            AdapterCommand::CloseAssignedConsumer { consumer_id } => {
-                self.consumers_close_issued.insert(consumer_id.clone());
-            }
-            AdapterCommand::CreateGroupConsumer { consumer_id, .. } => {
-                self.group_consumers_create_issued
-                    .insert(consumer_id.clone());
-            }
-            AdapterCommand::CloseGroupConsumer { consumer_id } => {
-                self.group_consumers_close_issued
-                    .insert(consumer_id.clone());
-            }
-            AdapterCommand::CreateTransactionalProducer { producer_id, .. } => {
-                self.transactional_producers_create_issued
-                    .insert(producer_id.clone());
-            }
-            AdapterCommand::ExecuteTransaction { transaction_id, .. } => {
-                self.transactions_execute_issued
-                    .insert(transaction_id.clone());
-            }
-            AdapterCommand::FenceTransaction {
-                transaction_id,
-                operation,
-                replacement_producer_id,
-                ..
-            } => {
-                self.transactions_execute_issued
-                    .insert(transaction_id.clone());
-                self.operations_issued
-                    .insert(operation.operation_id.clone());
-                self.transactional_producers_create_issued
-                    .insert(replacement_producer_id.clone());
-            }
-            AdapterCommand::CloseTransactionalProducer { producer_id } => {
-                self.transactional_producers_close_issued
-                    .insert(producer_id.clone());
-            }
-            AdapterCommand::Flush { producer_id } => {
-                self.flushes_issued.insert(producer_id.clone());
-            }
-            AdapterCommand::CloseProducer { producer_id } => {
-                self.producers_close_issued.insert(producer_id.clone());
-            }
-            AdapterCommand::ShutdownClient { client_id } => {
-                self.clients_shutdown_issued.insert(client_id.clone());
-            }
-            AdapterCommand::Finish => self.finish_issued = true,
-            AdapterCommand::Abort | AdapterCommand::Hello { .. } => {}
-            AdapterCommand::CreateTopic { .. }
-            | AdapterCommand::CreatePartitions { .. }
-            | AdapterCommand::DescribeTopic { .. }
-            | AdapterCommand::ListTopics { .. }
-            | AdapterCommand::ListOffsets { .. }
-            | AdapterCommand::ListConsumerGroupOffsets(_)
-            | AdapterCommand::CreateShareConsumer { .. }
-            | AdapterCommand::ShareReceive { .. }
-            | AdapterCommand::ShareAcknowledge { .. }
-            | AdapterCommand::DropShareBatch { .. }
-            | AdapterCommand::CloseShareConsumer { .. } => {
-                unreachable!("specialized commands are indexed before generic commands")
-            }
-        }
+        self.record_generic_command(command);
+    }
+
+    fn record_operation_error(
+        &mut self,
+        operation_id: &testlab_schema::OperationId,
+        code: &str,
+        sequence: u64,
+    ) {
+        self.operation_errors
+            .entry(operation_id.clone())
+            .or_default()
+            .push(IndexedOperationError {
+                history_sequence: sequence,
+                code: code.to_owned(),
+            });
     }
 }

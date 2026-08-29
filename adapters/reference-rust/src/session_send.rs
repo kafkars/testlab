@@ -6,8 +6,9 @@ use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId, ProducerId, RecordSpec,
 };
 
+use crate::AdapterError;
 use crate::broker_client;
-use crate::session::{AdapterError, emit};
+use crate::session::emit;
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch_send<W: Write>(

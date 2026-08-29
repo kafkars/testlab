@@ -78,12 +78,32 @@ impl HostPorts {
         &self,
         environment: &mut [(String, String)],
     ) -> Result<(), ComposeFailure> {
+        self.apply_named(environment, "KAFKA_HOST_PORT")
+    }
+
+    pub(super) fn apply_named(
+        &self,
+        environment: &mut [(String, String)],
+        name: &str,
+    ) -> Result<(), ComposeFailure> {
         let first = self.ports.first().copied().ok_or_else(empty)?;
-        replace(environment, "KAFKA_HOST_PORT", first)?;
+        replace(environment, name, first)?;
         for (index, port) in self.ports.iter().copied().enumerate() {
-            replace(environment, &format!("KAFKA_HOST_PORT_{}", index + 1), port)?;
+            replace(environment, &format!("{name}_{}", index + 1), port)?;
         }
         Ok(())
+    }
+
+    pub(super) fn append_named(&self, environment: &mut Vec<(String, String)>, name: &str) {
+        if let Some(first) = self.ports.first() {
+            environment.push((name.to_owned(), first.to_string()));
+        }
+        environment.extend(
+            self.ports
+                .iter()
+                .enumerate()
+                .map(|(index, port)| (format!("{name}_{}", index + 1), port.to_string())),
+        );
     }
 }
 

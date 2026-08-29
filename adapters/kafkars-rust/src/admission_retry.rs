@@ -3,7 +3,7 @@
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{KafkaError, RetryAdvice};
+use crate::kafkars_api::{KafkaError, RetryAdvice};
 
 const ADMISSION_RETRY_TIMEOUT: Duration = Duration::from_secs(30);
 const RETRY_POLL_INTERVAL: Duration = Duration::from_millis(1);

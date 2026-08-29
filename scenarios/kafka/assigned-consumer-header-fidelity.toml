@@ -1,0 +1,90 @@
+schema_version = 37
+id = "kafka.assigned-consumer-header-fidelity"
+title = "assigned consumer preserves ordered duplicate and nullable headers"
+description = "One directly assigned public consumer returns ordered duplicate header names with null, empty, and binary values exactly as independently observed."
+timeout_ms = 90000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-consumer-headers"
+partition = 0
+
+[[steps]]
+id = "send-header-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-headers"
+
+[steps.record]
+topic = "testlab-kafkars-consumer-headers"
+partition = 0
+sequence = 1
+key = { encoding = "hex", data = "006bff" }
+value = { encoding = "hex", data = "0076616c7565ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-headers" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+  { name = "trace", value = { encoding = "utf8", data = "first" } },
+  { name = "trace" },
+  { name = "trace", value = { encoding = "hex", data = "" } },
+  { name = "trace", value = { encoding = "hex", data = "00ff" } },
+]
+
+[[steps]]
+id = "receive-header-record"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-headers"
+expected_operation_id = "op-headers"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-headers"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

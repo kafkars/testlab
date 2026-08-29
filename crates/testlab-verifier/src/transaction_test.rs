@@ -67,6 +67,38 @@ fn aborted_transaction_visibility_fails_isolation() {
     );
 }
 
+#[test]
+fn wrong_public_disposition_fails_exact_completion() {
+    let (scenario, operation_id, transaction_id, producer_id) =
+        transaction_scenario(TransactionDisposition::Commit);
+    let mut events = transaction_history(
+        operation_id.clone(),
+        transaction_id,
+        producer_id,
+        TransactionDisposition::Abort,
+    );
+    let mut observed = observation(1, "transaction");
+    observed.operation_id = operation_id;
+    observed.record = record("transaction");
+    observed.digest = observed
+        .record
+        .digest()
+        .unwrap_or_else(|error| panic!("record digest: {error}"));
+    let mut descriptor = adapter();
+    descriptor.capabilities.insert(Capability::Transactions);
+    set_ready_descriptor(&mut events, descriptor.clone());
+
+    let verdict = verify(&scenario, &descriptor, &events, &[observed]);
+
+    assert!(
+        verdict
+            .violations
+            .iter()
+            .any(|value| value.contract_id.as_str() == "TXN-001"),
+        "{verdict:?}"
+    );
+}
+
 fn transaction_scenario(
     disposition: TransactionDisposition,
 ) -> (
@@ -93,6 +125,7 @@ fn transaction_scenario(
                 transactional_id: "fixture-transaction".to_owned(),
                 transaction_timeout_ms: 1_000,
                 initialization_timeout_ms: 1_000,
+                expected_error_code: None,
             },
         ),
     );
@@ -116,9 +149,11 @@ fn transaction_scenario(
         scenario.steps.len() - 1,
         step(
             "close-transactional",
-            ScenarioAction::CloseTransactionalProducer {
-                producer_id: producer_id.clone(),
-            },
+            ScenarioAction::CloseTransactionalProducer(
+                testlab_schema::CloseTransactionalProducerAction {
+                    producer_id: producer_id.clone(),
+                },
+            ),
         ),
     );
     scenario.assertions.push(OperationAssertion {
@@ -129,6 +164,7 @@ fn transaction_scenario(
             TransactionDisposition::Commit => VisibilityExpectation::ExactlyOnce,
             TransactionDisposition::Abort => VisibilityExpectation::Absent,
         },
+        expected_error_code: None,
     });
     (scenario, operation_id, transaction_id, producer_id)
 }

@@ -12,10 +12,11 @@ use rdkafka::client::DefaultClientContext;
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use testlab_schema::{
     EnvironmentOperation, EnvironmentOperationKind, EnvironmentOperationStatus, Scenario,
-    ScenarioAction,
 };
 
 use crate::compose::DockerComposeEnvironment;
+use crate::compose_provision_targets::{SeedTarget, seed_targets, share_groups, topics};
+use crate::compose_seed;
 use crate::compose_support::elapsed_unix_ms;
 use crate::compose_topic_readiness;
 use crate::compose_types::ComposePhase;
@@ -28,6 +29,7 @@ impl DockerComposeEnvironment {
     pub fn provision(&mut self, scenario: &Scenario, timeout: Duration) -> ComposePhase {
         let topics = topics(scenario);
         let share_groups = share_groups(scenario);
+        let seed_targets = seed_targets(scenario);
         let mut phase = ComposePhase::default();
         let id = match self.operation_id() {
             Ok(id) => id,
@@ -40,15 +42,16 @@ impl DockerComposeEnvironment {
         let replication_factor = i32::from(self.cluster_size);
         let operation_started = Instant::now();
         let started_unix_ms = elapsed_unix_ms(self.started_unix_ms, self.started.elapsed());
-        let result = provision(
-            &endpoint,
-            &self.run_id.to_string(),
-            &topics,
-            &share_groups,
+        let result = provision(ProvisionRequest {
+            endpoint: &endpoint,
+            run_id: &self.run_id.to_string(),
+            topics: &topics,
+            share_groups: &share_groups,
+            seed_targets: &seed_targets,
             replication_factor,
             timeout,
-            &self.client_security,
-        );
+            security: &self.client_security,
+        });
         let completed_unix_ms = elapsed_unix_ms(started_unix_ms, operation_started.elapsed());
         let (status, diagnostic) = match result {
             Ok(()) => (EnvironmentOperationStatus::Succeeded, None),
@@ -67,7 +70,13 @@ impl DockerComposeEnvironment {
             id,
             kind: EnvironmentOperationKind::BrokerProvision,
             program: format!("librdkafka/{librdkafka_version}"),
-            args: operation_args(&endpoint, &topics, &share_groups, replication_factor),
+            args: operation_args(
+                &endpoint,
+                &topics,
+                &share_groups,
+                &seed_targets,
+                replication_factor,
+            ),
             started_unix_ms,
             completed_unix_ms,
             status,
@@ -80,15 +89,29 @@ impl DockerComposeEnvironment {
     }
 }
 
-fn provision(
-    endpoint: &str,
-    run_id: &str,
-    topics: &BTreeMap<String, i32>,
-    share_groups: &BTreeSet<String>,
+#[derive(Clone, Copy)]
+struct ProvisionRequest<'a> {
+    endpoint: &'a str,
+    run_id: &'a str,
+    topics: &'a BTreeMap<String, i32>,
+    share_groups: &'a BTreeSet<String>,
+    seed_targets: &'a BTreeSet<SeedTarget>,
     replication_factor: i32,
     timeout: Duration,
-    security: &ClientSecurity,
-) -> Result<(), String> {
+    security: &'a ClientSecurity,
+}
+
+fn provision(request: ProvisionRequest<'_>) -> Result<(), String> {
+    let ProvisionRequest {
+        endpoint,
+        run_id,
+        topics,
+        share_groups,
+        seed_targets,
+        replication_factor,
+        timeout,
+        security,
+    } = request;
     let deadline = Instant::now()
         .checked_add(timeout)
         .ok_or_else(|| "provisioning deadline overflowed".to_owned())?;
@@ -124,6 +147,7 @@ fn provision(
     }
     configure_share_groups(&admin, share_groups, deadline)?;
     compose_topic_readiness::wait(&admin, &expected_topics, replication_factor, deadline)?;
+    compose_seed::seed_records(endpoint, run_id, seed_targets, deadline, security)?;
     prove_idempotent_production(endpoint, run_id, remaining(deadline)?, security)
 }
 
@@ -155,7 +179,7 @@ fn configure_share_groups(
     Ok(())
 }
 
-fn remaining(deadline: Instant) -> Result<Duration, String> {
+pub(super) fn remaining(deadline: Instant) -> Result<Duration, String> {
     let remaining = deadline.saturating_duration_since(Instant::now());
     if remaining.is_zero() {
         Err("provisioning deadline elapsed".to_owned())
@@ -192,68 +216,11 @@ fn prove_idempotent_production(
         .map_err(|(error, _)| format!("idempotent readiness delivery failed: {error}"))
 }
 
-pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
-    let mut topics = BTreeMap::<String, i32>::new();
-    let admin_topics = scenario
-        .steps
-        .iter()
-        .filter_map(|step| match &step.action {
-            ScenarioAction::CreateTopic { topic, .. } => Some(topic.clone()),
-            _ => None,
-        })
-        .collect::<BTreeSet<_>>();
-    for step in &scenario.steps {
-        let records = match &step.action {
-            ScenarioAction::Send { record, .. } => std::slice::from_ref(record),
-            ScenarioAction::SendBatch { operations, .. }
-            | ScenarioAction::ExecuteTransaction { operations, .. } => {
-                for operation in operations {
-                    record_topic(&mut topics, &admin_topics, &operation.record);
-                }
-                continue;
-            }
-            ScenarioAction::FenceTransaction { operation, .. } => {
-                std::slice::from_ref(&operation.record)
-            }
-            _ => continue,
-        };
-        for record in records {
-            record_topic(&mut topics, &admin_topics, record);
-        }
-    }
-    topics
-}
-
-pub(super) fn share_groups(scenario: &Scenario) -> BTreeSet<String> {
-    scenario
-        .steps
-        .iter()
-        .filter_map(|step| match &step.action {
-            ScenarioAction::CreateShareConsumer { group_id, .. } => Some(group_id.clone()),
-            _ => None,
-        })
-        .collect()
-}
-
-fn record_topic(
-    topics: &mut BTreeMap<String, i32>,
-    admin_topics: &BTreeSet<String>,
-    record: &testlab_schema::RecordSpec,
-) {
-    if admin_topics.contains(&record.topic) {
-        return;
-    }
-    let partitions = record.partition.saturating_add(1);
-    topics
-        .entry(record.topic.clone())
-        .and_modify(|current| *current = (*current).max(partitions))
-        .or_insert(partitions);
-}
-
 pub(super) fn operation_args(
     endpoint: &str,
     topics: &BTreeMap<String, i32>,
     share_groups: &BTreeSet<String>,
+    seed_targets: &BTreeSet<SeedTarget>,
     replication_factor: i32,
 ) -> Vec<String> {
     let mut args = vec![
@@ -279,6 +246,16 @@ pub(super) fn operation_args(
             group_id.clone(),
             "--share-auto-offset-reset".to_owned(),
             "earliest".to_owned(),
+        ]);
+    }
+    for target in seed_targets {
+        args.extend([
+            "--seed-topic".to_owned(),
+            target.topic.clone(),
+            "--seed-partition".to_owned(),
+            target.partition.to_string(),
+            "--seed-record-count".to_owned(),
+            target.record_count.to_string(),
         ]);
     }
     args

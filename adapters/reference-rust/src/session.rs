@@ -5,14 +5,13 @@ use std::io::{self, BufRead, Read, Write};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
-use thiserror::Error;
 
+use crate::AdapterError;
 use crate::session_send;
-use crate::state::{AdapterState, StateError};
+use crate::state::AdapterState;
 
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
 const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
-
 /// Runs the adapter against process standard streams.
 pub fn run_stdio() -> Result<(), AdapterError> {
     let stdin = io::stdin();
@@ -59,6 +58,7 @@ where
     }
 }
 
+#[allow(clippy::too_many_lines, reason = "exhaustive protocol dispatcher")]
 fn dispatch<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
@@ -99,26 +99,54 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
-        command @ (AdapterCommand::CreateAssignedConsumer { .. }
+        command @ (AdapterCommand::StartConcurrentActors(_)
+        | AdapterCommand::JoinConcurrentActors { .. }
+        | AdapterCommand::CancelProducerSend(_)
+        | AdapterCommand::CreateConfiguredClient(_)
+        | AdapterCommand::ObserveClientMetrics(_)
+        | AdapterCommand::CreateAssignedConsumer { .. }
         | AdapterCommand::AssignBeginning { .. }
+        | AdapterCommand::AssignBeginningBatch(_)
+        | AdapterCommand::ControlAssignedConsumer(_)
         | AdapterCommand::Receive { .. }
         | AdapterCommand::CloseAssignedConsumer { .. }
         | AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
+        | AdapterCommand::ObserveGroupAssignments(_)
+        | AdapterCommand::GroupReceiveSet(_)
+        | AdapterCommand::ControlGroupConsumer(_)
+        | AdapterCommand::ShutdownGroupConsumer(_)
         | AdapterCommand::CloseGroupConsumer { .. }
         | AdapterCommand::CreateShareConsumer { .. }
         | AdapterCommand::ShareReceive { .. }
         | AdapterCommand::ShareAcknowledge { .. }
         | AdapterCommand::DropShareBatch { .. }
         | AdapterCommand::CloseShareConsumer { .. }
-        | AdapterCommand::CreateTopic { .. }
-        | AdapterCommand::CreatePartitions { .. }
-        | AdapterCommand::DescribeTopic { .. }
-        | AdapterCommand::ListTopics { .. }
-        | AdapterCommand::ListOffsets { .. }
+        | AdapterCommand::CreateTopic(_)
+        | AdapterCommand::CreateTopicsBatch(_)
+        | AdapterCommand::CreatePartitions(_)
+        | AdapterCommand::DeleteTopic(_)
+        | AdapterCommand::DescribeTopic(_)
+        | AdapterCommand::ListTopics(_)
+        | AdapterCommand::ListOffsets(_)
+        | AdapterCommand::DeleteRecords(_)
+        | AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::AlterTopicConfig(_)
+        | AdapterCommand::DescribeCluster(_)
+        | AdapterCommand::ListConsumerGroups(_)
+        | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::ListConsumerGroupOffsets(_)
+        | AdapterCommand::ListConsumerGroupOffsetsBatch(_)
+        | AdapterCommand::ListConsumerGroupsOffsets(_)
+        | AdapterCommand::AlterConsumerGroupOffset(_)
+        | AdapterCommand::AlterConsumerGroupOffsets(_)
+        | AdapterCommand::DeleteConsumerGroupOffset(_)
+        | AdapterCommand::DeleteConsumerGroupOffsets(_)
+        | AdapterCommand::DeleteConsumerGroup(_)
+        | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
+        | AdapterCommand::ExecuteTransactionalTransform(_)
         | AdapterCommand::FenceTransaction { .. }
         | AdapterCommand::CloseTransactionalProducer { .. }) => {
             return Err(AdapterError::Unsupported(
@@ -228,62 +256,4 @@ fn emit_fatal<W: Write>(
     );
     let _ = emit(writer, &event);
     Err(error)
-}
-
-/// Reference adapter protocol or lifecycle failure.
-#[derive(Debug, Error)]
-pub enum AdapterError {
-    /// Standard stream or model transport I/O failed.
-    #[error("adapter I/O failed: {0}")]
-    Io(#[from] std::io::Error),
-    /// One control message was malformed.
-    #[error("adapter JSON failed: {0}")]
-    Json(#[from] serde_json::Error),
-    /// One stable identifier was invalid.
-    #[error("adapter identity failed: {0}")]
-    Id(#[from] testlab_schema::IdError),
-    /// Public fixture lifecycle was invalid.
-    #[error("adapter state failed: {0}")]
-    State(String),
-    /// One batch command did not contain an operation.
-    #[error("adapter batch failed: {0}")]
-    Batch(String),
-    /// A command reached a capability this adapter does not declare.
-    #[error("unsupported adapter command: {0}")]
-    Unsupported(&'static str),
-    /// The harness used an unsupported protocol version.
-    #[error("unsupported protocol version {0}")]
-    ProtocolVersion(u16),
-    /// A command exceeded the bounded input size.
-    #[error("command exceeded {MAX_COMMAND_BYTES} bytes")]
-    CommandTooLarge,
-    /// One command ended without its JSON Lines delimiter.
-    #[error("command ended without a newline delimiter")]
-    IncompleteCommand,
-    /// The harness closed stdin before `finish` settled.
-    #[error("stdin closed before finish")]
-    UnexpectedEof,
-}
-
-impl AdapterError {
-    fn code(&self) -> &'static str {
-        match self {
-            Self::Io(_) => "adapter_io",
-            Self::Json(_) => "adapter_json",
-            Self::Id(_) => "adapter_identity",
-            Self::State(_) => "adapter_state",
-            Self::Batch(_) => "adapter_batch",
-            Self::Unsupported(_) => "adapter_unsupported",
-            Self::ProtocolVersion(_) => "protocol_version",
-            Self::CommandTooLarge => "command_too_large",
-            Self::IncompleteCommand => "incomplete_command",
-            Self::UnexpectedEof => "unexpected_eof",
-        }
-    }
-}
-
-impl From<StateError> for AdapterError {
-    fn from(error: StateError) -> Self {
-        Self::State(error.to_string())
-    }
 }

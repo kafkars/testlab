@@ -4,7 +4,7 @@ use std::io::Write;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{ErrorKind, RetryAdvice, Transaction, TransactionalProducer};
+use crate::kafkars_api::{ErrorKind, KafkaError, RetryAdvice, Transaction, TransactionalProducer};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId,
     TerminalStatus, TransactionDisposition,
@@ -202,7 +202,7 @@ pub(crate) fn send<W: Write>(
     )
 }
 
-fn end(
+pub(crate) fn end(
     transaction: Transaction<'_>,
     disposition: TransactionDisposition,
     deadline: Instant,
@@ -245,7 +245,7 @@ fn abort(mut transaction: Transaction<'_>, deadline: Instant) -> Result<(), Adap
     }
 }
 
-fn remaining(deadline: Instant) -> Result<Duration, AdapterError> {
+pub(crate) fn remaining(deadline: Instant) -> Result<Duration, AdapterError> {
     let remaining = deadline.saturating_duration_since(Instant::now());
     if remaining.is_zero() {
         Err(timeout_error("transaction command deadline elapsed"))
@@ -255,5 +255,5 @@ fn remaining(deadline: Instant) -> Result<Duration, AdapterError> {
 }
 
 fn timeout_error(message: &str) -> AdapterError {
-    AdapterError::Client(kafkars::KafkaError::new(ErrorKind::Timeout, message))
+    AdapterError::Client(KafkaError::new(ErrorKind::Timeout, message))
 }

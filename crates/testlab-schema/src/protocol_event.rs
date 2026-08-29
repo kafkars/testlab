@@ -1,4 +1,5 @@
 //! Adapter events normalize only facts exposed through a public client surface.
+#![allow(missing_docs, reason = "typed payload variants are self-describing")]
 
 use serde::{Deserialize, Serialize};
 
@@ -26,6 +27,8 @@ pub enum AdapterEvent {
         /// Ready client.
         client_id: ClientId,
     },
+    /// One complete public client metrics snapshot was observed.
+    ClientMetricsObserved(Box<crate::ClientMetricsObservation>),
     /// Public producer construction completed.
     ProducerCreated {
         /// Created producer.
@@ -54,10 +57,35 @@ pub enum AdapterEvent {
         /// Broker offset when exposed by the public surface.
         offset: Option<i64>,
     },
+    /// Two public cancellation requests completed on one retained observer.
+    ProducerCancellationCompleted(crate::ProducerCancellationCompletion),
     /// One public batch call emitted every per-operation outcome.
     BatchCompleted {
         /// Producer that handled the batch.
         producer_id: ProducerId,
+    },
+    /// Every declared actor crossed one shared public start boundary.
+    ConcurrentActorsStarted {
+        /// Stable concurrent group identity.
+        concurrency_id: crate::ConcurrencyId,
+        /// Exact caller-ordered actor identities.
+        actor_ids: Vec<crate::ActorId>,
+    },
+    /// One concurrent actor exposed its complete normal public outcome.
+    ConcurrentActorCompleted {
+        /// Stable concurrent group identity.
+        concurrency_id: crate::ConcurrencyId,
+        /// Stable actor identity.
+        actor_id: crate::ActorId,
+        /// Stable public operation identity owned by the actor.
+        operation_id: OperationId,
+    },
+    /// Every declared concurrent actor was joined in caller order.
+    ConcurrentActorsCompleted {
+        /// Stable concurrent group identity.
+        concurrency_id: crate::ConcurrencyId,
+        /// Exact caller-ordered actor identities.
+        actor_ids: Vec<crate::ActorId>,
     },
     /// One directly assigned consumer was claimed.
     AssignedConsumerCreated {
@@ -69,6 +97,8 @@ pub enum AdapterEvent {
         /// Assigned consumer.
         consumer_id: ConsumerId,
     },
+    /// One operation-identified direct-consumer control completed.
+    AssignedConsumerControlCompleted(crate::AssignedConsumerControlCompletion),
     /// One bounded receive observation completed.
     ReceiveCompleted {
         /// Stable receive operation identity.
@@ -97,7 +127,12 @@ pub enum AdapterEvent {
         /// Public group metadata observed after the commit.
         group_epoch: Option<GroupMembershipEpoch>,
     },
-    /// One group consumer closed.
+    /// Stable public assignment snapshots and transitions were observed.
+    GroupAssignmentsObserved(crate::GroupAssignmentsObservation),
+    /// One multi-member group receive and commit operation completed.
+    GroupReceiveSetCompleted(crate::GroupReceiveSetCompletion),
+    GroupConsumerControlCompleted(crate::GroupConsumerControlCompletion),
+    GroupConsumerShutdownCompleted(crate::GroupConsumerShutdownCompletion),
     GroupConsumerClosed {
         /// Closed consumer.
         consumer_id: ConsumerId,
@@ -115,6 +150,8 @@ pub enum AdapterEvent {
         receive_id: OperationId,
         /// Exact records returned by the public API.
         records: Vec<ShareConsumedRecord>,
+        /// Number of broker acquisition ranges retained by the public batch.
+        acquisition_count: usize,
         /// Positive broker member epoch when observed.
         member_epoch: Option<i32>,
         /// Positive local assignment fence when observed.
@@ -126,8 +163,8 @@ pub enum AdapterEvent {
         acknowledgement_id: OperationId,
         /// Retained batch consumed by the acknowledgement.
         receive_id: OperationId,
-        /// Public disposition sent for every record.
-        disposition: ShareDisposition,
+        /// Public dispositions sent in retained record order.
+        dispositions: Vec<ShareDisposition>,
         /// Whether every partition reached a successful broker terminal.
         success: bool,
         /// Exact delivery certainty for a failed acknowledgement.
@@ -152,59 +189,55 @@ pub enum AdapterEvent {
         code: Option<String>,
     },
     /// One public admin topic creation completed successfully.
-    TopicCreated {
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact topic reported by the public batch result.
-        topic: String,
-    },
+    TopicCreated(crate::AdminTopicCompletion),
+    /// One public admin topic-creation request validated without mutation.
+    TopicCreationValidated(crate::AdminTopicCompletion),
+    /// One public admin batch topic-creation call returned ordered outcomes.
+    TopicsCreationCompleted(crate::AdminTopicsCreationBatch),
     /// One public admin partition-count increase completed successfully.
-    TopicPartitionsCreated {
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact topic reported by the public batch result.
-        topic: String,
-    },
+    TopicPartitionsCreated(crate::AdminTopicCompletion),
+    /// One public partition-count increase validated without mutation.
+    TopicPartitionIncreaseValidated(crate::AdminTopicCompletion),
+    /// One public admin topic deletion completed successfully.
+    TopicDeleted(crate::AdminTopicCompletion),
     /// One public admin topic description completed successfully.
-    TopicDescribed {
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact topic reported by the public batch result.
-        topic: String,
-        /// Exact partition indices reported by the public result.
-        partitions: Vec<i32>,
-    },
+    TopicDescribed(crate::AdminTopicDescription),
     /// One public admin topic listing completed successfully.
-    TopicsListed {
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact topics reported by the public result.
-        topics: Vec<String>,
-    },
+    TopicsListed(crate::AdminTopicsListing),
     /// One public admin offset listing completed successfully.
-    OffsetListed {
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact topic reported by the public result.
-        topic: String,
-        /// Exact partition reported by the public result.
-        partition: i32,
-        /// Selected offset, or absence when Kafka reported none.
-        offset: Option<i64>,
-    },
+    OffsetListed(crate::AdminOffsetListing),
+    /// One public admin prefix deletion completed successfully.
+    RecordsDeleted(crate::AdminRecordsDeleted),
+    /// One selected public topic configuration was described.
+    TopicConfigDescribed(crate::AdminTopicConfigDescription),
+    /// One selected public topic configuration was replaced.
+    TopicConfigAltered(crate::AdminTopicConfigCompletion),
+    /// One selected topic-configuration replacement validated without mutation.
+    TopicConfigAlterationValidated(crate::AdminTopicConfigCompletion),
+    /// One public admin cluster description completed successfully.
+    ClusterDescribed(crate::AdminClusterDescription),
+    /// One public admin consumer-group listing completed successfully.
+    ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
+    /// One public admin consumer-group description completed successfully.
+    ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     /// One public admin consumer-group offset listing completed successfully.
-    ConsumerGroupOffsetListed {
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact Kafka consumer-group identity requested by the public operation.
-        group_id: String,
-        /// Exact topic reported by the public result.
-        topic: String,
-        /// Exact partition reported by the public result.
-        partition: i32,
-        /// Committed offset, or absence when Kafka reported none.
-        offset: Option<i64>,
-    },
+    ConsumerGroupOffsetListed(crate::AdminConsumerGroupOffsetListing),
+    /// One public single-group offset batch listing returned ordered outcomes.
+    ConsumerGroupOffsetsListed(crate::AdminConsumerGroupOffsetsListing),
+    /// One public multi-group offset listing returned ordered outcomes.
+    ConsumerGroupsOffsetsListed(crate::AdminConsumerGroupsOffsetsListing),
+    /// One public admin consumer-group offset alteration completed successfully.
+    ConsumerGroupOffsetAltered(crate::AdminConsumerGroupOffsetCompletion),
+    /// One public plural offset alteration returned ordered outcomes.
+    ConsumerGroupOffsetsAltered(crate::AdminConsumerGroupOffsetsMutation),
+    /// One public admin consumer-group offset deletion completed successfully.
+    ConsumerGroupOffsetDeleted(crate::AdminConsumerGroupOffsetCompletion),
+    /// One public plural offset deletion returned ordered outcomes.
+    ConsumerGroupOffsetsDeleted(crate::AdminConsumerGroupOffsetsMutation),
+    /// One public admin consumer-group deletion completed successfully.
+    ConsumerGroupDeleted(crate::AdminConsumerGroupCompletion),
+    /// One public classic-group batch description returned ordered outcomes.
+    ClassicGroupsDescribed(crate::AdminClassicGroupsDescription),
     /// Public transactional producer initialization completed.
     TransactionalProducerCreated {
         /// Created transactional producer.
@@ -217,6 +250,8 @@ pub enum AdapterEvent {
         /// Observed commit or abort outcome.
         disposition: TransactionDisposition,
     },
+    /// One public transactional transform and checkpoint transfer completed.
+    TransactionalTransformCompleted(crate::TransactionalTransformCompletion),
     /// One old transaction exposed its public commit result after replacement initialization.
     TransactionFenceCompleted {
         /// Stable fenced transaction identity.

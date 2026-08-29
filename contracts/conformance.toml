@@ -19,39 +19,207 @@ statement = "A normalized public client API failure produces valid failing evide
 category = "client"
 
 [[contract]]
+id = "METRICS-001"
+title = "Client metrics observations retain exact ownership"
+statement = "Each requested public metrics operation has one issued command and one correlated snapshot naming the exact client and operation."
+category = "metrics"
+
+[[contract]]
+id = "METRICS-002"
+title = "Client metrics counters remain coherent"
+statement = "Every public snapshot preserves cumulative call, failure, mailbox capacity, latency summary, producer throughput, and request-concurrency invariants."
+category = "metrics"
+
+[[contract]]
+id = "METRICS-003"
+title = "Client metrics expose declared producer progress and state"
+statement = "A public snapshot after flush reaches the declared produced-record floor and exposes the exact required idle, accepting, and healthy producer state."
+category = "metrics"
+
+[[contract]]
+id = "ADV-001"
+title = "Protocol faults are controlled exactly once"
+statement = "Each declared protocol fault has one exact stable environment control before any correlated application."
+category = "adversary"
+
+[[contract]]
+id = "ADV-002"
+title = "Protocol fault applications match the replay script"
+statement = "Each adversary control is applied to the exact declared Kafka API, fault, and bounded application count."
+category = "adversary"
+
+[[contract]]
+id = "ADV-003"
+title = "Adversary wire evidence is independently coherent"
+statement = "The external adversary exits successfully and records contiguous request observations with coherent byte counts and fault correlations."
+category = "adversary"
+
+[[contract]]
+id = "ADV-004"
+title = "Metadata faults produce the declared public outcome"
+statement = "A metadata-path fault yields either one exact normalized public failure with no success or the one exact declared success, according to scenario intent."
+category = "adversary"
+
+[[contract]]
 id = "ADMIN-001"
 title = "Admin topic creation settles exactly once"
-statement = "Each requested public topic creation emits exactly one completion naming the exact operation and topic."
+statement = "Each requested public topic creation emits exactly one completion naming the exact operation and topic, whose requested partitions are confirmed by an immediate independent metadata query."
 category = "admin"
 
 [[contract]]
 id = "ADMIN-002"
 title = "Admin partition creation settles exactly once"
-statement = "Each requested public partition-count increase emits exactly one completion naming the exact operation and topic."
+statement = "Each requested public partition-count increase emits exactly one completion naming the exact operation and topic, whose requested total partition set is confirmed by an immediate independent metadata query."
 category = "admin"
 
 [[contract]]
 id = "ADMIN-003"
 title = "Admin topic description matches exercised partitions"
-statement = "Each requested public topic description emits exactly one completion naming the exact operation and topic and reporting the declared partition indices, each independently exercised by a broker-visible record."
+statement = "Each requested public topic description emits exactly one completion naming the exact operation and topic and reporting the declared partition indices confirmed by an immediate independent metadata query."
 category = "admin"
 
 [[contract]]
 id = "ADMIN-004"
 title = "Admin topic listing contains required observed topics"
-statement = "Each requested public all-topic listing emits exactly one byte-sorted unique completion containing every declared required topic whose existence is independently established by a broker-visible record."
+statement = "Each requested public all-topic listing emits exactly one byte-sorted unique completion containing every declared required topic whose existence is confirmed by an immediate independent metadata query."
 category = "admin"
 
 [[contract]]
 id = "ADMIN-005"
-title = "Admin latest-offset listing matches broker observations"
-statement = "Each requested public latest-offset query emits exactly one completion for the exact topic-partition and returns the declared end offset one past its greatest independently observed broker offset."
+title = "Admin selected-offset listing matches broker observations"
+statement = "Each requested public earliest or latest offset query emits exactly one completion for the exact topic-partition and matches independent broker records: earliest requires an observed offset 0, while latest is one past the greatest observed offset."
 category = "admin"
 
 [[contract]]
 id = "ADMIN-006"
 title = "Admin consumer-group offset listing matches broker state"
 statement = "Each requested public consumer-group offset query emits exactly one completion for the exact group and topic-partition and returns the declared committed offset confirmed by an independent broker-state query."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-007"
+title = "Admin topic deletion removes a described topic"
+statement = "Each requested public topic deletion emits exactly one completion for the exact operation and previously described topic, whose absence is then confirmed by an independent broker-state query."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-008"
+title = "Admin cluster description matches broker state"
+statement = "Each requested public cluster description emits exactly one completion whose cluster identity and broker IDs match an independent broker-state query and the environment topology."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-009"
+title = "Admin consumer-group listing contains required groups"
+statement = "Each requested public consumer-group listing emits exactly one completion without broker-local errors and contains every declared required group confirmed by an independent broker-state query."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-010"
+title = "Admin consumer-group description matches live membership"
+statement = "Each requested public consumer-group description emits exactly one completion for the exact group and declared member count confirmed by an independent broker-state query while the described membership is unchanged."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-011"
+title = "Admin consumer-group offset alteration changes broker state"
+statement = "Each requested public consumer-group offset alteration emits exactly one completion for the exact group and topic-partition and changes its independently observed committed offset from the declared baseline to the requested offset."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-012"
+title = "Admin consumer-group offset deletion removes one checkpoint"
+statement = "Each requested public consumer-group offset deletion emits exactly one completion for the exact group and topic-partition and changes its independently observed committed offset from the declared baseline to explicit absence."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-013"
+title = "Admin consumer-group deletion removes an empty group"
+statement = "Each requested public consumer-group deletion emits exactly one completion for the exact previously described empty group, whose absence is then confirmed by an independent broker-state query."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-014"
+title = "Duplicate admin topic creation is rejected without mutation"
+statement = "A repeated public creation of an identically declared topic reports the exact normalized topic-already-exists error, emits no success completion, and leaves the independently observed partition set unchanged."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-015"
+title = "Admin topic-configuration description matches broker state"
+statement = "Each requested public topic-configuration description emits exactly one completion for the exact topic and selected key whose non-sensitive value matches an immediate independent broker query."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-016"
+title = "Admin topic-configuration alteration changes broker state"
+statement = "Each requested public incremental topic-configuration replacement emits exactly one completion for the exact topic and key and changes its independently observed value from the declared baseline to the requested value."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-017"
+title = "Admin record deletion advances one partition low watermark"
+statement = "Each requested public record deletion emits exactly one completion for the exact topic-partition and reported low watermark, while immediate independent watermark queries prove the declared nonempty range changed only by advancing its low watermark to the requested cutoff."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-018"
+title = "Batched admin topic creation preserves per-topic outcomes"
+statement = "One public batched topic-creation call emits exactly one ordered per-topic outcome list, including mixed success and expected duplicate-topic failure, while immediate independent metadata confirms every requested topic and partition set."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-019"
+title = "Missing admin resources fail without mutation"
+statement = "A public topic or partition operation targeting a declared missing resource reports the exact normalized unknown-topic-or-partition error, emits no success completion, and leaves the independently observed topic state unchanged."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-020"
+title = "Topic creation validation does not create the topic"
+statement = "A validate-only public topic-creation request emits exactly one distinct validation completion, emits no creation completion, and an immediate independent metadata query proves the topic remains absent."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-021"
+title = "Partition-increase validation preserves topology"
+statement = "A validate-only public partition increase starts from an independently observed exact topology, emits exactly one distinct validation completion and no mutation completion, and an immediate independent metadata query proves the partition set remains unchanged."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-022"
+title = "Topic-configuration validation preserves the current value"
+statement = "A validate-only public topic-configuration replacement starts from an independently observed exact value, emits exactly one distinct validation completion and no mutation completion, and an immediate independent configuration query proves the value remains unchanged."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-023"
+title = "Single-group offset batches preserve caller order"
+statement = "One public multi-partition consumer-group offset query returns exactly one ordered per-partition outcome list with no resource errors, and immediate independent broker queries confirm every requested committed offset in the same caller order."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-024"
+title = "Multi-group offset listings preserve nested caller order"
+statement = "One public selected-offset query for multiple consumer groups returns exactly one ordered group and partition outcome tree with no resource errors, and immediate independent broker queries confirm every requested committed offset in the same nested caller order."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-025"
+title = "Plural group-offset alteration changes every listed baseline"
+statement = "One public plural consumer-group offset alteration returns exactly one ordered successful outcome for every requested partition, while immediate independent broker queries prove each exact post-state differs from a prior independently corroborated listing."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-026"
+title = "Plural group-offset deletion removes every listed baseline"
+statement = "One public plural consumer-group offset deletion returns exactly one ordered successful outcome for every requested partition, while immediate independent broker queries prove absence for each previously and independently corroborated committed offset."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-027"
+title = "Classic-group batch descriptions prove live classic membership"
+statement = "One dedicated public classic-group description returns exactly one ordered successful outcome per requested group, immediate independent broker facts confirm every member count, and each modeled live member has a prior successful receive with a positive classic membership epoch."
 category = "admin"
 
 [[contract]]
@@ -62,14 +230,44 @@ category = "transaction"
 
 [[contract]]
 id = "TXN-002"
-title = "Read-committed visibility matches transaction outcome"
-statement = "Committed records are independently visible exactly once and aborted records remain absent."
+title = "Read-committed visibility is atomic for the declared set"
+statement = "Every operation in a committed transaction set is independently visible exactly once, while every operation in an aborted set remains absent from read-committed observation."
 category = "transaction"
 
 [[contract]]
 id = "TXN-003"
 title = "Replacement ownership fences an active transaction"
 statement = "A replacement transactional producer makes the old commit report fenced and the old staged records remain absent from read-committed observation."
+category = "transaction"
+
+[[contract]]
+id = "TXN-004"
+title = "Transactions stage the full declared set exactly once"
+statement = "Every declared operation is publicly accepted and transaction-staged exactly once before its transaction completion."
+category = "transaction"
+
+[[contract]]
+id = "TXN-005"
+title = "Committed sets preserve records, coordinates, and order"
+statement = "Every committed operation matches its declared bytes and independent topic, partition, and offset, and caller order is strictly increasing within each partition."
+category = "transaction"
+
+[[contract]]
+id = "TXN-006"
+title = "Successive transaction dispositions do not overlap"
+statement = "Transactions issued successively on one public producer begin only after the prior transaction's exact completion boundary."
+category = "transaction"
+
+[[contract]]
+id = "TXN-007"
+title = "Transactional transforms retain exact public input fences"
+statement = "Each transactional transform exposes one exact independently observed input record, its positive protocol-specific membership epoch, and the assignment-fenced next-offset checkpoint transferred through the public transaction."
+category = "transaction"
+
+[[contract]]
+id = "TXN-008"
+title = "Transactional checkpoint disposition is atomic"
+statement = "A committed transform independently exposes its exact group checkpoint, while an aborted transform leaves that checkpoint unadvanced and the exact input record is redelivered after restart."
 category = "transaction"
 
 [[contract]]
@@ -151,9 +349,69 @@ statement = "A successful group receive commits the assignment-fenced checkpoint
 category = "consumer"
 
 [[contract]]
+id = "FAULT-001"
+title = "Broker role replacement is independently observed"
+statement = "One exact role target has one successful pre-stop owner observation and one successful post-election observation with distinct broker and service identities."
+category = "fault"
+
+[[contract]]
+id = "FAULT-002"
+title = "Broker role disruption terminals are complete"
+statement = "The independently selected original owner has one successful stop, one later successful start of that same service, and one immediately following successful readiness probe."
+category = "fault"
+
+[[contract]]
+id = "FAULT-003"
+title = "Public progress survives broker role replacement"
+statement = "Role-specific public progress completes after replacement election and before the original owner is restored."
+category = "fault"
+
+[[contract]]
 id = "CONS-004"
 title = "Group receive proves the requested membership protocol"
 statement = "A group receive exposes a positive public classic generation or KIP-848 member epoch matching the scenario's requested protocol."
+category = "consumer"
+
+[[contract]]
+id = "CONS-005"
+title = "Group assignment observation settles exactly once"
+statement = "Each requested stable group assignment observation emits exactly one correlated completion."
+category = "consumer"
+
+[[contract]]
+id = "CONS-006"
+title = "Group partition ownership is complete and disjoint"
+statement = "The stable public member assignments have the exact expected partition union with no partition simultaneously owned by multiple members."
+category = "consumer"
+
+[[contract]]
+id = "CONS-007"
+title = "Group assignments retain matching live public fences"
+statement = "Stable assignments and transitions preserve caller member order, unique broker member identities, and positive protocol-matching membership and assignment epochs."
+category = "consumer"
+
+[[contract]]
+id = "CONS-008"
+title = "Multi-member receive commits the exact record set"
+statement = "A group receive set returns every scenario-expected record exactly once and commits every assignment-fenced public checkpoint."
+category = "consumer"
+
+[[contract]]
+id = "CONS-009"
+title = "Group records follow the stable owner assignment"
+statement = "Every record in a multi-member receive is attributed to the member that owned its topic-partition in the latest stable public assignment."
+category = "consumer"
+
+[[contract]]
+id = "CONS-010"
+title = "Membership changes redistribute public ownership"
+statement = "A join or leave changes the stable public member assignments and exposes at least one public assignment transition."
+category = "consumer"
+
+[[contract]]
+id = "CONS-011"
+title = "Group progress survives every three-broker disruption"
+statement = "Three distinct successful broker stop and start pairs each contain a committed group receive while the broker remains stopped."
 category = "consumer"
 
 [[contract]]
@@ -187,6 +445,12 @@ statement = "Each delivered share batch is correlated to positive broker members
 category = "consumer"
 
 [[contract]]
+id = "SHARE-006"
+title = "Share records match independent broker coordinates and bytes"
+statement = "Every exact public Share acquisition reports the same topic, partition, offset, key, value, and ordered headers as its independently observed producer record."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-001"
 title = "Client creation settles exactly once"
 statement = "Each requested client creation emits exactly one matching event."
@@ -201,7 +465,7 @@ category = "lifecycle"
 [[contract]]
 id = "LIFE-003"
 title = "Producer flush settles exactly once"
-statement = "Each requested producer flush emits exactly one matching event."
+statement = "Each requested producer flush emits exactly one matching event correlated to its originating command, including repeated flushes on one producer."
 category = "lifecycle"
 
 [[contract]]
@@ -237,7 +501,7 @@ category = "lifecycle"
 [[contract]]
 id = "LIFE-009"
 title = "Direct assignment settles exactly once"
-statement = "Each requested direct assignment emits exactly one matching event."
+statement = "Each requested direct assignment emits exactly one matching event correlated to its originating command, including replacement and beginning-reset assignments on one consumer."
 category = "lifecycle"
 
 [[contract]]
@@ -268,4 +532,148 @@ category = "lifecycle"
 id = "LIFE-014"
 title = "Transactional producer close settles exactly once"
 statement = "Each requested transactional producer close emits exactly one matching event."
+category = "lifecycle"
+
+[[contract]]
+id = "POLICY-001"
+title = "Broker policy transitions are exact and independently observed"
+statement = "Every declared ACL or quota apply and removal has one successful external alter terminal, one successful raw query terminal, and one normalized fact in exact order."
+category = "policy"
+
+[[contract]]
+id = "POLICY-002"
+title = "Active deny ACLs produce exact public authorization failures"
+statement = "A public operation exercised while an independently confirmed deny ACL is active reports the exact normalized Kafka authorization code and no contradictory success."
+category = "policy"
+
+[[contract]]
+id = "POLICY-003"
+title = "Removing deny ACLs restores independently corroborated progress"
+statement = "After independent confirmation that a deny ACL is absent, the same resource supports successful public progress corroborated by broker-visible truth where the operation mutates state."
+category = "policy"
+
+[[contract]]
+id = "POLICY-004"
+title = "Client quotas remain active during bounded public progress"
+statement = "An independently confirmed producer or consumer byte-rate quota remains configured for the declared minimum wall-clock window while a bounded public operation makes progress."
+category = "policy"
+
+[[contract]]
+id = "NET-001"
+title = "Network controls have exact independently recorded effects"
+statement = "Every declared network fault control is recorded exactly once and every completed cut or fault window has one coherent proxy observation tied to the exact controls."
+category = "network"
+
+[[contract]]
+id = "NET-002"
+title = "The external network proxy completes successfully"
+statement = "A network-fault scenario has exactly one successful supervised external proxy process operation."
+category = "network"
+
+[[contract]]
+id = "NET-003"
+title = "Active network faults produce the declared public behavior"
+statement = "A producer operation inside each exact fault window reaches the deterministic terminal state required for that fault while the proxy independently records its effect."
+category = "network"
+
+[[contract]]
+id = "NET-004"
+title = "Network restoration recovers public producer progress"
+statement = "Every fault removal and connection cut is followed by a later acknowledged producer operation through the public proxy endpoint."
+category = "network"
+
+[[contract]]
+id = "PROD-009"
+title = "Producer failures retain the exact declared public code"
+statement = "A producer operation with a declared failure expectation emits exactly one matching normalized rejection or terminal error code."
+category = "producer"
+
+[[contract]]
+id = "PROD-010"
+title = "Producer terminal offsets match independent broker observations"
+statement = "Every acknowledged producer terminal reports the exact independently observed Kafka offset, while uncertain or failed terminals report no offset."
+category = "producer"
+
+[[contract]]
+id = "PROD-011"
+title = "Same-partition producer order matches broker offsets"
+statement = "Sequential public sends and caller-ordered batch records for one topic-partition appear at strictly increasing broker offsets."
+category = "producer"
+
+[[contract]]
+id = "PROD-012"
+title = "Producer cancellation remains stage-aware and monotonic"
+statement = "Two public cancellation requests preserve stage uncertainty, never regress to a stronger cancellation promise, and agree with the retained observer's authoritative terminal result."
+category = "producer"
+
+[[contract]]
+id = "CONS-012"
+title = "Consumer records match independent broker coordinates and bytes"
+statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."
+category = "consumer"
+
+[[contract]]
+id = "CONS-013"
+title = "Assigned-consumer controls preserve exact public identity"
+statement = "Every issued direct-consumer replacement, incremental assignment, seek, pause, or resume command has one exact operation-identified public completion."
+category = "consumer"
+
+[[contract]]
+id = "CONS-014"
+title = "Group-consumer controls preserve exact public identity"
+statement = "Every issued hosted group-consumer pause, resume, or seek command has one exact operation-identified public completion."
+category = "consumer"
+
+[[contract]]
+id = "CONCUR-001"
+title = "Concurrent groups have exact external start and join boundaries"
+statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
+category = "concurrency"
+
+[[contract]]
+id = "CONCUR-002"
+title = "Concurrent actor membership remains exact"
+statement = "Start commands, boundary events, and per-actor completions preserve the caller-ordered actor and operation identities exactly once."
+category = "concurrency"
+
+[[contract]]
+id = "CONCUR-003"
+title = "Concurrent public outcomes remain inside the joined window"
+statement = "Each actor emits its normal complete public outcome under the join command after external start and before the ordered group completion."
+category = "concurrency"
+
+[[contract]]
+id = "CONCUR-004"
+title = "Concurrent operations retain independent truth"
+statement = "Concurrent sends satisfy their independent broker-visibility expectation and concurrent receives return the exact declared public record."
+category = "concurrency"
+
+[[contract]]
+id = "SHARE-007"
+title = "Share batches preserve the exact ordered record set"
+statement = "A multi-record Share receive returns every declared record exactly once in public batch order with positive membership fences."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-008"
+title = "Share batches preserve record-specific decisions"
+statement = "One Share acknowledgement reports exactly one caller-ordered disposition for every record retained by its correlated public batch."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-009"
+title = "Share batch redelivery retains exact attempts"
+statement = "Released or dropped Share records return as the exact declared record set with increased delivery counts, while settled siblings do not replace them."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-010"
+title = "Configured Share acquisition ranges remain exact"
+statement = "A configured Share receive reports the exact public acquisition-range count while every retained record remains bound to independent broker truth."
+category = "consumer"
+
+[[contract]]
+id = "LIFE-015"
+title = "Hosted group shutdown observes public termination"
+statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."
 category = "lifecycle"

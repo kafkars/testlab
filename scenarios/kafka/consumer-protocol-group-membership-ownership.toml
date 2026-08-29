@@ -1,0 +1,276 @@
+schema_version = 37
+id = "kafka.consumer-protocol-group-membership-ownership"
+title = "two KIP-848 members redistribute one complete disjoint assignment"
+description = "Public assignment snapshots prove complete pairwise-disjoint ownership before and after a second KIP-848 member joins and leaves, while exact committed records and independent group descriptions corroborate live progress."
+timeout_ms = 300000
+requires = ["producer", "producer_batch", "consumer_protocol_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client-1"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client-1"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-client-2"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "ready-client-2"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "create-member-1"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-consumer-protocol-ownership-group"
+topic = "testlab-kafkars-consumer-protocol-ownership"
+protocol = "consumer"
+
+[[steps]]
+id = "observe-single-member"
+kind = "observe_group_assignments"
+operation_id = "observe-single-member"
+consumer_ids = ["consumer-1"]
+partitions = [
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 0 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 1 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 2 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 3 },
+]
+timeout_ms = 45000
+
+[[steps]]
+id = "create-member-2"
+kind = "create_group_consumer"
+client_id = "client-2"
+consumer_id = "consumer-2"
+group_id = "testlab-consumer-protocol-ownership-group"
+topic = "testlab-kafkars-consumer-protocol-ownership"
+protocol = "consumer"
+
+[[steps]]
+id = "observe-two-members"
+kind = "observe_group_assignments"
+operation_id = "observe-two-members"
+consumer_ids = ["consumer-1", "consumer-2"]
+partitions = [
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 0 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 1 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 2 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 3 },
+]
+timeout_ms = 45000
+
+[[steps]]
+id = "send-during-two-member-ownership"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-two-member-0"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "two-member-0" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-0" } }]
+
+[[steps.operations]]
+operation_id = "op-two-member-1"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 1
+sequence = 2
+value = { encoding = "utf8", data = "two-member-1" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-1" } }]
+
+[[steps.operations]]
+operation_id = "op-two-member-2"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 2
+sequence = 3
+value = { encoding = "utf8", data = "two-member-2" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-2" } }]
+
+[[steps.operations]]
+operation_id = "op-two-member-3"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 3
+sequence = 4
+value = { encoding = "utf8", data = "two-member-3" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-3" } }]
+
+[[steps]]
+id = "receive-across-two-members"
+kind = "group_receive_set"
+receive_id = "receive-two-members"
+consumer_ids = ["consumer-1", "consumer-2"]
+expected_operation_ids = ["op-two-member-0", "op-two-member-1", "op-two-member-2", "op-two-member-3"]
+timeout_ms = 45000
+
+[[steps]]
+id = "describe-two-members"
+kind = "describe_consumer_group"
+client_id = "client-1"
+operation_id = "describe-two-members"
+group_id = "testlab-consumer-protocol-ownership-group"
+expected_member_count = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "close-member-2"
+kind = "close_group_consumer"
+consumer_id = "consumer-2"
+
+[[steps]]
+id = "observe-survivor"
+kind = "observe_group_assignments"
+operation_id = "observe-survivor"
+consumer_ids = ["consumer-1"]
+partitions = [
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 0 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 1 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 2 },
+  { topic = "testlab-kafkars-consumer-protocol-ownership", partition = 3 },
+]
+timeout_ms = 45000
+
+[[steps]]
+id = "send-after-leave"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-survivor-0"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 0
+sequence = 5
+value = { encoding = "utf8", data = "survivor-0" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-0" } }]
+
+[[steps.operations]]
+operation_id = "op-survivor-1"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 1
+sequence = 6
+value = { encoding = "utf8", data = "survivor-1" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-1" } }]
+
+[[steps.operations]]
+operation_id = "op-survivor-2"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 2
+sequence = 7
+value = { encoding = "utf8", data = "survivor-2" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-2" } }]
+
+[[steps.operations]]
+operation_id = "op-survivor-3"
+[steps.operations.record]
+topic = "testlab-kafkars-consumer-protocol-ownership"
+partition = 3
+sequence = 8
+value = { encoding = "utf8", data = "survivor-3" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-3" } }]
+
+[[steps]]
+id = "receive-after-leave"
+kind = "group_receive_set"
+receive_id = "receive-survivor"
+consumer_ids = ["consumer-1"]
+expected_operation_ids = ["op-survivor-0", "op-survivor-1", "op-survivor-2", "op-survivor-3"]
+timeout_ms = 45000
+
+[[steps]]
+id = "describe-survivor"
+kind = "describe_consumer_group"
+client_id = "client-1"
+operation_id = "describe-survivor"
+group_id = "testlab-consumer-protocol-ownership-group"
+expected_member_count = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "close-member-1"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client-2"
+kind = "shutdown_client"
+client_id = "client-2"
+
+[[steps]]
+id = "shutdown-client-1"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-two-member-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-two-member-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-two-member-2"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-two-member-3"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-survivor-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-survivor-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-survivor-2"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+[[assertions]]
+operation_id = "op-survivor-3"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -24,7 +24,7 @@ pub enum AdapterError {
     State(String),
     /// A packaged public Kafkars operation failed.
     #[error("packaged Kafkars operation failed: {0}")]
-    Client(kafkars::KafkaError),
+    Client(crate::kafkars_api::KafkaError),
     /// A public batch result did not correspond to its exact input.
     #[error("packaged Kafkars batch result was invalid: {0}")]
     BatchResult(String),
@@ -61,7 +61,7 @@ impl From<StateError> for AdapterError {
 }
 
 impl AdapterError {
-    pub(crate) const fn client_failure(&self) -> Option<&kafkars::KafkaError> {
+    pub(crate) const fn client_failure(&self) -> Option<&crate::kafkars_api::KafkaError> {
         match self {
             Self::Client(error) => Some(error),
             _ => None,

@@ -2,7 +2,7 @@
 
 use std::io::Cursor;
 
-use kafkars::{ErrorKind, KafkaError};
+use crate::kafkars_api::{ErrorKind, KafkaError};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdapterSecurity, ClientId, CommandEnvelope,
     CommandId, RunId, ScenarioId,

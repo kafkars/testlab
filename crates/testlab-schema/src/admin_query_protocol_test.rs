@@ -1,15 +1,16 @@
 //! Read-only admin wire tests separate verifier expectations from public facts.
 
 use super::{
-    AdapterCommand, AdapterEvent, AdminOffsetPosition, ClientId, DescribeTopicAction,
-    ListOffsetsAction, ListTopicsAction, OperationId, PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION,
-    ScenarioAction,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription,
+    AdminTopicsListing, ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction,
+    ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION,
+    SCENARIO_SCHEMA_VERSION, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 16);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 14);
+    assert_eq!(PROTOCOL_VERSION, 34);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 37);
 }
 
 #[test]
@@ -18,15 +19,16 @@ fn describe_topic_command_excludes_expected_partitions() {
         client_id: client(),
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
-        expected_partitions: vec![0, 1],
+        expected_partitions: Some(vec![0, 1]),
+        expected_error_code: None,
         timeout_ms: 1_000,
     });
-    let command = AdapterCommand::DescribeTopic {
+    let command = AdapterCommand::DescribeTopic(DescribeTopicCommand {
         client_id: client(),
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
         timeout_ms: 1_000,
-    };
+    });
 
     let action = encode_action(&action);
     let command = encode(&command);
@@ -46,12 +48,12 @@ fn list_topics_command_excludes_required_topics() {
         required_topics: vec!["records".to_owned()],
         timeout_ms: 1_000,
     });
-    let command = AdapterCommand::ListTopics {
+    let command = AdapterCommand::ListTopics(ListTopicsCommand {
         client_id: client(),
         operation_id: operation("admin-topics-1"),
         include_internal: false,
         timeout_ms: 1_000,
-    };
+    });
 
     let action = encode_action(&action);
     let command = encode(&command);
@@ -71,17 +73,18 @@ fn list_offsets_command_excludes_expected_offset() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetPosition::Latest,
-        expected_offset: 3,
+        expected_offset: Some(3),
+        expected_error_code: None,
         timeout_ms: 1_000,
     });
-    let command = AdapterCommand::ListOffsets {
+    let command = AdapterCommand::ListOffsets(ListOffsetsCommand {
         client_id: client(),
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetPosition::Latest,
         timeout_ms: 1_000,
-    };
+    });
 
     let action = encode_action(&action);
     let command = encode(&command);
@@ -95,21 +98,21 @@ fn list_offsets_command_excludes_expected_offset() {
 
 #[test]
 fn admin_query_events_report_only_observed_facts() {
-    let described = encode(&AdapterEvent::TopicDescribed {
+    let described = encode(&AdapterEvent::TopicDescribed(AdminTopicDescription {
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
         partitions: vec![0, 1],
-    });
-    let listed = encode(&AdapterEvent::TopicsListed {
+    }));
+    let listed = encode(&AdapterEvent::TopicsListed(AdminTopicsListing {
         operation_id: operation("admin-topics-1"),
         topics: vec!["records".to_owned()],
-    });
-    let offset = encode(&AdapterEvent::OffsetListed {
+    }));
+    let offset = encode(&AdapterEvent::OffsetListed(AdminOffsetListing {
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
         offset: Some(3),
-    });
+    }));
 
     assert!(described.contains("kind = \"topic_described\""));
     assert!(described.contains("partitions = [0, 1]"));
@@ -123,18 +126,67 @@ fn admin_query_events_report_only_observed_facts() {
 }
 
 #[test]
-fn list_offsets_rejects_an_earliest_position() {
-    let latest = encode(&AdapterCommand::ListOffsets {
+fn list_offsets_accepts_an_earliest_position() {
+    let latest = encode(&AdapterCommand::ListOffsets(ListOffsetsCommand {
         client_id: client(),
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetPosition::Latest,
         timeout_ms: 1_000,
-    });
+    }));
     let earliest = latest.replace("position = \"latest\"", "position = \"earliest\"");
 
-    assert!(toml::from_str::<AdapterCommand>(&earliest).is_err());
+    let decoded = toml::from_str::<AdapterCommand>(&earliest)
+        .unwrap_or_else(|error| panic!("deserialize earliest offset command: {error}"));
+    assert!(matches!(
+        decoded,
+        AdapterCommand::ListOffsets(ListOffsetsCommand {
+            position: AdminOffsetPosition::Earliest,
+            ..
+        })
+    ));
+}
+
+#[test]
+fn query_error_expectations_do_not_cross_the_wire_boundary() {
+    let described = ScenarioAction::DescribeTopic(DescribeTopicAction {
+        client_id: client(),
+        operation_id: operation("admin-describe-missing"),
+        topic: "missing".to_owned(),
+        expected_partitions: None,
+        expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
+        timeout_ms: 1_000,
+    });
+    let offset = ScenarioAction::ListOffsets(ListOffsetsAction {
+        client_id: client(),
+        operation_id: operation("admin-offset-missing"),
+        topic: "records".to_owned(),
+        partition: 1,
+        position: AdminOffsetPosition::Latest,
+        expected_offset: None,
+        expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
+        timeout_ms: 1_000,
+    });
+    let describe_command = AdapterCommand::DescribeTopic(DescribeTopicCommand {
+        client_id: client(),
+        operation_id: operation("admin-describe-missing"),
+        topic: "missing".to_owned(),
+        timeout_ms: 1_000,
+    });
+    let offset_command = AdapterCommand::ListOffsets(ListOffsetsCommand {
+        client_id: client(),
+        operation_id: operation("admin-offset-missing"),
+        topic: "records".to_owned(),
+        partition: 1,
+        position: AdminOffsetPosition::Latest,
+        timeout_ms: 1_000,
+    });
+
+    assert!(encode_action(&described).contains("expected_error_code = \"broker:broker_3\""));
+    assert!(encode_action(&offset).contains("expected_error_code = \"broker:broker_3\""));
+    assert!(!encode(&describe_command).contains("expected_error_code"));
+    assert!(!encode(&offset_command).contains("expected_error_code"));
 }
 
 fn encode<T: serde::Serialize>(value: &T) -> String {

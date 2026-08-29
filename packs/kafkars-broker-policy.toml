@@ -1,0 +1,11 @@
+schema_version = 1
+id = "kafkars-broker-policy"
+title = "packaged Kafkars broker policy coverage"
+scenarios = [
+  "scenarios/kafka/producer-topic-authorization-recovery.toml",
+  "scenarios/kafka/classic-group-authorization-recovery.toml",
+  "scenarios/kafka/admin-topic-authorization-recovery.toml",
+  "scenarios/kafka/transactional-id-authorization-recovery.toml",
+  "scenarios/kafka/producer-quota-progress.toml",
+  "scenarios/kafka/consumer-quota-progress.toml",
+]

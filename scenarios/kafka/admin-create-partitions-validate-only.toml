@@ -1,0 +1,72 @@
+schema_version = 37
+id = "kafka.admin-create-partitions-validate-only"
+title = "packaged admin validates a partition increase without changing topology"
+description = "The packaged client's public admin validates expansion from one to three partitions, independent metadata remains exactly one partition, and a later real expansion reaches the requested three-partition topology."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-create-before-partition-validation"
+topic = "testlab-kafkars-admin-validate-partitions"
+partitions = 1
+replication_factor = 1
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "validate-partition-increase"
+kind = "create_partitions"
+client_id = "client-1"
+operation_id = "admin-validate-partition-increase"
+topic = "testlab-kafkars-admin-validate-partitions"
+total_count = 3
+validate_only = true
+expected_current_count = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-after-validation"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-after-partition-validation"
+topic = "testlab-kafkars-admin-validate-partitions"
+expected_partitions = [0]
+timeout_ms = 20000
+
+[[steps]]
+id = "increase-partitions"
+kind = "create_partitions"
+client_id = "client-1"
+operation_id = "admin-increase-after-validation"
+topic = "testlab-kafkars-admin-validate-partitions"
+total_count = 3
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-after-increase"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-after-partition-increase"
+topic = "testlab-kafkars-admin-validate-partitions"
+expected_partitions = [0, 1, 2]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

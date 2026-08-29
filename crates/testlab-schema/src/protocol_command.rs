@@ -1,11 +1,10 @@
 //! Adapter commands are the public operations testctl may request.
-
-use serde::{Deserialize, Serialize};
+#![allow(missing_docs, reason = "typed payload variants are self-describing")]
 
 use crate::{BatchRecord, ClientId, ConsumerId, OperationId, ProducerId};
 
 /// Public operation requested from an adapter.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterCommand {
     /// Starts one adapter session and declares the environment endpoints.
@@ -24,11 +23,14 @@ pub enum AdapterCommand {
         /// Scenario-local client identity.
         client_id: ClientId,
     },
+    CreateConfiguredClient(crate::CreateConfiguredClientAction),
     /// Waits for one public client readiness probe.
     AwaitClientReady {
         /// Existing client identity.
         client_id: ClientId,
     },
+    /// Observes one bounded public client metrics snapshot.
+    ObserveClientMetrics(crate::ObserveClientMetricsCommand),
     /// Creates one public producer handle.
     CreateProducer {
         /// Owning client.
@@ -45,12 +47,23 @@ pub enum AdapterCommand {
         /// Exact logical record.
         record: crate::RecordSpec,
     },
+    /// Accepts one send and requests cancellation twice without losing its observer.
+    CancelProducerSend(crate::CancelProducerSendCommand),
     /// Offers an ordered record batch through one public producer call.
     SendBatch {
         /// Producer receiving the records.
         producer_id: ProducerId,
         /// Ordered records with stable operation identities.
         operations: Vec<BatchRecord>,
+    },
+    /// Releases one caller-ordered public actor set through a shared start barrier.
+    StartConcurrentActors(crate::StartConcurrentActorsCommand),
+    /// Joins every actor released by one prior concurrent start.
+    JoinConcurrentActors {
+        /// Stable concurrent group identity.
+        concurrency_id: crate::ConcurrencyId,
+        /// Complete join bound.
+        timeout_ms: u64,
     },
     /// Claims one directly assigned consumer handle.
     CreateAssignedConsumer {
@@ -68,6 +81,10 @@ pub enum AdapterCommand {
         /// Exact partition.
         partition: i32,
     },
+    /// Assigns multiple partitions at their beginnings through one public call.
+    AssignBeginningBatch(crate::AssignBeginningBatchCommand),
+    /// Applies one operation-identified direct-consumer control.
+    ControlAssignedConsumer(crate::AssignedConsumerControlCommand),
     /// Observes public consumer batches for a bounded duration.
     Receive {
         /// Existing assigned consumer.
@@ -84,16 +101,15 @@ pub enum AdapterCommand {
     },
     /// Registers one consumer-group member with an explicit protocol.
     CreateGroupConsumer {
-        /// Owning client.
         client_id: ClientId,
-        /// Scenario-local consumer identity.
         consumer_id: ConsumerId,
-        /// Exact Kafka group identity.
         group_id: String,
         /// Subscribed topic.
         topic: String,
         /// Classic or KIP-848 group protocol.
         protocol: crate::GroupProtocol,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        configuration: Option<crate::GroupConsumerConfiguration>,
     },
     /// Receives one group batch and commits its checkpoint.
     GroupReceive {
@@ -104,7 +120,12 @@ pub enum AdapterCommand {
         /// Maximum public observation duration.
         timeout_ms: u64,
     },
-    /// Closes one classic group consumer.
+    /// Observes stable public assignments across declared group consumers.
+    ObserveGroupAssignments(crate::ObserveGroupAssignmentsCommand),
+    /// Receives and commits a structural record count across declared group consumers.
+    GroupReceiveSet(crate::GroupReceiveSetCommand),
+    ControlGroupConsumer(crate::GroupConsumerControlCommand),
+    ShutdownGroupConsumer(crate::GroupConsumerShutdownCommand),
     CloseGroupConsumer {
         /// Consumer to close.
         consumer_id: ConsumerId,
@@ -123,8 +144,9 @@ pub enum AdapterCommand {
         membership_timeout_ms: u64,
         /// Complete graceful-close bound.
         close_timeout_ms: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        configuration: Option<crate::ShareConsumerFetchConfiguration>,
     },
-    /// Receives and retains one exact share batch for later disposition.
     ShareReceive {
         /// Existing share consumer.
         consumer_id: ConsumerId,
@@ -133,7 +155,7 @@ pub enum AdapterCommand {
         /// Complete public observation bound.
         timeout_ms: u64,
     },
-    /// Consumes one retained share batch into a uniform disposition.
+    /// Consumes one retained share batch into record-ordered dispositions.
     ShareAcknowledge {
         /// Existing share consumer that owns the session.
         consumer_id: ConsumerId,
@@ -141,8 +163,8 @@ pub enum AdapterCommand {
         receive_id: OperationId,
         /// Stable acknowledgement identity.
         acknowledgement_id: OperationId,
-        /// Uniform public record disposition.
-        disposition: crate::ShareDisposition,
+        /// One public disposition per retained record.
+        dispositions: Vec<crate::ShareDisposition>,
         /// Complete acknowledgement bound.
         timeout_ms: u64,
     },
@@ -159,72 +181,49 @@ pub enum AdapterCommand {
         consumer_id: ConsumerId,
     },
     /// Creates one Kafka topic through the public admin surface.
-    CreateTopic {
-        /// Existing client whose admin handle is used.
-        client_id: ClientId,
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact Kafka topic name.
-        topic: String,
-        /// Positive partition count.
-        partitions: i32,
-        /// Positive replication factor.
-        replication_factor: i16,
-        /// Complete public operation bound.
-        timeout_ms: u64,
-    },
+    CreateTopic(crate::CreateTopicCommand),
+    /// Creates an ordered Kafka topic batch through one public admin call.
+    CreateTopicsBatch(crate::CreateTopicsBatchCommand),
     /// Increases one Kafka topic through the public admin surface.
-    CreatePartitions {
-        /// Existing client whose admin handle is used.
-        client_id: ClientId,
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact Kafka topic name.
-        topic: String,
-        /// Positive requested total partition count.
-        total_count: i32,
-        /// Complete public operation bound.
-        timeout_ms: u64,
-    },
+    CreatePartitions(crate::CreatePartitionsCommand),
+    /// Deletes one Kafka topic through the public admin surface.
+    DeleteTopic(crate::DeleteTopicCommand),
     /// Describes one Kafka topic through the public admin surface.
-    DescribeTopic {
-        /// Existing client whose admin handle is used.
-        client_id: ClientId,
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact Kafka topic name.
-        topic: String,
-        /// Complete public operation bound.
-        timeout_ms: u64,
-    },
+    DescribeTopic(crate::DescribeTopicCommand),
     /// Lists Kafka topics visible through the public admin surface.
-    ListTopics {
-        /// Existing client whose admin handle is used.
-        client_id: ClientId,
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Whether broker-marked internal topics enter the public result.
-        include_internal: bool,
-        /// Complete public operation bound.
-        timeout_ms: u64,
-    },
+    ListTopics(crate::ListTopicsCommand),
     /// Lists one offset position through the public admin surface.
-    ListOffsets {
-        /// Existing client whose admin handle is used.
-        client_id: ClientId,
-        /// Stable admin operation identity.
-        operation_id: OperationId,
-        /// Exact Kafka topic name.
-        topic: String,
-        /// Exact nonnegative partition.
-        partition: i32,
-        /// Latest offset position.
-        position: crate::AdminOffsetPosition,
-        /// Complete public operation bound.
-        timeout_ms: u64,
-    },
+    ListOffsets(crate::ListOffsetsCommand),
+    /// Deletes records before one exact partition offset.
+    DeleteRecords(crate::DeleteRecordsCommand),
+    /// Describes one selected topic configuration through the public admin surface.
+    DescribeTopicConfig(crate::DescribeTopicConfigCommand),
+    /// Replaces one selected topic configuration through the public admin surface.
+    AlterTopicConfig(crate::AlterTopicConfigCommand),
+    /// Describes the connected Kafka cluster through the public admin surface.
+    DescribeCluster(crate::DescribeClusterCommand),
+    /// Lists consumer groups visible through the public admin surface.
+    ListConsumerGroups(crate::ListConsumerGroupsCommand),
+    /// Describes one consumer group through the public admin surface.
+    DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     /// Lists one committed consumer-group offset through the public admin surface.
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsCommand),
+    /// Lists selected offsets from one consumer group through one public call.
+    ListConsumerGroupOffsetsBatch(crate::ListConsumerGroupOffsetsBatchCommand),
+    /// Lists selected offsets from multiple consumer groups through one public call.
+    ListConsumerGroupsOffsets(crate::ListConsumerGroupsOffsetsCommand),
+    /// Alters one committed consumer-group offset through the public admin surface.
+    AlterConsumerGroupOffset(crate::AlterConsumerGroupOffsetCommand),
+    /// Alters multiple committed offsets through one public admin call.
+    AlterConsumerGroupOffsets(crate::AlterConsumerGroupOffsetsCommand),
+    /// Deletes one committed consumer-group offset through the public admin surface.
+    DeleteConsumerGroupOffset(crate::DeleteConsumerGroupOffsetCommand),
+    /// Deletes multiple committed offsets through one public admin call.
+    DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsCommand),
+    /// Deletes one consumer group through the public admin surface.
+    DeleteConsumerGroup(crate::DeleteConsumerGroupCommand),
+    /// Describes multiple classic consumer groups through one public admin call.
+    DescribeClassicGroups(crate::DescribeClassicGroupsCommand),
     /// Initializes one public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.
@@ -251,6 +250,8 @@ pub enum AdapterCommand {
         /// Complete begin, send, and end bound.
         timeout_ms: u64,
     },
+    /// Atomically transforms one public group batch and its checkpoint.
+    ExecuteTransactionalTransform(crate::TransactionalTransformCommand),
     /// Stages one record and initializes a replacement owner before the old commit.
     FenceTransaction {
         /// Existing transactional producer whose active transaction is fenced.

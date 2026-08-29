@@ -1,0 +1,12 @@
+schema_version = 1
+id = "kafkars-protocol-adversary"
+title = "packaged Kafkars protocol adversary coverage"
+scenarios = [
+  "scenarios/adversary/metadata-partial-frame.toml",
+  "scenarios/adversary/metadata-wrong-correlation.toml",
+  "scenarios/adversary/metadata-stale-response.toml",
+  "scenarios/adversary/metadata-stall.toml",
+  "scenarios/adversary/metadata-disconnect-after-request.toml",
+  "scenarios/adversary/metadata-disconnect-after-response.toml",
+  "scenarios/adversary/producer-stalled-response.toml",
+]

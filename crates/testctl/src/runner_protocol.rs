@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v16 command.
+//! Expected event shapes constrain each sequential protocol-v34 command.
 
 use std::collections::BTreeSet;
 
@@ -6,25 +6,38 @@ use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId
 
 use crate::run_error::RunFailure;
 use crate::runner_protocol_admin::classify_admin;
+use crate::runner_protocol_admin_config::classify as classify_admin_config;
+use crate::runner_protocol_admin_group_batch::classify as classify_admin_group_batch;
 use crate::runner_protocol_family::{classify_group, classify_transaction, same_event_family};
+
+pub(crate) use crate::runner_protocol_event::EventDisposition;
 
 #[derive(Clone, Debug)]
 pub(crate) enum ExpectedEvent {
     Ready,
     ClientCreated(ClientId),
     ClientReady(ClientId),
+    ClientMetricsObserved(ClientId, OperationId),
     ProducerCreated(ProducerId),
     SendSettled(OperationId),
+    ProducerCancellationCompleted(OperationId),
     BatchCompleted {
         producer_id: ProducerId,
         operation_ids: BTreeSet<OperationId>,
     },
+    ConcurrentActorsStarted(crate::runner_protocol_concurrent::ConcurrentExpectation),
+    ConcurrentActorsCompleted(crate::runner_protocol_concurrent::ConcurrentExpectation),
     AssignedConsumerCreated(ConsumerId),
     AssignmentCompleted(ConsumerId),
+    AssignedConsumerControlCompleted(testlab_schema::AssignedConsumerControlCompletion),
     ReceiveCompleted(OperationId),
     AssignedConsumerClosed(ConsumerId),
     GroupConsumerCreated(ConsumerId),
     GroupReceiveCompleted(OperationId),
+    GroupAssignmentsObserved(OperationId),
+    GroupReceiveSetCompleted(OperationId),
+    GroupConsumerControlCompleted(testlab_schema::GroupConsumerControlCompletion),
+    GroupConsumerShutdownCompleted(testlab_schema::GroupConsumerShutdownCompletion),
     GroupConsumerClosed(ConsumerId),
     ShareConsumerCreated(ConsumerId),
     ShareReceiveCompleted(OperationId),
@@ -35,7 +48,22 @@ pub(crate) enum ExpectedEvent {
         operation_id: OperationId,
         topic: String,
     },
+    TopicCreationValidated {
+        operation_id: OperationId,
+        topic: String,
+    },
+    TopicsCreationCompleted {
+        operation_id: OperationId,
+    },
     TopicPartitionsCreated {
+        operation_id: OperationId,
+        topic: String,
+    },
+    TopicPartitionIncreaseValidated {
+        operation_id: OperationId,
+        topic: String,
+    },
+    TopicDeleted {
         operation_id: OperationId,
         topic: String,
     },
@@ -51,11 +79,72 @@ pub(crate) enum ExpectedEvent {
         topic: String,
         partition: i32,
     },
+    RecordsDeleted {
+        operation_id: OperationId,
+        topic: String,
+        partition: i32,
+    },
+    TopicConfigDescribed {
+        operation_id: OperationId,
+        topic: String,
+        config_name: String,
+    },
+    TopicConfigAltered {
+        operation_id: OperationId,
+        topic: String,
+        config_name: String,
+    },
+    TopicConfigAlterationValidated {
+        operation_id: OperationId,
+        topic: String,
+        config_name: String,
+    },
+    ClusterDescribed {
+        operation_id: OperationId,
+    },
+    ConsumerGroupsListed {
+        operation_id: OperationId,
+    },
+    ConsumerGroupDescribed {
+        operation_id: OperationId,
+        group_id: String,
+    },
     ConsumerGroupOffsetListed {
         operation_id: OperationId,
         group_id: String,
         topic: String,
         partition: i32,
+    },
+    ConsumerGroupOffsetAltered {
+        operation_id: OperationId,
+        group_id: String,
+        topic: String,
+        partition: i32,
+    },
+    ConsumerGroupOffsetDeleted {
+        operation_id: OperationId,
+        group_id: String,
+        topic: String,
+        partition: i32,
+    },
+    ConsumerGroupDeleted {
+        operation_id: OperationId,
+        group_id: String,
+    },
+    ConsumerGroupOffsetsListed {
+        operation_id: OperationId,
+    },
+    ConsumerGroupsOffsetsListed {
+        operation_id: OperationId,
+    },
+    ConsumerGroupOffsetsAltered {
+        operation_id: OperationId,
+    },
+    ConsumerGroupOffsetsDeleted {
+        operation_id: OperationId,
+    },
+    ClassicGroupsDescribed {
+        operation_id: OperationId,
     },
     TransactionalProducerCreated(ProducerId),
     TransactionCompleted {
@@ -75,16 +164,13 @@ pub(crate) enum ExpectedEvent {
     Aborted,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum EventDisposition {
-    Continue,
-    Complete,
-}
-
 impl ExpectedEvent {
     pub(crate) fn classify(&self, event: &AdapterEvent) -> Result<EventDisposition, RunFailure> {
         if matches!(event, AdapterEvent::CommandFailed { .. }) {
             return Ok(EventDisposition::Complete);
+        }
+        if let Some(disposition) = crate::runner_protocol_concurrent::classify(self, event) {
+            return disposition;
         }
         if let Some(disposition) = classify_group(self, event) {
             return disposition;
@@ -92,7 +178,16 @@ impl ExpectedEvent {
         if let Some(disposition) = crate::runner_protocol_share::classify(self, event) {
             return disposition;
         }
+        if let Some(disposition) = classify_admin_config(self, event) {
+            return disposition;
+        }
+        if let Some(disposition) = classify_admin_group_batch(self, event) {
+            return disposition;
+        }
         if let Some(disposition) = classify_admin(self, event) {
+            return disposition;
+        }
+        if let Some(disposition) = crate::runner_protocol_cancel::classify(self, event) {
             return disposition;
         }
         if let Some(disposition) = classify_transaction(self, event) {
@@ -118,6 +213,12 @@ fn classify_core(
         (ExpectedEvent::ClientReady(expected), AdapterEvent::ClientReady { client_id })
             if expected == client_id =>
         {
+            Ok(EventDisposition::Complete)
+        }
+        (
+            ExpectedEvent::ClientMetricsObserved(client_id, operation_id),
+            AdapterEvent::ClientMetricsObserved(observation),
+        ) if client_id == &observation.client_id && operation_id == &observation.operation_id => {
             Ok(EventDisposition::Complete)
         }
         (

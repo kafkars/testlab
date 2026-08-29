@@ -1,0 +1,117 @@
+schema_version = 37
+id = "kafka.admin-alter-consumer-group-offset"
+title = "packaged admin alters an independently observed consumer-group offset"
+description = "After a classic group publicly commits offset 1 and closes, the packaged client's public admin observes that baseline, alters the exact checkpoint to 0, and observes the new value; independent broker-state queries confirm both offsets."
+timeout_ms = 150000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-offset-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-alter-offset-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-offset-altered"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "alter-offset" }
+value = { encoding = "utf8", data = "checkpoint-one" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-alter-offset-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-admin-altered-offset-group"
+topic = "testlab-kafkars-admin-offset-altered"
+protocol = "classic"
+
+[[steps]]
+id = "receive-and-commit"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-alter-offset"
+expected_operation_id = "op-alter-offset-marker"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "list-offset-before-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-alter-offset-before"
+group_id = "testlab-admin-altered-offset-group"
+topic = "testlab-kafkars-admin-offset-altered"
+partition = 0
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "alter-offset"
+kind = "alter_consumer_group_offset"
+client_id = "client-1"
+operation_id = "admin-alter-offset-1"
+group_id = "testlab-admin-altered-offset-group"
+topic = "testlab-kafkars-admin-offset-altered"
+partition = 0
+offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "list-offset-after-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-alter-offset-after"
+group_id = "testlab-admin-altered-offset-group"
+topic = "testlab-kafkars-admin-offset-altered"
+partition = 0
+require_stable = true
+expected_offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-alter-offset-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

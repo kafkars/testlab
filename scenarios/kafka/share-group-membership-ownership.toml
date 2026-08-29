@@ -1,4 +1,4 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.share-group-membership-ownership"
 title = "simultaneous share members preserve acquisition ownership"
 description = "Two live members hold distinct records from one partition, a held batch survives membership change, and an unfinished close redelivers to a survivor."
@@ -63,7 +63,7 @@ id = "first-holds-record"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-held"
-expected_operation_id = "op-held"
+expected_operation_ids = ["op-held"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -99,7 +99,7 @@ id = "second-holds-distinct-record"
 kind = "share_receive"
 consumer_id = "share-2"
 receive_id = "receive-second"
-expected_operation_id = "op-second-member"
+expected_operation_ids = ["op-second-member"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -109,7 +109,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-held"
 acknowledgement_id = "ack-held-after-join"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -118,7 +118,7 @@ kind = "share_acknowledge"
 consumer_id = "share-2"
 receive_id = "receive-second"
 acknowledgement_id = "ack-second"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -149,7 +149,7 @@ id = "first-holds-unfinished"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-unfinished"
-expected_operation_id = "op-unfinished"
+expected_operation_ids = ["op-unfinished"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -174,7 +174,7 @@ id = "survivor-receives-unfinished"
 kind = "share_receive"
 consumer_id = "share-3"
 receive_id = "receive-unfinished-again"
-expected_operation_id = "op-unfinished"
+expected_operation_ids = ["op-unfinished"]
 minimum_delivery_count = 2
 timeout_ms = 30000
 
@@ -184,7 +184,7 @@ kind = "share_acknowledge"
 consumer_id = "share-3"
 receive_id = "receive-unfinished-again"
 acknowledgement_id = "ack-unfinished"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]

@@ -1,0 +1,7 @@
+schema_version = 4
+id = "protocol-adversary"
+title = "external scripted Kafka protocol adversary"
+
+[driver]
+kind = "kafka_protocol_adversary"
+topic = "testlab-adversary-topic"

@@ -1,0 +1,98 @@
+schema_version = 37
+id = "kafka.transactional-id-authorization-recovery"
+title = "packaged transaction initialization reports denial and recovers after permission restoration"
+description = "An independently observed transactional-ID WRITE deny ACL forces the exact public initialization error, then its observed removal permits the same public identity to commit one broker-visible record."
+timeout_ms = 150000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "deny-transactional-id-write"
+kind = "alter_broker_policy"
+state = "present"
+timeout_ms = 20000
+
+[steps.policy]
+policy_kind = "acl"
+operation = "write"
+
+[steps.policy.resource]
+resource_kind = "transactional_id"
+name = "testlab-policy-transactional-id"
+
+[[steps]]
+id = "create-transactional-producer-denied"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-policy-transactional-id"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+expected_error_code = "broker:broker_53"
+
+[[steps]]
+id = "restore-transactional-id-write"
+kind = "alter_broker_policy"
+state = "absent"
+timeout_ms = 20000
+
+[steps.policy]
+policy_kind = "acl"
+operation = "write"
+
+[steps.policy.resource]
+resource_kind = "transactional_id"
+name = "testlab-policy-transactional-id"
+
+[[steps]]
+id = "create-transactional-producer-recovered"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-policy-transactional-id"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "commit-recovery-record"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-recovered"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-transaction-recovered"
+
+[steps.operations.record]
+topic = "testlab-kafkars-policy-transaction"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "transaction" }
+value = { encoding = "utf8", data = "authorization-restored" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-recovered" } }]
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-transaction-recovered"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

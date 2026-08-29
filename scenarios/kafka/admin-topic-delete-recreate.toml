@@ -1,0 +1,79 @@
+schema_version = 37
+id = "kafka.admin-topic-delete-recreate"
+title = "packaged admin deletes and recreates the same topic"
+description = "The packaged admin creates and describes a one-partition topic, deletes it to independently observed absence, then recreates the same name with two partitions and independently confirms the new topology."
+timeout_ms = 180000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-first-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-delete-recreate-create-first"
+topic = "testlab-kafkars-admin-delete-recreate"
+partitions = 1
+replication_factor = 1
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-first-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-delete-recreate-describe-first"
+topic = "testlab-kafkars-admin-delete-recreate"
+expected_partitions = [0]
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-first-topic"
+kind = "delete_topic"
+client_id = "client-1"
+operation_id = "admin-delete-recreate-delete"
+topic = "testlab-kafkars-admin-delete-recreate"
+timeout_ms = 30000
+
+[[steps]]
+id = "recreate-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-delete-recreate-create-second"
+topic = "testlab-kafkars-admin-delete-recreate"
+partitions = 2
+replication_factor = 1
+validate_only = false
+timeout_ms = 30000
+
+[[steps]]
+id = "describe-recreated-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-delete-recreate-describe-second"
+topic = "testlab-kafkars-admin-delete-recreate"
+expected_partitions = [0, 1]
+timeout_ms = 20000
+
+[[steps]]
+id = "list-recreated-topic"
+kind = "list_topics"
+client_id = "client-1"
+operation_id = "admin-delete-recreate-list-second"
+include_internal = false
+required_topics = ["testlab-kafkars-admin-delete-recreate"]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

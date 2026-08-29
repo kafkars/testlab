@@ -1,6 +1,6 @@
 //! Admin result tests preserve per-topic failures and reject malformed batch shapes.
 
-use kafkars::{ErrorKind, KafkaError};
+use crate::kafkars_api::{ErrorKind, KafkaError};
 use testlab_schema::OperationId;
 
 use crate::AdapterError;

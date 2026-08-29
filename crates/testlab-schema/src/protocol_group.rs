@@ -12,6 +12,38 @@ pub enum GroupProtocol {
     Consumer,
 }
 
+/// Public policy used when a group has no committed offset.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupOffsetReset {
+    /// Begin at the earliest available offset.
+    #[default]
+    Earliest,
+    /// Begin after the latest available offset.
+    Latest,
+}
+
+/// Public transactional visibility selected for group records.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupReadIsolation {
+    /// Deliver committed, aborted, and unresolved transaction records.
+    #[default]
+    ReadUncommitted,
+    /// Deliver only nontransactional and committed transaction records.
+    ReadCommitted,
+}
+
+/// Portable group-consumer policy fixed before membership starts.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GroupConsumerConfiguration {
+    /// Missing committed-offset behavior.
+    pub offset_reset: GroupOffsetReset,
+    /// Transactional record visibility.
+    pub read_isolation: GroupReadIsolation,
+}
+
 /// Public membership epoch observed after a group receive and commit.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]

@@ -1,0 +1,191 @@
+schema_version = 37
+id = "kafka.share-group-record-fidelity"
+title = "Share acquisitions preserve exact record fidelity"
+description = "One Share member acquires and accepts a tombstone, distinct empty fields, and duplicate nullable binary headers while retaining delivery counts, membership fences, and independent Kafka coordinates."
+timeout_ms = 180000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-record-fidelity"
+topic = "testlab-share-record-fidelity"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "send-tombstone"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-tombstone"
+record = { topic = "testlab-share-record-fidelity", partition = 0, sequence = 1, key = { encoding = "utf8", data = "tombstone-key" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-tombstone" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "receive-tombstone"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-tombstone"
+expected_operation_ids = ["op-tombstone"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-tombstone"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-tombstone"
+acknowledgement_id = "ack-tombstone"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-empty"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-empty"
+record = { topic = "testlab-share-record-fidelity", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "receive-empty"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-empty"
+expected_operation_ids = ["op-empty"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-empty"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-empty"
+acknowledgement_id = "ack-empty"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-null-empty"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-null-empty"
+record = { topic = "testlab-share-record-fidelity", partition = 0, sequence = 3, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-null-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps]]
+id = "receive-null-empty"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-null-empty"
+expected_operation_ids = ["op-null-empty"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-null-empty"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-null-empty"
+acknowledgement_id = "ack-null-empty"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-headers"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-headers"
+
+[steps.record]
+topic = "testlab-share-record-fidelity"
+partition = 0
+sequence = 4
+key = { encoding = "hex", data = "006bff" }
+value = { encoding = "hex", data = "0076ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-headers" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+  { name = "trace", value = { encoding = "utf8", data = "first" } },
+  { name = "trace" },
+  { name = "trace", value = { encoding = "hex", data = "" } },
+  { name = "trace", value = { encoding = "hex", data = "00ff" } },
+]
+
+[[steps]]
+id = "receive-headers"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-headers"
+expected_operation_ids = ["op-headers"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-headers"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-headers"
+acknowledgement_id = "ack-headers"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-tombstone"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-null-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-headers"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

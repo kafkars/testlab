@@ -1,0 +1,85 @@
+schema_version = 37
+id = "kafka.producer-network-connection-cut-recovery"
+title = "packaged producer reconnects after an external connection cut"
+description = "The external proxy proves at least one live Kafka connection was cut after baseline delivery, and the same packaged producer reconnects to acknowledge an exact later record."
+timeout_ms = 90000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "network-cut-baseline"
+
+[steps.record]
+topic = "testlab-kafkars-network-cut"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "baseline" }
+value = { encoding = "utf8", data = "before-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "network-cut-baseline" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "cut-live-connections"
+kind = "cut_network_connections"
+operation_id = "network-cut-live-connections"
+broker_ordinal = 1
+timeout_ms = 5000
+
+[[steps]]
+id = "send-after-cut"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "network-cut-recovered"
+
+[steps.record]
+topic = "testlab-kafkars-network-cut"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "recovered" }
+value = { encoding = "utf8", data = "after-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "network-cut-recovered" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "network-cut-baseline"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "network-cut-recovered"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

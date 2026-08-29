@@ -1,0 +1,54 @@
+schema_version = 37
+id = "kafka.admin-topic-config-validate-only"
+title = "packaged admin validates a topic configuration change without applying it"
+description = "The packaged client's public admin reads cleanup.policy as delete, validates an incremental SET to compact, and reads delete again while immediate independent queries prove the configuration never changed."
+timeout_ms = 90000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-cleanup-policy-before"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-before-validation"
+topic = "testlab-kafkars-admin-validate-config"
+config_name = "cleanup.policy"
+expected_value = "delete"
+timeout_ms = 20000
+
+[[steps]]
+id = "validate-cleanup-policy-change"
+kind = "alter_topic_config"
+client_id = "client-1"
+operation_id = "admin-validate-config-change"
+topic = "testlab-kafkars-admin-validate-config"
+config_name = "cleanup.policy"
+value = "compact"
+validate_only = true
+expected_current_value = "delete"
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-cleanup-policy-after"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-after-validation"
+topic = "testlab-kafkars-admin-validate-config"
+config_name = "cleanup.policy"
+expected_value = "delete"
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

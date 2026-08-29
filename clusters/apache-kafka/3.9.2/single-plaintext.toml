@@ -1,4 +1,4 @@
-schema_version = 2
+schema_version = 4
 id = "apache-kafka-3.9.2-single-plaintext"
 title = "Apache Kafka 3.9.2 single-broker plaintext"
 

@@ -1,0 +1,115 @@
+schema_version = 37
+id = "kafka.admin-list-consumer-groups-multiple"
+title = "packaged admin lists multiple independently observed live consumer groups"
+description = "Two distinct classic groups publicly consume and commit the same exact record while both members remain open; one expectation-free public listing must be byte-sorted and contain both independently observed group identities."
+timeout_ms = 150000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-group-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-multi-group-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-multi-groups"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "multi-group" }
+value = { encoding = "utf8", data = "shared-marker" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-multi-group-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-alpha-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-alpha"
+group_id = "testlab-admin-multi-group-alpha"
+topic = "testlab-kafkars-admin-multi-groups"
+protocol = "classic"
+
+[[steps]]
+id = "alpha-group-receive"
+kind = "group_receive"
+consumer_id = "consumer-alpha"
+receive_id = "receive-multi-group-alpha"
+expected_operation_id = "op-multi-group-marker"
+timeout_ms = 30000
+
+[[steps]]
+id = "create-zulu-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-zulu"
+group_id = "testlab-admin-multi-group-zulu"
+topic = "testlab-kafkars-admin-multi-groups"
+protocol = "classic"
+
+[[steps]]
+id = "zulu-group-receive"
+kind = "group_receive"
+consumer_id = "consumer-zulu"
+receive_id = "receive-multi-group-zulu"
+expected_operation_id = "op-multi-group-marker"
+timeout_ms = 30000
+
+[[steps]]
+id = "list-live-groups"
+kind = "list_consumer_groups"
+client_id = "client-1"
+operation_id = "admin-multi-group-list"
+required_group_ids = [
+  "testlab-admin-multi-group-zulu",
+  "testlab-admin-multi-group-alpha",
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "close-zulu-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-zulu"
+
+[[steps]]
+id = "close-alpha-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-alpha"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-multi-group-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

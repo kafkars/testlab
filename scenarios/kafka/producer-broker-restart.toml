@@ -1,4 +1,4 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.producer-broker-restart"
 title = "packaged producer recovers after a broker restart"
 description = "One live packaged client acknowledges exact records before and after testlab restarts its Kafka broker."

@@ -3,7 +3,7 @@
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{CloseShareConsumer, KafkaError, RetryAdvice, ShareConsumer};
+use crate::kafkars_api::{CloseShareConsumer, KafkaError, RetryAdvice, ShareConsumer};
 
 const POLL_SLICE: Duration = Duration::from_millis(10);
 

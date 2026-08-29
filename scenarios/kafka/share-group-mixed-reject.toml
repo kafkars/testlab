@@ -1,0 +1,137 @@
+schema_version = 37
+id = "kafka.share-group-mixed-reject"
+title = "Share batches apply record-specific reject decisions"
+description = "One public Share batch rejects only its middle record, then a later sentinel acquisition proves forward progress without normal redelivery of any settled batch member."
+timeout_ms = 180000
+requires = ["producer", "producer_batch", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-share-batch"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-keep-first"
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 1, value = { encoding = "utf8", data = "accept-first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-keep-first" } }] }
+
+[[steps.operations]]
+operation_id = "op-reject-middle"
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 2, value = { encoding = "utf8", data = "reject-middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-reject-middle" } }] }
+
+[[steps.operations]]
+operation_id = "op-keep-last"
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 3, value = { encoding = "utf8", data = "accept-last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-keep-last" } }] }
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-mixed-reject"
+topic = "testlab-share-mixed-reject"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "receive-ordered-batch"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-initial"
+expected_operation_ids = ["op-keep-first", "op-reject-middle", "op-keep-last"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-mixed-batch"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-initial"
+acknowledgement_id = "ack-mixed"
+dispositions = ["accept", "reject", "accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-sentinel"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-sentinel"
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 4, value = { encoding = "utf8", data = "sentinel" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-sentinel" } }] }
+
+[[steps]]
+id = "receive-sentinel"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-sentinel"
+expected_operation_ids = ["op-sentinel"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-sentinel"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-sentinel"
+acknowledgement_id = "ack-sentinel"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-keep-first"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-reject-middle"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-keep-last"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-sentinel"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

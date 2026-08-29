@@ -53,6 +53,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             group_id,
             topic,
             protocol,
+            configuration,
         } => (
             AdapterCommand::CreateGroupConsumer {
                 client_id: client_id.clone(),
@@ -60,6 +61,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 group_id: group_id.clone(),
                 topic: topic.clone(),
                 protocol: *protocol,
+                configuration: *configuration,
             },
             ExpectedEvent::GroupConsumerCreated(consumer_id.clone()),
         ),
@@ -82,7 +84,93 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             },
             ExpectedEvent::GroupConsumerClosed(consumer_id.clone()),
         ),
-        action => return translate_share(action),
+        ScenarioAction::ShutdownGroupConsumer(action) => {
+            let completion = testlab_schema::GroupConsumerShutdownCompletion {
+                operation_id: action.operation_id.clone(),
+                consumer_id: action.consumer_id.clone(),
+                request_count: action.request_count,
+            };
+            (
+                AdapterCommand::ShutdownGroupConsumer(
+                    testlab_schema::GroupConsumerShutdownCommand {
+                        operation_id: action.operation_id.clone(),
+                        consumer_id: action.consumer_id.clone(),
+                        request_count: action.request_count,
+                        timeout_ms: action.timeout_ms,
+                    },
+                ),
+                ExpectedEvent::GroupConsumerShutdownCompleted(completion),
+            )
+        }
+        action => return translate_ownership(action).or_else(|| translate_share(action)),
+    };
+    Some(pair)
+}
+
+fn translate_ownership(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
+    let pair = match action {
+        ScenarioAction::AssignBeginningBatch(action) => (
+            AdapterCommand::AssignBeginningBatch(testlab_schema::AssignBeginningBatchCommand {
+                consumer_id: action.consumer_id.clone(),
+                partitions: action.partitions.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::AssignmentCompleted(action.consumer_id.clone()),
+        ),
+        ScenarioAction::ControlAssignedConsumer(action) => {
+            let completion = testlab_schema::AssignedConsumerControlCompletion {
+                operation_id: action.operation_id.clone(),
+                consumer_id: action.consumer_id.clone(),
+                control: action.control.kind(),
+            };
+            (
+                AdapterCommand::ControlAssignedConsumer(
+                    testlab_schema::AssignedConsumerControlCommand {
+                        operation_id: action.operation_id.clone(),
+                        consumer_id: action.consumer_id.clone(),
+                        control: action.control.clone(),
+                        timeout_ms: action.timeout_ms,
+                    },
+                ),
+                ExpectedEvent::AssignedConsumerControlCompleted(completion),
+            )
+        }
+        ScenarioAction::ObserveGroupAssignments(action) => (
+            AdapterCommand::ObserveGroupAssignments(
+                testlab_schema::ObserveGroupAssignmentsCommand {
+                    operation_id: action.operation_id.clone(),
+                    consumer_ids: action.consumer_ids.clone(),
+                    timeout_ms: action.timeout_ms,
+                },
+            ),
+            ExpectedEvent::GroupAssignmentsObserved(action.operation_id.clone()),
+        ),
+        ScenarioAction::GroupReceiveSet(action) => (
+            AdapterCommand::GroupReceiveSet(testlab_schema::GroupReceiveSetCommand {
+                receive_id: action.receive_id.clone(),
+                consumer_ids: action.consumer_ids.clone(),
+                record_count: action.expected_operation_ids.len(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::GroupReceiveSetCompleted(action.receive_id.clone()),
+        ),
+        ScenarioAction::ControlGroupConsumer(action) => {
+            let completion = testlab_schema::GroupConsumerControlCompletion {
+                operation_id: action.operation_id.clone(),
+                consumer_id: action.consumer_id.clone(),
+                control: action.control.kind(),
+            };
+            (
+                AdapterCommand::ControlGroupConsumer(testlab_schema::GroupConsumerControlCommand {
+                    operation_id: action.operation_id.clone(),
+                    consumer_id: action.consumer_id.clone(),
+                    control: action.control.clone(),
+                    timeout_ms: action.timeout_ms,
+                }),
+                ExpectedEvent::GroupConsumerControlCompleted(completion),
+            )
+        }
+        _ => return None,
     };
     Some(pair)
 }
@@ -96,6 +184,7 @@ fn translate_share(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
             topic,
             membership_timeout_ms,
             close_timeout_ms,
+            configuration,
         } => (
             AdapterCommand::CreateShareConsumer {
                 client_id: client_id.clone(),
@@ -104,6 +193,7 @@ fn translate_share(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 topic: topic.clone(),
                 membership_timeout_ms: *membership_timeout_ms,
                 close_timeout_ms: *close_timeout_ms,
+                configuration: *configuration,
             },
             ExpectedEvent::ShareConsumerCreated(consumer_id.clone()),
         ),
@@ -124,14 +214,14 @@ fn translate_share(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
             consumer_id,
             receive_id,
             acknowledgement_id,
-            disposition,
+            dispositions,
             timeout_ms,
         } => (
             AdapterCommand::ShareAcknowledge {
                 consumer_id: consumer_id.clone(),
                 receive_id: receive_id.clone(),
                 acknowledgement_id: acknowledgement_id.clone(),
-                disposition: *disposition,
+                dispositions: dispositions.clone(),
                 timeout_ms: *timeout_ms,
             },
             ExpectedEvent::ShareAcknowledgementCompleted(acknowledgement_id.clone()),

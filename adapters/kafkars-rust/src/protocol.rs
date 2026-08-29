@@ -1,17 +1,17 @@
 //! Protocol interpreter translates commands into packaged Kafkars public calls.
 
-use std::collections::BTreeSet;
 use std::io::{self, BufRead, Read, Write};
 
 use testlab_schema::{
-    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId, Capability,
-    CommandEnvelope, PROTOCOL_VERSION,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
 
 use crate::AdapterError;
 use crate::normalize;
 use crate::protocol_admin;
+use crate::protocol_client;
 use crate::protocol_consumer;
+use crate::protocol_descriptor;
 use crate::protocol_group;
 use crate::protocol_lifecycle;
 use crate::protocol_send;
@@ -73,6 +73,7 @@ where
     }
 }
 
+#[allow(clippy::too_many_lines, reason = "exhaustive versioned routing")]
 fn dispatch<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
@@ -85,24 +86,13 @@ fn dispatch<W: Write>(
             security,
             ..
         } => dispatch_hello(state, writer, command_id, broker_endpoints, security)?,
-        AdapterCommand::CreateClient { client_id } => {
-            state.create_client(client_id.clone())?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientCreated { client_id }),
-            )?;
+        command @ (AdapterCommand::CreateClient { .. }
+        | AdapterCommand::CreateConfiguredClient(_)
+        | AdapterCommand::AwaitClientReady { .. }
+        | AdapterCommand::ObserveClientMetrics(_)
+        | AdapterCommand::CreateProducer { .. }) => {
+            protocol_client::dispatch(state, writer, command_id, command)?;
         }
-        AdapterCommand::AwaitClientReady { client_id } => {
-            state.await_client_ready(&client_id)?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
-            )?;
-        }
-        AdapterCommand::CreateProducer {
-            client_id,
-            producer_id,
-        } => dispatch_create_producer(state, writer, command_id, client_id, producer_id)?,
         AdapterCommand::Send {
             producer_id,
             operation_id,
@@ -115,18 +105,31 @@ fn dispatch<W: Write>(
             operation_id,
             record,
         )?,
+        AdapterCommand::CancelProducerSend(command) => {
+            crate::protocol_cancel::dispatch(state, writer, command_id, command)?;
+        }
         AdapterCommand::SendBatch {
             producer_id,
             operations,
         } => protocol_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
+        command @ (AdapterCommand::StartConcurrentActors(_)
+        | AdapterCommand::JoinConcurrentActors { .. }) => {
+            crate::protocol_concurrent::dispatch(state, writer, command_id, command)?;
+        }
         command @ (AdapterCommand::CreateAssignedConsumer { .. }
         | AdapterCommand::AssignBeginning { .. }
+        | AdapterCommand::AssignBeginningBatch(_)
+        | AdapterCommand::ControlAssignedConsumer(_)
         | AdapterCommand::Receive { .. }
         | AdapterCommand::CloseAssignedConsumer { .. }) => {
             protocol_consumer::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
+        | AdapterCommand::ObserveGroupAssignments(_)
+        | AdapterCommand::GroupReceiveSet(_)
+        | AdapterCommand::ControlGroupConsumer(_)
+        | AdapterCommand::ShutdownGroupConsumer(_)
         | AdapterCommand::CloseGroupConsumer { .. }) => {
             protocol_group::dispatch(state, writer, command_id, command)?;
         }
@@ -148,18 +151,37 @@ fn dispatch<W: Write>(
                 "published adapter does not expose the candidate share capability".to_owned(),
             ));
         }
-        command @ (AdapterCommand::CreateTopic { .. }
-        | AdapterCommand::CreatePartitions { .. }
-        | AdapterCommand::DescribeTopic { .. }
-        | AdapterCommand::ListTopics { .. }
-        | AdapterCommand::ListOffsets { .. }
-        | AdapterCommand::ListConsumerGroupOffsets(_)) => {
+        command @ (AdapterCommand::CreateTopic(_)
+        | AdapterCommand::CreateTopicsBatch(_)
+        | AdapterCommand::CreatePartitions(_)
+        | AdapterCommand::DeleteTopic(_)
+        | AdapterCommand::DeleteRecords(_)
+        | AdapterCommand::DescribeTopic(_)
+        | AdapterCommand::ListTopics(_)
+        | AdapterCommand::ListOffsets(_)
+        | AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::AlterTopicConfig(_)
+        | AdapterCommand::DescribeCluster(_)
+        | AdapterCommand::ListConsumerGroups(_)
+        | AdapterCommand::DescribeConsumerGroup(_)
+        | AdapterCommand::ListConsumerGroupOffsets(_)
+        | AdapterCommand::ListConsumerGroupOffsetsBatch(_)
+        | AdapterCommand::ListConsumerGroupsOffsets(_)
+        | AdapterCommand::AlterConsumerGroupOffset(_)
+        | AdapterCommand::AlterConsumerGroupOffsets(_)
+        | AdapterCommand::DeleteConsumerGroupOffset(_)
+        | AdapterCommand::DeleteConsumerGroupOffsets(_)
+        | AdapterCommand::DescribeClassicGroups(_)
+        | AdapterCommand::DeleteConsumerGroup(_)) => {
             protocol_admin::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::CloseTransactionalProducer { .. }) => {
             transaction_execute::dispatch(state, writer, command_id, command)?;
+        }
+        AdapterCommand::ExecuteTransactionalTransform(command) => {
+            crate::transaction_transform::execute(state, writer, command_id, command)?;
         }
         command @ AdapterCommand::FenceTransaction { .. } => {
             transaction_fence::dispatch(state, writer, command_id, command)?;
@@ -175,20 +197,6 @@ fn dispatch<W: Write>(
     Ok(false)
 }
 
-fn dispatch_create_producer<W: Write>(
-    state: &mut AdapterState,
-    writer: &mut W,
-    command_id: testlab_schema::CommandId,
-    client_id: testlab_schema::ClientId,
-    producer_id: testlab_schema::ProducerId,
-) -> Result<(), AdapterError> {
-    state.create_producer(client_id, producer_id.clone())?;
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(command_id, AdapterEvent::ProducerCreated { producer_id }),
-    )
-}
-
 fn dispatch_hello<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
@@ -202,37 +210,10 @@ fn dispatch_hello<W: Write>(
         &AdapterEventEnvelope::new(
             command_id,
             AdapterEvent::Ready {
-                descriptor: descriptor()?,
+                descriptor: protocol_descriptor::descriptor()?,
             },
         ),
     )
-}
-
-fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
-    let capabilities = BTreeSet::from([
-        Capability::Producer,
-        Capability::ProducerBatch,
-        Capability::Lifecycle,
-        Capability::ClientReadiness,
-        Capability::AssignedConsumer,
-        Capability::ConsumerGroups,
-        Capability::ConsumerProtocolGroups,
-        Capability::Admin,
-        Capability::Transactions,
-    ]);
-    #[cfg(kafkars_share_candidate)]
-    let capabilities = {
-        let mut capabilities = capabilities;
-        capabilities.insert(Capability::ShareConsumer);
-        capabilities
-    };
-    Ok(AdapterDescriptor {
-        id: AdapterId::new("kafkars-rust")?,
-        implementation: "packaged kafkars Rust client".to_owned(),
-        version: "0.0.1".to_owned(),
-        protocol_version: PROTOCOL_VERSION,
-        capabilities,
-    })
 }
 
 pub(crate) fn emit<W: Write>(

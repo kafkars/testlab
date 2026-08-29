@@ -1,0 +1,145 @@
+schema_version = 37
+id = "kafka.admin-alter-consumer-group-offset-forward"
+title = "packaged admin advances an independently observed consumer-group offset"
+description = "A classic group commits offset 1 after the first record, a second record advances the log end to 2, and the packaged admin moves the inactive group's checkpoint forward to 2; independent listings confirm both offsets."
+timeout_ms = 180000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-committed-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-forward-offset-committed"
+
+[steps.record]
+topic = "testlab-kafkars-admin-offset-forward"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "forward-offset-committed" }
+value = { encoding = "utf8", data = "checkpoint-one" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-forward-offset-committed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-committed-marker"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-admin-forward-offset-group"
+topic = "testlab-kafkars-admin-offset-forward"
+protocol = "classic"
+
+[[steps]]
+id = "receive-and-commit-first"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-forward-offset-first"
+expected_operation_id = "op-forward-offset-committed"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "send-log-end-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-forward-offset-log-end"
+
+[steps.record]
+topic = "testlab-kafkars-admin-offset-forward"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "forward-offset-log-end" }
+value = { encoding = "utf8", data = "checkpoint-two" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-forward-offset-log-end" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-log-end-marker"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "list-offset-before-forward-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-forward-offset-before"
+group_id = "testlab-admin-forward-offset-group"
+topic = "testlab-kafkars-admin-offset-forward"
+partition = 0
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "advance-offset"
+kind = "alter_consumer_group_offset"
+client_id = "client-1"
+operation_id = "admin-forward-offset-alter"
+group_id = "testlab-admin-forward-offset-group"
+topic = "testlab-kafkars-admin-offset-forward"
+partition = 0
+offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "list-offset-after-forward-alter"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "admin-forward-offset-after"
+group_id = "testlab-admin-forward-offset-group"
+topic = "testlab-kafkars-admin-offset-forward"
+partition = 0
+require_stable = true
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-forward-offset-committed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-forward-offset-log-end"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

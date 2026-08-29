@@ -1,0 +1,16 @@
+schema_version = 1
+id = "kafkars-assigned-consumer-cursors"
+title = "packaged Kafkars directly assigned consumer cursor coverage"
+scenarios = [
+  "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/assigned-consumer-end-position.toml",
+  "scenarios/kafka/assigned-consumer-exact-offset.toml",
+  "scenarios/kafka/assigned-consumer-seek-replay.toml",
+  "scenarios/kafka/assigned-consumer-pause-resume.toml",
+  "scenarios/kafka/assigned-consumer-incremental-assignments.toml",
+  "scenarios/kafka/assigned-consumer-multi-partition.toml",
+  "scenarios/kafka/assigned-consumer-sequential-cursor.toml",
+  "scenarios/kafka/assigned-consumer-replacement.toml",
+  "scenarios/kafka/assigned-consumer-beginning-reset.toml",
+  "scenarios/kafka/assigned-consumer-independent-cursors.toml",
+]

@@ -1,0 +1,92 @@
+schema_version = 37
+id = "kafka.producer-sibling-close-isolation"
+title = "closing one producer preserves its sibling"
+description = "Two public producers share one client; after the first producer closes, the sibling continues with an acknowledged independently observed send."
+timeout_ms = 120000
+requires = ["producer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "ready-client"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer-a"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-a"
+
+[[steps]]
+id = "create-producer-b"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-b"
+
+[[steps]]
+id = "send-from-producer-a"
+kind = "send"
+producer_id = "producer-a"
+operation_id = "op-producer-a"
+record = { topic = "testlab-kafkars-sibling-close", partition = 0, sequence = 1, key = { encoding = "utf8", data = "producer-a" }, value = { encoding = "utf8", data = "before-sibling-close" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-producer-a" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "send-from-producer-b-before-close"
+kind = "send"
+producer_id = "producer-b"
+operation_id = "op-producer-b-before"
+record = { topic = "testlab-kafkars-sibling-close", partition = 0, sequence = 2, key = { encoding = "utf8", data = "producer-b" }, value = { encoding = "utf8", data = "sibling-before-close" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-producer-b-before" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-producer-a"
+kind = "flush"
+producer_id = "producer-a"
+
+[[steps]]
+id = "close-producer-a"
+kind = "close_producer"
+producer_id = "producer-a"
+
+[[steps]]
+id = "send-from-producer-b-after-close"
+kind = "send"
+producer_id = "producer-b"
+operation_id = "op-producer-b-after"
+record = { topic = "testlab-kafkars-sibling-close", partition = 0, sequence = 3, key = { encoding = "utf8", data = "producer-b" }, value = { encoding = "utf8", data = "sibling-after-close" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-producer-b-after" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps]]
+id = "flush-producer-b"
+kind = "flush"
+producer_id = "producer-b"
+
+[[steps]]
+id = "close-producer-b"
+kind = "close_producer"
+producer_id = "producer-b"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-producer-a"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-producer-b-before"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-producer-b-after"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

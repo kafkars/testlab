@@ -1,0 +1,7 @@
+schema_version = 1
+id = "kafkars-group-shutdown"
+title = "Kafkars hosted group shutdown"
+scenarios = [
+  "scenarios/kafka/classic-group-shutdown.toml",
+  "scenarios/kafka/consumer-protocol-group-shutdown.toml",
+]

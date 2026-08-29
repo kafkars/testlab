@@ -1,0 +1,74 @@
+schema_version = 37
+id = "kafka.admin-topic-config-restore"
+title = "packaged admin restores a changed Kafka topic configuration"
+description = "The packaged admin observes cleanup.policy=delete, changes it to compact, observes that baseline, then restores delete; immediate independent configuration queries confirm both SET transitions and the final value."
+timeout_ms = 150000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-delete-baseline"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-restore-delete-before"
+topic = "testlab-kafkars-admin-config-restore"
+config_name = "cleanup.policy"
+expected_value = "delete"
+timeout_ms = 20000
+
+[[steps]]
+id = "set-compact"
+kind = "alter_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-restore-set-compact"
+topic = "testlab-kafkars-admin-config-restore"
+config_name = "cleanup.policy"
+value = "compact"
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-compact-baseline"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-restore-compact-before"
+topic = "testlab-kafkars-admin-config-restore"
+config_name = "cleanup.policy"
+expected_value = "compact"
+timeout_ms = 20000
+
+[[steps]]
+id = "restore-delete"
+kind = "alter_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-restore-set-delete"
+topic = "testlab-kafkars-admin-config-restore"
+config_name = "cleanup.policy"
+value = "delete"
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-restored-delete"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-config-restore-delete-after"
+topic = "testlab-kafkars-admin-config-restore"
+config_name = "cleanup.policy"
+expected_value = "delete"
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

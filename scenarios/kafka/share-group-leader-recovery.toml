@@ -1,4 +1,4 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.share-group-leader-recovery"
 title = "share acquisitions recover across an observed leader replacement"
 description = "One member retains an acquisition while Testlab stops its partition leader; another live member receives the released acquisition and new work through the replacement without duplicate local ownership."
@@ -63,7 +63,7 @@ id = "first-holds-record"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-held"
-expected_operation_id = "op-held"
+expected_operation_ids = ["op-held"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -79,10 +79,13 @@ close_timeout_ms = 30000
 
 [[steps]]
 id = "stop-original-leader"
-kind = "stop_partition_leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
 topic = "testlab-kafkars-share-leader"
 partition = 0
-timeout_ms = 45000
 
 [[steps]]
 id = "drop-held-record"
@@ -95,7 +98,7 @@ id = "second-receives-released-record"
 kind = "share_receive"
 consumer_id = "share-2"
 receive_id = "receive-held-again"
-expected_operation_id = "op-held"
+expected_operation_ids = ["op-held"]
 minimum_delivery_count = 1
 timeout_ms = 45000
 
@@ -105,7 +108,7 @@ kind = "share_acknowledge"
 consumer_id = "share-2"
 receive_id = "receive-held-again"
 acknowledgement_id = "ack-held-final"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -136,7 +139,7 @@ id = "second-receives-after-movement"
 kind = "share_receive"
 consumer_id = "share-2"
 receive_id = "receive-after-move"
-expected_operation_id = "op-after-move"
+expected_operation_ids = ["op-after-move"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -146,15 +149,18 @@ kind = "share_acknowledge"
 consumer_id = "share-2"
 receive_id = "receive-after-move"
 acknowledgement_id = "ack-after-move"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
 id = "restore-original-leader"
-kind = "restore_partition_leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
 topic = "testlab-kafkars-share-leader"
 partition = 0
-timeout_ms = 45000
 
 [[steps]]
 id = "close-first-share"

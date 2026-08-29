@@ -4,7 +4,7 @@ use std::io::Write;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use kafkars::{RetryAdvice, Transaction};
+use crate::kafkars_api::{ErrorKind, KafkaError, RetryAdvice, Transaction, TransactionalProducer};
 use testlab_schema::{AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandId, ProducerId};
 
 use crate::AdapterError;
@@ -59,7 +59,7 @@ pub(crate) fn dispatch<W: Write>(
     reason = "the external command keeps every public fencing input explicit"
 )]
 fn execute<W: Write>(
-    producer: &mut kafkars::TransactionalProducer,
+    producer: &mut TransactionalProducer,
     state: &mut AdapterState,
     writer: &mut W,
     command_id: CommandId,
@@ -185,8 +185,5 @@ fn remaining(deadline: Instant) -> Result<Duration, AdapterError> {
 }
 
 fn timeout_error(message: &str) -> AdapterError {
-    AdapterError::Client(kafkars::KafkaError::new(
-        kafkars::ErrorKind::Timeout,
-        message,
-    ))
+    AdapterError::Client(KafkaError::new(ErrorKind::Timeout, message))
 }

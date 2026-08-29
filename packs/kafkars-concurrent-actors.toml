@@ -1,0 +1,8 @@
+schema_version = 1
+id = "kafkars-concurrent-actors"
+title = "packaged Kafkars deterministic concurrent actor coverage"
+scenarios = [
+  "scenarios/kafka/concurrent-multi-producer.toml",
+  "scenarios/kafka/concurrent-producer-consumer.toml",
+  "scenarios/kafka/concurrent-two-client-pipeline.toml",
+]

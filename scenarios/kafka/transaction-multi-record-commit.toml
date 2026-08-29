@@ -1,0 +1,117 @@
+schema_version = 37
+id = "kafka.transaction-multi-record-commit"
+title = "one committed transaction preserves a multi-topic record set"
+description = "One public transaction commits six records across two topics and four partitions; independent read-committed observations must preserve the whole set, exact null and empty fields, tombstones, duplicate nullable binary headers, broker coordinates, and caller order within each partition."
+timeout_ms = 180000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-multi-commit-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "commit-multi-topic-set"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-multi-commit"
+disposition = "commit"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "op-commit-null-null"
+record = { topic = "testlab-transaction-commit-a", partition = 0, sequence = 1, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-commit-null-null" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-commit-empty-empty"
+record = { topic = "testlab-transaction-commit-a", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-commit-empty-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.operations]]
+operation_id = "op-commit-null-empty"
+record = { topic = "testlab-transaction-commit-a", partition = 1, sequence = 3, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-commit-null-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps.operations]]
+operation_id = "op-commit-empty-tombstone"
+record = { topic = "testlab-transaction-commit-a", partition = 1, sequence = 4, key = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-commit-empty-tombstone" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } }] }
+
+[[steps.operations]]
+operation_id = "op-commit-headers"
+
+[steps.operations.record]
+topic = "testlab-transaction-commit-b"
+partition = 0
+sequence = 5
+key = { encoding = "hex", data = "006bff" }
+value = { encoding = "hex", data = "0076ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-commit-headers" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "5" } },
+  { name = "trace", value = { encoding = "utf8", data = "first" } },
+  { name = "trace" },
+  { name = "trace", value = { encoding = "hex", data = "" } },
+  { name = "trace", value = { encoding = "hex", data = "00ff" } },
+]
+
+[[steps.operations]]
+operation_id = "op-commit-binary"
+record = { topic = "testlab-transaction-commit-b", partition = 1, sequence = 6, key = { encoding = "hex", data = "ff00" }, value = { encoding = "hex", data = "000102feff" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-commit-binary" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "6" } }] }
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-commit-null-null"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-commit-empty-empty"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-commit-null-empty"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-commit-empty-tombstone"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-commit-headers"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-commit-binary"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

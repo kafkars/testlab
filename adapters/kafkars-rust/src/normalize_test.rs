@@ -1,9 +1,8 @@
 //! Public Kafkars normalization tests preserve bytes and delivery uncertainty.
 
-use kafkars::{DeliveryStatus, ErrorKind, KafkaError};
+use crate::kafkars_api::{DeliveryStatus, ErrorKind, KafkaError};
 use testlab_schema::{ByteString, HeaderSpec, RecordSpec, TerminalStatus};
 
-#[cfg(kafkars_share_candidate)]
 use super::normalize::error_code;
 use super::normalize::{delivery_failure, record};
 
@@ -52,7 +51,6 @@ fn explicit_not_sent_certainty_is_preserved() {
     assert_eq!(failure.status, TerminalStatus::DefinitelyNotSent);
 }
 
-#[cfg(kafkars_share_candidate)]
 #[test]
 fn candidate_identity_error_has_a_stable_protocol_code() {
     let error = KafkaError::new(ErrorKind::Identity, "topic identity mismatch");

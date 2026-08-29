@@ -6,9 +6,9 @@ use std::pin::pin;
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
-use kafkars::{
-    ConsumerBatch, GroupConsumerRecord, GroupMembershipEpoch as PublicGroupMembershipEpoch,
-    RetryAdvice,
+use crate::kafkars_api::{
+    ConsumerBatch, ConsumerCommitAdmissionError, GroupConsumerRecord,
+    GroupMembershipEpoch as PublicGroupMembershipEpoch, GroupMetadata, RetryAdvice,
 };
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, ByteString, CommandId, ConsumedRecord,
@@ -17,6 +17,7 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::admission_retry::retry_owned_until;
+use crate::group_consumers::GroupConsumerRegistration;
 use crate::protocol::emit;
 use crate::state::AdapterState;
 
@@ -35,14 +36,16 @@ pub(crate) fn dispatch<W: Write>(
             group_id,
             topic,
             protocol,
+            configuration,
         } => {
-            state.create_group_consumer(
+            state.create_group_consumer(GroupConsumerRegistration {
                 client_id,
-                consumer_id.clone(),
+                consumer_id: consumer_id.clone(),
                 group_id,
                 topic,
                 protocol,
-            )?;
+                configuration,
+            })?;
             emit(
                 writer,
                 &AdapterEventEnvelope::new(
@@ -63,6 +66,42 @@ pub(crate) fn dispatch<W: Write>(
             receive_id,
             timeout_ms,
         ),
+        AdapterCommand::ObserveGroupAssignments(command) => {
+            crate::group_assignment_observe::observe(state, writer, command_id, command)
+        }
+        AdapterCommand::GroupReceiveSet(command) => {
+            crate::group_receive_set::receive(state, writer, command_id, command)
+        }
+        AdapterCommand::ControlGroupConsumer(command) => {
+            let completion = testlab_schema::GroupConsumerControlCompletion {
+                operation_id: command.operation_id.clone(),
+                consumer_id: command.consumer_id.clone(),
+                control: command.control.kind(),
+            };
+            state.control_group_consumer(&command)?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(
+                    command_id,
+                    AdapterEvent::GroupConsumerControlCompleted(completion),
+                ),
+            )
+        }
+        AdapterCommand::ShutdownGroupConsumer(command) => {
+            let completion = testlab_schema::GroupConsumerShutdownCompletion {
+                operation_id: command.operation_id.clone(),
+                consumer_id: command.consumer_id.clone(),
+                request_count: command.request_count,
+            };
+            crate::group_consumer_shutdown::shutdown(state, &command)?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(
+                    command_id,
+                    AdapterEvent::GroupConsumerShutdownCompleted(completion),
+                ),
+            )
+        }
         AdapterCommand::CloseGroupConsumer { consumer_id } => {
             state.close_group_consumer(&consumer_id)?;
             emit(
@@ -92,31 +131,7 @@ fn receive<W: Write>(
         .checked_add(timeout)
         .ok_or_else(|| AdapterError::ConsumerRecord("receive deadline overflow".to_owned()))?;
     let (records, committed) = match receive_batch(state, consumer_id, deadline)? {
-        Some(batch) => {
-            let records = batch
-                .records()
-                .map(|record| normalize_record(&record))
-                .collect::<Result<Vec<_>, _>>()?;
-            let checkpoint = batch.checkpoint();
-            let consumer = state.group_consumer_mut(consumer_id)?;
-            retry_owned_until(
-                deadline,
-                checkpoint,
-                |checkpoint| {
-                    consumer
-                        .try_commit(
-                            checkpoint,
-                            deadline.saturating_duration_since(Instant::now()),
-                        )
-                        .map_err(kafkars::ConsumerCommitAdmissionError::into_parts)
-                },
-                |error| error.retry_advice() == RetryAdvice::RetrySafe,
-            )
-            .map_err(|(_, error)| AdapterError::Client(error))?
-            .wait()
-            .map_err(|error| AdapterError::Client(error.into_parts().1))?;
-            (records, true)
-        }
+        Some(batch) => (commit_batch(state, consumer_id, batch, deadline)?, true),
         None => (Vec::new(), false),
     };
     let group_epoch = public_group_epoch(state, consumer_id, deadline)?;
@@ -134,23 +149,23 @@ fn receive<W: Write>(
     )
 }
 
-fn public_group_epoch(
+pub(crate) fn public_group_epoch(
     state: &mut AdapterState,
     consumer_id: &ConsumerId,
     deadline: Instant,
 ) -> Result<Option<GroupMembershipEpoch>, AdapterError> {
+    Ok(public_group_metadata(state, consumer_id, deadline)?
+        .map(|metadata| normalize_group_epoch(metadata.membership_epoch())))
+}
+
+pub(crate) fn public_group_metadata(
+    state: &mut AdapterState,
+    consumer_id: &ConsumerId,
+    deadline: Instant,
+) -> Result<Option<GroupMetadata>, AdapterError> {
     loop {
         match state.group_consumer_mut(consumer_id)?.group_metadata() {
-            Ok(Some(metadata)) => {
-                return Ok(Some(match metadata.membership_epoch() {
-                    PublicGroupMembershipEpoch::Classic { generation_id } => {
-                        GroupMembershipEpoch::Classic { generation_id }
-                    }
-                    PublicGroupMembershipEpoch::Consumer { member_epoch } => {
-                        GroupMembershipEpoch::Consumer { member_epoch }
-                    }
-                }));
-            }
+            Ok(Some(metadata)) => return Ok(Some(metadata)),
             Ok(None) => {}
             Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => {}
             Err(error) => return Err(AdapterError::Client(error)),
@@ -162,7 +177,49 @@ fn public_group_epoch(
     }
 }
 
-fn receive_batch(
+pub(crate) fn normalize_group_epoch(epoch: PublicGroupMembershipEpoch) -> GroupMembershipEpoch {
+    match epoch {
+        PublicGroupMembershipEpoch::Classic { generation_id } => {
+            GroupMembershipEpoch::Classic { generation_id }
+        }
+        PublicGroupMembershipEpoch::Consumer { member_epoch } => {
+            GroupMembershipEpoch::Consumer { member_epoch }
+        }
+    }
+}
+
+pub(crate) fn commit_batch(
+    state: &mut AdapterState,
+    consumer_id: &ConsumerId,
+    batch: ConsumerBatch,
+    deadline: Instant,
+) -> Result<Vec<ConsumedRecord>, AdapterError> {
+    let records = batch
+        .records()
+        .map(|record| normalize_record(&record))
+        .collect::<Result<Vec<_>, _>>()?;
+    let checkpoint = batch.checkpoint();
+    let consumer = state.group_consumer_mut(consumer_id)?;
+    retry_owned_until(
+        deadline,
+        checkpoint,
+        |checkpoint| {
+            consumer
+                .try_commit(
+                    checkpoint,
+                    deadline.saturating_duration_since(Instant::now()),
+                )
+                .map_err(ConsumerCommitAdmissionError::into_parts)
+        },
+        |error| error.retry_advice() == RetryAdvice::RetrySafe,
+    )
+    .map_err(|(_, error)| AdapterError::Client(error))?
+    .wait()
+    .map_err(|error| AdapterError::Client(error.into_parts().1))?;
+    Ok(records)
+}
+
+pub(crate) fn receive_batch(
     state: &mut AdapterState,
     consumer_id: &ConsumerId,
     deadline: Instant,
@@ -195,7 +252,9 @@ fn receive_batch(
     }
 }
 
-fn normalize_record(record: &GroupConsumerRecord<'_>) -> Result<ConsumedRecord, AdapterError> {
+pub(crate) fn normalize_record(
+    record: &GroupConsumerRecord<'_>,
+) -> Result<ConsumedRecord, AdapterError> {
     let headers = record
         .headers()
         .map(|header| {

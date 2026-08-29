@@ -3,18 +3,18 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    AdapterCommand, AdapterEvent, BrokerStateObservation, Capability, ClientId,
-    EVIDENCE_SCHEMA_VERSION, HistoryPayload, ListConsumerGroupOffsetsAction,
-    ListConsumerGroupOffsetsCommand, OperationId, PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION,
-    ScenarioAction,
+    AdapterCommand, AdapterEvent, AdminConsumerGroupOffsetListing, BrokerConsumerGroupOffset,
+    BrokerStateObservation, Capability, ClientId, EVIDENCE_SCHEMA_VERSION, HistoryPayload,
+    ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand, OperationId, PROTOCOL_VERSION,
+    SCENARIO_SCHEMA_VERSION, ScenarioAction,
 };
 use crate::admin_action_validation::validate;
 
 #[test]
 fn versions_advance_together_for_the_new_evidence_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 16);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 14);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 6);
+    assert_eq!(PROTOCOL_VERSION, 34);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 37);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 26);
 }
 
 #[test]
@@ -54,13 +54,13 @@ fn command_and_action_reject_unknown_or_missing_fields() {
 
 #[test]
 fn adapter_event_reports_only_the_public_group_offset_fact() {
-    let event = AdapterEvent::ConsumerGroupOffsetListed {
+    let event = AdapterEvent::ConsumerGroupOffsetListed(AdminConsumerGroupOffsetListing {
         operation_id: operation(),
         group_id: "group-1".to_owned(),
         topic: "records".to_owned(),
         partition: 0,
         offset: Some(1),
-    };
+    });
 
     let encoded = encode(&event);
 
@@ -74,14 +74,14 @@ fn adapter_event_reports_only_the_public_group_offset_fact() {
 
 #[test]
 fn broker_state_observation_is_typed_and_history_addressable() {
-    let observation = BrokerStateObservation::ConsumerGroupOffset {
+    let observation = BrokerStateObservation::ConsumerGroupOffset(BrokerConsumerGroupOffset {
         observation: 7,
         operation_id: operation(),
         group_id: "group-1".to_owned(),
         topic: "records".to_owned(),
         partition: 0,
         offset: Some(1),
-    };
+    });
     let history = HistoryPayload::BrokerStateObservation {
         observation: observation.clone(),
     };

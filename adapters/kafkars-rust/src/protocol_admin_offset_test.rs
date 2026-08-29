@@ -1,10 +1,23 @@
 //! Offset-result normalization tests enforce one exact topic-partition identity.
 
-use kafkars::{ErrorKind, KafkaError, StartPosition, TopicPartition};
-use testlab_schema::OperationId;
+use crate::kafkars_api::{ErrorKind, KafkaError, OffsetSpec, StartPosition, TopicPartition};
+use testlab_schema::{AdminOffsetPosition, OperationId};
 
 use crate::AdapterError;
+use crate::protocol_admin_read::offset_spec;
 use crate::protocol_admin_result::listed_offset;
+
+#[test]
+fn offset_positions_map_to_exact_public_specs() {
+    assert_eq!(
+        offset_spec(AdminOffsetPosition::Earliest),
+        OffsetSpec::earliest()
+    );
+    assert_eq!(
+        offset_spec(AdminOffsetPosition::Latest),
+        OffsetSpec::latest()
+    );
+}
 
 #[test]
 fn listed_offset_preserves_present_and_absent_public_offsets() {

@@ -52,6 +52,7 @@ fn rejected_admission_must_not_expect_a_terminal() {
             accepted: false,
             terminal: Some(TerminalStatus::DefinitelyNotSent),
             visibility: VisibilityExpectation::Absent,
+            expected_error_code: None,
         }],
     };
 
@@ -179,9 +180,9 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
 }
 
 #[test]
-fn broker_and_partition_stops_require_exact_restoration() {
+fn broker_and_role_stops_require_exact_restoration() {
     let source = r#"
-schema_version = 14
+schema_version = 37
 id = "environment.paired-control"
 title = "paired control"
 description = "every retained broker control is restored"
@@ -202,18 +203,20 @@ broker_ordinal = 1
 timeout_ms = 500
 
 [[steps]]
-id = "stop-leader"
-kind = "stop_partition_leader"
-topic = "records"
-partition = 0
+id = "stop-controller"
+kind = "stop_broker_role"
 timeout_ms = 500
 
+[steps.target]
+role = "controller"
+
 [[steps]]
-id = "restore-leader"
-kind = "restore_partition_leader"
-topic = "records"
-partition = 0
+id = "restore-controller"
+kind = "restore_broker_role"
 timeout_ms = 500
+
+[steps.target]
+role = "controller"
 "#;
     let mut scenario: Scenario =
         toml::from_str(source).unwrap_or_else(|error| panic!("parse controls: {error}"));
@@ -223,7 +226,7 @@ timeout_ms = 500
     scenario.steps.pop();
 
     let error = match scenario.validate() {
-        Ok(()) => panic!("unrestored partition leader must fail"),
+        Ok(()) => panic!("unrestored broker role must fail"),
         Err(error) => error,
     };
 

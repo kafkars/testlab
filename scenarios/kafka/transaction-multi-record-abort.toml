@@ -1,0 +1,117 @@
+schema_version = 37
+id = "kafka.transaction-multi-record-abort"
+title = "one aborted transaction hides a multi-topic record set"
+description = "One public transaction stages and aborts six records across two topics and four partitions; the independent read-committed observer must expose none of the declared set without treating public staging metadata as proof of a physical append."
+timeout_ms = 180000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-multi-abort-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "abort-multi-topic-set"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-multi-abort"
+disposition = "abort"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "op-abort-null-null"
+record = { topic = "testlab-transaction-abort-a", partition = 0, sequence = 1, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-abort-null-null" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-abort-empty-empty"
+record = { topic = "testlab-transaction-abort-a", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-abort-empty-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.operations]]
+operation_id = "op-abort-null-empty"
+record = { topic = "testlab-transaction-abort-a", partition = 1, sequence = 3, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-abort-null-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps.operations]]
+operation_id = "op-abort-empty-tombstone"
+record = { topic = "testlab-transaction-abort-a", partition = 1, sequence = 4, key = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-abort-empty-tombstone" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } }] }
+
+[[steps.operations]]
+operation_id = "op-abort-headers"
+
+[steps.operations.record]
+topic = "testlab-transaction-abort-b"
+partition = 0
+sequence = 5
+key = { encoding = "hex", data = "006bff" }
+value = { encoding = "hex", data = "0076ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-abort-headers" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "5" } },
+  { name = "trace", value = { encoding = "utf8", data = "first" } },
+  { name = "trace" },
+  { name = "trace", value = { encoding = "hex", data = "" } },
+  { name = "trace", value = { encoding = "hex", data = "00ff" } },
+]
+
+[[steps.operations]]
+operation_id = "op-abort-binary"
+record = { topic = "testlab-transaction-abort-b", partition = 1, sequence = 6, key = { encoding = "hex", data = "ff00" }, value = { encoding = "hex", data = "000102feff" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-abort-binary" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "6" } }] }
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-abort-null-null"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-abort-empty-empty"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-abort-null-empty"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-abort-empty-tombstone"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-abort-headers"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-abort-binary"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"

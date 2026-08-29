@@ -1,4 +1,4 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.share-group-session-recovery"
 title = "one share member recovers while every broker is disrupted"
 description = "Testlab stops each broker in turn while one unique share member remains live and proves forward progress after the stop that necessarily disrupts its original group coordinator."
@@ -59,7 +59,7 @@ id = "receive-after-broker-1"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-after-broker-1"
-expected_operation_id = "op-after-broker-1"
+expected_operation_ids = ["op-after-broker-1"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -69,7 +69,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-after-broker-1"
 acknowledgement_id = "ack-after-broker-1"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -106,7 +106,7 @@ id = "receive-after-broker-2"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-after-broker-2"
-expected_operation_id = "op-after-broker-2"
+expected_operation_ids = ["op-after-broker-2"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -116,7 +116,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-after-broker-2"
 acknowledgement_id = "ack-after-broker-2"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]
@@ -153,7 +153,7 @@ id = "receive-after-broker-3"
 kind = "share_receive"
 consumer_id = "share-1"
 receive_id = "receive-after-broker-3"
-expected_operation_id = "op-after-broker-3"
+expected_operation_ids = ["op-after-broker-3"]
 minimum_delivery_count = 1
 timeout_ms = 30000
 
@@ -163,7 +163,7 @@ kind = "share_acknowledge"
 consumer_id = "share-1"
 receive_id = "receive-after-broker-3"
 acknowledgement_id = "ack-after-broker-3"
-disposition = "accept"
+dispositions = ["accept"]
 timeout_ms = 30000
 
 [[steps]]

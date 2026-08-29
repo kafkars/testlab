@@ -1,0 +1,133 @@
+schema_version = 37
+id = "kafka.assigned-consumer-beginning-reset"
+title = "reassigning from the beginning replays the first exact record"
+description = "A packaged direct consumer reads partition zero, moves to partition one, then explicitly reassigns partition zero from the beginning and returns its first record again."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-partition-zero"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-zero"
+
+[steps.record]
+topic = "testlab-kafkars-assignment-reset"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "zero" }
+value = { encoding = "utf8", data = "replay-me" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-zero" } }]
+
+[[steps]]
+id = "send-partition-one"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-one"
+
+[steps.record]
+topic = "testlab-kafkars-assignment-reset"
+partition = 1
+sequence = 2
+key = { encoding = "utf8", data = "one" }
+value = { encoding = "utf8", data = "middle" }
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-one" } }]
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-zero-first"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-assignment-reset"
+partition = 0
+
+[[steps]]
+id = "receive-zero-first"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-zero-first"
+expected_operation_id = "op-zero"
+timeout_ms = 20000
+
+[[steps]]
+id = "assign-one"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-assignment-reset"
+partition = 1
+
+[[steps]]
+id = "receive-one"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-one"
+expected_operation_id = "op-one"
+timeout_ms = 20000
+
+[[steps]]
+id = "assign-zero-again"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-assignment-reset"
+partition = 0
+
+[[steps]]
+id = "receive-zero-again"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-zero-again"
+expected_operation_id = "op-zero"
+timeout_ms = 20000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-zero"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-one"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

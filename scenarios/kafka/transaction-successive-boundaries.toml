@@ -1,0 +1,132 @@
+schema_version = 37
+id = "kafka.transaction-successive-boundaries"
+title = "successive transactions preserve exact disposition boundaries"
+description = "One public transactional producer commits a two-partition set, aborts another, then commits a final set; every declared operation must stage inside its own non-overlapping public disposition window and read-committed truth must expose only both committed sets."
+timeout_ms = 180000
+requires = ["producer", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-successive-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "commit-first-set"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-successive-commit-1"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-successive-first-p0"
+record = { topic = "testlab-transaction-successive", partition = 0, sequence = 1, key = { encoding = "utf8", data = "first" }, value = { encoding = "hex", data = "006669727374ff" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-successive-first-p0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-successive-first-p1"
+record = { topic = "testlab-transaction-successive", partition = 1, sequence = 2, key = { encoding = "utf8", data = "first-tombstone" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-successive-first-p1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "abort-middle-set"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-successive-abort"
+disposition = "abort"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-successive-abort-p0"
+record = { topic = "testlab-transaction-successive", partition = 0, sequence = 3, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-successive-abort-p0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps.operations]]
+operation_id = "op-successive-abort-p1"
+
+[steps.operations.record]
+topic = "testlab-transaction-successive"
+partition = 1
+sequence = 4
+key = { encoding = "hex", data = "" }
+value = { encoding = "hex", data = "" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-successive-abort-p1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+  { name = "trace" },
+  { name = "trace", value = { encoding = "hex", data = "" } },
+  { name = "trace", value = { encoding = "hex", data = "00ff" } },
+]
+
+[[steps]]
+id = "commit-final-set"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-successive-commit-2"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-successive-final-p0"
+record = { topic = "testlab-transaction-successive", partition = 0, sequence = 5, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "00ff" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-successive-final-p0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "5" } }] }
+
+[[steps.operations]]
+operation_id = "op-successive-final-p1"
+record = { topic = "testlab-transaction-successive", partition = 1, sequence = 6, key = { encoding = "hex", data = "ff00" }, value = { encoding = "hex", data = "000102feff" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-successive-final-p1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "6" } }] }
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-successive-first-p0"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-successive-first-p1"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-successive-abort-p0"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-successive-abort-p1"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-successive-final-p0"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-successive-final-p1"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

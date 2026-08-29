@@ -1,7 +1,7 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.admin-describe-topic"
-title = "packaged admin describes independently exercised topic partitions"
-description = "The packaged client's public admin describes one harness-provisioned topic as partitions 0, 1, and 2, then one exact independently observed record exercises each described partition."
+title = "packaged admin describes independently observed topic partitions"
+description = "The packaged client's public admin describes one harness-provisioned topic as partitions 0, 1, and 2, an immediate independent metadata query confirms that topology, and one exact independently observed record exercises each partition."
 timeout_ms = 90000
 requires = ["producer", "producer_batch", "admin", "lifecycle", "client_readiness"]
 

@@ -1,0 +1,77 @@
+schema_version = 37
+id = "kafka.admin-delete-records"
+title = "packaged admin deletes one independently seeded record prefix"
+description = "The harness seeds a fresh partition through an independent producer, the packaged admin deletes records before offset 2, and immediate independent watermark queries prove that only the low watermark advances from 0 to 2 while the high watermark remains 3."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "list-baseline-earliest"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-delete-records-baseline-earliest"
+topic = "testlab-kafkars-admin-delete-records"
+partition = 0
+position = "earliest"
+expected_offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "list-baseline-latest"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-delete-records-baseline-latest"
+topic = "testlab-kafkars-admin-delete-records"
+partition = 0
+position = "latest"
+expected_offset = 3
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-record-prefix"
+kind = "delete_records"
+client_id = "client-1"
+operation_id = "admin-delete-records-prefix"
+topic = "testlab-kafkars-admin-delete-records"
+partition = 0
+before_offset = 2
+expected_high_watermark = 3
+timeout_ms = 30000
+
+[[steps]]
+id = "list-retained-earliest"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-delete-records-retained-earliest"
+topic = "testlab-kafkars-admin-delete-records"
+partition = 0
+position = "earliest"
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "list-retained-latest"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-delete-records-retained-latest"
+topic = "testlab-kafkars-admin-delete-records"
+partition = 0
+position = "latest"
+expected_offset = 3
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

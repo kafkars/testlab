@@ -1,0 +1,8 @@
+schema_version = 1
+id = "kafkars-network-faults"
+title = "packaged Kafkars external network-fault coverage"
+scenarios = [
+  "scenarios/kafka/producer-network-connection-cut-recovery.toml",
+  "scenarios/kafka/producer-network-blackhole-recovery.toml",
+  "scenarios/kafka/producer-network-latency-progress.toml",
+]

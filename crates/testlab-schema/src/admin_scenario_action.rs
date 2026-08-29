@@ -15,6 +15,13 @@ pub struct CreatePartitionsAction {
     pub topic: String,
     /// Positive requested total partition count.
     pub total_count: i32,
+    /// Whether the public API must validate the request without increasing partitions.
+    pub validate_only: bool,
+    /// Exact current partition count required by the verifier for validate-only requests.
+    pub expected_current_count: Option<i32>,
+    /// Exact normalized public error expected instead of a completion.
+    #[serde(default)]
+    pub expected_error_code: Option<String>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -28,8 +35,11 @@ pub struct DescribeTopicAction {
     pub operation_id: OperationId,
     /// Exact Kafka topic name.
     pub topic: String,
-    /// Exact partition indices the verifier requires.
-    pub expected_partitions: Vec<i32>,
+    /// Exact partition indices the verifier requires after success.
+    pub expected_partitions: Option<Vec<i32>>,
+    /// Exact normalized public error expected instead of a completion.
+    #[serde(default)]
+    pub expected_error_code: Option<String>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -60,10 +70,13 @@ pub struct ListOffsetsAction {
     pub topic: String,
     /// Exact nonnegative partition.
     pub partition: i32,
-    /// Latest offset position.
+    /// Broker-relative offset position.
     pub position: AdminOffsetPosition,
-    /// Exact nonnegative offset the verifier requires.
-    pub expected_offset: i64,
+    /// Exact nonnegative offset the verifier requires after success.
+    pub expected_offset: Option<i64>,
+    /// Exact normalized public error expected instead of a completion.
+    #[serde(default)]
+    pub expected_error_code: Option<String>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

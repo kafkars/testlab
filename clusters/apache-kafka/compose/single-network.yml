@@ -1,0 +1,32 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with this
+# work for additional information regarding copyright ownership.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy at
+#
+# https://www.apache.org/licenses/LICENSE-2.0
+
+services:
+  broker:
+    image: ${IMAGE:?set IMAGE to an exact Kafka image digest}
+    hostname: broker
+    ports:
+      - "127.0.0.1:${KAFKA_BACKEND_HOST_PORT:?set hidden subject port}:9092"
+      - "127.0.0.1:${KAFKA_OBSERVER_HOST_PORT:?set observer port}:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,SUBJECT:PLAINTEXT,OBSERVER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: SUBJECT://localhost:${KAFKA_HOST_PORT:?set advertised proxy port},OBSERVER://localhost:${KAFKA_OBSERVER_HOST_PORT},INTERNAL://broker:19092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+      KAFKA_LISTENERS: CONTROLLER://:29093,SUBJECT://:9092,OBSERVER://:9094,INTERNAL://:19092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs

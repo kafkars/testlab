@@ -1,17 +1,17 @@
 //! Topic discovery normalization tests preserve public ordering and failures.
 
-use kafkars::{ErrorKind, KafkaError};
+use crate::kafkars_api::{ErrorKind, KafkaError};
 use testlab_schema::OperationId;
 
 use crate::AdapterError;
 use crate::protocol_admin_result::{DescribedTopicResult, described_partitions, listed_topics};
 
 #[test]
-fn described_topic_preserves_public_partition_order() {
+fn described_topic_canonicalizes_public_partition_order() {
     let result = described_partitions(
         vec![(
             "orders".to_owned(),
-            Ok(description("orders", vec![(0, None), (1, None), (2, None)])),
+            Ok(description("orders", vec![(2, None), (0, None), (1, None)])),
         )],
         &operation_id(),
         "orders",
@@ -43,8 +43,24 @@ fn described_topic_rejects_malformed_batch_and_names() {
         &operation_id,
         "orders",
     );
+    let duplicate = described_partitions(
+        vec![(
+            "orders".to_owned(),
+            Ok(description("orders", vec![(0, None), (0, None)])),
+        )],
+        &operation_id,
+        "orders",
+    );
+    let negative = described_partitions(
+        vec![(
+            "orders".to_owned(),
+            Ok(description("orders", vec![(-1, None)])),
+        )],
+        &operation_id,
+        "orders",
+    );
 
-    for result in [empty, extra, wrong_key, wrong_name] {
+    for result in [empty, extra, wrong_key, wrong_name, duplicate, negative] {
         assert!(matches!(result, Err(AdapterError::AdminResult(_))));
     }
 }
@@ -77,12 +93,12 @@ fn described_topic_preserves_topic_and_partition_client_failures() {
 fn listed_topics_preserve_public_byte_order_and_allow_empty_results() {
     let listed = listed_topics(
         vec![
+            ("orders".to_owned(), Ok("orders".to_owned())),
+            ("audit".to_owned(), Ok("audit".to_owned())),
             (
                 "__consumer_offsets".to_owned(),
                 Ok("__consumer_offsets".to_owned()),
             ),
-            ("audit".to_owned(), Ok("audit".to_owned())),
-            ("orders".to_owned(), Ok("orders".to_owned())),
         ],
         &operation_id(),
     );
@@ -111,8 +127,16 @@ fn listed_topics_reject_name_mismatch_and_preserve_client_failure() {
         vec![("orders".to_owned(), Err(client_error("listing failed")))],
         &operation_id(),
     );
+    let duplicate = listed_topics(
+        vec![
+            ("orders".to_owned(), Ok("orders".to_owned())),
+            ("orders".to_owned(), Ok("orders".to_owned())),
+        ],
+        &operation_id(),
+    );
 
     assert!(matches!(mismatch, Err(AdapterError::AdminResult(_))));
+    assert!(matches!(duplicate, Err(AdapterError::AdminResult(_))));
     assert!(matches!(client_failure, Err(AdapterError::Client(_))));
 }
 

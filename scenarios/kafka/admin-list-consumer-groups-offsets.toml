@@ -1,0 +1,143 @@
+schema_version = 37
+id = "kafka.admin-list-consumer-groups-offsets"
+title = "packaged admin lists selected offsets from multiple consumer groups"
+description = "Two distinct classic groups commit one selected topic offset each, then one packaged multi-group admin call returns both nested outcomes in caller order while independent group-scoped broker queries confirm the same offsets."
+timeout_ms = 200000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-alpha-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-multi-offset-alpha"
+
+[steps.record]
+topic = "testlab-kafkars-admin-multi-offset-alpha"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "alpha-group" }
+value = { encoding = "utf8", data = "selected-offset" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-multi-offset-alpha" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-zulu-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-multi-offset-zulu"
+
+[steps.record]
+topic = "testlab-kafkars-admin-multi-offset-zulu"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "zulu-group" }
+value = { encoding = "utf8", data = "selected-offset" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-multi-offset-zulu" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-alpha-group"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-alpha"
+group_id = "testlab-admin-multi-offset-alpha"
+topic = "testlab-kafkars-admin-multi-offset-alpha"
+protocol = "classic"
+
+[[steps]]
+id = "receive-alpha"
+kind = "group_receive"
+consumer_id = "consumer-alpha"
+receive_id = "receive-multi-offset-alpha"
+expected_operation_id = "op-multi-offset-alpha"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-alpha-group"
+kind = "close_group_consumer"
+consumer_id = "consumer-alpha"
+
+[[steps]]
+id = "create-zulu-group"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-zulu"
+group_id = "testlab-admin-multi-offset-zulu"
+topic = "testlab-kafkars-admin-multi-offset-zulu"
+protocol = "classic"
+
+[[steps]]
+id = "receive-zulu"
+kind = "group_receive"
+consumer_id = "consumer-zulu"
+receive_id = "receive-multi-offset-zulu"
+expected_operation_id = "op-multi-offset-zulu"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-zulu-group"
+kind = "close_group_consumer"
+consumer_id = "consumer-zulu"
+
+[[steps]]
+id = "list-selected-group-offsets"
+kind = "list_consumer_groups_offsets"
+client_id = "client-1"
+operation_id = "admin-list-multi-group-offsets"
+require_stable = true
+groups = [
+  { group_id = "testlab-admin-multi-offset-zulu", partitions = [
+    { topic = "testlab-kafkars-admin-multi-offset-zulu", partition = 0, expected_offset = 1 },
+  ] },
+  { group_id = "testlab-admin-multi-offset-alpha", partitions = [
+    { topic = "testlab-kafkars-admin-multi-offset-alpha", partition = 0, expected_offset = 1 },
+  ] },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-multi-offset-alpha"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-multi-offset-zulu"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

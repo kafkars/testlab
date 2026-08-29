@@ -1,7 +1,7 @@
-schema_version = 14
+schema_version = 37
 id = "kafka.admin-create-partitions"
 title = "packaged admin expands a Kafka topic to a usable partition"
-description = "The packaged client's public admin creates a one-partition topic and requests expansion to a total of three partitions, then the packaged producer writes one independently observed exact record proving newly addressed partition 2 usable."
+description = "The packaged client's public admin creates a one-partition topic and requests expansion to three partitions, an immediate independent metadata query confirms the total, and the packaged producer writes one independently observed exact record proving partition 2 usable."
 timeout_ms = 90000
 requires = ["producer", "admin", "lifecycle", "client_readiness"]
 
@@ -23,6 +23,7 @@ operation_id = "admin-create-1"
 topic = "testlab-kafkars-admin-partitions"
 partitions = 1
 replication_factor = 1
+validate_only = false
 timeout_ms = 20000
 
 [[steps]]
@@ -32,6 +33,7 @@ client_id = "client-1"
 operation_id = "admin-partitions-1"
 topic = "testlab-kafkars-admin-partitions"
 total_count = 3
+validate_only = false
 timeout_ms = 20000
 
 [[steps]]

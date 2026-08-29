@@ -1,16 +1,23 @@
-//! Consumer-group offset observation queries broker state without joining the group.
+//! Consumer-group offset observation queries one exact partition without joining the group.
+
+use std::thread;
+use std::time::Duration;
 
 use rdkafka::ClientConfig;
 use rdkafka::consumer::{BaseConsumer, Consumer};
 use rdkafka::topic_partition_list::{Offset, TopicPartitionList};
 use testlab_schema::{
-    BrokerStateObservation, ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand,
-    OperationId, RunId, Scenario, ScenarioAction,
+    BrokerConsumerGroupOffset, BrokerStateObservation, ListConsumerGroupOffsetsAction,
+    ListConsumerGroupOffsetsCommand, OperationId, RunId, Scenario, ScenarioAction,
 };
 
 use crate::observer::{ObserverRequest, remaining};
+use crate::observer_admin::AdminObserverRequest;
+use crate::observer_admin_target::OffsetTarget;
 use crate::observer_error::ObserverError;
 use crate::security::ClientSecurity;
+
+const POLL_SLICE: Duration = Duration::from_millis(50);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct ConsumerGroupOffsetTarget {
@@ -99,6 +106,52 @@ fn capture_target(
 ) -> Result<BrokerStateObservation, ObserverError> {
     remaining(deadline)?;
     let consumer = consumer(endpoint, run_id, observation, &target.group_id, security)?;
+    capture_with_consumer(observation, deadline, &consumer, target)
+}
+
+pub(super) fn capture_admin_target(
+    request: AdminObserverRequest<'_>,
+    target: &OffsetTarget,
+) -> Result<BrokerStateObservation, ObserverError> {
+    let exact = ConsumerGroupOffsetTarget {
+        operation_id: target.operation_id.clone(),
+        group_id: target.group_id.clone(),
+        topic: target.topic.clone(),
+        partition: target.partition,
+    };
+    let consumer = consumer(
+        request.endpoint,
+        request.run_id,
+        request.first_observation,
+        &target.group_id,
+        request.security,
+    )?;
+    loop {
+        let observed = capture_with_consumer(
+            request.first_observation,
+            request.deadline,
+            &consumer,
+            &exact,
+        )?;
+        if !target.poll_expected || observed_offset(&observed)? == target.expected_offset {
+            return Ok(observed);
+        }
+        let wait = request
+            .deadline
+            .saturating_duration_since(std::time::Instant::now());
+        if wait.is_zero() {
+            return Err(ObserverError::Deadline);
+        }
+        thread::sleep(POLL_SLICE.min(wait));
+    }
+}
+
+fn capture_with_consumer(
+    observation: u64,
+    deadline: std::time::Instant,
+    consumer: &BaseConsumer,
+    target: &ConsumerGroupOffsetTarget,
+) -> Result<BrokerStateObservation, ObserverError> {
     let mut partitions = TopicPartitionList::new();
     partitions.add_partition(&target.topic, target.partition);
     let offsets = consumer.committed_offsets(partitions, remaining(deadline)?)?;
@@ -150,14 +203,16 @@ pub(super) fn normalize_response(
         ));
     }
     let offset = normalize_offset(target, element.offset())?;
-    Ok(BrokerStateObservation::ConsumerGroupOffset {
-        observation,
-        operation_id: target.operation_id.clone(),
-        group_id: target.group_id.clone(),
-        topic: target.topic.clone(),
-        partition: target.partition,
-        offset,
-    })
+    Ok(BrokerStateObservation::ConsumerGroupOffset(
+        BrokerConsumerGroupOffset {
+            observation,
+            operation_id: target.operation_id.clone(),
+            group_id: target.group_id.clone(),
+            topic: target.topic.clone(),
+            partition: target.partition,
+            offset,
+        },
+    ))
 }
 
 fn normalize_offset(
@@ -179,4 +234,13 @@ fn invalid(target: &ConsumerGroupOffsetTarget, detail: impl std::fmt::Display) -
         "consumer group {} offset for {}:{} {detail}",
         target.group_id, target.topic, target.partition
     ))
+}
+
+fn observed_offset(observation: &BrokerStateObservation) -> Result<Option<i64>, ObserverError> {
+    match observation {
+        BrokerStateObservation::ConsumerGroupOffset(value) => Ok(value.offset),
+        _ => Err(ObserverError::InvalidBrokerState(
+            "group-offset query returned a different broker-state kind".to_owned(),
+        )),
+    }
 }

@@ -1,9 +1,9 @@
 //! Issued-operation tests retain record and independently observed admin identities.
 
 use testlab_schema::{
-    AdapterCommand, BatchRecord, ClientId, CommandEnvelope, CommandId, HistoryEntry,
-    HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId, ProducerId, RecordSpec,
-    TransactionDisposition,
+    AdapterCommand, BatchRecord, ClientId, CommandEnvelope, CommandId, CreatePartitionsCommand,
+    HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId, ProducerId,
+    RecordSpec, TransactionDisposition,
 };
 
 use crate::issued_operations::from_history;
@@ -74,13 +74,14 @@ fn recorded_commands_retain_every_observed_operation() {
 }
 
 fn create_partitions() -> AdapterCommand {
-    AdapterCommand::CreatePartitions {
+    AdapterCommand::CreatePartitions(CreatePartitionsCommand {
         client_id: id(ClientId::new("client-1")),
         operation_id: id(OperationId::new("admin-partitions-1")),
         topic: "records".to_owned(),
         total_count: 3,
+        validate_only: false,
         timeout_ms: 1_000,
-    }
+    })
 }
 
 fn fence_transaction() -> AdapterCommand {

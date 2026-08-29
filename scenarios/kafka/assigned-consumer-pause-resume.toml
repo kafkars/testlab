@@ -1,0 +1,144 @@
+schema_version = 37
+id = "kafka.assigned-consumer-pause-resume"
+title = "pause and resume isolate one assigned partition"
+description = "The packaged consumer pauses partition zero, receives only partition one, resumes partition zero, and then receives its independently observed record."
+timeout_ms = 180000
+requires = ["producer", "assigned_consumer", "assigned_consumer_controls", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-partitions"
+kind = "control_assigned_consumer"
+operation_id = "control-replace"
+consumer_id = "consumer-1"
+timeout_ms = 30000
+
+[steps.control]
+kind = "replace"
+partitions = [
+  { topic = "testlab-kafkars-assigned-pause", partition = 0, position = { kind = "beginning" } },
+  { topic = "testlab-kafkars-assigned-pause", partition = 1, position = { kind = "beginning" } },
+]
+
+[[steps]]
+id = "pause-partition-zero"
+kind = "control_assigned_consumer"
+operation_id = "control-pause"
+consumer_id = "consumer-1"
+timeout_ms = 30000
+
+[steps.control]
+kind = "pause"
+partition = { topic = "testlab-kafkars-assigned-pause", partition = 0 }
+
+[[steps]]
+id = "send-paused-partition"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-paused"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-pause"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "paused" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-paused" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-active-partition"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-active"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-pause"
+partition = 1
+sequence = 2
+value = { encoding = "utf8", data = "active" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-active" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-active-partition"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-active"
+expected_operation_id = "op-active"
+timeout_ms = 30000
+
+[[steps]]
+id = "resume-partition-zero"
+kind = "control_assigned_consumer"
+operation_id = "control-resume"
+consumer_id = "consumer-1"
+timeout_ms = 30000
+
+[steps.control]
+kind = "resume"
+partition = { topic = "testlab-kafkars-assigned-pause", partition = 0 }
+
+[[steps]]
+id = "receive-resumed-partition"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-resumed"
+expected_operation_id = "op-paused"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-paused"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-active"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

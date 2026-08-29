@@ -1,0 +1,71 @@
+schema_version = 37
+id = "kafka.producer-configuration-gzip"
+title = "configured producer delivers with gzip compression"
+description = "A client built with the complete explicit public producer policy and gzip record-batch compression delivers one exact independently observed record."
+timeout_ms = 60000
+requires = ["producer", "producer_configuration", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-configured-client"
+kind = "create_configured_client"
+client_id = "client-gzip"
+
+[steps.configuration]
+delivery_timeout_ms = 20000
+compression = "gzip"
+max_retries = 3
+retry_backoff_ms = 10
+
+[steps.configuration.limits]
+retained_bytes = 8388608
+in_flight_records = 256
+waiting_records = 128
+waiting_bytes = 4194304
+batch_records = 32
+batch_bytes = 524288
+request_bytes = 1048576
+max_in_flight_requests_per_broker = 4
+linger_ms = 3
+
+[[steps]]
+id = "await-ready"
+kind = "await_client_ready"
+client_id = "client-gzip"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-gzip"
+producer_id = "producer-gzip"
+
+[[steps]]
+id = "send"
+kind = "send"
+producer_id = "producer-gzip"
+operation_id = "configured-gzip"
+
+[steps.record]
+topic = "testlab-kafkars-config-gzip"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "gzip" }
+value = { encoding = "utf8", data = "configured-producer-gzip-gzip-gzip-gzip-gzip-gzip-gzip" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "configured-gzip" } },
+]
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-gzip"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-gzip"
+
+[[assertions]]
+operation_id = "configured-gzip"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

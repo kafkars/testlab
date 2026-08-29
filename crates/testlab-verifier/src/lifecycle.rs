@@ -10,11 +10,18 @@ pub(crate) fn verify_lifecycle(
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
 ) {
+    if !index.commands.is_empty() {
+        crate::lifecycle_commands::verify(scenario, index, violations);
+        return;
+    }
     for step in &scenario.steps {
         if !index.action_issued(&step.action) {
             continue;
         }
         if verify_transaction_lifecycle(&step.action, index, violations) {
+            continue;
+        }
+        if verify_group_lifecycle(&step.action, index, violations) {
             continue;
         }
         if has_no_lifecycle_terminal(&step.action) {
@@ -25,6 +32,17 @@ pub(crate) fn verify_lifecycle(
                 "LIFE-001",
                 "client creation",
                 references(index.clients_created.get(client_id).map(Vec::as_slice)),
+                violations,
+            ),
+            ScenarioAction::CreateConfiguredClient(action) => check(
+                "LIFE-001",
+                "configured client creation",
+                references(
+                    index
+                        .clients_created
+                        .get(&action.client_id)
+                        .map(Vec::as_slice),
+                ),
                 violations,
             ),
             ScenarioAction::AwaitClientReady { client_id } => check(
@@ -51,6 +69,17 @@ pub(crate) fn verify_lifecycle(
                 references(index.assignments.get(consumer_id).map(Vec::as_slice)),
                 violations,
             ),
+            ScenarioAction::AssignBeginningBatch(action) => check(
+                "LIFE-009",
+                "direct assignment",
+                references(
+                    index
+                        .assignments
+                        .get(&action.consumer_id)
+                        .map(Vec::as_slice),
+                ),
+                violations,
+            ),
             ScenarioAction::Flush { producer_id } => check(
                 "LIFE-003",
                 "producer flush",
@@ -69,28 +98,6 @@ pub(crate) fn verify_lifecycle(
                 references(index.consumers_closed.get(consumer_id).map(Vec::as_slice)),
                 violations,
             ),
-            ScenarioAction::CreateGroupConsumer { consumer_id, .. } => check(
-                "LIFE-011",
-                "group consumer creation",
-                references(
-                    index
-                        .group_consumers_created
-                        .get(consumer_id)
-                        .map(Vec::as_slice),
-                ),
-                violations,
-            ),
-            ScenarioAction::CloseGroupConsumer { consumer_id } => check(
-                "LIFE-012",
-                "group consumer close",
-                references(
-                    index
-                        .group_consumers_closed
-                        .get(consumer_id)
-                        .map(Vec::as_slice),
-                ),
-                violations,
-            ),
             ScenarioAction::ShutdownClient { client_id } => check(
                 "LIFE-005",
                 "client shutdown",
@@ -103,25 +110,80 @@ pub(crate) fn verify_lifecycle(
     verify_finish(index, violations);
 }
 
+fn verify_group_lifecycle(
+    action: &ScenarioAction,
+    index: &HistoryIndex,
+    violations: &mut Vec<Violation>,
+) -> bool {
+    match action {
+        ScenarioAction::CreateGroupConsumer { consumer_id, .. } => check(
+            "LIFE-011",
+            "group consumer creation",
+            references(
+                index
+                    .group_consumers_created
+                    .get(consumer_id)
+                    .map(Vec::as_slice),
+            ),
+            violations,
+        ),
+        ScenarioAction::CloseGroupConsumer { consumer_id } => check(
+            "LIFE-012",
+            "group consumer close",
+            references(
+                index
+                    .group_consumers_closed
+                    .get(consumer_id)
+                    .map(Vec::as_slice),
+            ),
+            violations,
+        ),
+        _ => return false,
+    }
+    true
+}
+
 fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
     matches!(
         action,
         ScenarioAction::SetBrokerBehavior { .. }
+            | ScenarioAction::ArmProtocolFault(_)
             | ScenarioAction::RestartBroker { .. }
             | ScenarioAction::StopBroker { .. }
             | ScenarioAction::StartBroker { .. }
-            | ScenarioAction::StopPartitionLeader { .. }
-            | ScenarioAction::RestorePartitionLeader { .. }
+            | ScenarioAction::StopBrokerRole { .. }
+            | ScenarioAction::RestoreBrokerRole { .. }
+            | ScenarioAction::AlterBrokerPolicy(_)
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
+            | ScenarioAction::StartConcurrentActors(_)
+            | ScenarioAction::JoinConcurrentActors(_)
             | ScenarioAction::Receive { .. }
             | ScenarioAction::GroupReceive { .. }
-            | ScenarioAction::CreateTopic { .. }
+            | ScenarioAction::ObserveGroupAssignments(_)
+            | ScenarioAction::GroupReceiveSet(_)
+            | ScenarioAction::CreateTopic(_)
+            | ScenarioAction::CreateTopicsBatch(_)
             | ScenarioAction::CreatePartitions(_)
+            | ScenarioAction::DeleteTopic(_)
             | ScenarioAction::DescribeTopic(_)
             | ScenarioAction::ListTopics(_)
             | ScenarioAction::ListOffsets(_)
+            | ScenarioAction::DeleteRecords(_)
+            | ScenarioAction::DescribeCluster(_)
+            | ScenarioAction::ListConsumerGroups(_)
+            | ScenarioAction::DescribeConsumerGroup(_)
             | ScenarioAction::ListConsumerGroupOffsets(_)
+            | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
+            | ScenarioAction::ListConsumerGroupsOffsets(_)
+            | ScenarioAction::AlterConsumerGroupOffset(_)
+            | ScenarioAction::AlterConsumerGroupOffsets(_)
+            | ScenarioAction::DeleteConsumerGroupOffset(_)
+            | ScenarioAction::DeleteConsumerGroupOffsets(_)
+            | ScenarioAction::DeleteConsumerGroup(_)
+            | ScenarioAction::DescribeClassicGroups(_)
+            | ScenarioAction::DescribeTopicConfig(_)
+            | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }
             | ScenarioAction::CreateShareConsumer { .. }
@@ -149,6 +211,10 @@ fn verify_transaction_lifecycle(
     violations: &mut Vec<Violation>,
 ) -> bool {
     match action {
+        ScenarioAction::CreateTransactionalProducer {
+            expected_error_code: Some(_),
+            ..
+        } => {}
         ScenarioAction::CreateTransactionalProducer { producer_id, .. } => check(
             "LIFE-013",
             "transactional producer creation",
@@ -160,13 +226,13 @@ fn verify_transaction_lifecycle(
             ),
             violations,
         ),
-        ScenarioAction::CloseTransactionalProducer { producer_id } => check(
+        ScenarioAction::CloseTransactionalProducer(action) => check(
             "LIFE-014",
             "transactional producer close",
             references(
                 index
                     .transactional_producers_closed
-                    .get(producer_id)
+                    .get(&action.producer_id)
                     .map(Vec::as_slice),
             ),
             violations,

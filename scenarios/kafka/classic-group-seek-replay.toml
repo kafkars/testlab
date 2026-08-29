@@ -1,0 +1,101 @@
+schema_version = 37
+id = "kafka.classic-group-seek-replay"
+title = "a classic group seek replays one committed broker record"
+description = "The packaged classic member receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."
+timeout_ms = 150000
+requires = ["producer", "consumer_groups", "group_consumer_controls", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-replayed"
+
+[steps.record]
+topic = "testlab-kafkars-classic-seek"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "classic-replayed" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-replayed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-classic-seek-group"
+topic = "testlab-kafkars-classic-seek"
+protocol = "classic"
+
+[[steps]]
+id = "receive-first"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-first"
+expected_operation_id = "op-replayed"
+timeout_ms = 30000
+
+[[steps]]
+id = "seek-beginning"
+kind = "control_group_consumer"
+operation_id = "control-seek"
+consumer_id = "consumer-1"
+timeout_ms = 30000
+
+[steps.control]
+kind = "seek"
+partition = { topic = "testlab-kafkars-classic-seek", partition = 0 }
+position = { kind = "beginning" }
+
+[[steps]]
+id = "receive-replay"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-replay"
+expected_operation_id = "op-replayed"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-replayed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

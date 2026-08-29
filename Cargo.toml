@@ -27,9 +27,12 @@ license = "Apache-2.0"
 repository = "https://github.com/kafkars/testlab"
 
 [workspace.dependencies]
+bytes = "1.10"
 clap = { version = "4.5", features = ["derive"] }
 hex = "0.4"
-kafkars = "=0.0.1"
+kafkars = { git = "https://github.com/kafkars/kafkars.git", rev = "e556a2f04df855c242b5befb7feceb74e0ed4426" }
+kafka-wire = "=0.1.0-rc.3"
+kafka-wire-core = "=0.1.0-rc.3"
 futures-executor = "=0.3.34"
 rdkafka = { version = "=0.39.0", default-features = false, features = ["cmake-build", "naive-runtime", "ssl-vendored"] }
 serde = { version = "1.0", features = ["derive"] }

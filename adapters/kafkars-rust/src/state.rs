@@ -5,12 +5,14 @@ use std::{collections::BTreeMap, time::Duration};
 use crate::admission_retry::retry_safe;
 use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::resolve;
-use crate::group_consumers::GroupConsumers;
+use crate::group_consumers::{GroupConsumerRegistration, GroupConsumers};
+use crate::kafkars_api::{
+    Client, Consumer, ErrorKind, KafkaError, Producer, Security, TransactionalProducer,
+};
 #[cfg(kafkars_share_candidate)]
 use crate::share_consumers::ShareConsumers;
 use crate::transactional_producers::{OwnedTransactionalProducer, TransactionalProducers};
-use kafkars::{AssignedConsumer, Client, Consumer, Producer, Security};
-use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, GroupProtocol, ProducerId};
+use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
 
 pub(crate) use crate::state_error::StateError;
 
@@ -18,15 +20,16 @@ const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
-    broker_endpoints: Option<Vec<String>>,
-    security: Option<Security>,
-    clients: BTreeMap<ClientId, Client>,
+    pub(crate) broker_endpoints: Option<Vec<String>>,
+    pub(crate) security: Option<Security>,
+    pub(crate) clients: BTreeMap<ClientId, Client>,
     producers: BTreeMap<ProducerId, ProducerOwner>,
-    consumers: AssignedConsumers,
+    pub(crate) consumers: AssignedConsumers,
     group_consumers: GroupConsumers,
     #[cfg(kafkars_share_candidate)]
     pub(crate) share_consumers: ShareConsumers,
     transactional_producers: TransactionalProducers,
+    pub(crate) concurrent_group: Option<crate::protocol_concurrent::RunningConcurrentGroup>,
 }
 
 #[derive(Debug)]
@@ -47,25 +50,6 @@ impl AdapterState {
         let security = resolve(security)?;
         self.broker_endpoints = Some(endpoints);
         self.security = Some(security);
-        Ok(())
-    }
-
-    pub(crate) fn create_client(&mut self, client_id: ClientId) -> Result<(), StateError> {
-        let endpoints = self
-            .broker_endpoints
-            .as_ref()
-            .ok_or(StateError::HelloRequired)?;
-        let security = self.security.clone().ok_or(StateError::HelloRequired)?;
-        if self.clients.contains_key(&client_id) {
-            return Err(StateError::DuplicateClient(client_id));
-        }
-        let client = Client::builder()
-            .bootstrap_servers(endpoints.iter().map(String::as_str))
-            .client_id(client_id.as_str())
-            .security(security)
-            .build()
-            .map_err(StateError::Client)?;
-        self.clients.insert(client_id, client);
         Ok(())
     }
 
@@ -96,20 +80,6 @@ impl AdapterState {
             },
         );
         Ok(())
-    }
-
-    pub(crate) fn await_client_ready(&self, client_id: &ClientId) -> Result<(), StateError> {
-        let client = self
-            .clients
-            .get(client_id)
-            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
-        retry_safe(|| client.ready().wait()).map_err(StateError::Client)
-    }
-
-    pub(crate) fn client(&self, client_id: &ClientId) -> Result<&Client, StateError> {
-        self.clients
-            .get(client_id)
-            .ok_or_else(|| StateError::MissingClient(client_id.clone()))
     }
 
     pub(crate) fn producer(&self, producer_id: &ProducerId) -> Result<&Producer, StateError> {
@@ -147,7 +117,7 @@ impl AdapterState {
     pub(crate) fn transactional_producer_mut(
         &mut self,
         producer_id: &ProducerId,
-    ) -> Result<&mut kafkars::TransactionalProducer, StateError> {
+    ) -> Result<&mut TransactionalProducer, StateError> {
         self.transactional_producers.get_mut(producer_id)
     }
 
@@ -190,21 +160,18 @@ impl AdapterState {
 
     pub(crate) fn create_group_consumer(
         &mut self,
-        client_id: ClientId,
-        consumer_id: ConsumerId,
-        group_id: String,
-        topic: String,
-        protocol: GroupProtocol,
+        registration: GroupConsumerRegistration,
     ) -> Result<(), StateError> {
-        if self.consumers.contains(&consumer_id) || self.share_contains(&consumer_id) {
-            return Err(StateError::DuplicateConsumer(consumer_id));
+        if self.consumers.contains(&registration.consumer_id)
+            || self.share_contains(&registration.consumer_id)
+        {
+            return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
         let client = self
             .clients
-            .get(&client_id)
-            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
-        self.group_consumers
-            .create(client, client_id, consumer_id, group_id, topic, protocol)
+            .get(&registration.client_id)
+            .ok_or_else(|| StateError::MissingClient(registration.client_id.clone()))?;
+        self.group_consumers.create(client, registration)
     }
 
     pub(crate) fn group_consumer_mut(
@@ -214,6 +181,13 @@ impl AdapterState {
         self.group_consumers.get_mut(consumer_id)
     }
 
+    pub(crate) fn control_group_consumer(
+        &mut self,
+        command: &testlab_schema::GroupConsumerControlCommand,
+    ) -> Result<(), StateError> {
+        self.group_consumers.control(command)
+    }
+
     pub(crate) fn close_group_consumer(
         &mut self,
         consumer_id: &ConsumerId,
@@ -221,28 +195,11 @@ impl AdapterState {
         self.group_consumers.close(consumer_id)
     }
 
-    pub(crate) fn assign_beginning(
-        &mut self,
-        consumer_id: &ConsumerId,
-        topic: &str,
-        partition: i32,
-    ) -> Result<(), StateError> {
-        self.consumers
-            .assign_beginning(consumer_id, topic, partition)
-    }
-
-    pub(crate) fn consumer_mut(
-        &mut self,
-        consumer_id: &ConsumerId,
-    ) -> Result<&mut AssignedConsumer, StateError> {
-        self.consumers.get_mut(consumer_id)
-    }
-
-    pub(crate) fn close_assigned_consumer(
+    pub(crate) fn remove_shutdown_group_consumer(
         &mut self,
         consumer_id: &ConsumerId,
     ) -> Result<(), StateError> {
-        self.consumers.close(consumer_id)
+        self.group_consumers.remove_after_shutdown(consumer_id)
     }
 
     pub(crate) fn close_producer(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {
@@ -253,7 +210,11 @@ impl AdapterState {
                 .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))?;
             retry_safe(|| owner.producer.close().wait())
         };
-        result.map_err(StateError::Client)?;
+        if let Err(error) = result
+            && !is_already_closed(&error)
+        {
+            return Err(StateError::Client(error));
+        }
         self.producers.remove(producer_id);
         Ok(())
     }
@@ -281,6 +242,9 @@ impl AdapterState {
     }
 
     pub(crate) fn finish(&self) -> Result<(), StateError> {
+        if self.concurrent_group.is_some() {
+            return Err(StateError::UnjoinedConcurrentActors);
+        }
         if !self.producers.is_empty() || !self.transactional_producers.is_empty() {
             return Err(StateError::UnclosedProducers);
         }
@@ -293,4 +257,8 @@ impl AdapterState {
         }
         Ok(())
     }
+}
+
+pub(crate) fn is_already_closed(error: &KafkaError) -> bool {
+    error.kind() == ErrorKind::State && error.to_string() == "producer is already closed"
 }

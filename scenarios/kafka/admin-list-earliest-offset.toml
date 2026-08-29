@@ -1,0 +1,93 @@
+schema_version = 37
+id = "kafka.admin-list-earliest-offset"
+title = "packaged admin lists the independently evidenced earliest offset"
+description = "After two acknowledged records reach one isolated partition, the packaged client's public earliest-offset query returns offset 0, which is independently observed and differs from the partition's latest offset."
+timeout_ms = 90000
+requires = ["producer", "producer_batch", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-earliest-offset-markers"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-earliest-offset-0"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-earliest-offset"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "earliest-offset-0" }
+value = { encoding = "hex", data = "006561726c696573742d6f66667365742d30ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-earliest-offset-0" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps.operations]]
+operation_id = "op-earliest-offset-1"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-earliest-offset"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "earliest-offset-1" }
+value = { encoding = "hex", data = "006561726c696573742d6f66667365742d31ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-earliest-offset-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "list-earliest-offset"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-list-earliest-offset-1"
+topic = "testlab-kafkars-admin-earliest-offset"
+partition = 0
+position = "earliest"
+expected_offset = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-earliest-offset-0"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-earliest-offset-1"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

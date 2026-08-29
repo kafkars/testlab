@@ -1,0 +1,53 @@
+schema_version = 37
+id = "kafka.admin-create-topic-validate-only"
+title = "packaged admin validates topic creation without creating it"
+description = "The packaged client's public admin validates a topic-creation request, an immediate independent metadata query proves the topic remains absent, and a later real creation plus description proves the request itself was valid."
+timeout_ms = 90000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "validate-topic-creation"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-validate-topic-create"
+topic = "testlab-kafkars-admin-validate-create"
+partitions = 1
+replication_factor = 1
+validate_only = true
+timeout_ms = 20000
+
+[[steps]]
+id = "create-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-create-after-validation"
+topic = "testlab-kafkars-admin-validate-create"
+partitions = 1
+replication_factor = 1
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-created-topic"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-after-create-validation"
+topic = "testlab-kafkars-admin-validate-create"
+expected_partitions = [0]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

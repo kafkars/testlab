@@ -1,0 +1,9 @@
+schema_version = 1
+id = "kafkars-group-controls"
+title = "packaged Kafkars classic and KIP-848 runtime group controls"
+scenarios = [
+  "scenarios/kafka/classic-group-seek-replay.toml",
+  "scenarios/kafka/consumer-protocol-group-seek-replay.toml",
+  "scenarios/kafka/classic-group-pause-resume.toml",
+  "scenarios/kafka/consumer-protocol-group-pause-resume.toml",
+]

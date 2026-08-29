@@ -10,5 +10,8 @@ description = "Deterministic black-box conformance verifier for kafkars testlab"
 [dependencies]
 testlab-schema.workspace = true
 
+[dev-dependencies]
+toml.workspace = true
+
 [lints]
 workspace = true

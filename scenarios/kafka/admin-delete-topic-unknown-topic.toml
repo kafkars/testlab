@@ -1,0 +1,31 @@
+schema_version = 37
+id = "kafka.admin-delete-topic-unknown-topic"
+title = "packaged admin rejects deletion of an unknown Kafka topic"
+description = "The packaged client's public admin requests deletion of an absent topic, reports the exact normalized unknown-topic error, and an immediate independent metadata query confirms the topic remains absent."
+timeout_ms = 90000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "delete-unknown-topic"
+kind = "delete_topic"
+client_id = "client-1"
+operation_id = "admin-delete-unknown-topic"
+topic = "testlab-kafkars-admin-delete-missing"
+expected_error_code = "broker:broker_3"
+timeout_ms = 30000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

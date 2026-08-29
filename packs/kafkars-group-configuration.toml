@@ -1,0 +1,9 @@
+schema_version = 1
+id = "kafkars-group-configuration"
+title = "packaged Kafkars classic and KIP-848 group configuration"
+scenarios = [
+  "scenarios/kafka/classic-group-latest-offset-reset.toml",
+  "scenarios/kafka/consumer-protocol-group-latest-offset-reset.toml",
+  "scenarios/kafka/classic-group-read-committed.toml",
+  "scenarios/kafka/consumer-protocol-group-read-committed.toml",
+]

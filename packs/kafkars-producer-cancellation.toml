@@ -1,0 +1,6 @@
+schema_version = 1
+id = "kafkars-producer-cancellation"
+title = "packaged Kafkars stage-aware producer cancellation"
+scenarios = [
+  "scenarios/kafka/producer-cancellation.toml",
+]

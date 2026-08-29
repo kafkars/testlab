@@ -3,7 +3,7 @@
 use std::env;
 use std::fs;
 
-use kafkars::{Sasl, Security, Tls};
+use crate::kafkars_api::{Sasl, Security, Tls};
 use testlab_schema::{AdapterSaslMechanism, AdapterSecurity};
 use thiserror::Error;
 

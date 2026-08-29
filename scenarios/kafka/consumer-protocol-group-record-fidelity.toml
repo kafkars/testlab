@@ -1,0 +1,129 @@
+schema_version = 37
+id = "kafka.consumer-protocol-group-record-fidelity"
+title = "KIP-848 group receive set preserves exact record fidelity"
+description = "One KIP-848 member receives and commits a four-record set across two partitions while preserving tombstones, null and empty fields, duplicate nullable binary headers, and independent Kafka coordinates."
+timeout_ms = 180000
+requires = ["producer", "producer_batch", "consumer_protocol_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-fidelity-batch"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-tombstone"
+record = { topic = "testlab-kip848-record-fidelity", partition = 0, sequence = 1, key = { encoding = "utf8", data = "tombstone-key" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-tombstone" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-empty"
+record = { topic = "testlab-kip848-record-fidelity", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.operations]]
+operation_id = "op-null-empty"
+record = { topic = "testlab-kip848-record-fidelity", partition = 1, sequence = 3, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-null-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps.operations]]
+operation_id = "op-headers"
+
+[steps.operations.record]
+topic = "testlab-kip848-record-fidelity"
+partition = 1
+sequence = 4
+key = { encoding = "hex", data = "006bff" }
+value = { encoding = "hex", data = "0076ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-headers" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+  { name = "trace", value = { encoding = "utf8", data = "first" } },
+  { name = "trace" },
+  { name = "trace", value = { encoding = "hex", data = "" } },
+  { name = "trace", value = { encoding = "hex", data = "00ff" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-kip848-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-kip848-record-fidelity"
+topic = "testlab-kip848-record-fidelity"
+protocol = "consumer"
+
+[[steps]]
+id = "observe-two-partition-assignment"
+kind = "observe_group_assignments"
+operation_id = "observe-assignment"
+consumer_ids = ["consumer-1"]
+partitions = [
+  { topic = "testlab-kip848-record-fidelity", partition = 0 },
+  { topic = "testlab-kip848-record-fidelity", partition = 1 },
+]
+timeout_ms = 30000
+
+[[steps]]
+id = "receive-four-record-set"
+kind = "group_receive_set"
+receive_id = "receive-fidelity-set"
+consumer_ids = ["consumer-1"]
+expected_operation_ids = ["op-tombstone", "op-empty", "op-null-empty", "op-headers"]
+timeout_ms = 60000
+
+[[steps]]
+id = "close-kip848-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-tombstone"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-null-empty"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-headers"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

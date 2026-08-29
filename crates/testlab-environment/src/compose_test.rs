@@ -96,6 +96,16 @@ fn lifecycle_retries_readiness_and_retains_cleanup_evidence() {
 }
 
 #[test]
+fn network_proxy_separates_adapter_and_observer_endpoints() {
+    let fixture = Fixture::with_network_proxy();
+    let environment = fixture.environment();
+
+    assert_eq!(environment.adapter_endpoints(), ["127.0.0.1:29092"]);
+    assert_ne!(environment.endpoint(), environment.adapter_endpoints()[0]);
+    assert_eq!(environment.endpoints(), [environment.endpoint()]);
+}
+
+#[test]
 fn exited_broker_startup_is_recovered_once_with_retained_evidence() {
     let fixture = Fixture::with_startup_exit(false);
     let mut environment = fixture.environment();

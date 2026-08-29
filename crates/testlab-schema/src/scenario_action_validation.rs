@@ -1,40 +1,43 @@
 //! Action validation owns handle state and producer operation identities.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
-use crate::consumer_action_validation::ConsumerStates;
-use crate::transaction_action_validation::{TransactionSends, TransactionStates};
+pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, ProducerStates};
+use crate::transaction_action_validation::TransactionStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 
-pub(crate) type ClientStates = BTreeMap<ClientId, bool>;
-pub(crate) type ProducerStates = BTreeMap<ProducerId, (ClientId, bool)>;
 const MAX_BATCH_RECORDS: usize = 31;
 
-#[derive(Default)]
-pub(crate) struct ActionStates {
-    pub(crate) clients: ClientStates,
-    pub(crate) producers: ProducerStates,
-    pub(crate) consumers: ConsumerStates,
-    pub(crate) transactions: TransactionStates,
-    pub(crate) operation_ids: BTreeSet<OperationId>,
-    pub(crate) sends: BTreeSet<OperationId>,
-    pub(crate) transaction_sends: TransactionSends,
-    pub(crate) share_batches: crate::share_action_validation::ShareBatchStates,
-    pub(crate) leader_disruptions: BTreeSet<(String, i32)>,
-    pub(crate) stopped_brokers: BTreeSet<u16>,
-}
-
+#[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn validate_action(
     action: &ScenarioAction,
     state: &mut ActionStates,
     problems: &mut Vec<String>,
 ) {
+    if let Some(active) = crate::concurrent_validation::active_id(state)
+        && !crate::concurrent_validation::allowed_while_active(action)
+    {
+        problems.push(format!(
+            "action cannot run while concurrent group {active} is active"
+        ));
+        return;
+    }
     match action {
         ScenarioAction::CreateClient { client_id } => {
             create_client(client_id, &mut state.clients, problems);
         }
+        ScenarioAction::CreateConfiguredClient(action) => {
+            crate::producer_configuration_validation::validate(&action.configuration, problems);
+            create_client(&action.client_id, &mut state.clients, problems);
+        }
         ScenarioAction::AwaitClientReady { client_id } => {
             require_live_client(client_id, &state.clients, problems);
+        }
+        ScenarioAction::ObserveClientMetrics(action) => {
+            require_live_client(&action.client_id, &state.clients, problems);
+            if !state.operation_ids.insert(action.operation_id.clone()) {
+                problems.push(format!("duplicate operation id {}", action.operation_id));
+            }
         }
         ScenarioAction::CreateProducer {
             client_id,
@@ -48,11 +51,15 @@ pub(crate) fn validate_action(
             problems,
         ),
         ScenarioAction::SetBrokerBehavior { .. } => {}
-        action @ (ScenarioAction::RestartBroker { .. }
+        action @ (ScenarioAction::ArmProtocolFault(_)
+        | ScenarioAction::AlterNetworkFault(_)
+        | ScenarioAction::CutNetworkConnections(_)
+        | ScenarioAction::RestartBroker { .. }
         | ScenarioAction::StopBroker { .. }
         | ScenarioAction::StartBroker { .. }
-        | ScenarioAction::StopPartitionLeader { .. }
-        | ScenarioAction::RestorePartitionLeader { .. }) => {
+        | ScenarioAction::StopBrokerRole { .. }
+        | ScenarioAction::RestoreBrokerRole { .. }
+        | ScenarioAction::AlterBrokerPolicy(_)) => {
             crate::scenario_environment_action_validation::validate(action, state, problems);
         }
         ScenarioAction::Send {
@@ -69,6 +76,9 @@ pub(crate) fn validate_action(
                 problems,
             );
         }
+        ScenarioAction::CancelProducerSend(action) => {
+            crate::producer_cancellation_validation::validate(action, state, problems);
+        }
         ScenarioAction::SendBatch {
             producer_id,
             operations: batch,
@@ -82,12 +92,21 @@ pub(crate) fn validate_action(
                 problems,
             );
         }
+        ScenarioAction::StartConcurrentActors(_) | ScenarioAction::JoinConcurrentActors(_) => {
+            crate::concurrent_validation::validate(action, state, problems);
+        }
         action @ (ScenarioAction::CreateAssignedConsumer { .. }
         | ScenarioAction::AssignBeginning { .. }
+        | ScenarioAction::AssignBeginningBatch(_)
+        | ScenarioAction::ControlAssignedConsumer(_)
         | ScenarioAction::Receive { .. }
         | ScenarioAction::CloseAssignedConsumer { .. }
         | ScenarioAction::CreateGroupConsumer { .. }
         | ScenarioAction::GroupReceive { .. }
+        | ScenarioAction::ObserveGroupAssignments(_)
+        | ScenarioAction::GroupReceiveSet(_)
+        | ScenarioAction::ControlGroupConsumer(_)
+        | ScenarioAction::ShutdownGroupConsumer(_)
         | ScenarioAction::CloseGroupConsumer { .. }) => {
             crate::consumer_action_validation::validate(action, state, problems);
         }
@@ -98,12 +117,28 @@ pub(crate) fn validate_action(
         | ScenarioAction::CloseShareConsumer { .. }) => {
             crate::share_action_validation::validate(action, state, problems);
         }
-        action @ (ScenarioAction::CreateTopic { .. }
+        action @ (ScenarioAction::CreateTopic(_)
+        | ScenarioAction::CreateTopicsBatch(_)
         | ScenarioAction::CreatePartitions(_)
+        | ScenarioAction::DeleteTopic(_)
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
         | ScenarioAction::ListOffsets(_)
-        | ScenarioAction::ListConsumerGroupOffsets(_)) => {
+        | ScenarioAction::DeleteRecords(_)
+        | ScenarioAction::DescribeTopicConfig(_)
+        | ScenarioAction::AlterTopicConfig(_)
+        | ScenarioAction::DescribeCluster(_)
+        | ScenarioAction::ListConsumerGroups(_)
+        | ScenarioAction::DescribeConsumerGroup(_)
+        | ScenarioAction::ListConsumerGroupOffsets(_)
+        | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
+        | ScenarioAction::ListConsumerGroupsOffsets(_)
+        | ScenarioAction::AlterConsumerGroupOffset(_)
+        | ScenarioAction::AlterConsumerGroupOffsets(_)
+        | ScenarioAction::DeleteConsumerGroupOffset(_)
+        | ScenarioAction::DeleteConsumerGroupOffsets(_)
+        | ScenarioAction::DeleteConsumerGroup(_)
+        | ScenarioAction::DescribeClassicGroups(_)) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,
@@ -113,8 +148,9 @@ pub(crate) fn validate_action(
         }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
+        | ScenarioAction::ExecuteTransactionalTransform(_)
         | ScenarioAction::FenceTransaction { .. }
-        | ScenarioAction::CloseTransactionalProducer { .. }) => {
+        | ScenarioAction::CloseTransactionalProducer(_)) => {
             crate::transaction_action_validation::validate(action, state, problems);
         }
         ScenarioAction::Flush { producer_id } => {
@@ -123,7 +159,11 @@ pub(crate) fn validate_action(
         ScenarioAction::CloseProducer { producer_id } => {
             close_producer(producer_id, &mut state.producers, problems);
         }
-        ScenarioAction::ShutdownClient { client_id } => shutdown_client(client_id, state, problems),
+        ScenarioAction::ShutdownClient { client_id } => {
+            crate::scenario_action_lifecycle_validation::shutdown_client(
+                client_id, state, problems,
+            );
+        }
     }
 }
 
@@ -160,7 +200,7 @@ fn validate_batch(
     }
 }
 
-fn validate_operation(
+pub(crate) fn validate_operation(
     operation_id: &OperationId,
     record: &crate::RecordSpec,
     operation_ids: &mut BTreeSet<OperationId>,
@@ -212,7 +252,7 @@ fn create_producer(
     }
 }
 
-fn require_open_producer(
+pub(crate) fn require_open_producer(
     producer_id: &ProducerId,
     producers: &ProducerStates,
     problems: &mut Vec<String>,
@@ -237,43 +277,5 @@ fn close_producer(
             problems.push(format!("producer {producer_id} closed more than once"));
         }
         None => problems.push(format!("missing producer {producer_id} was closed")),
-    }
-}
-
-fn shutdown_client(client_id: &ClientId, state: &mut ActionStates, problems: &mut Vec<String>) {
-    let open = state
-        .producers
-        .iter()
-        .filter(|(_, (owner, closed))| owner == client_id && !closed)
-        .map(|(producer, _)| producer.to_string())
-        .collect::<Vec<_>>();
-    if !open.is_empty() {
-        problems.push(format!(
-            "client {client_id} shut down with open producers {}",
-            open.join(", ")
-        ));
-    }
-    let open_consumers =
-        crate::consumer_action_validation::open_for_client(&state.consumers, client_id);
-    if !open_consumers.is_empty() {
-        problems.push(format!(
-            "client {client_id} shut down with open consumers {}",
-            open_consumers.join(", ")
-        ));
-    }
-    let open_transactions =
-        crate::transaction_action_validation::open_for_client(&state.transactions, client_id);
-    if !open_transactions.is_empty() {
-        problems.push(format!(
-            "client {client_id} shut down with open transactional producers {}",
-            open_transactions.join(", ")
-        ));
-    }
-    match state.clients.get_mut(client_id) {
-        Some(shutdown) if !*shutdown => *shutdown = true,
-        Some(_) => {
-            problems.push(format!("client {client_id} shut down more than once"));
-        }
-        None => problems.push(format!("missing client {client_id} was shut down")),
     }
 }

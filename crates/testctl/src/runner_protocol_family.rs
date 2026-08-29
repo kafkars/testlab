@@ -5,12 +5,17 @@ use testlab_schema::AdapterEvent;
 use crate::run_error::RunFailure;
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
 use crate::runner_protocol_admin::same_admin_event_family;
+use crate::runner_protocol_identity::{identity_mismatch, identity_result};
 
 pub(super) fn classify_group(
     expected: &ExpectedEvent,
     event: &AdapterEvent,
 ) -> Option<Result<EventDisposition, RunFailure>> {
     let identity_matches = match (expected, event) {
+        (
+            ExpectedEvent::AssignedConsumerControlCompleted(expected),
+            AdapterEvent::AssignedConsumerControlCompleted(actual),
+        ) => expected == actual,
         (
             ExpectedEvent::GroupConsumerCreated(expected),
             AdapterEvent::GroupConsumerCreated {
@@ -28,6 +33,22 @@ pub(super) fn classify_group(
             AdapterEvent::GroupReceiveCompleted {
                 receive_id: actual, ..
             },
+        ) => expected == actual,
+        (
+            ExpectedEvent::GroupAssignmentsObserved(expected),
+            AdapterEvent::GroupAssignmentsObserved(actual),
+        ) => expected == &actual.operation_id,
+        (
+            ExpectedEvent::GroupReceiveSetCompleted(expected),
+            AdapterEvent::GroupReceiveSetCompleted(actual),
+        ) => expected == &actual.receive_id,
+        (
+            ExpectedEvent::GroupConsumerControlCompleted(expected),
+            AdapterEvent::GroupConsumerControlCompleted(actual),
+        ) => expected == actual,
+        (
+            ExpectedEvent::GroupConsumerShutdownCompleted(expected),
+            AdapterEvent::GroupConsumerShutdownCompleted(actual),
         ) => expected == actual,
         _ => return None,
     };
@@ -76,6 +97,16 @@ pub(super) fn classify_transaction(
             },
         ) => return Some(identity_result(transaction_id == actual, event, expected)),
         (
+            ExpectedEvent::TransactionCompleted { transaction_id, .. },
+            AdapterEvent::TransactionalTransformCompleted(actual),
+        ) => {
+            return Some(identity_result(
+                transaction_id == &actual.transaction_id,
+                event,
+                expected,
+            ));
+        }
+        (
             ExpectedEvent::TransactionFenceCompleted { operation_id, .. },
             AdapterEvent::OperationAccepted {
                 operation_id: actual,
@@ -108,7 +139,12 @@ pub(super) fn classify_transaction(
 }
 
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
-    same_admin_event_family(expected, event)
+    crate::runner_protocol_concurrent::same_event_family(expected, event)
+        || crate::runner_protocol_cancel::same_event_family(expected, event)
+        || same_admin_event_family(expected, event)
+        || crate::runner_protocol_admin_group_batch::same_event_family(expected, event)
+        || (crate::runner_protocol_admin_config::expected(expected)
+            && crate::runner_protocol_admin_config::event(event))
         || same_base_event_family(expected, event)
         || same_extended_event_family(expected, event)
 }
@@ -124,6 +160,10 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
             | (
                 ExpectedEvent::ClientCreated(_),
                 AdapterEvent::ClientCreated { .. }
+            )
+            | (
+                ExpectedEvent::ClientMetricsObserved(..),
+                AdapterEvent::ClientMetricsObserved(_)
             )
             | (
                 ExpectedEvent::ProducerCreated(_),
@@ -151,6 +191,10 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
                 AdapterEvent::AssignmentCompleted { .. }
             )
             | (
+                ExpectedEvent::AssignedConsumerControlCompleted(_),
+                AdapterEvent::AssignedConsumerControlCompleted(_)
+            )
+            | (
                 ExpectedEvent::ReceiveCompleted(_),
                 AdapterEvent::ReceiveCompleted { .. }
             )
@@ -165,6 +209,22 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
             | (
                 ExpectedEvent::GroupReceiveCompleted(_),
                 AdapterEvent::GroupReceiveCompleted { .. }
+            )
+            | (
+                ExpectedEvent::GroupAssignmentsObserved(_),
+                AdapterEvent::GroupAssignmentsObserved(_)
+            )
+            | (
+                ExpectedEvent::GroupReceiveSetCompleted(_),
+                AdapterEvent::GroupReceiveSetCompleted(_)
+            )
+            | (
+                ExpectedEvent::GroupConsumerControlCompleted(_),
+                AdapterEvent::GroupConsumerControlCompleted(_)
+            )
+            | (
+                ExpectedEvent::GroupConsumerShutdownCompleted(_),
+                AdapterEvent::GroupConsumerShutdownCompleted(_)
             )
             | (
                 ExpectedEvent::GroupConsumerClosed(_),
@@ -200,6 +260,7 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
                 | AdapterEvent::OperationRejected { .. }
                 | AdapterEvent::OperationTerminal { .. }
                 | AdapterEvent::TransactionCompleted { .. }
+                | AdapterEvent::TransactionalTransformCompleted(_)
         ) | (
             ExpectedEvent::TransactionFenceCompleted { .. },
             AdapterEvent::OperationAccepted { .. }
@@ -221,24 +282,5 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
             AdapterEvent::ClientShutdown { .. }
         ) | (ExpectedEvent::Finished, AdapterEvent::Finished)
             | (ExpectedEvent::Aborted, AdapterEvent::Aborted)
-    )
-}
-
-fn identity_result(
-    matches: bool,
-    event: &AdapterEvent,
-    expected: &ExpectedEvent,
-) -> Result<EventDisposition, RunFailure> {
-    if matches {
-        Ok(EventDisposition::Complete)
-    } else {
-        Err(identity_mismatch(event, expected))
-    }
-}
-
-fn identity_mismatch(event: &AdapterEvent, expected: &ExpectedEvent) -> RunFailure {
-    RunFailure::protocol(
-        "event_identity_mismatch",
-        format!("event {event:?} does not match expected {expected:?}"),
     )
 }

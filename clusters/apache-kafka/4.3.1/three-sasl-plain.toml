@@ -1,4 +1,4 @@
-schema_version = 2
+schema_version = 4
 id = "apache-kafka-4.3.1-three-sasl-plain"
 title = "Apache Kafka 4.3.1 three-broker SASL PLAIN"
 

@@ -1,7 +1,6 @@
 //! Environment manifests identify independently controlled broker topologies.
 
-use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Component, Path};
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -9,7 +8,7 @@ use thiserror::Error;
 use crate::EnvironmentId;
 
 /// Current environment manifest version.
-pub const ENVIRONMENT_SCHEMA_VERSION: u16 = 2;
+pub const ENVIRONMENT_SCHEMA_VERSION: u16 = 4;
 
 /// One independently controlled scenario environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -28,33 +27,7 @@ pub struct EnvironmentManifest {
 impl EnvironmentManifest {
     /// Validates environment identity without acquiring external effects.
     pub fn validate(&self) -> Result<(), EnvironmentError> {
-        if self.schema_version != ENVIRONMENT_SCHEMA_VERSION {
-            return Err(EnvironmentError::UnsupportedVersion(self.schema_version));
-        }
-        if self.title.trim().is_empty() {
-            return Err(EnvironmentError::EmptyTitle);
-        }
-        match &self.driver {
-            EnvironmentDriver::ModelBroker => Ok(()),
-            EnvironmentDriver::DockerCompose {
-                broker,
-                image,
-                cluster_size,
-                security: _,
-                compose_files,
-                broker_services,
-                client_port,
-                feature_levels,
-            } => validate_compose(
-                broker,
-                image,
-                *cluster_size,
-                compose_files,
-                broker_services,
-                *client_port,
-                feature_levels,
-            ),
-        }
+        crate::environment_validation::validate(self)
     }
 }
 
@@ -64,6 +37,11 @@ impl EnvironmentManifest {
 pub enum EnvironmentDriver {
     /// Testlab's in-process harness self-test environment.
     ModelBroker,
+    /// External minimal Kafka peer with scenario-controlled hostile responses.
+    KafkaProtocolAdversary {
+        /// Sole baseline topic exposed by the peer.
+        topic: String,
+    },
     /// An immutable broker image controlled through Docker Compose.
     DockerCompose {
         /// Broker implementation and public version.
@@ -83,6 +61,9 @@ pub enum EnvironmentDriver {
         /// Explicit broker feature levels established after readiness.
         #[serde(default)]
         feature_levels: BTreeMap<String, u16>,
+        /// Routes packaged-client traffic through an external fault proxy.
+        #[serde(default)]
+        network_proxy: bool,
     },
 }
 
@@ -130,110 +111,6 @@ pub enum Authentication {
     ScramSha512,
 }
 
-fn validate_compose(
-    broker: &BrokerIdentity,
-    image: &str,
-    cluster_size: u16,
-    compose_files: &[String],
-    broker_services: &[String],
-    client_port: u16,
-    feature_levels: &BTreeMap<String, u16>,
-) -> Result<(), EnvironmentError> {
-    if broker.implementation.trim().is_empty() || broker.version.trim().is_empty() {
-        return Err(EnvironmentError::BrokerIdentityEmpty);
-    }
-    validate_image(image)?;
-    if cluster_size == 0 {
-        return Err(EnvironmentError::ClusterEmpty);
-    }
-    if client_port == 0 {
-        return Err(EnvironmentError::ClientPortZero);
-    }
-    validate_feature_names(feature_levels)?;
-    validate_paths(compose_files)?;
-    validate_services(cluster_size, broker_services)
-}
-
-fn validate_feature_names(feature_levels: &BTreeMap<String, u16>) -> Result<(), EnvironmentError> {
-    for name in feature_levels.keys() {
-        let valid = name.chars().enumerate().all(|(index, character)| {
-            character.is_ascii_lowercase()
-                || character.is_ascii_digit()
-                || (index > 0 && matches!(character, '.' | '-'))
-        });
-        if name.is_empty() || !valid {
-            return Err(EnvironmentError::FeatureNameInvalid(name.clone()));
-        }
-    }
-    Ok(())
-}
-
-fn validate_image(image: &str) -> Result<(), EnvironmentError> {
-    let Some((repository, digest)) = image.split_once("@sha256:") else {
-        return Err(EnvironmentError::ImageNotImmutable(image.to_owned()));
-    };
-    let valid_repository = !repository.is_empty()
-        && !repository.contains('@')
-        && !repository.chars().any(char::is_whitespace);
-    let valid_digest = digest.len() == 64
-        && digest
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
-    if valid_repository && valid_digest {
-        Ok(())
-    } else {
-        Err(EnvironmentError::ImageNotImmutable(image.to_owned()))
-    }
-}
-
-fn validate_paths(paths: &[String]) -> Result<(), EnvironmentError> {
-    if paths.is_empty() {
-        return Err(EnvironmentError::ComposeFilesEmpty);
-    }
-    let mut unique = BTreeSet::new();
-    for value in paths {
-        let path = Path::new(value);
-        let escapes = path.is_absolute()
-            || value.is_empty()
-            || path.components().any(|component| {
-                matches!(
-                    component,
-                    Component::ParentDir | Component::RootDir | Component::Prefix(_)
-                )
-            });
-        let extension = path.extension().and_then(std::ffi::OsStr::to_str);
-        if escapes || !matches!(extension, Some("yml" | "yaml")) {
-            return Err(EnvironmentError::ComposePathInvalid(value.clone()));
-        }
-        if !unique.insert(value) {
-            return Err(EnvironmentError::ComposePathDuplicate(value.clone()));
-        }
-    }
-    Ok(())
-}
-
-fn validate_services(cluster_size: u16, services: &[String]) -> Result<(), EnvironmentError> {
-    if usize::from(cluster_size) != services.len() {
-        return Err(EnvironmentError::BrokerServiceCount {
-            cluster_size,
-            services: services.len(),
-        });
-    }
-    let mut unique = BTreeSet::new();
-    for service in services {
-        let valid = service.chars().enumerate().all(|(index, character)| {
-            character.is_ascii_alphanumeric() || (index > 0 && matches!(character, '-' | '_' | '.'))
-        });
-        if service.is_empty() || !valid {
-            return Err(EnvironmentError::BrokerServiceInvalid(service.clone()));
-        }
-        if !unique.insert(service) {
-            return Err(EnvironmentError::BrokerServiceDuplicate(service.clone()));
-        }
-    }
-    Ok(())
-}
-
 /// Invalid environment manifest.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum EnvironmentError {
@@ -243,6 +120,9 @@ pub enum EnvironmentError {
     /// The environment title was empty.
     #[error("environment title must not be empty")]
     EmptyTitle,
+    /// The adversary topic was not a portable Kafka topic name.
+    #[error("invalid protocol-adversary topic {0}")]
+    AdversaryTopicInvalid(String),
     /// The broker implementation or version was empty.
     #[error("broker implementation and version must not be empty")]
     BrokerIdentityEmpty,
@@ -283,4 +163,7 @@ pub enum EnvironmentError {
     /// One broker service appeared twice.
     #[error("duplicate broker service name {0}")]
     BrokerServiceDuplicate(String),
+    /// The current proxy listener supports plaintext unauthenticated Kafka only.
+    #[error("network proxy currently requires plaintext Kafka without SASL")]
+    NetworkProxySecurityUnsupported,
 }
