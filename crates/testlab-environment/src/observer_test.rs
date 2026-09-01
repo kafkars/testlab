@@ -48,6 +48,20 @@ fn issued_concurrent_sends_are_independent_observation_targets() {
 }
 
 #[test]
+fn issued_transactional_transform_outputs_are_observation_targets() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transactional-offset-classic.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse transactional transform scenario: {error}"));
+    let issued = BTreeSet::from([id(OperationId::new("op-classic-output-commit"))]);
+
+    assert_eq!(
+        targets(&scenario, &issued),
+        BTreeSet::from([("testlab-kafkars-classic-transform-output".to_owned(), 0,)])
+    );
+}
+
+#[test]
 fn observation_preserves_null_binary_and_ordered_headers() {
     let observed = normalize(
         7,

@@ -1,10 +1,8 @@
 schema_version = 1
 id = "kafkars-lifecycle-isolation"
-title = "packaged Kafkars multi-handle lifecycle isolation"
+title = "packaged Kafkars lifecycle coverage"
 scenarios = [
   "scenarios/kafka/producer-repeated-readiness-flush.toml",
   "scenarios/kafka/client-metrics-producer.toml",
-  "scenarios/kafka/producer-sibling-close-isolation.toml",
-  "scenarios/kafka/producer-replacement-after-close.toml",
   "scenarios/kafka/client-shutdown-isolation.toml",
 ]

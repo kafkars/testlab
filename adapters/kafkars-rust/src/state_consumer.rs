@@ -40,7 +40,12 @@ impl AdapterState {
         &mut self,
         command: &AssignedConsumerControlCommand,
     ) -> Result<(), StateError> {
-        self.consumers.control(command)
+        let client_id = self.consumers.client_id(&command.consumer_id)?;
+        let client = self
+            .clients
+            .get(&client_id)
+            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
+        self.consumers.control(client, command)
     }
 
     pub(crate) fn close_assigned_consumer(

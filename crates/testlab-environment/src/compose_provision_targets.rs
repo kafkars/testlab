@@ -71,6 +71,11 @@ fn record_targets(
                 record_topic(topics, subject_created, &operation.record);
             }
         }
+        ScenarioAction::ExecuteTransactionalTransform(action) => {
+            for operation in &action.operations {
+                record_topic(topics, subject_created, &operation.record);
+            }
+        }
         ScenarioAction::FenceTransaction { operation, .. } => {
             record_topic(topics, subject_created, &operation.record);
         }

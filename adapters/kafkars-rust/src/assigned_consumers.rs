@@ -8,11 +8,11 @@ use crate::kafkars_api::{
     TopicPartition,
 };
 use testlab_schema::{
-    AssignedConsumerControl, AssignedConsumerControlCommand, AssignedPartitionPosition,
-    AssignedStartPosition, ClientId, ConsumerId, TopicPartitionIdentity,
+    AssignedConsumerControlCommand, ClientId, ConsumerId, TopicPartitionIdentity,
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_safe, retry_until};
+use crate::assigned_consumer_positions::{apply_control, resolve_control};
 use crate::state::StateError;
 
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(20);
@@ -109,18 +109,28 @@ impl AssignedConsumers {
 
     pub(crate) fn control(
         &mut self,
+        client: &Client,
         command: &AssignedConsumerControlCommand,
     ) -> Result<(), StateError> {
         let timeout = Duration::from_millis(command.timeout_ms);
         let started = Instant::now();
         let deadline = started.checked_add(timeout).unwrap_or(started);
+        let control =
+            resolve_control(client, &command.control, deadline).map_err(StateError::Client)?;
         let consumer = self.get_mut(&command.consumer_id)?;
         retry_until(
             deadline,
-            || apply_control(consumer, &command.control, deadline),
+            || apply_control(consumer, &control, deadline),
             |error| error.retry_advice() == RetryAdvice::RetrySafe,
         )
         .map_err(StateError::Client)
+    }
+
+    pub(crate) fn client_id(&self, consumer_id: &ConsumerId) -> Result<ClientId, StateError> {
+        self.owners
+            .get(consumer_id)
+            .map(|owner| owner.client_id.clone())
+            .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))
     }
 
     pub(crate) fn get_mut(
@@ -189,55 +199,5 @@ impl AssignedConsumers {
 
     pub(crate) fn is_empty(&self) -> bool {
         self.owners.is_empty()
-    }
-}
-
-fn apply_control(
-    consumer: &mut AssignedConsumer,
-    control: &AssignedConsumerControl,
-    deadline: Instant,
-) -> Result<(), crate::kafkars_api::KafkaError> {
-    let remaining = deadline.saturating_duration_since(Instant::now());
-    match control {
-        AssignedConsumerControl::Replace { partitions } => {
-            consumer.try_replace_assignment(partitions.iter().map(positioned_partition), remaining)
-        }
-        AssignedConsumerControl::Add { partitions } => {
-            consumer.try_add_assignments(partitions.iter().map(positioned_partition), remaining)
-        }
-        AssignedConsumerControl::Remove { partitions } => consumer.try_remove_assignments(
-            partitions
-                .iter()
-                .map(|entry| TopicPartition::new(entry.topic.clone(), entry.partition)),
-        ),
-        AssignedConsumerControl::Seek {
-            partition,
-            position,
-        } => consumer.try_seek(
-            &TopicPartition::new(partition.topic.clone(), partition.partition),
-            start_position(*position),
-            remaining,
-        ),
-        AssignedConsumerControl::Pause { partition } => consumer.try_pause(&TopicPartition::new(
-            partition.topic.clone(),
-            partition.partition,
-        )),
-        AssignedConsumerControl::Resume { partition } => consumer.try_resume(
-            &TopicPartition::new(partition.topic.clone(), partition.partition),
-            remaining,
-        ),
-    }
-}
-
-fn positioned_partition(entry: &AssignedPartitionPosition) -> TopicPartition {
-    TopicPartition::new(entry.topic.clone(), entry.partition)
-        .start_at(start_position(entry.position))
-}
-
-const fn start_position(position: AssignedStartPosition) -> StartPosition {
-    match position {
-        AssignedStartPosition::Beginning => StartPosition::Beginning,
-        AssignedStartPosition::End => StartPosition::End,
-        AssignedStartPosition::Offset { offset } => StartPosition::Offset(offset),
     }
 }

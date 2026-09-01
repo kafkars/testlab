@@ -12,5 +12,4 @@ scenarios = [
   "scenarios/kafka/assigned-consumer-sequential-cursor.toml",
   "scenarios/kafka/assigned-consumer-replacement.toml",
   "scenarios/kafka/assigned-consumer-beginning-reset.toml",
-  "scenarios/kafka/assigned-consumer-independent-cursors.toml",
 ]

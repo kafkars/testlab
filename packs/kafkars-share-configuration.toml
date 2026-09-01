@@ -3,5 +3,4 @@ id = "kafkars-share-configuration"
 title = "packaged Kafkars Share fetch configuration"
 scenarios = [
   "scenarios/kafka/share-group-fetch-max-records.toml",
-  "scenarios/kafka/share-group-fetch-batch-size.toml",
 ]

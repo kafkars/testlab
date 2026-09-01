@@ -1,5 +1,6 @@
 //! Group assignment observation drains public transitions and requires a stable fixed point.
 
+use std::collections::BTreeSet;
 use std::io::Write;
 use std::time::{Duration, Instant};
 
@@ -35,7 +36,9 @@ pub(crate) fn observe<W: Write>(
         } else {
             None
         };
-        if current.is_some() && current == previous {
+        let stable =
+            !transitions.is_empty() && current.as_deref().is_some_and(stable_assignment_candidate);
+        if stable && current == previous {
             break current.unwrap_or_default();
         }
         previous = current;
@@ -55,6 +58,25 @@ pub(crate) fn observe<W: Write>(
             }),
         ),
     )
+}
+
+pub(super) fn stable_assignment_candidate(assignments: &[GroupConsumerAssignment]) -> bool {
+    let total = assignments
+        .iter()
+        .map(|assignment| assignment.partitions.len())
+        .sum::<usize>();
+    if assignments.is_empty()
+        || assignments
+            .iter()
+            .any(|assignment| assignment.partitions.is_empty())
+    {
+        return false;
+    }
+    let unique = assignments
+        .iter()
+        .flat_map(|assignment| &assignment.partitions)
+        .collect::<BTreeSet<_>>();
+    total == unique.len()
 }
 
 fn drain_transitions(

@@ -30,6 +30,14 @@ pub(crate) fn from_history(history: &[HistoryEntry]) -> IssuedOperations {
                         .map(|operation| operation.operation_id.clone()),
                 );
             }
+            AdapterCommand::ExecuteTransactionalTransform(command) => {
+                issued.record_operations.extend(
+                    command
+                        .operations
+                        .iter()
+                        .map(|operation| operation.operation_id.clone()),
+                );
+            }
             AdapterCommand::FenceTransaction { operation, .. } => {
                 issued
                     .record_operations

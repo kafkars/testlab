@@ -61,6 +61,8 @@ mod catalog_group_controls_test;
 #[cfg(test)]
 mod catalog_group_shutdown_test;
 #[cfg(test)]
+mod catalog_kafkars_contract_test;
+#[cfg(test)]
 mod catalog_lifecycle_test;
 #[cfg(test)]
 mod catalog_producer_cancellation_test;

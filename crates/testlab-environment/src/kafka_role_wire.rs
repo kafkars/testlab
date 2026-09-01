@@ -6,9 +6,9 @@ use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
 use kafka_wire::{
-    FindCoordinatorRequest, FindCoordinatorResponse, KafkaRequest, MetadataRequest,
-    MetadataResponse, OutboundFrameLimits, RequestResponsePair, ResponseHeader, encode_request,
-    response_header_version_for,
+    ConsumerGroupDescribeRequest, ConsumerGroupDescribeResponse, FindCoordinatorRequest,
+    FindCoordinatorResponse, KafkaRequest, MetadataRequest, MetadataResponse, OutboundFrameLimits,
+    RequestResponsePair, ResponseHeader, encode_request, response_header_version_for,
 };
 use kafka_wire_core::{ApiVersion, DecodeLimits, Decoder, KafkaDecode, KafkaEncode, StrBytes};
 
@@ -16,6 +16,9 @@ const CORRELATION_ID: i32 = 1;
 const MAX_FRAME_BYTES: usize = 1024 * 1024;
 const METADATA_VERSION: ApiVersion = ApiVersion::new(8);
 const COORDINATOR_VERSION: ApiVersion = ApiVersion::new(2);
+const CONSUMER_GROUP_DESCRIBE_VERSION: ApiVersion = ApiVersion::new(1);
+const UNSUPPORTED_VERSION: i16 = 35;
+const GROUP_ID_NOT_FOUND: i16 = 69;
 
 pub(super) fn controller(endpoint: &str, timeout: Duration) -> Result<i32, String> {
     let response: MetadataResponse = exchange(
@@ -45,6 +48,39 @@ pub(super) fn coordinator(
         ));
     }
     valid_node(response.node_id, "coordinator")
+}
+
+pub(super) fn consumer_group_member_count(
+    endpoint: &str,
+    group_id: &str,
+    timeout: Duration,
+) -> Result<Option<u32>, String> {
+    let mut request = ConsumerGroupDescribeRequest::default();
+    request.group_ids = vec![group_id.into()];
+    let response = exchange(endpoint, &request, CONSUMER_GROUP_DESCRIBE_VERSION, timeout)?;
+    modern_group_member_count(group_id, &response)
+}
+
+pub(super) fn modern_group_member_count(
+    group_id: &str,
+    response: &ConsumerGroupDescribeResponse,
+) -> Result<Option<u32>, String> {
+    let [group] = response.groups.as_slice() else {
+        return Err("ConsumerGroupDescribe did not return exactly one group".to_owned());
+    };
+    if group.group_id.as_str() != group_id {
+        return Err(format!(
+            "ConsumerGroupDescribe returned group {}, expected {group_id}",
+            group.group_id
+        ));
+    }
+    match group.error_code {
+        0 => u32::try_from(group.members.len())
+            .map(Some)
+            .map_err(|_| "ConsumerGroupDescribe member count overflowed".to_owned()),
+        UNSUPPORTED_VERSION | GROUP_ID_NOT_FOUND => Ok(None),
+        code => Err(format!("ConsumerGroupDescribe returned Kafka error {code}")),
+    }
 }
 
 fn exchange<R>(

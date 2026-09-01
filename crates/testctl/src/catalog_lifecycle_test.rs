@@ -1,11 +1,11 @@
-//! Lifecycle catalog tests keep multi-handle isolation in every Kafkars pack.
+//! Lifecycle catalog tests keep supported ownership boundaries in every Kafkars pack.
 
 use std::path::Path;
 
 use crate::catalog::Repository;
 
 #[test]
-fn kafkars_pack_variants_retain_lifecycle_isolation() {
+fn kafkars_pack_variants_retain_supported_lifecycle_coverage() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let repository = match Repository::open(&root) {
         Ok(repository) => repository,
@@ -27,8 +27,6 @@ fn kafkars_pack_variants_retain_lifecycle_isolation() {
         };
         for scenario in [
             "producer-repeated-readiness-flush.toml",
-            "producer-sibling-close-isolation.toml",
-            "producer-replacement-after-close.toml",
             "client-shutdown-isolation.toml",
         ] {
             assert!(

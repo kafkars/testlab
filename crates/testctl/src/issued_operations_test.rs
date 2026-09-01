@@ -1,9 +1,9 @@
 //! Issued-operation tests retain record and independently observed admin identities.
 
 use testlab_schema::{
-    AdapterCommand, BatchRecord, ClientId, CommandEnvelope, CommandId, CreatePartitionsCommand,
-    HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId, ProducerId,
-    RecordSpec, TransactionDisposition,
+    AdapterCommand, BatchRecord, ClientId, CommandEnvelope, CommandId, ConsumerId,
+    CreatePartitionsCommand, HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsCommand,
+    OperationId, ProducerId, RecordSpec, TransactionDisposition, TransactionalTransformCommand,
 };
 
 use crate::issued_operations::from_history;
@@ -41,9 +41,10 @@ fn recorded_commands_retain_every_observed_operation() {
             },
         ),
         entry(4, "fence", fence_transaction()),
-        entry(5, "group-offsets", group_offset_command("group-1")),
+        entry(5, "transform", transactional_transform()),
+        entry(6, "group-offsets", group_offset_command("group-1")),
         entry(
-            6,
+            7,
             "group-offsets-duplicate",
             group_offset_command("other-group"),
         ),
@@ -59,6 +60,7 @@ fn recorded_commands_retain_every_observed_operation() {
             "fenced-record-1",
             "send-1",
             "transaction-record-1",
+            "transform-record-1",
         ]
         .into_iter()
         .map(|value| id(OperationId::new(value)))
@@ -71,6 +73,17 @@ fn recorded_commands_retain_every_observed_operation() {
             group_offset_payload("other-group"),
         ]
     );
+}
+
+fn transactional_transform() -> AdapterCommand {
+    AdapterCommand::ExecuteTransactionalTransform(TransactionalTransformCommand {
+        producer_id: id(ProducerId::new("transactional-1")),
+        consumer_id: id(ConsumerId::new("consumer-1")),
+        transaction_id: id(OperationId::new("transform-1")),
+        operations: vec![record("transform-record-1", 0)],
+        disposition: TransactionDisposition::Commit,
+        timeout_ms: 1_000,
+    })
 }
 
 fn create_partitions() -> AdapterCommand {

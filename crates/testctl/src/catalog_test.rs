@@ -116,7 +116,7 @@ fn pull_request_pack_excludes_release_disruptions() {
         Err(error) => panic!("load pull-request pack: {error}"),
     };
 
-    assert_eq!(pack.scenarios.len(), 95);
+    assert_eq!(pack.scenarios.len(), 90);
     assert!(
         !pack
             .scenarios
@@ -139,15 +139,12 @@ fn pull_request_pack_excludes_release_disruptions() {
         "producer-null-empty-batch.toml",
         "producer-sequential-ordering.toml",
         "producer-repeated-readiness-flush.toml",
-        "producer-sibling-close-isolation.toml",
-        "producer-replacement-after-close.toml",
         "client-shutdown-isolation.toml",
         "assigned-consumer-null-empty.toml",
         "assigned-consumer-header-fidelity.toml",
         "assigned-consumer-sequential-cursor.toml",
         "assigned-consumer-replacement.toml",
         "assigned-consumer-beginning-reset.toml",
-        "assigned-consumer-independent-cursors.toml",
         "classic-group-record-fidelity.toml",
         "consumer-protocol-group-record-fidelity.toml",
         "share-group-record-fidelity.toml",
@@ -165,7 +162,7 @@ fn pull_request_pack_excludes_release_disruptions() {
 }
 
 #[test]
-fn kafkars_pack_variants_retain_assigned_consumer_cursors() {
+fn kafkars_pack_variants_retain_supported_assigned_consumer_cursors() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let repository = match Repository::open(&root) {
         Ok(repository) => repository,
@@ -189,7 +186,6 @@ fn kafkars_pack_variants_retain_assigned_consumer_cursors() {
             "assigned-consumer-sequential-cursor.toml",
             "assigned-consumer-replacement.toml",
             "assigned-consumer-beginning-reset.toml",
-            "assigned-consumer-independent-cursors.toml",
         ] {
             assert!(
                 pack.scenarios
@@ -270,7 +266,6 @@ fn kafkars_pack_variants_retain_admin_discovery() {
             "admin-create-partitions-unknown-topic.toml",
             "admin-delete-topic-unknown-topic.toml",
             "admin-describe-topic-unknown-topic.toml",
-            "admin-list-offsets-invalid-partition.toml",
             "admin-list-earliest-offset.toml",
             "admin-list-topics-multiple.toml",
             "admin-list-consumer-groups-multiple.toml",

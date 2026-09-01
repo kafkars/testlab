@@ -2,10 +2,15 @@
 
 mod adapter_error;
 mod admission_retry;
+mod assigned_consumer_positions;
+#[cfg(test)]
+mod assigned_consumer_positions_test;
 mod assigned_consumers;
 mod client_metrics;
 mod connection_security;
 mod group_assignment_observe;
+#[cfg(test)]
+mod group_assignment_observe_test;
 mod group_consumer_shutdown;
 mod group_consumers;
 #[cfg(test)]

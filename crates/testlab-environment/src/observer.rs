@@ -91,6 +91,13 @@ pub(super) fn targets(
                     .filter(|operation| issued_operations.contains(&operation.operation_id))
                     .map(|operation| (operation.record.topic.clone(), operation.record.partition)),
             ),
+            ScenarioAction::ExecuteTransactionalTransform(action) => targets.extend(
+                action
+                    .operations
+                    .iter()
+                    .filter(|operation| issued_operations.contains(&operation.operation_id))
+                    .map(|operation| (operation.record.topic.clone(), operation.record.partition)),
+            ),
             ScenarioAction::FenceTransaction { operation, .. }
                 if issued_operations.contains(&operation.operation_id) =>
             {

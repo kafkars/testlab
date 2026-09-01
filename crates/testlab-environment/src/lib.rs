@@ -96,6 +96,8 @@ mod compose_ports_test;
 #[cfg(test)]
 mod compose_provision_test;
 #[cfg(test)]
+mod compose_provision_transaction_test;
+#[cfg(test)]
 mod compose_startup_test;
 #[cfg(test)]
 mod compose_test;

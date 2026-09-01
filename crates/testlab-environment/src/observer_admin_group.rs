@@ -8,6 +8,7 @@ use rdkafka::error::KafkaError;
 use rdkafka::types::RDKafkaErrorCode;
 use testlab_schema::{BrokerConsumerGroupState, BrokerStateObservation};
 
+use crate::kafka_role_wire;
 use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
 use crate::observer_admin_target::{GroupTarget, ListTarget, ordinal};
@@ -54,6 +55,25 @@ pub(super) fn capture_group(
     request: AdminObserverRequest<'_>,
     target: &GroupTarget,
 ) -> Result<BrokerStateObservation, ObserverError> {
+    if request.cluster_size == 1 && request.security.supports_plaintext_wire() {
+        let count = kafka_role_wire::consumer_group_member_count(
+            request.endpoint,
+            &target.group_id,
+            remaining(request.deadline)?,
+        )
+        .map_err(ObserverError::InvalidBrokerState)?;
+        if let Some(member_count) = count {
+            return Ok(BrokerStateObservation::ConsumerGroup(
+                BrokerConsumerGroupState {
+                    observation: request.first_observation,
+                    operation_id: target.operation_id.clone(),
+                    group_id: target.group_id.clone(),
+                    exists: true,
+                    member_count: Some(member_count),
+                },
+            ));
+        }
+    }
     let admin = client(request, "consumer-group")?;
     loop {
         let groups = fetch(&admin, Some(&target.group_id), request.deadline)?;
