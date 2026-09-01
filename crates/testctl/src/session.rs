@@ -83,10 +83,7 @@ pub(crate) fn run_adapter_session(
         )?;
         match outcome {
             StepOutcome::Continue => {}
-            StepOutcome::ClientFailed => {
-                return settle_process(&mut process, &protocol, recorder, deadline);
-            }
-            StepOutcome::ScenarioFailed => {
+            StepOutcome::ClientFailed | StepOutcome::ScenarioFailed => {
                 return abort_and_settle(&mut process, &mut protocol, recorder, deadline);
             }
         }

@@ -31,7 +31,7 @@ topic = "testlab-kafkars-leader-failover"
 partition = 0
 sequence = 1
 value = { encoding = "utf8", data = "before-leader-failover" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-failover" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-failover" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "stop-partition-leader"
@@ -52,7 +52,7 @@ topic = "testlab-kafkars-leader-failover"
 partition = 0
 sequence = 2
 value = { encoding = "utf8", data = "after-leader-failover" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-failover" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-failover" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "restore-partition-leader"

@@ -28,15 +28,15 @@ producer_id = "producer-1"
 
 [[steps.operations]]
 operation_id = "op-keep-first"
-record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 1, value = { encoding = "utf8", data = "accept-first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-keep-first" } }] }
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 1, value = { encoding = "utf8", data = "accept-first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-keep-first" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
 
 [[steps.operations]]
 operation_id = "op-reject-middle"
-record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 2, value = { encoding = "utf8", data = "reject-middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-reject-middle" } }] }
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 2, value = { encoding = "utf8", data = "reject-middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-reject-middle" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
 
 [[steps.operations]]
 operation_id = "op-keep-last"
-record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 3, value = { encoding = "utf8", data = "accept-last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-keep-last" } }] }
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 3, value = { encoding = "utf8", data = "accept-last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-keep-last" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
 
 [[steps]]
 id = "create-share-consumer"
@@ -71,7 +71,7 @@ id = "send-sentinel"
 kind = "send"
 producer_id = "producer-1"
 operation_id = "op-sentinel"
-record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 4, value = { encoding = "utf8", data = "sentinel" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-sentinel" } }] }
+record = { topic = "testlab-share-mixed-reject", partition = 0, sequence = 4, value = { encoding = "utf8", data = "sentinel" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-sentinel" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } }] }
 
 [[steps]]
 id = "receive-sentinel"

@@ -52,6 +52,7 @@ key = { encoding = "utf8", data = "gzip" }
 value = { encoding = "utf8", data = "configured-producer-gzip-gzip-gzip-gzip-gzip-gzip-gzip" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "configured-gzip" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
 [[steps]]

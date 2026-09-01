@@ -524,15 +524,15 @@ independently observed Kafka records on the still-open handle.
 ## Failure behavior
 
 A normal public client API failure emits one correlated `command_failed` event
-and exits successfully. Testctl stops issuing dependent steps, retains an
-independent broker snapshot, and produces valid failing evidence. A completed
-admin batch with mixed per-resource outcomes remains a completion; only an
-operation-wide public failure emits `command_failed`. For declared negative
-expectations, testctl records the targeted independent metadata postconditions,
-and only the exact correlated expected codes can satisfy the deterministic
-contract. An adapter or protocol failure instead emits `fatal` and exits
-nonzero. A crash, malformed stdout, wrong version, wrong command ID, or timeout
-invalidates the run.
+and leaves the adapter session alive. Testctl stops issuing dependent steps and
+sends `abort`, while a declared negative expectation may retain the same public
+client for later recovery steps. Testctl records the targeted independent
+metadata postconditions, and only the exact correlated expected codes can
+satisfy the deterministic contract. A completed admin batch with mixed
+per-resource outcomes remains a completion; only an operation-wide public
+failure emits `command_failed`. An adapter or protocol failure instead emits
+`fatal` and exits nonzero. A crash, malformed stdout, wrong version, wrong
+command ID, or timeout invalidates the run.
 
 ## Evolution
 

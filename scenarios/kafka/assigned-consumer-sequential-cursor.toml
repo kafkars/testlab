@@ -46,7 +46,7 @@ partition = 0
 sequence = 1
 key = { encoding = "utf8", data = "cursor" }
 value = { encoding = "utf8", data = "first" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "flush-first"
@@ -73,7 +73,7 @@ partition = 0
 sequence = 2
 key = { encoding = "utf8", data = "cursor" }
 value = { encoding = "utf8", data = "second" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "flush-second"
@@ -100,7 +100,7 @@ partition = 0
 sequence = 3
 key = { encoding = "utf8", data = "cursor" }
 value = { encoding = "utf8", data = "third" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-third" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-third" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }]
 
 [[steps]]
 id = "flush-third"

@@ -31,7 +31,7 @@ topic = "testlab-kafkars-classic-coordinator"
 partition = 0
 sequence = 1
 value = { encoding = "utf8", data = "before-coordinator-election" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-election" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-election" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "create-group-member"
@@ -68,7 +68,7 @@ topic = "testlab-kafkars-classic-coordinator"
 partition = 0
 sequence = 2
 value = { encoding = "utf8", data = "after-coordinator-election" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-election" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-election" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "receive-after-election"

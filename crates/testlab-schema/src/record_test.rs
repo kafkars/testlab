@@ -1,6 +1,6 @@
 //! Canonical record digest evidence.
 
-use super::{ByteString, HeaderSpec, RecordSpec};
+use super::{ByteString, HeaderSpec, OperationId, RecordSpec};
 
 fn record() -> RecordSpec {
     RecordSpec {
@@ -9,10 +9,20 @@ fn record() -> RecordSpec {
         sequence: 9,
         key: None,
         value: Some(ByteString::utf8("value")),
-        headers: vec![HeaderSpec {
-            name: "trace".to_owned(),
-            value: Some(ByteString::utf8("one")),
-        }],
+        headers: vec![
+            HeaderSpec {
+                name: "testlab-operation-id".to_owned(),
+                value: Some(ByteString::utf8("op-9")),
+            },
+            HeaderSpec {
+                name: "testlab-sequence".to_owned(),
+                value: Some(ByteString::utf8("9")),
+            },
+            HeaderSpec {
+                name: "trace".to_owned(),
+                value: Some(ByteString::utf8("one")),
+            },
+        ],
     }
 }
 
@@ -44,4 +54,21 @@ fn header_order_changes_the_digest() {
     second.headers.reverse();
 
     assert_ne!(first.digest().ok(), second.digest().ok());
+}
+
+#[test]
+fn correlation_headers_match_the_enclosing_operation_and_sequence() {
+    let operation =
+        OperationId::new("op-9").unwrap_or_else(|error| panic!("operation ID: {error}"));
+    assert!(record().validate_correlation(&operation).is_ok());
+
+    let mut missing = record();
+    missing
+        .headers
+        .retain(|header| header.name != "testlab-sequence");
+    assert!(missing.validate_correlation(&operation).is_err());
+
+    let mut mismatched = record();
+    mismatched.headers[1].value = Some(ByteString::utf8("8"));
+    assert!(mismatched.validate_correlation(&operation).is_err());
 }

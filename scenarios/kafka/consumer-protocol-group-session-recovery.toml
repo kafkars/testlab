@@ -62,7 +62,7 @@ topic = "testlab-kafkars-consumer-protocol-session"
 partition = 0
 sequence = 1
 value = { encoding = "utf8", data = "progress-after-broker-1" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-1" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "receive-after-broker-1"
@@ -102,7 +102,7 @@ topic = "testlab-kafkars-consumer-protocol-session"
 partition = 0
 sequence = 2
 value = { encoding = "utf8", data = "progress-after-broker-2" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-2" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-2" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "receive-after-broker-2"
@@ -142,7 +142,7 @@ topic = "testlab-kafkars-consumer-protocol-session"
 partition = 0
 sequence = 3
 value = { encoding = "utf8", data = "progress-after-broker-3" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-3" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-broker-3" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }]
 
 [[steps]]
 id = "receive-after-broker-3"

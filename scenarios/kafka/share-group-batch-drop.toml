@@ -28,15 +28,15 @@ producer_id = "producer-1"
 
 [[steps.operations]]
 operation_id = "op-drop-first"
-record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 1, value = { encoding = "utf8", data = "first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-first" } }] }
+record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 1, value = { encoding = "utf8", data = "first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-first" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
 
 [[steps.operations]]
 operation_id = "op-drop-middle"
-record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 2, value = { encoding = "utf8", data = "middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-middle" } }] }
+record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 2, value = { encoding = "utf8", data = "middle" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-middle" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
 
 [[steps.operations]]
 operation_id = "op-drop-last"
-record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 3, value = { encoding = "utf8", data = "last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-last" } }] }
+record = { topic = "testlab-share-batch-drop", partition = 0, sequence = 3, value = { encoding = "utf8", data = "last" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-drop-last" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
 
 [[steps]]
 id = "create-share-consumer"

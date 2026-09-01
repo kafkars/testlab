@@ -4,6 +4,8 @@ use std::collections::BTreeMap;
 use std::thread;
 use std::time::Duration;
 
+use rdkafka::error::KafkaError;
+use rdkafka::types::RDKafkaErrorCode;
 use testlab_schema::{BrokerConsumerGroupState, BrokerStateObservation};
 
 use crate::observer::remaining;
@@ -12,6 +14,7 @@ use crate::observer_admin_target::{GroupTarget, ListTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 const POLL_SLICE: Duration = Duration::from_millis(50);
+const FETCH_SLICE: Duration = Duration::from_secs(2);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct OwnedGroup {
@@ -73,9 +76,16 @@ pub(super) fn fetch(
     group_id: Option<&str>,
     deadline: std::time::Instant,
 ) -> Result<Vec<OwnedGroup>, ObserverError> {
-    let groups = admin
-        .inner()
-        .fetch_group_list(group_id, remaining(deadline)?)?;
+    let groups = loop {
+        let timeout = remaining(deadline)?.min(FETCH_SLICE);
+        match admin.inner().fetch_group_list(group_id, timeout) {
+            Ok(groups) => break groups,
+            Err(error) if transient_group_error(&error) => {
+                thread::sleep(POLL_SLICE.min(remaining(deadline)?));
+            }
+            Err(error) => return Err(ObserverError::Kafka(error)),
+        }
+    };
     groups
         .groups()
         .iter()
@@ -95,15 +105,26 @@ pub(super) fn fetch(
         .collect()
 }
 
+pub(super) fn transient_group_error(error: &KafkaError) -> bool {
+    matches!(
+        error,
+        KafkaError::GroupListFetch(
+            RDKafkaErrorCode::BrokerTransportFailure
+                | RDKafkaErrorCode::AllBrokersDown
+                | RDKafkaErrorCode::OperationTimedOut
+        )
+    )
+}
+
 pub(super) fn validate_group(group: &OwnedGroup) -> Result<(), ObserverError> {
-    const KNOWN_STATES: [&str; 5] = [
-        "PreparingRebalance",
-        "CompletingRebalance",
-        "Stable",
-        "Dead",
-        "Empty",
-    ];
-    if !KNOWN_STATES.contains(&group.state.as_str()) || group.protocol_type != "consumer" {
+    let active = matches!(
+        group.state.as_str(),
+        "PreparingRebalance" | "CompletingRebalance" | "Stable"
+    ) && group.protocol_type == "consumer";
+    let inactive = matches!(group.state.as_str(), "Dead" | "Empty")
+        && group.member_count == 0
+        && matches!(group.protocol_type.as_str(), "" | "consumer");
+    if !active && !inactive {
         return Err(ObserverError::InvalidBrokerState(format!(
             "consumer group {} returned non-authoritative state {:?} with protocol type {:?}",
             group.name, group.state, group.protocol_type

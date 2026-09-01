@@ -8,7 +8,7 @@ use testlab_schema::{
     CommandId, RunId, ScenarioId,
 };
 
-use super::protocol::{emit_client_failure, run_session};
+use super::protocol::{emit_client_failure, handle_dispatch, run_session};
 use crate::AdapterError;
 
 #[test]
@@ -84,6 +84,27 @@ fn public_client_failure_is_a_correlated_normal_event() {
         AdapterEvent::CommandFailed { code, diagnostic }
             if code == "backpressure" && diagnostic == "flush contended"
     ));
+}
+
+#[test]
+fn public_client_failure_keeps_the_protocol_session_open() {
+    let envelope = command("send", AdapterCommand::Finish);
+    let mut output = Vec::new();
+
+    let finished = handle_dispatch(
+        &mut output,
+        envelope,
+        Err(AdapterError::Client(KafkaError::new(
+            ErrorKind::Backpressure,
+            "send contended",
+        ))),
+    )
+    .unwrap_or_else(|error| panic!("handle client failure: {error}"));
+
+    assert!(!finished);
+    let event: AdapterEventEnvelope =
+        serde_json::from_slice(&output).unwrap_or_else(|error| panic!("decode event: {error}"));
+    assert!(matches!(event.event, AdapterEvent::CommandFailed { .. }));
 }
 
 #[test]

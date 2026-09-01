@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
-use crate::{ByteString, ByteStringError};
+use crate::{ByteString, ByteStringError, OperationId};
 
 const RECORD_DIGEST_VERSION: &[u8] = b"testlab-record-v1";
 
@@ -86,6 +86,22 @@ impl RecordSpec {
         Ok(())
     }
 
+    pub(crate) fn validate_correlation(
+        &self,
+        operation_id: &OperationId,
+    ) -> Result<(), RecordError> {
+        required_header(
+            &self.headers,
+            "testlab-operation-id",
+            operation_id.as_str().as_bytes(),
+        )?;
+        required_header(
+            &self.headers,
+            "testlab-sequence",
+            self.sequence.to_string().as_bytes(),
+        )
+    }
+
     /// Calculates the canonical SHA-256 digest for external comparison.
     pub fn digest(&self) -> Result<String, RecordError> {
         self.validate()?;
@@ -103,6 +119,29 @@ impl RecordSpec {
         }
         Ok(hex::encode(digest.finalize()))
     }
+}
+
+fn required_header(
+    headers: &[HeaderSpec],
+    name: &'static str,
+    expected: &[u8],
+) -> Result<(), RecordError> {
+    let mut matches = headers.iter().filter(|header| header.name == name);
+    let header = matches
+        .next()
+        .ok_or(RecordError::MissingCorrelationHeader(name))?;
+    if matches.next().is_some() {
+        return Err(RecordError::DuplicateCorrelationHeader(name));
+    }
+    let actual = header
+        .value
+        .as_ref()
+        .ok_or(RecordError::NullCorrelationHeader(name))?
+        .decode()?;
+    if actual != expected {
+        return Err(RecordError::MismatchedCorrelationHeader(name));
+    }
+    Ok(())
 }
 
 fn update_optional(digest: &mut Sha256, value: Option<&ByteString>) -> Result<(), RecordError> {
@@ -141,6 +180,18 @@ pub enum RecordError {
     /// Header names must be nonempty.
     #[error("record header name must not be empty")]
     EmptyHeaderName,
+    /// Independent Kafka observation requires one exact operation header.
+    #[error("record is missing required correlation header {0}")]
+    MissingCorrelationHeader(&'static str),
+    /// Correlation headers are unique because observation must be deterministic.
+    #[error("record repeats required correlation header {0}")]
+    DuplicateCorrelationHeader(&'static str),
+    /// Correlation headers carry non-null identity bytes.
+    #[error("record correlation header {0} must not be null")]
+    NullCorrelationHeader(&'static str),
+    /// Correlation headers must agree with the enclosing operation and record.
+    #[error("record correlation header {0} does not match its declared value")]
+    MismatchedCorrelationHeader(&'static str),
     /// A collection length could not fit the canonical digest format.
     #[error("record field length exceeds the canonical u64 bound")]
     LengthOverflow,

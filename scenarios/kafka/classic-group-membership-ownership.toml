@@ -87,7 +87,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 0
 sequence = 1
 value = { encoding = "utf8", data = "two-member-0" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-0" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps.operations]]
 operation_id = "op-two-member-1"
@@ -96,7 +96,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 1
 sequence = 2
 value = { encoding = "utf8", data = "two-member-1" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-1" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps.operations]]
 operation_id = "op-two-member-2"
@@ -105,7 +105,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 2
 sequence = 3
 value = { encoding = "utf8", data = "two-member-2" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-2" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-2" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }]
 
 [[steps.operations]]
 operation_id = "op-two-member-3"
@@ -114,7 +114,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 3
 sequence = 4
 value = { encoding = "utf8", data = "two-member-3" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-3" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-two-member-3" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } }]
 
 [[steps]]
 id = "receive-across-two-members"
@@ -163,7 +163,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 0
 sequence = 5
 value = { encoding = "utf8", data = "survivor-0" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-0" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-0" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "5" } }]
 
 [[steps.operations]]
 operation_id = "op-survivor-1"
@@ -172,7 +172,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 1
 sequence = 6
 value = { encoding = "utf8", data = "survivor-1" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-1" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-1" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "6" } }]
 
 [[steps.operations]]
 operation_id = "op-survivor-2"
@@ -181,7 +181,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 2
 sequence = 7
 value = { encoding = "utf8", data = "survivor-2" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-2" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-2" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "7" } }]
 
 [[steps.operations]]
 operation_id = "op-survivor-3"
@@ -190,7 +190,7 @@ topic = "testlab-kafkars-classic-ownership"
 partition = 3
 sequence = 8
 value = { encoding = "utf8", data = "survivor-3" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-3" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-survivor-3" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "8" } }]
 
 [[steps]]
 id = "receive-after-leave"

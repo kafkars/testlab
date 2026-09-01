@@ -52,6 +52,7 @@ key = { encoding = "utf8", data = "none" }
 value = { encoding = "utf8", data = "configured-producer-none-none-none-none-none-none-none-none" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "configured-none" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
 [[steps]]

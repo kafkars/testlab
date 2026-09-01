@@ -35,6 +35,7 @@ key = { encoding = "utf8", data = "metrics-key" }
 value = { encoding = "utf8", data = "metrics-value" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "metrics-record" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
 [[steps]]

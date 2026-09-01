@@ -276,8 +276,10 @@ optional = false
 default_features = false
 features = [
     "cmake-build",
+    "libz-static",
     "naive-runtime",
     "ssl-vendored",
+    "zstd",
 ]
 
 [package.dependency.source]
@@ -568,11 +570,11 @@ sha256 = "c7e9d477b355c31314668d5eb88283249b389768460838c9c516644f494b5e84"
 
 [[gate.input]]
 path = "Cargo.lock"
-sha256 = "c718cde5f39e25315e64511f1631299dde61fec6ecc575f075fd009e52fea65d"
+sha256 = "38c572da4f46830594807bbb929cf5e7445ce55958921be27404cf4890d25907"
 
 [[gate.input]]
 path = "Cargo.toml"
-sha256 = "58e607284b292d824e5c71cb9fe9cb69f54893393adb025320c6dd11d20a4bfb"
+sha256 = "057a12c7e8cb3ef01ee6cf4c192bf9a76451d0c05a28a210f62ae23319fdc3b8"
 
 [[gate.input]]
 path = "action.yml"
@@ -980,7 +982,7 @@ sha256 = "480a7f21c501baab622763e363e64e0d399cd4d1b06c62ddc6d775db73ba05a0"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-beginning-reset.toml"
-sha256 = "35f92a5f73d4a2234e118066ed9db821a4ac3fabda3ebdfe516e5dfe36c044bb"
+sha256 = "045e0c9936b39b2d9a05a4bc88aa0b4162eaa86ba950ce0f8b027db8f855250a"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-header-fidelity.toml"
@@ -988,7 +990,7 @@ sha256 = "aedadc5ccacf41c59c6655034f89c1432a757e92396c16c12559b0dc00d097ca"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-independent-cursors.toml"
-sha256 = "f2157459968886a9ae34b0d5da62de41a8a13dd22829e4dc6d9b703e8b0f5e75"
+sha256 = "9422d20ac7a110d23c9e4519b1cea66be34c1c42d104a98d6f76a8d093be8c90"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-multi-partition.toml"
@@ -1000,7 +1002,7 @@ sha256 = "a514892c0db2e171edd61fabee96ae104353535dd91f8694e4677d03ccd7bd92"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-replacement.toml"
-sha256 = "360f109af2cb386e11ebe7aec5468a9fc9f99999f2acdfbe4d327067c5b99f27"
+sha256 = "e0f6718ba4c15227ba33b1312454f3443627f9bf406d8294cb05fb25232d0772"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-round-trip.toml"
@@ -1008,11 +1010,11 @@ sha256 = "018c3c93378a2b1fb91c4e9bd827436adc9ac7838046ce823d8b655f0dafebab"
 
 [[gate.input]]
 path = "scenarios/kafka/assigned-consumer-sequential-cursor.toml"
-sha256 = "e1f180a381ee8d3255d4f48ea0c043ae3115b9449254f90dc8c14b233a645125"
+sha256 = "b15a42b64fe4684214b75bb1f1693aaf9c31e165647cfbf6898d81b27a306606"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-authorization-recovery.toml"
-sha256 = "19db5cc9a3f7b903237f5d01a90a2bb4c3da41f5cb6c2ab98c02836f40d5ffdd"
+sha256 = "4d618e89a11343da64922ec721822bd98edcbf4a486590e4e8d9e09aaf7f158a"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-broker-restart.toml"
@@ -1020,15 +1022,15 @@ sha256 = "91108bf1209b8db35320b439197966b6438acb63b225425b8d5eed5154b9576e"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-coordinator-failover.toml"
-sha256 = "8507de7361e3a7f145fd3e84e034476ab138022ed0831bd7cd7d924b82a283fc"
+sha256 = "9b8f94124775f51753f8bcace05b62791557b0e9ec7faa297c205061dc2cbe9f"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-membership-ownership.toml"
-sha256 = "9074c0dfa457ce6873142ea5ea3bf63985785d2bd5892bb59d4a1ce01516360e"
+sha256 = "c37c8e97af213e3abe3373fef74fd74e41a1176a7a7b4f1c20e558541e1de3a2"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-offset-resume.toml"
-sha256 = "bd79faff79e567a45c89445d11ab154b3bf65d9519dfd5cd6c48986526981a01"
+sha256 = "0820e0baa972b1ea180d634309ab6950b72cff1f9b0932aeab972569bde25ff5"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-record-fidelity.toml"
@@ -1040,7 +1042,7 @@ sha256 = "c360a3c27b6c9fb4a17ec79e846c116e3051ad01c96d8b95b1db8121994d4552"
 
 [[gate.input]]
 path = "scenarios/kafka/classic-group-session-recovery.toml"
-sha256 = "56735bc4e73b0741f1a1aeeb3f1d9954b88aabbd50008353d0895c29ee03bc7b"
+sha256 = "c656b40dbaa96b3f79faa76c127173a4f47d21b42746f4aedbe07c3a9d60fcbb"
 
 [[gate.input]]
 path = "scenarios/kafka/client-shutdown-isolation.toml"
@@ -1060,15 +1062,15 @@ sha256 = "08e9412b568793e18f5027dd0076a8bed7afab0140888a6f3d864e00d98b7908"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-protocol-group-coordinator-failover.toml"
-sha256 = "aee4bd037be9d2dd0d5b958b7de63a5cae2460e21b33e4aef0f2faab164c0b32"
+sha256 = "5fdff1aa0e2551fe8b4b320b9d7f147faa036ca153279268ec5bba455c3cd985"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-protocol-group-membership-ownership.toml"
-sha256 = "33e54ad55adffc16f00ae412b4df0fe21ea144eca291c49b6116872e1df16688"
+sha256 = "50246ab119e52cd2c3e60ebfc4b73bb3a3ab0b4e2fa2df29d22678c736e14c86"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-protocol-group-offset-resume.toml"
-sha256 = "607ef3e6aacabea8d0f514ec1d005bb7441ea899866f5f46c7e4136dee291d5d"
+sha256 = "58ef1570ce7b4d1ea6a3bbffdee603257b44b781d3f99f8f8b0656d930c49a60"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-protocol-group-record-fidelity.toml"
@@ -1080,11 +1082,11 @@ sha256 = "7a0566c6bcf3cd29754b74490313676d4709a82853b21f261b68f7774d0b63d3"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-protocol-group-session-recovery.toml"
-sha256 = "92ac1ec19428501969b0a2b0a3e6ca8d7f68b25d3ae179344191a9d67fbe7327"
+sha256 = "94532904939c52216f850ae8212019d9ae4aabfbcd69d5b56c3182396b87b9d5"
 
 [[gate.input]]
 path = "scenarios/kafka/consumer-quota-progress.toml"
-sha256 = "46189f43667b64356df2d88cfefa4b63f74d9ef79120cdcf561e3a46c462a279"
+sha256 = "bd4f6020d73ceeb2458a2e2f18c1b04ebc5a2f0fe3b64d24fe55374151619287"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-batch.toml"
@@ -1096,7 +1098,7 @@ sha256 = "9882a908c052c38a67582b4631b31ad77f57b4e173c9580fdd77e38ca3880d27"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-leader-failover.toml"
-sha256 = "11e8bff021adb55a76d7f323877fe815adcc90498c3432a8126f6f7da7d05a95"
+sha256 = "76e98ada564c1dbef2d514ba7f4ffdbb08adac4c1031d9745331a34f73703874"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-network-blackhole-recovery.toml"
@@ -1120,7 +1122,7 @@ sha256 = "955f1ab3f7044169405514b7f71493b4db0d24c4374da6d368bfeb8c90510827"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-quota-progress.toml"
-sha256 = "6380dcbb62027f3acd09da8d84ca02949ebeed831609aa37fb01f3cb19e88b9a"
+sha256 = "c31ccdf47c9bfe7a34b8f396028fbd4ad830b53530b0dc01056405b65e36f6fb"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-repeated-readiness-flush.toml"
@@ -1148,7 +1150,7 @@ sha256 = "03dc472100b2091dc70258aeead2d962a4505033dfbccd6ac8c16d9a7e9501cc"
 
 [[gate.input]]
 path = "scenarios/kafka/producer-topic-authorization-recovery.toml"
-sha256 = "1ddff6808e2da6a9e6e4cb2e5e91fbe6a9c2396b8ba511cd6eb5f470a8ae1ae0"
+sha256 = "92c3d0c0476b0b96690112c92fe5ec3269ca0f67c620e383dca72b6bd5f454f1"
 
 [[gate.input]]
 path = "scenarios/kafka/share-group-close-uncertainty.toml"
@@ -1180,7 +1182,7 @@ sha256 = "7f205bf5aed59cc0393cafccce638d8553bc2ebbed2d4fa11a446680fba18b5f"
 
 [[gate.input]]
 path = "scenarios/kafka/transaction-coordinator-failover.toml"
-sha256 = "312ad0cc293ebb2cbc7b945085c8f21755fd016ce861acdabdbe1ae4d4432be4"
+sha256 = "3c519eb2ca441b8d9da82421242fe2e57ec38f97ba3643a3d437350f40ae6746"
 
 [[gate.input]]
 path = "scenarios/kafka/transaction-fencing.toml"
@@ -1200,7 +1202,7 @@ sha256 = "90cdb65b73f82dd5aa4354e680b88a8a421017ffdc39f812a765baed55478bb9"
 
 [[gate.input]]
 path = "scenarios/kafka/transactional-id-authorization-recovery.toml"
-sha256 = "d0870fed9ec8577fd6b6bc04cbbbb8b056e9139fb646479ab02cfb5fc1eafe6f"
+sha256 = "0c74e556ff9cc4fc75839066c76c4b3edf4a1c8cc1fdd56184cdf7a1094c4d78"
 
 [[gate.input]]
 path = "scenarios/producer/definite-rejection.toml"

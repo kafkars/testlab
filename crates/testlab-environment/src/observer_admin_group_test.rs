@@ -1,8 +1,12 @@
 //! Consumer-group normalization tests preserve absence and reject mismatched identities.
 
+use rdkafka::error::KafkaError;
+use rdkafka::types::RDKafkaErrorCode;
 use testlab_schema::{BrokerStateObservation, OperationId};
 
-use crate::observer_admin_group::{normalize_fixture, normalize_fixture_with_state};
+use crate::observer_admin_group::{
+    normalize_fixture, normalize_fixture_with_state, transient_group_error,
+};
 use crate::observer_admin_target::GroupTarget;
 
 #[test]
@@ -64,6 +68,21 @@ fn stable_empty_and_dead_consumer_states_remain_authoritative() {
 }
 
 #[test]
+fn empty_and_dead_groups_may_clear_their_protocol_type() {
+    for state in ["Empty", "Dead"] {
+        assert!(
+            normalize_fixture_with_state(
+                0,
+                &target(),
+                vec![("orders-group".to_owned(), 0, state, "")],
+            )
+            .is_ok(),
+            "state {state}"
+        );
+    }
+}
+
+#[test]
 fn hidden_group_error_sentinels_are_rejected() {
     for (state, protocol_type) in [("", "consumer"), ("Unknown", "consumer"), ("Stable", "")] {
         assert!(
@@ -75,6 +94,17 @@ fn hidden_group_error_sentinels_are_rejected() {
             .is_err(),
             "state {state:?}, protocol {protocol_type:?}"
         );
+    }
+}
+
+#[test]
+fn transient_group_transport_errors_are_retryable() {
+    for code in [
+        RDKafkaErrorCode::BrokerTransportFailure,
+        RDKafkaErrorCode::AllBrokersDown,
+        RDKafkaErrorCode::OperationTimedOut,
+    ] {
+        assert!(transient_group_error(&KafkaError::GroupListFetch(code)));
     }
 }
 

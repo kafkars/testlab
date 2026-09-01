@@ -47,7 +47,7 @@ partition = 0
 sequence = 1
 key = { encoding = "utf8", data = "denied" }
 value = { encoding = "utf8", data = "topic-write-denied" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-denied" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-denied" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "flush-denied-record"
@@ -80,7 +80,7 @@ partition = 0
 sequence = 2
 key = { encoding = "utf8", data = "recovered" }
 value = { encoding = "utf8", data = "topic-write-restored" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-recovered" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-recovered" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "flush-recovery-record"

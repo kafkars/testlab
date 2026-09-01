@@ -42,7 +42,7 @@ partition = 0
 sequence = 1
 key = { encoding = "utf8", data = "classic-commit" }
 value = { encoding = "hex", data = "00636c61737369632d636f6d6d6974ff" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-input-commit" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-input-commit" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "create-commit-member"
@@ -72,7 +72,7 @@ partition = 0
 sequence = 101
 key = { encoding = "utf8", data = "classic-output-commit" }
 value = { encoding = "utf8", data = "transformed-commit" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-output-commit" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-output-commit" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "101" } }]
 
 [[steps]]
 id = "close-commit-member"
@@ -103,7 +103,7 @@ partition = 0
 sequence = 2
 key = { encoding = "utf8", data = "classic-abort" }
 value = { encoding = "hex", data = "00636c61737369632d61626f7274ff" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-input-abort" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-input-abort" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "create-abort-member"
@@ -133,7 +133,7 @@ partition = 0
 sequence = 102
 key = { encoding = "utf8", data = "classic-output-abort" }
 value = { encoding = "utf8", data = "transformed-abort" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-output-abort" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-classic-output-abort" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "102" } }]
 
 [[steps]]
 id = "close-abort-member"

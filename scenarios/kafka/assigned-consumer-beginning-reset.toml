@@ -33,7 +33,7 @@ partition = 0
 sequence = 1
 key = { encoding = "utf8", data = "zero" }
 value = { encoding = "utf8", data = "replay-me" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-zero" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-zero" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "send-partition-one"
@@ -47,7 +47,7 @@ partition = 1
 sequence = 2
 key = { encoding = "utf8", data = "one" }
 value = { encoding = "utf8", data = "middle" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-one" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-one" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "create-consumer"

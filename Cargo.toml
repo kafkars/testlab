@@ -34,7 +34,7 @@ kafkars = { git = "https://github.com/kafkars/kafkars.git", rev = "e556a2f04df85
 kafka-wire = "=0.1.0-rc.3"
 kafka-wire-core = "=0.1.0-rc.3"
 futures-executor = "=0.3.34"
-rdkafka = { version = "=0.39.0", default-features = false, features = ["cmake-build", "naive-runtime", "ssl-vendored"] }
+rdkafka = { version = "=0.39.0", default-features = false, features = ["cmake-build", "libz-static", "naive-runtime", "ssl-vendored", "zstd"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"

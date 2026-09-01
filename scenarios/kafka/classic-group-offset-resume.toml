@@ -32,7 +32,7 @@ topic = "testlab-kafkars-classic-offset-resume"
 partition = 0
 sequence = 1
 value = { encoding = "utf8", data = "before-restart" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-restart" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-restart" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "create-member-1"
@@ -130,7 +130,7 @@ topic = "testlab-kafkars-classic-offset-resume"
 partition = 0
 sequence = 2
 value = { encoding = "utf8", data = "after-restart" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-restart" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-after-restart" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }]
 
 [[steps]]
 id = "receive-second-only"

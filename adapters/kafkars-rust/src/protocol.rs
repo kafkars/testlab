@@ -60,17 +60,31 @@ where
                 AdapterError::ProtocolVersion(version),
             );
         }
-        let finished = match dispatch(&mut state, &mut writer, envelope.clone()) {
-            Ok(finished) => finished,
-            Err(error) if error.client_failure().is_some() => {
-                return emit_client_failure(&mut writer, envelope, error);
-            }
-            Err(error) => return emit_fatal(&mut writer, envelope, error),
-        };
+        let result = dispatch(&mut state, &mut writer, envelope.clone());
+        let finished = handle_dispatch(&mut writer, envelope, result)?;
         if finished {
             return Ok(());
         }
     }
+}
+
+pub(super) fn handle_dispatch<W: Write>(
+    writer: &mut W,
+    envelope: CommandEnvelope,
+    result: Result<bool, AdapterError>,
+) -> Result<bool, AdapterError> {
+    let finished = match result {
+        Ok(finished) => finished,
+        Err(error) if error.client_failure().is_some() => {
+            emit_client_failure(writer, envelope, error)?;
+            false
+        }
+        Err(error) => {
+            emit_fatal(writer, envelope, error)?;
+            false
+        }
+    };
+    Ok(finished)
 }
 
 #[allow(clippy::too_many_lines, reason = "exhaustive versioned routing")]

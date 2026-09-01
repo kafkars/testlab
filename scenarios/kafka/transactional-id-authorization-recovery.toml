@@ -79,7 +79,7 @@ partition = 0
 sequence = 1
 key = { encoding = "utf8", data = "transaction" }
 value = { encoding = "utf8", data = "authorization-restored" }
-headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-recovered" } }]
+headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-recovered" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }]
 
 [[steps]]
 id = "close-transactional-producer"

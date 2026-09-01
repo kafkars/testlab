@@ -52,6 +52,7 @@ key = { encoding = "utf8", data = "snappy" }
 value = { encoding = "utf8", data = "configured-producer-snappy-snappy-snappy-snappy-snappy" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "configured-snappy" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
 [[steps]]

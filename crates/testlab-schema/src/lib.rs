@@ -78,6 +78,7 @@ mod scenario_broker_policy_validation;
 mod scenario_capability_validation;
 mod scenario_environment_action_validation;
 mod scenario_error;
+mod scenario_record_correlation_validation;
 mod scenario_types;
 mod scenario_validation;
 mod share;

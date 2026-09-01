@@ -28,15 +28,15 @@ producer_id = "producer-1"
 
 [[steps.operations]]
 operation_id = "op-first"
-record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 1, value = { encoding = "utf8", data = "first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }] }
+record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 1, value = { encoding = "utf8", data = "first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
 
 [[steps.operations]]
 operation_id = "op-second"
-record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 2, value = { encoding = "utf8", data = "second" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }] }
+record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 2, value = { encoding = "utf8", data = "second" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
 
 [[steps.operations]]
 operation_id = "op-third"
-record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 3, value = { encoding = "utf8", data = "third" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-third" } }] }
+record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 3, value = { encoding = "utf8", data = "third" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-third" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
 
 [[steps]]
 id = "create-share-consumer"
