@@ -161,6 +161,10 @@ fn drain_transitions(
                                 ) {
                                     break;
                                 }
+                                if error.kind() == ErrorKind::State && Instant::now() < deadline {
+                                    std::thread::sleep(POLL_SLICE);
+                                    continue;
+                                }
                                 return Err(AdapterError::Client(error));
                             }
                         }

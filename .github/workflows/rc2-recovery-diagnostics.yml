@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: ddd38ef95ca6c9d571a84cbb760ce37c9a805aa0
+          ref: 1388da9100b58bb0ea23d2ad2a7d76ca65fee86c
           path: kafkars-candidate
           persist-credentials: false
       - uses: ./testlab/.github/actions/setup-rust

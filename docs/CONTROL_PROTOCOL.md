@@ -285,9 +285,10 @@ through one public call. Stable group assignment observation drains public
 assigned, revoking, and lost transitions, explicitly completes current revocation
 leases, and requires two identical complete assignment snapshots. A state-error
 response for an old revocation is superseded only when the same public consumer
-already exposes a strictly newer assignment fence; it is not reported as a
-successful acknowledgment. Missing, equal, or older fences and other error kinds
-remain failures.
+exposes a strictly newer assignment fence; it is not reported as a successful
+acknowledgment. Observation may await that newer fence only within its original
+deadline. Missing, equal, or older fences at expiry and other error kinds remain
+failures.
 Repeated observation of the same previously observed member set does not require
 a new rebalance event: disrupting a non-coordinator need not change membership.
 Initial observation or a changed member set still requires a public transition.
