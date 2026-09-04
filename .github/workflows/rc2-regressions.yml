@@ -70,7 +70,7 @@ jobs:
           assert set(paths) <= set(original_pack['scenarios'])
           output = Path('target/rc2-regressions')
           output.mkdir(parents=True, exist_ok=True)
-          pack_path = output / 'pack.toml'
+          pack_path = Path('packs/rc2-diagnostic.toml')
           pack_path.write_text(
               'schema_version = 1\nid = "rc2-diagnostic"\n'
               'title = "RC2 diagnostic regressions, not release qualification"\n'
@@ -100,5 +100,6 @@ jobs:
           path: |
             rc2-regression-evidence
             testlab/target/rc2-regressions
+            testlab/packs/rc2-diagnostic.toml
           if-no-files-found: error
           retention-days: 30

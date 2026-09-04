@@ -195,11 +195,12 @@ impl AdapterState {
         self.group_consumers.close(consumer_id)
     }
 
-    pub(crate) fn remove_shutdown_group_consumer(
+    pub(crate) fn complete_shutdown_group_consumer(
         &mut self,
         consumer_id: &ConsumerId,
+        deadline: std::time::Instant,
     ) -> Result<(), StateError> {
-        self.group_consumers.remove_after_shutdown(consumer_id)
+        self.group_consumers.close_until(consumer_id, deadline)
     }
 
     pub(crate) fn close_producer(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {

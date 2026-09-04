@@ -329,8 +329,11 @@ through committed public receives joined to independent broker coordinates.
 request count from one through eight, and one complete observation bound. The
 adapter clones the public shutdown control, issues that exact number of
 idempotent requests, drains public assignment transitions, and completes only
-when the public event stream returns terminal `None`. The terminal operation
-then releases Testlab's owned handle. This completion is adapter-reported
+when the public event stream returns terminal `None` and the public close
+observer confirms the already-requested shutdown. Stream termination alone
+closes observation, not necessarily broker membership. The later close joins
+the same accepted leave and original deadline; it does not start a second
+shutdown. Only then does Testlab release its owned handle. This completion is adapter-reported
 lifecycle truth only; a following packaged Admin description and immediate
 independent consumer-group query must both report zero members.
 

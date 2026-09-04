@@ -1,7 +1,7 @@
 //! Classic-group ownership preserves exact public consumers across commands.
 
 use std::collections::BTreeMap;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{
     Client, Consumer, ConsumerBuildError, ConsumerGroupProtocol, OffsetReset, RetryAdvice,
@@ -12,7 +12,7 @@ use testlab_schema::{
     GroupConsumerControlCommand, GroupOffsetReset, GroupProtocol, GroupReadIsolation,
 };
 
-use crate::admission_retry::{retry_owned_safe, retry_until};
+use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
 use crate::state::StateError;
 
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(30);
@@ -122,26 +122,43 @@ impl GroupConsumers {
     }
 
     pub(crate) fn close(&mut self, consumer_id: &ConsumerId) -> Result<(), StateError> {
+        let started = Instant::now();
+        self.close_until(
+            consumer_id,
+            started.checked_add(OPERATION_TIMEOUT).unwrap_or(started),
+        )
+    }
+
+    pub(crate) fn close_until(
+        &mut self,
+        consumer_id: &ConsumerId,
+        deadline: Instant,
+    ) -> Result<(), StateError> {
         let owner = self
             .owners
             .remove(consumer_id)
             .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))?;
-        let close = match retry_owned_safe(owner, |owner| {
-            let ConsumerOwner {
-                client_id,
-                consumer,
-            } = owner;
-            consumer.try_close().map_err(|error| {
-                let (consumer, client_error) = error.into_parts();
-                (
-                    ConsumerOwner {
-                        client_id,
-                        consumer,
-                    },
-                    client_error,
-                )
-            })
-        }) {
+        let close = match retry_owned_until(
+            deadline,
+            owner,
+            |owner| {
+                let ConsumerOwner {
+                    client_id,
+                    consumer,
+                } = owner;
+                consumer.try_close().map_err(|error| {
+                    let (consumer, client_error) = error.into_parts();
+                    (
+                        ConsumerOwner {
+                            client_id,
+                            consumer,
+                        },
+                        client_error,
+                    )
+                })
+            },
+            |error| error.retry_advice() == RetryAdvice::RetrySafe,
+        ) {
             Ok(close) => close,
             Err((owner, client_error)) => {
                 self.owners.insert(consumer_id.clone(), owner);
@@ -149,16 +166,6 @@ impl GroupConsumers {
             }
         };
         close.wait().map_err(StateError::Client)
-    }
-
-    pub(crate) fn remove_after_shutdown(
-        &mut self,
-        consumer_id: &ConsumerId,
-    ) -> Result<(), StateError> {
-        self.owners
-            .remove(consumer_id)
-            .map(|_| ())
-            .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))
     }
 
     pub(crate) fn contains(&self, consumer_id: &ConsumerId) -> bool {

@@ -1,4 +1,4 @@
-//! Hosted group shutdown uses only clone-shared control and public event observation.
+//! Hosted group shutdown awaits public stream termination and the same accepted close.
 
 use std::future::Future;
 use std::pin::pin;
@@ -25,7 +25,7 @@ pub(crate) fn shutdown(
         control.request_shutdown();
     }
     await_termination(state, &command.consumer_id, deadline)?;
-    state.remove_shutdown_group_consumer(&command.consumer_id)?;
+    state.complete_shutdown_group_consumer(&command.consumer_id, deadline)?;
     Ok(())
 }
 
