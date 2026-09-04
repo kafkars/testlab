@@ -70,18 +70,18 @@ impl DockerComposeEnvironment {
             }
         };
         let result = group_cli_observation::normalize(first, target, &output.stdout);
-        if !observed.phase.retain(output) {
-            observed.phase.fail(
-                "environment_observation_failed",
-                "Kafka CLI group query failed",
-            );
-        } else {
+        if observed.phase.retain(output) {
             match result {
                 Ok(states) => observed.state_observations = states,
                 Err(error) => observed
                     .phase
                     .fail("environment_observation_failed", error.to_string()),
             }
+        } else {
+            observed.phase.fail(
+                "environment_observation_failed",
+                "Kafka CLI group query failed",
+            );
         }
         observed
     }
