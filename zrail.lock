@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "735fb21984628d08ac62581b3dc846387bdf27be4abe4d5213f6d47f0821fff4"
+contract_sha256 = "ceb83dbe89f2fcc3c4f9a67e49dc266fc511a5adbe321ef0a8bbe3ae4bd6abf5"
 ratchet = []
 
 [[package]]
@@ -569,6 +569,10 @@ path = "zcheck.toml"
 sha256 = "c7e9d477b355c31314668d5eb88283249b389768460838c9c516644f494b5e84"
 
 [[gate.input]]
+path = ".github/workflows/qualification-release.yml"
+sha256 = "dfd88d8b57225ad6d74b811151daf19a49ff105a0757e76e72afebe8a6e3e95f"
+
+[[gate.input]]
 path = "Cargo.lock"
 sha256 = "38c572da4f46830594807bbb929cf5e7445ce55958921be27404cf4890d25907"
 
@@ -578,7 +582,7 @@ sha256 = "057a12c7e8cb3ef01ee6cf4c192bf9a76451d0c05a28a210f62ae23319fdc3b8"
 
 [[gate.input]]
 path = "action.yml"
-sha256 = "99837bc6ede1f31e5e7d98e6e1a9f3105a8974d99f411086dc389f7fcf3f6a2e"
+sha256 = "8850ceb256942d3712a64dea467ed1421784ea297ea56f7bfe32c8dfc4389846"
 
 [[gate.input]]
 path = "clippy.toml"
@@ -778,7 +782,7 @@ sha256 = "3676bbfceb360dfa064ad63e3f9d95d714f825f2878e421699f13c9553eda62e"
 
 [[gate.input]]
 path = "qualifications/kafkars-pr.toml"
-sha256 = "48b2b5261fedf39caacff045a8440ccfa9de198bec152b1be279aabb99168ba1"
+sha256 = "7a211907f4a159aeed7eb4dd335b9be1df4ea2d81b644afdc54f588c051e635a"
 
 [[gate.input]]
 path = "qualifications/kafkars-release.toml"
@@ -1234,7 +1238,7 @@ sha256 = "272d53c89045c5ffe977a4cc9fe47cce957ef09a6e607cafacd0e6bd836bd7f0"
 
 [[gate.input]]
 path = "scripts/qualify-kafkars-candidate"
-sha256 = "c08fd9cafcef5911673a1ebad49e3561f6b3a04261a4f94c06df62f1e04bfe97"
+sha256 = "2feb6ad6a5fe7f66bd4c82ebec8b73f6bdf072ec3602f683392a266be3fe730b"
 
 [[gate.input]]
 path = "scripts/run-kafkars-qualification"
