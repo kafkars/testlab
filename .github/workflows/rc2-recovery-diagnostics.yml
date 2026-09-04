@@ -1,0 +1,131 @@
+name: RC2 hosted recovery diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    paths: [.github/workflows/rc2-recovery-diagnostics.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  recovery:
+    if: github.head_ref == 'feat/rc2-qualification'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        cell:
+          - apache-kafka-4-3-1-three-tls
+          - apache-kafka-4-3-1-three-sasl-plain
+    steps:
+      - name: Check out Testlab
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: testlab
+          persist-credentials: false
+      - name: Check out exact RC2 candidate
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/kafkars
+          ref: ddd38ef95ca6c9d571a84cbb760ce37c9a805aa0
+          path: kafkars-candidate
+          persist-credentials: false
+      - uses: ./testlab/.github/actions/setup-rust
+      - run: rustup toolchain install 1.90.0 --profile minimal
+      - name: Instrument only the disposable diagnostic candidate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('kafkars-candidate/crates/kafka-client-engine/src/driver/owner.rs')
+          source = path.read_text()
+          replacements = [
+              ('    shutdown: DriverShutdown,\n',
+               '    shutdown: DriverShutdown,\n'
+               '    diagnostic_next: std::time::Instant,\n'
+               '    diagnostic_snapshot: Option<kafka_driver::Call<Result<kafka_driver::DriverSnapshot, kafka_driver::SnapshotError>>>,\n'),
+              ('            shutdown: DriverShutdown::default(),\n',
+               '            shutdown: DriverShutdown::default(),\n'
+               '            diagnostic_next: std::time::Instant::now(),\n'
+               '            diagnostic_snapshot: None,\n'),
+              ('        self.shutdown\n            .observe()\n',
+               '''        if let Some(result) = self.diagnostic_snapshot.as_ref().and_then(|call| call.try_result()) {
+                      self.diagnostic_snapshot = None;
+                      use std::io::Write;
+                      if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true)
+                          .open(format!("/tmp/rc2-driver-{}.log", std::process::id())) {
+                          let _ = writeln!(file, "time={:?} snapshot={:?} reactor={:?}",
+                              std::time::SystemTime::now(), result, self.reactor);
+                      }
+                  }
+                  if self.diagnostic_snapshot.is_none() && std::time::Instant::now() >= self.diagnostic_next {
+                      self.diagnostic_next = std::time::Instant::now() + Duration::from_secs(2);
+                      self.diagnostic_snapshot = self.driver.snapshot().ok();
+                  }
+                  self.shutdown
+                      .observe()
+          '''),
+          ]
+          for before, after in replacements:
+              assert source.count(before) == 1, before
+              source = source.replace(before, after)
+          path.write_text(source)
+          PY
+          git -C kafkars-candidate diff --check
+          git -C kafkars-candidate diff > instrumented-candidate.diff
+      - name: Select the two unchanged recovery scenarios
+        working-directory: testlab
+        env:
+          CELL: ${{ matrix.cell }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import tomllib
+
+          release = tomllib.loads(Path('qualifications/kafkars-release.toml').read_text())
+          cell, = [cell for cell in release['cells'] if cell['id'] == os.environ['CELL']]
+          paths = [f'scenarios/kafka/{protocol}-group-session-recovery.toml'
+                   for protocol in ['classic', 'consumer-protocol']]
+          pack = tomllib.loads(Path(cell['pack']).read_text())
+          assert set(paths) <= set(pack['scenarios'])
+          output = Path('target/rc2-recovery-diagnostic')
+          output.mkdir(parents=True, exist_ok=True)
+          pack_path = Path('packs/rc2-recovery-diagnostic.toml')
+          pack_path.write_text(
+              'schema_version = 1\nid = "rc2-recovery-diagnostic"\n'
+              'title = "Instrumented diagnostic only, never release evidence"\n'
+              f'scenarios = {json.dumps(paths)}\n'
+          )
+          (output / 'qualification.toml').write_text(
+              'schema_version = 2\nid = "rc2-recovery-diagnostic"\n'
+              'title = "Instrumented diagnostic only, never release evidence"\n'
+              f'[[cells]]\nid = {json.dumps(cell["id"])}\n'
+              f'environment = {json.dumps(cell["environment"])}\n'
+              f'pack = {json.dumps(str(pack_path))}\nattempts = 1\ngating = true\n'
+          )
+          PY
+      - name: Package and run the hosted diagnostic
+        working-directory: testlab
+        run: |
+          cargo build --locked -p testctl
+          target/debug/testctl qualify-kafkars \
+            --root . --kafkars-root ../kafkars-candidate --allow-dirty \
+            --qualification target/rc2-recovery-diagnostic/qualification.toml \
+            --evidence-dir ../rc2-recovery-evidence
+      - name: Archive approved synthetic diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: rc2-recovery-${{ matrix.cell }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            rc2-recovery-evidence
+            instrumented-candidate.diff
+            /tmp/rc2-driver-*.log
+            testlab/target/rc2-recovery-diagnostic
+            testlab/packs/rc2-recovery-diagnostic.toml
+          if-no-files-found: error
+          retention-days: 30
