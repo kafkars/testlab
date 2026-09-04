@@ -27,6 +27,22 @@ pub(crate) fn observe<W: Write>(
     let deadline = started
         .checked_add(Duration::from_millis(command.timeout_ms))
         .unwrap_or(started);
+    let groups = command
+        .consumer_ids
+        .iter()
+        .map(|id| {
+            state
+                .group_consumer_mut(id)
+                .map(|consumer| consumer.group_id().to_owned())
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    let members = command
+        .consumer_ids
+        .iter()
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    let require_transition =
+        membership_changed(state.observed_group_members.get(&groups), &members);
     let mut transitions = Vec::new();
     let mut previous = None;
     let assignments = loop {
@@ -36,8 +52,8 @@ pub(crate) fn observe<W: Write>(
         } else {
             None
         };
-        let stable =
-            !transitions.is_empty() && current.as_deref().is_some_and(stable_assignment_candidate);
+        let stable = (!require_transition || !transitions.is_empty())
+            && current.as_deref().is_some_and(stable_assignment_candidate);
         if stable && current == previous {
             break current.unwrap_or_default();
         }
@@ -47,6 +63,9 @@ pub(crate) fn observe<W: Write>(
         }
         std::thread::sleep(POLL_SLICE);
     };
+    if !assignments.is_empty() {
+        state.observed_group_members.insert(groups, members);
+    }
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -58,6 +77,13 @@ pub(crate) fn observe<W: Write>(
             }),
         ),
     )
+}
+
+pub(super) fn membership_changed(
+    previous: Option<&BTreeSet<ConsumerId>>,
+    current: &BTreeSet<ConsumerId>,
+) -> bool {
+    previous != Some(current)
 }
 
 pub(super) fn stable_assignment_candidate(assignments: &[GroupConsumerAssignment]) -> bool {

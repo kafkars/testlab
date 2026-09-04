@@ -93,6 +93,11 @@ fn explicit_stop_and_start_are_distinct_bounded_operations() {
         start.operations[0].kind,
         EnvironmentOperationKind::BrokerStart
     );
+    assert!(start.operations[0].args.ends_with(&[
+        "restart".to_owned(),
+        "--no-deps".to_owned(),
+        "broker".to_owned(),
+    ]));
     assert!(
         start
             .operations

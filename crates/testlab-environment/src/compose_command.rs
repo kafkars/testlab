@@ -75,10 +75,15 @@ pub(super) fn stop(prefix: &[String], service: &str, operation: u32) -> CommandS
 }
 
 pub(super) fn start(prefix: &[String], service: &str, operation: u32) -> CommandSpec {
+    // Restart also starts stopped containers, without rerunning one-shot TLS dependencies.
     compose_owned(
         EnvironmentOperationKind::BrokerStart,
         prefix,
-        vec!["start".to_owned(), service.to_owned()],
+        vec![
+            "restart".to_owned(),
+            "--no-deps".to_owned(),
+            service.to_owned(),
+        ],
         format!("broker-start-{service}-{operation:05}.txt"),
         format!("broker-start-{service}-{operation:05}.stderr.txt"),
     )

@@ -19,6 +19,7 @@ mod compose_construction;
 mod compose_disruption;
 mod compose_execute;
 mod compose_feature;
+mod compose_group_observe;
 mod compose_network_proxy;
 mod compose_observe;
 mod compose_observe_admin;
@@ -32,6 +33,7 @@ mod compose_startup;
 mod compose_support;
 mod compose_topic_readiness;
 mod compose_types;
+mod group_cli_observation;
 mod kafka_role_wire;
 mod network_proxy_output;
 mod network_proxy_process;
@@ -107,6 +109,8 @@ mod compose_test_fixture;
 mod compose_validate_only_test;
 #[cfg(test)]
 mod kafka_role_wire_test;
+#[cfg(test)]
+mod group_cli_observation_test;
 #[cfg(test)]
 mod network_proxy_process_test;
 #[cfg(test)]

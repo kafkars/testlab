@@ -1,6 +1,9 @@
 //! Adapter state owns public Kafkars handles under protocol identities.
 
-use std::{collections::BTreeMap, time::Duration};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    time::Duration,
+};
 
 use crate::admission_retry::retry_safe;
 use crate::assigned_consumers::AssignedConsumers;
@@ -26,6 +29,7 @@ pub(crate) struct AdapterState {
     producers: BTreeMap<ProducerId, ProducerOwner>,
     pub(crate) consumers: AssignedConsumers,
     group_consumers: GroupConsumers,
+    pub(crate) observed_group_members: BTreeMap<BTreeSet<String>, BTreeSet<ConsumerId>>,
     #[cfg(kafkars_share_candidate)]
     pub(crate) share_consumers: ShareConsumers,
     transactional_producers: TransactionalProducers,

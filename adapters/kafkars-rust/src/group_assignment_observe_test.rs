@@ -4,7 +4,20 @@ use testlab_schema::{
     ConsumerId, GroupConsumerAssignment, GroupMembershipEpoch, TopicPartitionIdentity,
 };
 
-use super::group_assignment_observe::stable_assignment_candidate;
+use super::group_assignment_observe::{membership_changed, stable_assignment_candidate};
+
+#[test]
+fn unchanged_membership_does_not_require_a_new_rebalance_event() {
+    let member = |name| ConsumerId::new(name).unwrap_or_else(|error| panic!("member: {error}"));
+    let previous = std::collections::BTreeSet::from([member("consumer-1"), member("consumer-2")]);
+    let unchanged = std::collections::BTreeSet::from([member("consumer-2"), member("consumer-1")]);
+    assert!(!membership_changed(Some(&previous), &unchanged));
+    assert!(membership_changed(None, &unchanged));
+    assert!(membership_changed(
+        Some(&previous),
+        &std::collections::BTreeSet::from([member("consumer-1")])
+    ));
+}
 
 #[test]
 fn stable_candidate_requires_nonempty_disjoint_member_ownership() {

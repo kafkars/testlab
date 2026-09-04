@@ -36,7 +36,10 @@ Owns external effects and observations. A tiny model broker self-tests the
 harness but never supports Kafka compatibility claims. Docker Compose
 environments run pinned real Kafka clusters, retain lifecycle and disruption
 operations, and observe records and targeted broker state independently through
-librdkafka. The environment also owns typed broker-role discovery and exact
+librdkafka. Multi-broker group snapshots use the image-pinned Kafka admin CLI
+on the internal listener, retain its raw terminal output, and validate complete
+classic or modern group state rows; legacy DescribeGroups is not authoritative
+for KIP-848 member counts. The environment also owns typed broker-role discovery and exact
 service disruption. It discovers partition leaders through librdkafka and uses
 bounded Kafka Metadata or FindCoordinator requests for controllers and group or
 transaction coordinators on declared plaintext endpoints. It also owns typed

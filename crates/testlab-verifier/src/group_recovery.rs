@@ -19,16 +19,17 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     let starts = operations(index, EnvironmentOperationKind::BrokerStart);
     let distinct_stops = stops
         .iter()
-        .map(|(_, operation)| &operation.args)
-        .collect::<BTreeSet<_>>();
+        .map(|(_, operation)| disruption_target(operation))
+        .collect::<Option<BTreeSet<_>>>();
     let distinct_starts = starts
         .iter()
-        .map(|(_, operation)| &operation.args)
-        .collect::<BTreeSet<_>>();
+        .map(|(_, operation)| disruption_target(operation))
+        .collect::<Option<BTreeSet<_>>>();
     let ordered_pairs = stops.iter().zip(&starts).enumerate().all(
         |(index, ((stop_sequence, stop), (start_sequence, start)))| {
             stop_sequence < start_sequence
-                && stop.args == start.args
+                && disruption_target(stop).is_some()
+                && disruption_target(stop) == disruption_target(start)
                 && stops
                     .get(index + 1)
                     .is_none_or(|(next_stop_sequence, _)| start_sequence < next_stop_sequence)
@@ -36,7 +37,9 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     );
     let terminals = stops.len() == 3
         && starts.len() == 3
-        && distinct_stops.len() == 3
+        && distinct_stops
+            .as_ref()
+            .is_some_and(|targets| targets.len() == 3)
         && distinct_stops == distinct_starts
         && ordered_pairs
         && stops
@@ -89,6 +92,31 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                 .collect(),
         ));
     }
+}
+
+fn disruption_target(
+    operation: &testlab_schema::EnvironmentOperation,
+) -> Option<(&str, &[String], &str)> {
+    let (prefix, service) = match (operation.kind, operation.args.as_slice()) {
+        (EnvironmentOperationKind::BrokerStop, [prefix @ .., verb, service]) if verb == "stop" => {
+            (prefix, service)
+        }
+        (EnvironmentOperationKind::BrokerStart, [prefix @ .., verb, service])
+            if verb == "start" =>
+        {
+            (prefix, service)
+        }
+        (EnvironmentOperationKind::BrokerStart, [prefix @ .., verb, no_deps, service])
+            if verb == "restart" && no_deps == "--no-deps" =>
+        {
+            (prefix, service)
+        }
+        _ => return None,
+    };
+    if prefix.first().is_none_or(|command| command != "compose") || service.is_empty() {
+        return None;
+    }
+    Some((&operation.program, prefix, service))
 }
 
 fn broker_ordinals(scenario: &Scenario, stop: bool) -> BTreeSet<u16> {

@@ -283,8 +283,11 @@ commit.
 A batch direct assignment replaces the complete caller-ordered partition set
 through one public call. Stable group assignment observation drains public
 assigned, revoking, and lost transitions, explicitly completes every revocation
-lease, and requires two identical complete assignment snapshots. Scenario-only
-expected partitions never cross the adapter boundary. The verifier requires the
+lease, and requires two identical complete assignment snapshots.
+Repeated observation of the same previously observed member set does not require
+a new rebalance event: disrupting a non-coordinator need not change membership.
+Initial observation or a changed member set still requires a public transition.
+Scenario-only expected partitions never cross the adapter boundary. The verifier requires the
 public assignment union to equal that expectation with pairwise-disjoint member
 ownership and matching positive membership and assignment fences.
 

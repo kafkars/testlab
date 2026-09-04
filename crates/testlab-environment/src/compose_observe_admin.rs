@@ -27,6 +27,12 @@ impl DockerComposeEnvironment {
             Ok(None) => return ComposeObservation::default(),
             Err(error) => Err(error),
         };
+        if self.cluster_size > 1
+            && let Ok(target) = &target
+            && crate::group_cli_observation::supports(target)
+        {
+            return self.observe_groups_with_cli(target, timeout);
+        }
         let mut phase = ComposePhase::default();
         let id = match self.operation_id() {
             Ok(id) => id,

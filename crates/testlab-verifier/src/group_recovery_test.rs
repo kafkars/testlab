@@ -64,6 +64,55 @@ fn overlapping_stop_start_pairs_fail() {
     );
 }
 
+#[test]
+fn changed_project_service_program_or_unrecognized_command_fails() {
+    for mutation in 0..4 {
+        let mut history = recovery_history(true);
+        let HistoryPayload::EnvironmentOperation { operation } = &mut history[2].payload else {
+            panic!("start operation");
+        };
+        match mutation {
+            0 => operation.args[2] = "another-project".to_owned(),
+            1 => {
+                let _ = operation.args.pop();
+                operation.args.push("broker-9".to_owned());
+            }
+            2 => operation.program = "another-program".to_owned(),
+            _ => operation.args = vec!["broker-1".to_owned()],
+        }
+        let mut violations = Vec::new();
+        verify(
+            &recovery_scenario(),
+            &HistoryIndex::build(&history),
+            &mut violations,
+        );
+        assert!(!violations.is_empty(), "mutation {mutation}");
+    }
+}
+
+#[test]
+fn archived_compose_start_pairs_remain_valid() {
+    let mut history = recovery_history(true);
+    for entry in &mut history {
+        if let HistoryPayload::EnvironmentOperation { operation } = &mut entry.payload
+            && operation.kind == EnvironmentOperationKind::BrokerStart
+        {
+            operation.args.truncate(5);
+            operation.args.extend([
+                "start".to_owned(),
+                format!("broker-{}", entry.sequence / 3 + 1),
+            ]);
+        }
+    }
+    let mut violations = Vec::new();
+    verify(
+        &recovery_scenario(),
+        &HistoryIndex::build(&history),
+        &mut violations,
+    );
+    assert!(violations.is_empty(), "{violations:?}");
+}
+
 fn recovery_scenario() -> Scenario {
     let mut steps = Vec::new();
     for ordinal in 1..=3 {
@@ -143,7 +192,24 @@ fn environment(sequence: u64, ordinal: u16, stop: bool) -> HistoryEntry {
                     EnvironmentOperationKind::BrokerStart
                 },
                 program: "docker".to_owned(),
-                args: vec![format!("broker-{ordinal}")],
+                args: {
+                    let mut args = [
+                        "compose",
+                        "--project-name",
+                        "testlab-recovery",
+                        "--file",
+                        "cluster.yml",
+                    ]
+                    .map(str::to_owned)
+                    .to_vec();
+                    if stop {
+                        args.push("stop".to_owned());
+                    } else {
+                        args.extend(["restart".to_owned(), "--no-deps".to_owned()]);
+                    }
+                    args.push(format!("broker-{ordinal}"));
+                    args
+                },
                 started_unix_ms: sequence,
                 completed_unix_ms: sequence,
                 status: EnvironmentOperationStatus::Succeeded,
