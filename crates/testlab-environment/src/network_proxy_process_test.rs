@@ -1,7 +1,7 @@
 //! Proxy-process tests exercise the versioned JSON Lines supervision boundary.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
@@ -117,10 +117,11 @@ impl Fixture {
         ));
         fs::create_dir(&root)
             .unwrap_or_else(|error| panic!("create proxy fixture directory: {error}"));
-        let program = root.join("fake-network-proxy");
-        fs::write(&program, source)
+        // Execute the existing shell and read the fixture as data. Executing a newly
+        // written script races parallel child spawns that briefly inherit its writer.
+        fs::write(root.join("network-proxy-worker"), source)
             .unwrap_or_else(|error| panic!("write fake network proxy: {error}"));
-        make_executable(&program);
+        let program = PathBuf::from("/bin/sh");
         Self { root, program }
     }
 }
@@ -174,17 +175,3 @@ fn operation(value: &str) -> testlab_schema::EnvironmentOperationId {
     testlab_schema::EnvironmentOperationId::new(value)
         .unwrap_or_else(|error| panic!("environment operation id: {error}"))
 }
-
-#[cfg(unix)]
-fn make_executable(path: &Path) {
-    use std::os::unix::fs::PermissionsExt;
-    let mut permissions = fs::metadata(path)
-        .unwrap_or_else(|error| panic!("inspect fake proxy: {error}"))
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions)
-        .unwrap_or_else(|error| panic!("make fake proxy executable: {error}"));
-}
-
-#[cfg(not(unix))]
-fn make_executable(_path: &Path) {}

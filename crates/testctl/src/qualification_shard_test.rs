@@ -130,7 +130,7 @@ fn missing_scenario_repetition_and_changed_catalog_are_rejected() {
             "environment" => {
                 fixture.mutate(&format!("{scenario_root}/environment.json"), |value| {
                     value["title"] = "changed environment".into();
-                })
+                });
             }
             "qualification" => fixture.mutate("qualification.json", |value| {
                 value["cells"][0]["attempts"] = 2.into();

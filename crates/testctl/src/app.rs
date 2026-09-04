@@ -1,6 +1,6 @@
 //! CLI routing keeps catalog validation separate from sealed run attempts.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 
@@ -150,20 +150,7 @@ fn run(cli: Cli) -> Result<bool, AppError> {
                 .map_err(|error| AppError::Catalog(error.to_string()))?;
             Ok(true)
         }
-        Command::Validate { root } => {
-            let repository = Repository::open(&root)?;
-            let summary = repository.validate_all()?;
-            println!(
-                "validated {} scenarios, {} packs, {} subjects, {} environments, {} qualifications, and {} contracts",
-                summary.scenarios,
-                summary.packs,
-                summary.subjects,
-                summary.environments,
-                summary.qualifications,
-                summary.contracts
-            );
-            Ok(true)
-        }
+        Command::Validate { root } => validate_catalog(&root),
         Command::Run {
             root,
             scenario,
@@ -251,4 +238,19 @@ fn run(cli: Cli) -> Result<bool, AppError> {
             Ok(run.status == testlab_schema::VerdictStatus::Passed)
         }
     }
+}
+
+fn validate_catalog(root: &Path) -> Result<bool, AppError> {
+    let repository = Repository::open(root)?;
+    let summary = repository.validate_all()?;
+    println!(
+        "validated {} scenarios, {} packs, {} subjects, {} environments, {} qualifications, and {} contracts",
+        summary.scenarios,
+        summary.packs,
+        summary.subjects,
+        summary.environments,
+        summary.qualifications,
+        summary.contracts
+    );
+    Ok(true)
 }

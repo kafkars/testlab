@@ -139,11 +139,11 @@ fn reproduction(request: &QualificationSealRequest<'_>) -> String {
     let qualification = shell_quote(&request.qualification_path.display().to_string());
     let subject = shell_quote(&request.subject_path.display().to_string());
     if !request.shards.is_empty() {
-        let shards = request
-            .shards
-            .iter()
-            .map(|path| format!(" --shard {}", shell_quote(&path.display().to_string())))
-            .collect::<String>();
+        let mut shards = String::new();
+        for path in request.shards {
+            shards.push_str(" --shard ");
+            shards.push_str(&shell_quote(&path.display().to_string()));
+        }
         return format!(
             "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root={root}\nexec \"$repo_root/target/debug/testctl\" aggregate-qualification --root \"$repo_root\" --qualification {qualification}{shards} --evidence-dir \"$repo_root/evidence\"\n"
         );
