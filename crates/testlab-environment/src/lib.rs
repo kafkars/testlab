@@ -108,9 +108,9 @@ mod compose_test_fixture;
 #[cfg(test)]
 mod compose_validate_only_test;
 #[cfg(test)]
-mod kafka_role_wire_test;
-#[cfg(test)]
 mod group_cli_observation_test;
+#[cfg(test)]
+mod kafka_role_wire_test;
 #[cfg(test)]
 mod network_proxy_process_test;
 #[cfg(test)]
