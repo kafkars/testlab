@@ -15,6 +15,8 @@ mod process_io;
 mod protocol_session;
 mod qualification;
 mod qualification_evidence;
+mod qualification_merge;
+mod qualification_shard;
 mod recorder;
 mod run_error;
 mod runner;
@@ -80,6 +82,8 @@ mod catalog_transaction_offsets_test;
 mod issued_concurrent_operations_test;
 #[cfg(test)]
 mod issued_operations_test;
+#[cfg(test)]
+mod qualification_shard_test;
 #[cfg(test)]
 mod qualification_test;
 #[cfg(test)]

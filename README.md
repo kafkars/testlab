@@ -75,6 +75,12 @@ Kafkars CI can invoke the same boundary without owning broker setup:
 
 ## Coverage
 
+PR qualification runs one pass. Release qualification keeps its full matrix and
+repetitions. For parallel release jobs, pass the action's optional `cell` input
+and aggregate every sealed shard with `testctl aggregate-qualification`; see
+[the evidence contract](docs/EVIDENCE.md#qualification-evidence). A cell result
+alone never establishes complete release qualification.
+
 | Area | Current qualification |
 | --- | --- |
 | Kafka | Apache Kafka 3.7.2 through 4.3.1 |

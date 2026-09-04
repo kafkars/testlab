@@ -110,6 +110,8 @@ pub(crate) struct QualificationSealRequest<'a> {
     pub(crate) qualification: &'a QualificationManifest,
     pub(crate) subject: &'a SubjectManifest,
     pub(crate) manifest: &'a QualificationEvidenceManifest,
+    pub(crate) cell: Option<&'a str>,
+    pub(crate) shards: &'a [PathBuf],
 }
 
 fn summary(manifest: &QualificationEvidenceManifest) -> Result<String, AppError> {
@@ -136,8 +138,21 @@ fn reproduction(request: &QualificationSealRequest<'_>) -> String {
     let root = shell_quote(&request.repository_root.display().to_string());
     let qualification = shell_quote(&request.qualification_path.display().to_string());
     let subject = shell_quote(&request.subject_path.display().to_string());
+    if !request.shards.is_empty() {
+        let shards = request
+            .shards
+            .iter()
+            .map(|path| format!(" --shard {}", shell_quote(&path.display().to_string())))
+            .collect::<String>();
+        return format!(
+            "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root={root}\nexec \"$repo_root/target/debug/testctl\" aggregate-qualification --root \"$repo_root\" --qualification {qualification}{shards} --evidence-dir \"$repo_root/evidence\"\n"
+        );
+    }
+    let cell = request
+        .cell
+        .map_or_else(String::new, |cell| format!(" --cell {}", shell_quote(cell)));
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root={root}\nexec \"$repo_root/target/debug/testctl\" qualify --root \"$repo_root\" --qualification {qualification} --subject {subject} --evidence-dir \"$repo_root/evidence\"\n"
+        "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root={root}\nexec \"$repo_root/target/debug/testctl\" qualify --root \"$repo_root\" --qualification {qualification} --subject {subject}{cell} --evidence-dir \"$repo_root/evidence\"\n"
     )
 }
 

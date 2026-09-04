@@ -4,7 +4,8 @@ use std::path::Path;
 
 use testlab_schema::{
     QUALIFICATION_EVIDENCE_SCHEMA_VERSION, QualificationCellEvidence,
-    QualificationEvidenceManifest, QualificationRunEvidence, VerdictStatus,
+    QualificationEvidenceManifest, QualificationId, QualificationManifest,
+    QualificationRunEvidence, VerdictStatus,
 };
 
 use crate::catalog::Repository;
@@ -25,9 +26,11 @@ pub(crate) fn run_qualification(
     qualification_path: &Path,
     subject_path: &Path,
     evidence_directory: &Path,
+    cell: Option<&str>,
 ) -> Result<QualificationRun, AppError> {
     repository.validate_all()?;
     let (qualification_path, qualification) = repository.load_qualification(qualification_path)?;
+    let qualification = select_qualification(&qualification, cell)?;
     let (subject_path, subject) = repository.load_subject(subject_path)?;
     let started_unix_ms = qualification_time()?;
     let run_id = new_run_id("qualification", started_unix_ms)?;
@@ -85,8 +88,34 @@ pub(crate) fn run_qualification(
         qualification: &qualification,
         subject: &subject,
         manifest: &manifest,
+        cell,
+        shards: &[],
     })?;
     Ok(QualificationRun { path, status })
+}
+
+pub(crate) fn select_qualification(
+    qualification: &QualificationManifest,
+    cell: Option<&str>,
+) -> Result<QualificationManifest, AppError> {
+    let mut selected = qualification.clone();
+    if let Some(cell) = cell {
+        selected
+            .cells
+            .retain(|candidate| candidate.id.as_str() == cell);
+        if selected.cells.len() != 1 {
+            return Err(AppError::Catalog(format!(
+                "unknown qualification cell {cell}"
+            )));
+        }
+        selected.id = QualificationId::new(format!("{}--{cell}", qualification.id))
+            .map_err(|error| AppError::Catalog(error.to_string()))?;
+        selected.title = format!("{} / cell {cell}", qualification.title);
+        selected
+            .validate()
+            .map_err(|error| AppError::Catalog(error.to_string()))?;
+    }
+    Ok(selected)
 }
 
 fn qualification_time() -> Result<u64, AppError> {

@@ -6,5 +6,5 @@ title = "packaged Kafkars pull-request qualification"
 id = "apache-kafka-4-3-1-plaintext"
 environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
 pack = "packs/kafkars-pr.toml"
-attempts = 3
+attempts = 1
 gating = true

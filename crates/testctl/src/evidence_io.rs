@@ -121,9 +121,12 @@ fn collect_files(directory: &Path, files: &mut Vec<std::path::PathBuf>) -> Resul
         .map_err(|error| AppError::io("failed to inspect qualification evidence", error))?;
     entries.sort();
     for path in entries {
-        if path.is_dir() {
+        let kind = fs::symlink_metadata(&path)
+            .map_err(|error| AppError::io("inspect evidence entry", error))?
+            .file_type();
+        if kind.is_dir() {
             collect_files(&path, files)?;
-        } else if path.is_file() {
+        } else if kind.is_file() {
             files.push(path);
         } else {
             return Err(AppError::Evidence(format!(

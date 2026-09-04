@@ -13,6 +13,10 @@ inputs:
     description: Directory that receives sealed qualification evidence.
     required: false
     default: testlab-evidence
+  cell:
+    description: Optional exact qualification cell; produces a shard, not a full release verdict.
+    required: false
+    default: ""
   allow-dirty:
     description: Permit a dirty Kafkars worktree when explicitly set to true.
     required: false
@@ -61,6 +65,7 @@ runs:
         INPUT_QUALIFICATION: ${{ inputs.qualification }}
         INPUT_EVIDENCE_DIRECTORY: ${{ inputs.evidence-directory }}
         INPUT_ALLOW_DIRTY: ${{ inputs.allow-dirty }}
+        TESTLAB_QUALIFICATION_CELL: ${{ inputs.cell }}
       run: |
         set -euo pipefail
 

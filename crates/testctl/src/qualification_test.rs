@@ -42,6 +42,7 @@ fn missing_subject_qualifies_as_a_complete_invalid_evidence_set() {
             Path::new("qualifications/repository-pr.toml"),
             &subject_path,
             &evidence_root,
+            None,
         ),
         "run invalid qualification",
     );

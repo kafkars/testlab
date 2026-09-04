@@ -316,6 +316,23 @@ complete tree, and only then publishes the qualification directory.
 Cells declare a bounded attempt count. Every scenario run records its one-based
 attempt ordinal, and any failed or invalid repetition contributes to the cell.
 
+`--cell <cell-id>` runs one unchanged cell under the distinct qualification ID
+`<qualification-id>--<cell-id>`. A passing shard is not a complete qualification.
+`testctl aggregate-qualification --qualification <manifest> --shard <directory>`
+accepts one sealed shard directory per expected cell (repeat `--shard`). It
+requires exact cell membership, scenario order, all declared attempts, matching
+catalog definitions, intact recursive digests, and identical subject package
+names, versions, and SHA-256 checksums. Runner-specific adapter executable paths
+may differ for packaged subjects; other subject configuration must agree.
+Missing, duplicate, partial, corrupt, or mixed-candidate shards fail closed.
+Only the resulting complete aggregate is eligible release evidence.
+
+The PR tier executes its pack once for timely feedback. Release repetitions and
+the full broker/security matrix remain unchanged. Clients may schedule cells on
+separate runners and retain each shard even when another cell fails. Aggregation
+preserves failed and invalid verdicts and emits the existing qualification
+evidence schema, with cells in the reviewed manifest order.
+
 At least one cell must be gating. For gating cells, `invalid` outranks `failed`
 and `failed` outranks `passed`. Non-gating cells remain visible but cannot make
 the release-facing aggregate pass or fail.

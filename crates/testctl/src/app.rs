@@ -7,6 +7,7 @@ use clap::{Parser, Subcommand};
 use crate::candidate::prepare_kafkars;
 use crate::catalog::Repository;
 use crate::qualification::run_qualification;
+use crate::qualification_merge::aggregate_qualification;
 use crate::run_error::AppError;
 use crate::runner::{run_pack, run_scenario};
 
@@ -98,6 +99,9 @@ enum Command {
         /// Repository-relative or absolute evidence directory.
         #[arg(long, default_value = "evidence")]
         evidence_dir: PathBuf,
+        /// Execute only this cell, under a distinct shard qualification identity.
+        #[arg(long)]
+        cell: Option<String>,
     },
     /// Packages Kafkars public crates, builds the external adapter, and qualifies them.
     QualifyKafkars {
@@ -116,6 +120,21 @@ enum Command {
         /// Permit Cargo to package an uncommitted Kafkars checkout.
         #[arg(long)]
         allow_dirty: bool,
+        /// Execute only this cell, under a distinct shard qualification identity.
+        #[arg(long)]
+        cell: Option<String>,
+    },
+    /// Verify all expected cell shards and seal one complete qualification.
+    AggregateQualification {
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        #[arg(long)]
+        qualification: PathBuf,
+        /// Sealed shard roots; repeat once for every expected cell.
+        #[arg(long, required = true)]
+        shard: Vec<PathBuf>,
+        #[arg(long, default_value = "evidence")]
+        evidence_dir: PathBuf,
     },
 }
 
@@ -184,9 +203,16 @@ fn run(cli: Cli) -> Result<bool, AppError> {
             qualification,
             subject,
             evidence_dir,
+            cell,
         } => {
             let repository = Repository::open(&root)?;
-            let run = run_qualification(&repository, &qualification, &subject, &evidence_dir)?;
+            let run = run_qualification(
+                &repository,
+                &qualification,
+                &subject,
+                &evidence_dir,
+                cell.as_deref(),
+            )?;
             println!("{:?} {}", run.status, run.path.display());
             Ok(run.status == testlab_schema::VerdictStatus::Passed)
         }
@@ -196,9 +222,11 @@ fn run(cli: Cli) -> Result<bool, AppError> {
             qualification,
             evidence_dir,
             allow_dirty,
+            cell,
         } => {
             let repository = Repository::open(&root)?;
-            repository.load_qualification(&qualification)?;
+            let (_, manifest) = repository.load_qualification(&qualification)?;
+            crate::qualification::select_qualification(&manifest, cell.as_deref())?;
             let candidate = prepare_kafkars(&repository, &kafkars_root, allow_dirty)?;
             eprintln!("prepared {}", candidate.directory.display());
             let run = run_qualification(
@@ -206,7 +234,19 @@ fn run(cli: Cli) -> Result<bool, AppError> {
                 &qualification,
                 &candidate.subject_path,
                 &evidence_dir,
+                cell.as_deref(),
             )?;
+            println!("{:?} {}", run.status, run.path.display());
+            Ok(run.status == testlab_schema::VerdictStatus::Passed)
+        }
+        Command::AggregateQualification {
+            root,
+            qualification,
+            shard,
+            evidence_dir,
+        } => {
+            let repository = Repository::open(&root)?;
+            let run = aggregate_qualification(&repository, &qualification, &shard, &evidence_dir)?;
             println!("{:?} {}", run.status, run.path.display());
             Ok(run.status == testlab_schema::VerdictStatus::Passed)
         }

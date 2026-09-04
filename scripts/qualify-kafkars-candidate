@@ -51,6 +51,9 @@ arguments=(
 if [[ "$allow_dirty" == "--allow-dirty" ]]; then
   arguments+=(--allow-dirty)
 fi
+if [[ -n "${TESTLAB_QUALIFICATION_CELL:-}" ]]; then
+  arguments+=(--cell "$TESTLAB_QUALIFICATION_CELL")
+fi
 
 cd "$repository_root"
 cargo build -p testctl
