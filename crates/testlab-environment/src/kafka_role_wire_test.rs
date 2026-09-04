@@ -2,8 +2,9 @@
 
 use bytes::BytesMut;
 use kafka_wire::{
-    ConsumerGroupDescribeResponse, FindCoordinatorRequest, FindCoordinatorResponse, KafkaRequest,
-    MetadataRequest, MetadataResponse, ResponseHeader,
+    ApiVersionsRequest, ApiVersionsResponse, ConsumerGroupDescribeResponse, FindCoordinatorRequest,
+    FindCoordinatorResponse, KafkaRequest, MetadataRequest, MetadataResponse, ResponseHeader,
+    api_versions_response::ApiVersion as AdvertisedApi,
     consumer_group_describe_response::{DescribedGroup, Member},
     response_header_version_for,
 };
@@ -71,6 +72,94 @@ fn modern_group_description_reports_exact_members_or_fallback() {
         crate::kafka_role_wire::modern_group_member_count("classic-workers", &response),
         Ok(None)
     );
+}
+
+#[test]
+fn modern_group_probe_requires_an_advertised_supported_version() {
+    use crate::kafka_role_wire::supports_modern_group_description;
+    let mut response = ApiVersionsResponse::default();
+    assert_eq!(supports_modern_group_description(&response), Ok(false));
+    let mut api = AdvertisedApi::default();
+    api.api_key = 69;
+    for (minimum, maximum, expected) in [(0, 0, false), (0, 1, true), (1, 2, true), (2, 2, false)] {
+        api.min_version = minimum;
+        api.max_version = maximum;
+        response.api_keys = vec![api.clone()];
+        assert_eq!(supports_modern_group_description(&response), Ok(expected));
+    }
+}
+
+#[test]
+fn malformed_or_failed_version_discovery_is_not_classic_fallback() {
+    use crate::kafka_role_wire::supports_modern_group_description;
+    let mut response = ApiVersionsResponse::default();
+    response.error_code = 35;
+    assert!(supports_modern_group_description(&response).is_err());
+    response.error_code = 0;
+    let mut api = AdvertisedApi::default();
+    api.api_key = 69;
+    api.max_version = 1;
+    response.api_keys = vec![api.clone(), api.clone()];
+    assert!(supports_modern_group_description(&response).is_err());
+    api.min_version = 2;
+    response.api_keys = vec![api];
+    assert!(supports_modern_group_description(&response).is_err());
+}
+
+#[test]
+fn unsupported_modern_api_is_discovered_without_sending_that_request() {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::time::Duration;
+
+    let listener =
+        TcpListener::bind("127.0.0.1:0").unwrap_or_else(|error| panic!("listen: {error}"));
+    let endpoint = listener
+        .local_addr()
+        .unwrap_or_else(|error| panic!("address: {error}"));
+    let worker = std::thread::spawn(move || {
+        let (mut stream, _) = listener
+            .accept()
+            .unwrap_or_else(|error| panic!("accept: {error}"));
+        stream
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap_or_else(|error| panic!("timeout: {error}"));
+        let mut prefix = [0_u8; 4];
+        stream
+            .read_exact(&mut prefix)
+            .unwrap_or_else(|error| panic!("prefix: {error}"));
+        let length = usize::try_from(i32::from_be_bytes(prefix))
+            .unwrap_or_else(|error| panic!("length: {error}"));
+        assert!(length < 1024);
+        let mut body = vec![0; length];
+        stream
+            .read_exact(&mut body)
+            .unwrap_or_else(|error| panic!("request: {error}"));
+        assert_eq!(&body[..4], &[0, 18, 0, 0]);
+        let response = response_frame::<ApiVersionsRequest, _>(
+            &ApiVersionsResponse::default(),
+            1,
+            ApiVersion::new(0),
+        );
+        let length =
+            i32::try_from(response.len()).unwrap_or_else(|error| panic!("response size: {error}"));
+        stream
+            .write_all(&length.to_be_bytes())
+            .and_then(|()| stream.write_all(&response))
+            .unwrap_or_else(|error| panic!("respond: {error}"));
+        // Closing this sole listener makes any unadvertised follow-up request fail.
+    });
+    assert_eq!(
+        crate::kafka_role_wire::consumer_group_member_count(
+            &endpoint.to_string(),
+            "classic-workers",
+            Duration::from_secs(2),
+        ),
+        Ok(None)
+    );
+    worker
+        .join()
+        .unwrap_or_else(|error| panic!("worker: {error:?}"));
 }
 
 fn response_frame<R, S>(response: &S, correlation_id: i32, version: ApiVersion) -> Vec<u8>

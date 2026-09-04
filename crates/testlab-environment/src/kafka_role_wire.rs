@@ -2,13 +2,14 @@
 
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use bytes::{Bytes, BytesMut};
 use kafka_wire::{
-    ConsumerGroupDescribeRequest, ConsumerGroupDescribeResponse, FindCoordinatorRequest,
-    FindCoordinatorResponse, KafkaRequest, MetadataRequest, MetadataResponse, OutboundFrameLimits,
-    RequestResponsePair, ResponseHeader, encode_request, response_header_version_for,
+    ApiVersionsRequest, ApiVersionsResponse, ConsumerGroupDescribeRequest,
+    ConsumerGroupDescribeResponse, FindCoordinatorRequest, FindCoordinatorResponse, KafkaRequest,
+    MetadataRequest, MetadataResponse, OutboundFrameLimits, RequestResponsePair, ResponseHeader,
+    encode_request, response_header_version_for,
 };
 use kafka_wire_core::{ApiVersion, DecodeLimits, Decoder, KafkaDecode, KafkaEncode, StrBytes};
 
@@ -55,10 +56,49 @@ pub(super) fn consumer_group_member_count(
     group_id: &str,
     timeout: Duration,
 ) -> Result<Option<u32>, String> {
+    let started = Instant::now();
+    let versions: ApiVersionsResponse = exchange(
+        endpoint,
+        &ApiVersionsRequest::default(),
+        ApiVersion::new(0),
+        timeout,
+    )?;
+    if !supports_modern_group_description(&versions)? {
+        return Ok(None);
+    }
+    let remaining = timeout.saturating_sub(started.elapsed());
+    if remaining.is_zero() {
+        return Err("consumer group observation deadline elapsed".to_owned());
+    }
     let mut request = ConsumerGroupDescribeRequest::default();
     request.group_ids = vec![group_id.into()];
-    let response = exchange(endpoint, &request, CONSUMER_GROUP_DESCRIBE_VERSION, timeout)?;
+    let response = exchange(
+        endpoint,
+        &request,
+        CONSUMER_GROUP_DESCRIBE_VERSION,
+        remaining,
+    )?;
     modern_group_member_count(group_id, &response)
+}
+
+pub(super) fn supports_modern_group_description(
+    response: &ApiVersionsResponse,
+) -> Result<bool, String> {
+    if response.error_code != 0 {
+        return Err(format!(
+            "ApiVersions returned Kafka error {}",
+            response.error_code
+        ));
+    }
+    let mut matches = response.api_keys.iter().filter(|api| api.api_key == 69);
+    let Some(api) = matches.next() else {
+        return Ok(false);
+    };
+    if matches.next().is_some() || api.min_version < 0 || api.max_version < api.min_version {
+        return Err("ApiVersions returned invalid ConsumerGroupDescribe bounds".to_owned());
+    }
+    let version = CONSUMER_GROUP_DESCRIBE_VERSION.value();
+    Ok(api.min_version <= version && version <= api.max_version)
 }
 
 pub(super) fn modern_group_member_count(
