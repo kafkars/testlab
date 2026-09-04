@@ -282,8 +282,12 @@ commit.
 
 A batch direct assignment replaces the complete caller-ordered partition set
 through one public call. Stable group assignment observation drains public
-assigned, revoking, and lost transitions, explicitly completes every revocation
-lease, and requires two identical complete assignment snapshots.
+assigned, revoking, and lost transitions, explicitly completes current revocation
+leases, and requires two identical complete assignment snapshots. A state-error
+response for an old revocation is superseded only when the same public consumer
+already exposes a strictly newer assignment fence; it is not reported as a
+successful acknowledgment. Missing, equal, or older fences and other error kinds
+remain failures.
 Repeated observation of the same previously observed member set does not require
 a new rebalance event: disrupting a non-coordinator need not change membership.
 Initial observation or a changed member set still requires a public transition.

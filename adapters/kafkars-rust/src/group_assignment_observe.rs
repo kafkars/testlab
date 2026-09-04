@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use std::io::Write;
 use std::time::{Duration, Instant};
 
-use crate::kafkars_api::{ConsumerAssignment, ConsumerEvent, RetryAdvice};
+use crate::kafkars_api::{ConsumerAssignment, ConsumerEvent, ErrorKind, RetryAdvice};
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, CommandId, ConsumerId, GroupAssignmentTransition,
     GroupAssignmentTransitionKind, GroupAssignmentsObservation, GroupConsumerAssignment,
@@ -147,7 +147,22 @@ fn drain_transitions(
                                 }
                                 std::thread::sleep(POLL_SLICE);
                             }
-                            Err(error) => return Err(AdapterError::Client(error)),
+                            Err(error) => {
+                                let current = state
+                                    .group_consumer_mut(consumer_id)?
+                                    .assignment()
+                                    .map_err(AdapterError::Client)?;
+                                // A newer public fence proves this old lease no longer owns
+                                // release. This does not claim its acknowledgment succeeded.
+                                if superseded_revocation(
+                                    error.kind(),
+                                    revocation.assignment_epoch(),
+                                    current.as_ref().map(ConsumerAssignment::assignment_epoch),
+                                ) {
+                                    break;
+                                }
+                                return Err(AdapterError::Client(error));
+                            }
                         }
                     }
                 }
@@ -155,6 +170,14 @@ fn drain_transitions(
         }
     }
     Ok(true)
+}
+
+pub(super) fn superseded_revocation(
+    kind: ErrorKind,
+    revoked_epoch: u64,
+    current_epoch: Option<u64>,
+) -> bool {
+    kind == ErrorKind::State && current_epoch.is_some_and(|current| current > revoked_epoch)
 }
 
 fn snapshots(
