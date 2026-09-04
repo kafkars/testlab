@@ -22,10 +22,15 @@ jobs:
       - run: cargo +1.96.0 install zrail --version 0.0.1 --locked
       - name: Report grants without accepting them
         run: zrail diff --base origin/main > zrail-review.txt
+      - name: Generate a lock only if no grant acceptance is required
+        run: zrail update --base origin/main > zrail-update.txt
       - name: Upload architecture review
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: rc2-zrail-review
-          path: zrail-review.txt
+          path: |
+            zrail-review.txt
+            zrail-update.txt
+            zrail.lock
           if-no-files-found: error

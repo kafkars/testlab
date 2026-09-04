@@ -122,20 +122,21 @@ fn missing_scenario_repetition_and_changed_catalog_are_rejected() {
                     .pop();
             }),
             "attempt" => fixture.mutate("manifest.json", |value| {
-                value["cells"][0]["runs"][0]["attempt"] = 2.into()
+                value["cells"][0]["runs"][0]["attempt"] = 2.into();
             }),
             "scenario" => fixture.mutate(&format!("{scenario_root}/scenario.json"), |value| {
-                value["title"] = "changed scenario".into()
+                value["title"] = "changed scenario".into();
             }),
-            "environment" => fixture
-                .mutate(&format!("{scenario_root}/environment.json"), |value| {
-                    value["title"] = "changed environment".into()
-                }),
+            "environment" => {
+                fixture.mutate(&format!("{scenario_root}/environment.json"), |value| {
+                    value["title"] = "changed environment".into();
+                })
+            }
             "qualification" => fixture.mutate("qualification.json", |value| {
-                value["cells"][0]["attempts"] = 2.into()
+                value["cells"][0]["attempts"] = 2.into();
             }),
             "verdict" => fixture.mutate(&format!("{scenario_root}/verdict.json"), |value| {
-                value["status"] = "passed".into()
+                value["status"] = "passed".into();
             }),
             _ => panic!("unknown mutation"),
         }
@@ -170,7 +171,7 @@ fn failed_scenarios_remain_failed_after_aggregation() {
     for run in &manifest.cells[0].runs {
         for name in ["manifest.json", "verdict.json"] {
             fixture.mutate(&format!("{}/{name}", run.evidence_path), |value| {
-                value["status"] = "failed".into()
+                value["status"] = "failed".into();
             });
         }
     }

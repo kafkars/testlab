@@ -25,6 +25,7 @@ inputs = [
   "rust-toolchain.toml",
   "clippy.toml",
   "action.yml",
+  ".github/workflows/qualification-release.yml",
   "contracts/conformance.toml",
   "clusters/apache-kafka/4.3.1/single-plaintext.toml",
   "clusters/apache-kafka/4.3.1/single-plaintext-network.toml",

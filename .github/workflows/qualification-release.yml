@@ -1,0 +1,127 @@
+name: Packaged release qualification
+
+on:
+  workflow_call:
+    inputs:
+      testlab-ref:
+        description: Exact Testlab commit, matching the reusable workflow pin.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      cells: ${{ steps.matrix.outputs.cells }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/testlab
+          ref: ${{ inputs.testlab-ref }}
+          persist-credentials: false
+      - id: matrix
+        name: Read the reviewed release cells
+        env:
+          TESTLAB_REF: ${{ inputs.testlab-ref }}
+        run: |
+          set -euo pipefail
+          [[ "$TESTLAB_REF" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$TESTLAB_REF"
+          python3 - <<'PY'
+          import json, os, tomllib
+          with open("qualifications/kafkars-release.toml", "rb") as source:
+              qualification = tomllib.load(source)
+          cells = [cell["id"] for cell in qualification["cells"]]
+          if not cells or len(cells) != len(set(cells)):
+              raise SystemExit("release cells must be nonempty and unique")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("cells=" + json.dumps(cells) + "\n")
+          PY
+
+  cells:
+    name: ${{ matrix.cell }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        cell: ${{ fromJSON(needs.plan.outputs.cells) }}
+    steps:
+      - name: Check out the exact Kafkars candidate
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          path: kafkars-candidate
+          persist-credentials: false
+      - name: Check out pinned Testlab
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/testlab
+          ref: ${{ inputs.testlab-ref }}
+          path: testlab
+          persist-credentials: false
+      - name: Qualify one complete release cell
+        uses: ./testlab
+        with:
+          kafkars-path: kafkars-candidate
+          qualification: release
+          cell: ${{ matrix.cell }}
+          evidence-directory: cell-evidence
+      - name: Archive cell evidence even on failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: testlab-release-cell-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.cell }}
+          path: cell-evidence
+          if-no-files-found: error
+          retention-days: 90
+
+  aggregate:
+    if: ${{ always() && needs.plan.result == 'success' }}
+    needs: [plan, cells]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/testlab
+          ref: ${{ inputs.testlab-ref }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: testlab-release-cell-${{ github.run_id }}-${{ github.run_attempt }}-*
+          path: downloaded-shards
+      - name: Verify and seal every expected cell
+        run: |
+          set -euo pipefail
+          cargo build --locked -p testctl
+          shards=()
+          for manifest in "$GITHUB_WORKSPACE"/downloaded-shards/*/*/qualification.json; do
+            [[ -f "$manifest" ]] || continue
+            shards+=(--shard "${manifest%/qualification.json}")
+          done
+          test "${#shards[@]}" -gt 0
+          target/debug/testctl aggregate-qualification \
+            --root "$GITHUB_WORKSPACE" \
+            --qualification qualifications/kafkars-release.toml \
+            --evidence-dir testlab-release-evidence "${shards[@]}"
+      - name: Archive complete release evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: testlab-release-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: testlab-release-evidence
+          if-no-files-found: error
+          retention-days: 90
+      - name: Require successful cell jobs
+        if: ${{ always() }}
+        env:
+          CELLS_RESULT: ${{ needs.cells.result }}
+        run: test "$CELLS_RESULT" = success

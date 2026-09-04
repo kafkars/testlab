@@ -76,8 +76,12 @@ Kafkars CI can invoke the same boundary without owning broker setup:
 ## Coverage
 
 PR qualification runs one pass. Release qualification keeps its full matrix and
-repetitions. For parallel release jobs, pass the action's optional `cell` input
-and aggregate every sealed shard with `testctl aggregate-qualification`; see
+repetitions. Client repositories call the pinned reusable workflow
+`.github/workflows/qualification-release.yml`, passing the same commit in
+`testlab-ref`. It derives cells from Testlab's release manifest, runs at most
+four runners concurrently, and aggregates every expected shard. For manual
+cell execution, use the action's optional `cell` input and
+`testctl aggregate-qualification`; see
 [the evidence contract](docs/EVIDENCE.md#qualification-evidence). A cell result
 alone never establishes complete release qualification.
 

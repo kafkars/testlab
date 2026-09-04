@@ -49,6 +49,13 @@ jobs:
           sha256: a9e3ca964b6f5e86c693edeff4aeaddb46ee9d62f8713d3ded0bb6533b758e53
       - uses: ./.github/actions/setup-rust
       - run: zcheck run rust-lint --format github
+      - name: Retain complete lint diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: rust-lint-diagnostics
+          path: ~/.cache/zcheck
+          if-no-files-found: error
 
   rust-test:
     runs-on: ubuntu-latest
