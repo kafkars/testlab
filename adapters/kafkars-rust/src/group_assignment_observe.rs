@@ -12,6 +12,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_until;
 use crate::protocol::emit;
 use crate::state::AdapterState;
 
@@ -148,10 +149,13 @@ fn drain_transitions(
                                 std::thread::sleep(POLL_SLICE);
                             }
                             Err(error) => {
-                                let current = state
-                                    .group_consumer_mut(consumer_id)?
-                                    .assignment()
-                                    .map_err(AdapterError::Client)?;
+                                let consumer = state.group_consumer_mut(consumer_id)?;
+                                let current = retry_until(
+                                    deadline,
+                                    || consumer.assignment(),
+                                    |error| error.retry_advice() == RetryAdvice::RetrySafe,
+                                )
+                                .map_err(AdapterError::Client)?;
                                 // A newer public fence proves this old lease no longer owns
                                 // release. This does not claim its acknowledgment succeeded.
                                 if superseded_revocation(
