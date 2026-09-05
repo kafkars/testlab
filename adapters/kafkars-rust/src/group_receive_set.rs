@@ -36,6 +36,9 @@ pub(crate) fn receive<W: Write>(
     while observed < command.record_count && Instant::now() < deadline {
         let mut progress = false;
         for consumer_id in &command.consumer_ids {
+            if !crate::group_receive_events::drive(state, consumer_id, deadline)? {
+                continue;
+            }
             let batch = match state.group_consumer_mut(consumer_id)?.try_take_batch() {
                 Ok(batch) => batch,
                 Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => None,

@@ -30,6 +30,7 @@ pub(crate) struct AdapterState {
     pub(crate) consumers: AssignedConsumers,
     group_consumers: GroupConsumers,
     pub(crate) observed_group_members: BTreeMap<BTreeSet<String>, BTreeSet<ConsumerId>>,
+    pub(crate) pending_group_transitions: Vec<testlab_schema::GroupAssignmentTransition>,
     #[cfg(kafkars_share_candidate)]
     pub(crate) share_consumers: ShareConsumers,
     transactional_producers: TransactionalProducers,

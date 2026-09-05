@@ -17,6 +17,31 @@ use crate::protocol::emit;
 use crate::state::AdapterState;
 
 const POLL_SLICE: Duration = Duration::from_millis(10);
+const MAX_PENDING_TRANSITIONS: usize = 256;
+
+pub(crate) fn record_transition(
+    transitions: &mut Vec<GroupAssignmentTransition>,
+    transition: GroupAssignmentTransition,
+) -> Result<(), AdapterError> {
+    if transitions.len() >= MAX_PENDING_TRANSITIONS {
+        return Err(AdapterError::ConsumerRecord(
+            "group transition evidence capacity exceeded".to_owned(),
+        ));
+    }
+    transitions.push(transition);
+    Ok(())
+}
+
+pub(crate) fn take_pending_transitions(
+    pending: &mut Vec<GroupAssignmentTransition>,
+    members: &BTreeSet<ConsumerId>,
+) -> Vec<GroupAssignmentTransition> {
+    let (selected, retained) = std::mem::take(pending)
+        .into_iter()
+        .partition(|transition| members.contains(&transition.consumer_id));
+    *pending = retained;
+    selected
+}
 
 pub(crate) fn observe<W: Write>(
     state: &mut AdapterState,
@@ -44,7 +69,7 @@ pub(crate) fn observe<W: Write>(
         .collect::<BTreeSet<_>>();
     let require_transition =
         membership_changed(state.observed_group_members.get(&groups), &members);
-    let mut transitions = Vec::new();
+    let mut transitions = take_pending_transitions(&mut state.pending_group_transitions, &members);
     let mut previous = None;
     let assignments = loop {
         let drained = drain_transitions(state, &command.consumer_ids, deadline, &mut transitions)?;
@@ -106,7 +131,7 @@ pub(super) fn stable_assignment_candidate(assignments: &[GroupConsumerAssignment
     total == unique.len()
 }
 
-fn drain_transitions(
+pub(crate) fn drain_transitions(
     state: &mut AdapterState,
     consumer_ids: &[ConsumerId],
     deadline: Instant,
@@ -123,22 +148,31 @@ fn drain_transitions(
                 break;
             };
             match event {
-                ConsumerEvent::PartitionsAssigned(assignment) => transitions.push(transition(
-                    consumer_id,
-                    GroupAssignmentTransitionKind::Assigned,
-                    &assignment,
-                )),
-                ConsumerEvent::PartitionsLost(assignment) => transitions.push(transition(
-                    consumer_id,
-                    GroupAssignmentTransitionKind::Lost,
-                    &assignment,
-                )),
-                ConsumerEvent::PartitionsRevoking(mut revocation) => {
-                    transitions.push(transition(
+                ConsumerEvent::PartitionsAssigned(assignment) => record_transition(
+                    transitions,
+                    transition(
                         consumer_id,
-                        GroupAssignmentTransitionKind::Revoking,
-                        revocation.assignment(),
-                    ));
+                        GroupAssignmentTransitionKind::Assigned,
+                        &assignment,
+                    ),
+                )?,
+                ConsumerEvent::PartitionsLost(assignment) => record_transition(
+                    transitions,
+                    transition(
+                        consumer_id,
+                        GroupAssignmentTransitionKind::Lost,
+                        &assignment,
+                    ),
+                )?,
+                ConsumerEvent::PartitionsRevoking(mut revocation) => {
+                    record_transition(
+                        transitions,
+                        transition(
+                            consumer_id,
+                            GroupAssignmentTransitionKind::Revoking,
+                            revocation.assignment(),
+                        ),
+                    )?;
                     loop {
                         match revocation.complete() {
                             Ok(()) => break,
