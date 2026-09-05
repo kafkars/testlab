@@ -1,4 +1,4 @@
-name: RC2 hosted group recovery diagnostics
+name: RC2 hosted group regression checks
 
 on:
   pull_request:
@@ -9,7 +9,12 @@ permissions:
 jobs:
   group-fault:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        environment: [three-sasl-plain, three-tls]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -18,75 +23,44 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: d4f7eaf1a68e62bd4623bd3644f7c8a285924321
+          ref: c93e2094de4d70d3af9e8f7cc8bd99d5f7904fee
           path: kafkars-candidate
           persist-credentials: false
-      - name: Instrument only disposable copies and retain unchanged scenarios
+      - name: Select unchanged scenarios against the clean candidate
+        env:
+          TARGET_CELL: ${{ matrix.environment }}
         run: |
           python3 - <<'PY'
+          import os
           from pathlib import Path
-          base = Path("kafkars-candidate/crates")
-          def patch(relative, before, after):
-              source = base / relative
-              code = source.read_text()
-              assert code.count(before) == 1, relative
-              source.write_text(code.replace(before, after))
-          patch("kafka-client-core/src/consumer/consumer_group/transition_support.rs",
-                "        let fatal = ConsumerGroupHeartbeatFatal::new(attempt, failure);",
-                '''        eprintln!("RC2_GROUP_FATAL failure={failure:?} machine={self:?}");
-                  let fatal = ConsumerGroupHeartbeatFatal::new(attempt, failure);''')
-          patch("kafka-client-engine/src/consumer/group/consumer_group_heartbeat_settlement.rs",
-                "    let (resolution, route) = outcome.into_resolution();",
-                '''    let (resolution, route) = outcome.into_resolution();
-                  match &resolution {
-                      ConsumerGroupHeartbeatResolution::Failed(failure) => eprintln!("RC2_GROUP_HEARTBEAT kind={kind:?} failure={failure:?}"),
-                      ConsumerGroupHeartbeatResolution::BrokerRejected { error_code, .. } => eprintln!("RC2_GROUP_HEARTBEAT kind={kind:?} broker={error_code}"),
-                      _ => {},
-                  }''')
-          patch("kafka-client-engine/src/driver/rpc/consumer_group_heartbeat_failure.rs",
-                ") -> ConsumerGroupHeartbeatDriverFailureKind {\n    #[allow(",
-                ''') -> ConsumerGroupHeartbeatDriverFailureKind {
-                  eprintln!("RC2_GROUP_DRIVER error={error:?}");
-                  #[allow(''')
-          reader = Path("testlab/crates/testctl/src/process_io.rs")
-          code = reader.read_text()
-          for before, after in [
-              ("const MAX_STDERR_BYTES: usize = 64 * 1024;", "const MAX_STDERR_BYTES: usize = 2 * 1024 * 1024;"),
-              ("const MAX_STDERR_READ: u64 = 64 * 1024 + 1;", "const MAX_STDERR_READ: u64 = 2 * 1024 * 1024 + 1;"),
-              ("    let _ = sender.send(value);", '    eprintln!("{value}");\n    let _ = sender.send(value);'),
-          ]:
-              assert code.count(before) == 1
-              code = code.replace(before, after)
-          reader.write_text(code)
+          environment = os.environ["TARGET_CELL"]
+          assert environment in ("three-sasl-plain", "three-tls")
           Path("testlab/packs/rc2-group-fault.toml").write_text('''schema_version = 1
           id = "rc2-group-fault"
-          title = "RC2 group diagnostics, not release evidence"
-          scenarios = ["scenarios/kafka/consumer-protocol-group-session-recovery.toml"]
+          title = "RC2 focused group checks, not release evidence"
+          scenarios = ["scenarios/kafka/consumer-protocol-group-membership-ownership.toml", "scenarios/kafka/classic-group-session-recovery.toml", "scenarios/kafka/consumer-protocol-group-session-recovery.toml"]
           ''')
-          Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
+          Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
           id = "rc2-group-fault"
-          title = "RC2 group diagnostics, not release evidence"
+          title = "RC2 focused group checks, not release evidence"
           [[cells]]
-          id = "apache-kafka-4-3-1-three-tls"
-          environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
+          id = "apache-kafka-4-3-1-{environment}"
+          environment = "clusters/apache-kafka/4.3.1/{environment}.toml"
           pack = "packs/rc2-group-fault.toml"
           attempts = 3
           gating = true
           ''')
           PY
-          git -C kafkars-candidate diff > instrumented-candidate.patch
-          git -C testlab diff > instrumented-harness.patch
+          git -C testlab diff > focused-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
-          allow-dirty: "true"
-          evidence-directory: rc2-group-fault-evidence
+          evidence-directory: rc2-group-check-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-group-fault-evidence
+          name: rc2-group-check-${{ matrix.environment }}
           path: |
-            rc2-group-fault-evidence
-            instrumented-candidate.patch
-            instrumented-harness.patch
+            rc2-group-check-evidence
+            focused-harness.patch
           if-no-files-found: error
