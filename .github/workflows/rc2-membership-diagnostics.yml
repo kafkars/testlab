@@ -126,14 +126,14 @@ jobs:
           diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs
           --- a/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs
           +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs
-          @@ -35,6 +35,7 @@ impl ClassicRejectionPostCore {
-                   effects: [Option<ClassicGroupEffect>; 2],
+          @@ -47,6 +47,7 @@ impl ClassicRejectionPostCore {
+                   followup: ClassicGroupEffect,
                    failure: ClassicRejectionInstallFailure,
                ) -> Self {
           +        eprintln!("RC2 diagnostic post-core rejection: {failure:?}");
-                   Self {
-                       post_core_rejection_effects: effects,
-                       post_core_rejection_failure: failure,
+                   Self::new(
+                       [
+                           Some(ClassicGroupEffect::Revoke {
           PATCH
           git -C kafkars-candidate diff --check
           git -C testlab diff --check
