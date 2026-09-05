@@ -20,6 +20,7 @@ kafkars = {{ path = {kafkars} }}
 serde_json = "1.0"
 testlab-schema = {{ path = {schema} }}
 thiserror = "2.0"
+{registry_constraints}
 
 [patch.crates-io]
 kafka-client-core = {{ path = {core} }}

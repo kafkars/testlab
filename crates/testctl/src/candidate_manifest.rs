@@ -107,8 +107,29 @@ pub(crate) fn adapter_manifest(
         core = source("kafka-client-core")?,
         engine = source("kafka-client-engine")?,
         kafkars = source("kafkars")?,
+        registry_constraints = registry_constraints(artifacts)?,
         support_patches = support_patches,
     ))
+}
+
+fn registry_constraints(artifacts: &[PackageArtifact]) -> Result<String, AppError> {
+    artifacts
+        .iter()
+        .filter(|artifact| matches!(&artifact.source, PackageSource::Registry))
+        .map(|artifact| {
+            if !is_complete_semver(&artifact.version) {
+                return Err(AppError::Candidate(format!(
+                    "invalid registry version for {}",
+                    artifact.name
+                )));
+            }
+            let name = toml::Value::String(artifact.name.clone());
+            let version = toml::Value::String(format!("={}", artifact.version));
+            Ok(format!(
+                "{name} = {{ version = {version}, default-features = false }}\n"
+            ))
+        })
+        .collect()
 }
 
 fn support_patches(

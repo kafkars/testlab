@@ -95,7 +95,7 @@ fn adapter_manifest_uses_every_extracted_package() {
 }
 
 #[test]
-fn adapter_manifest_leaves_exact_registry_support_unpatched() {
+fn adapter_manifest_pins_registry_support_without_patches_or_extra_features() {
     let mut artifacts = artifacts();
     for artifact in &mut artifacts[3..] {
         artifact.source = PackageSource::Registry;
@@ -109,6 +109,28 @@ fn adapter_manifest_leaves_exact_registry_support_unpatched() {
     assert!(manifest.contains("kafka-client-engine = { path"));
     assert!(!manifest.contains("kafka-driver = { path"));
     assert!(!manifest.contains("kafka-wire-records = { path"));
+    let manifest = must(manifest.parse::<toml::Value>(), "parse registry manifest");
+    for artifact in &artifacts[3..] {
+        let dependency = &manifest["dependencies"][&artifact.name];
+        assert_eq!(
+            dependency["version"].as_str(),
+            Some(format!("={}", artifact.version).as_str())
+        );
+        assert_eq!(dependency["default-features"].as_bool(), Some(false));
+        assert!(dependency.get("path").is_none());
+        assert!(dependency.get("features").is_none());
+        assert!(manifest["patch"]["crates-io"].get(&artifact.name).is_none());
+    }
+}
+
+#[test]
+fn registry_constraints_reject_noncanonical_versions() {
+    let mut artifacts = artifacts();
+    for artifact in &mut artifacts[3..] {
+        artifact.source = PackageSource::Registry;
+    }
+    artifacts[3].version = "0.1".to_owned();
+    assert!(adapter_manifest(Path::new("/testlab root"), &artifacts).is_err());
 }
 
 #[test]
