@@ -13,25 +13,25 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: 508ada91114a8004087b75ae2e724d84a77d7424
+          ref: 1285ed53e550235c2d2cca8c90e2b9bd0a2820aa
           path: testlab
           persist-credentials: false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: 38f93c31cc9d2c1d4db48b6e485b85ae9270b520
+          ref: eb6ed02753ee25f59f8da2f94737a9d298d9cdcb
           path: kafkars-candidate
           persist-credentials: false
       - name: Select the unchanged classic recovery scenario
         run: |
-          test "$(git -C kafkars-candidate rev-parse HEAD)" = "38f93c31cc9d2c1d4db48b6e485b85ae9270b520"
-          test "$(git -C testlab rev-parse HEAD)" = "508ada91114a8004087b75ae2e724d84a77d7424"
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "eb6ed02753ee25f59f8da2f94737a9d298d9cdcb"
+          test "$(git -C testlab rev-parse HEAD)" = "1285ed53e550235c2d2cca8c90e2b9bd0a2820aa"
           python3 - <<'PY'
           from pathlib import Path
           Path("SOURCE-CHECK-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: clean native candidate "
-              "38f93c31cc9d2c1d4db48b6e485b85ae9270b520 with Testlab "
-              "508ada91114a8004087b75ae2e724d84a77d7424. This focused check does not "
+              "eb6ed02753ee25f59f8da2f94737a9d298d9cdcb with Testlab "
+              "1285ed53e550235c2d2cca8c90e2b9bd0a2820aa. This focused check does not "
               "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
           Path("testlab/packs/rc2-classic-revocation-deadline.toml").write_text('''schema_version = 1
