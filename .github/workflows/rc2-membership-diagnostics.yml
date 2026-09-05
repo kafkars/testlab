@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - driver: rc4
-            candidate: 2b91ca78baa700838a6212e183e6d7d335386b80
+            candidate: ed6487f712e07ca4e4fa9a4260b13dcd7f629b79
     steps:
       - name: Check out Testlab
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -187,18 +187,14 @@ jobs:
           diff --git a/adapters/kafkars-rust/src/protocol_group.rs b/adapters/kafkars-rust/src/protocol_group.rs
           --- a/adapters/kafkars-rust/src/protocol_group.rs
           +++ b/adapters/kafkars-rust/src/protocol_group.rs
-          @@ -219,7 +219,10 @@ pub(crate) fn commit_batch(
-               )
-               .map_err(|(_, error)| AdapterError::Client(error))?
-               .wait()
-          -    .map_err(|error| AdapterError::Client(error.into_parts().1))?;
-          +    .map_err(|error| {
-          +        eprintln!("RC2 diagnostic public commit failure: {error:?}");
-          +        AdapterError::Client(error.into_parts().1)
-          +    })?;
-               Ok(records)
-           }
-           
+          @@ -223,6 +223,7 @@ pub(crate) fn commit_batch(
+                   match commit.wait() {
+                       Ok(()) => return Ok(records),
+                       Err(failure) => {
+          +                eprintln!("RC2 diagnostic public commit failure: {failure:?}");
+                           let (returned, error) = failure.into_parts();
+                           checkpoint = match returned {
+                               Some(checkpoint)
           PATCH
           git -C kafkars-candidate diff --check
           git -C testlab diff --check
