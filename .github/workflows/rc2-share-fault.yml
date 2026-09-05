@@ -1,0 +1,67 @@
+name: RC2 hosted Share fault diagnostics
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  share-fault:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: testlab
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: kafkars/kafkars
+          ref: 6eb8e644da164eaddf546e1090fb2011fa775e20
+          path: kafkars-candidate
+          persist-credentials: false
+      - name: Instrument only the disposable candidate and select unchanged diagnostics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path("kafkars-candidate/crates/kafka-client-engine/src/consumer/share/registry_delivery.rs")
+          code = source.read_text()
+          changes = [
+              ('return Err(ShareConsumerDeliveryError::MembershipFault);', 'eprintln!("RC2_SHARE_MEMBERSHIP fault={:?} fatal={:?}", entry.fault, entry.membership.as_ref().and_then(|membership| membership.machine().fatal()));\n            return Err(ShareConsumerDeliveryError::MembershipFault);'),
+              ('return Err(ShareConsumerDeliveryError::FetchFault);', 'eprintln!("RC2_SHARE_FETCH routing={:?} session={:?}", entry.fetch().fault(), entry.fetch().session_fault());\n            return Err(ShareConsumerDeliveryError::FetchFault);'),
+          ]
+          for before, after in changes:
+              assert code.count(before) == 1
+              code = code.replace(before, after)
+          source.write_text(code)
+          Path("testlab/packs/rc2-share-fault.toml").write_text('''schema_version = 1
+          id = "rc2-share-fault"
+          title = "RC2 Share fault diagnostics, not release evidence"
+          scenarios = ["scenarios/kafka/share-group-session-recovery.toml"]
+          ''')
+          Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
+          id = "rc2-share-fault"
+          title = "RC2 Share fault diagnostics, not release evidence"
+          [[cells]]
+          id = "apache-kafka-4-3-1-three-plaintext"
+          environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
+          pack = "packs/rc2-share-fault.toml"
+          attempts = 6
+          gating = true
+          ''')
+          PY
+          git -C kafkars-candidate diff > instrumented-candidate.patch
+      - uses: ./testlab
+        with:
+          kafkars-path: kafkars-candidate
+          allow-dirty: "true"
+          evidence-directory: rc2-share-fault-evidence
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: ${{ always() }}
+        with:
+          name: rc2-share-fault-evidence
+          path: |
+            rc2-share-fault-evidence
+            instrumented-candidate.patch
+          if-no-files-found: error
