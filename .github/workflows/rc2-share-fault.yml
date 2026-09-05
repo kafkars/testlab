@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: kafkars/kafkars
-          ref: 6eb8e644da164eaddf546e1090fb2011fa775e20
+          ref: e15a33cc9c6057d19e8715f483fd0b8d4b38233e
           path: kafkars-candidate
           persist-credentials: false
       - name: Instrument only the disposable candidate and select unchanged diagnostics
