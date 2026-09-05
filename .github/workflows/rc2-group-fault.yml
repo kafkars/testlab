@@ -1,4 +1,4 @@
-name: RC2 hosted classic readiness origin diagnostics
+name: RC2 hosted classic route retention check
 
 on:
   pull_request:
@@ -7,194 +7,60 @@ permissions:
   contents: read
 
 jobs:
-  group-fault:
+  classic-route-retention:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        environment: [three-tls]
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: e9bc3abe28e43b01c0d5c9d46178c5b1a7e1e866
+          ref: 508ada91114a8004087b75ae2e724d84a77d7424
           path: testlab
           persist-credentials: false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: c87c5a0eeebba4e676662e2c26ca35bb76970dea
+          ref: dc709c17d8d3b1efce6ded1224083ef2f94039d1
           path: kafkars-candidate
           persist-credentials: false
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          repository: kafkars/kafka-driver
-          ref: e5b697468eadbd99c27af48cb3653373e4599001
-          path: kafka-driver-candidate
-          persist-credentials: false
-      - name: Trace readiness origin without changing scenario behavior
-        env:
-          TARGET_CELL: ${{ matrix.environment }}
+      - name: Select the unchanged classic recovery scenario
         run: |
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "dc709c17d8d3b1efce6ded1224083ef2f94039d1"
+          test "$(git -C testlab rev-parse HEAD)" = "508ada91114a8004087b75ae2e724d84a77d7424"
           python3 - <<'PY'
-          import json
-          import os
           from pathlib import Path
-          environment = os.environ["TARGET_CELL"]
-          assert environment == "three-tls"
-          base = Path("kafkars-candidate/crates/kafka-client-engine/src")
-          def patch(relative, before, after):
-              source = base / relative
-              code = source.read_text()
-              assert code.count(before) == 1, relative
-              source.write_text(code.replace(before, after))
-          patch("consumer/group/classic_group_position/preparation.rs",
-                "    let partitions = copy_core_partitions(assignment.partitions())?;",
-                '''    eprintln!("RC2_POSITION_PREP now={now:?} fence={fence:?} deadline={:?} partitions={:?}", operation_deadline.core(), assignment.partitions());
-              let partitions = copy_core_partitions(assignment.partitions())?;''')
-          patch("consumer/group/classic_group_position/terminal_application.rs",
-                "    match effect {",
-                '''    eprintln!("RC2_POSITION_TERMINAL now={observed_at:?} fence={supplied:?} deadline={expected_deadline:?} effect={effect:?}");
-              match effect {''')
-          patch("consumer/group/classic_group_position/registry_turn.rs",
-                "            entry.retain_position_failure_observation(failure.observation_kind());",
-                '''            eprintln!("RC2_POSITION_FAULT group={:?} kind={:?} owner={:?} phase={:?} current={:?} catalog={:?}", entry.group_id(), failure.observation_kind(), std::mem::discriminant(&failure), entry.classic.machine().phase(), entry.classic.machine().live_assignment(), entry.catalog.live_assignment());
-                      if let super::ClassicGroupPositionFailure::Bootstrap(completed) = &failure {
-                          eprintln!("RC2_POSITION_FAULT_BOOTSTRAP fence={:?} observed={:?} terminal={:?}", completed.fence(), completed.observed_at(), completed.terminal());
-                      }
-                      entry.retain_position_failure_observation(failure.observation_kind());''')
-          patch("consumer/group/classic_group_position/registry_submission.rs",
-                "    match entry.position.expire_prepared_if_due(now) {",
-                '''    if entry.position.next_deadline().is_some_and(|deadline| deadline.is_elapsed_at(now)) {
-                  eprintln!("RC2_POSITION_PREPARED_EXPIRED now={now:?} deadline={:?} phase={:?} current={:?}", entry.position.next_deadline(), entry.classic.machine().phase(), entry.catalog.live_assignment());
-              }
-              match entry.position.expire_prepared_if_due(now) {''')
-          patch("consumer/group/classic_group_position_reset/settlement.rs",
-                "    let input = match terminal {",
-                '''    eprintln!("RC2_POSITION_RESET_TERMINAL now={now:?} fence={:?} deadline={:?} terminal={terminal:?}", reset.fence(), operation_deadline.core());
-              let input = match terminal {''')
-          patch("driver/rpc/group_position_offset_fetch/terminal.rs",
-                "        match &self.result {",
-                '''        eprintln!("RC2_POSITION_DRIVER fence={:?} deadline={:?} version={:?} error={:?}", self.key.fence(), self.key.operation_deadline().core(), self.selected_version, self.result.as_ref().err());
-                  match &self.result {''')
-          patch("consumer/group/classic_group_heartbeat_interpret.rs",
-                "    let key = terminal.key();",
-                '''    let key = terminal.key();
-              eprintln!("RC2_CLASSIC_HEARTBEAT now={now:?} attempt={:?} deadline={:?} route_lost={} result={:?}", key.attempt(), key.deadline().core(), terminal.coordinator_path_lost(), terminal.result());''')
-          patch("consumer/group/registry_graceful_revocation.rs",
-                "            if entry.revocation.expire_if_due(now)? {",
-                '''            if entry.revocation.expire_if_due(now)? {
-                          eprintln!("RC2_CLASSIC_REVOCATION_EXPIRED group={:?} now={now:?}", entry.group_id());''')
-          patch("consumer/group/registry_graceful_revocation.rs",
-                ".map_err(GroupConsumerRevocationPortError::Acknowledge)",
-                '''.map_err(|error| {
-                      static ERRORS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                      if ERRORS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                          eprintln!("RC2_CLASSIC_ACK at={:?} group={group_id:?} public={assignment_epoch} error={error:?}", std::time::Instant::now());
-                      }
-                      GroupConsumerRevocationPortError::Acknowledge(error)
-                  })''')
-          reader = Path("testlab/crates/testctl/src/process_io.rs")
-          code = reader.read_text()
-          for before, after in [
-              ("const MAX_STDERR_BYTES: usize = 64 * 1024;", "const MAX_STDERR_BYTES: usize = 2 * 1024 * 1024;"),
-              ("const MAX_STDERR_READ: u64 = 64 * 1024 + 1;", "const MAX_STDERR_READ: u64 = 2 * 1024 * 1024 + 1;"),
-              ("    let _ = sender.send(value);", '    eprintln!("{value}");\n    let _ = sender.send(value);'),
-          ]:
-              assert code.count(before) == 1
-              code = code.replace(before, after)
-          reader.write_text(code)
-          driver = Path("kafka-driver-candidate")
-          def driver_patch(relative, before, after):
-              source = driver / relative
-              code = source.read_text()
-              assert code.count(before) == 1, relative
-              source.write_text(code.replace(before, after))
-          driver_patch("src/reactor/direct_plaintext/cluster_runtime/route_admission.rs",
-                       "            request.fail_observed(not_ready(), observed_at);",
-                       '''            eprintln!("RC2_NOT_READY_ROUTE at={:?} lane={lane:?} failure_at={observed_at:?} physical_present={}", std::time::Instant::now(), physical.is_some());
-                      request.fail_observed(not_ready(), observed_at);''')
-          driver_patch("src/reactor/route_waiting.rs",
-                       "            let failure = if deadline <= now {",
-                       '''            eprintln!("RC2_NOT_READY_WAIT now={now:?} deadline={deadline:?} failure_at={observed_at:?} traffic={:?}", waiting.request.traffic_class());
-                      let failure = if deadline <= now {''')
-          driver_patch("src/reactor/direct_plaintext/failure_translation.rs",
-                       "            not_sent(CallFailure::NotReady)",
-                       '''            eprintln!("RC2_NOT_READY_RESERVE at={:?} reason=AdmissionClosed", std::time::Instant::now());
-                      not_sent(CallFailure::NotReady)''')
-          manifest = Path("testlab/crates/testctl/src/candidate_manifest.rs")
-          code = manifest.read_text()
-          support_patches = "".join(
-              f'{name} = {{ path = {json.dumps(str(path.resolve()))} }}\n'
-              for name, path in [
-                  ("kafka-driver", driver),
-                  ("kafka-driver-core", driver / "crates/kafka-driver-core"),
-                  ("kafka-driver-transport", driver / "crates/kafka-driver-transport"),
-              ]
+          Path("SOURCE-CHECK-ONLY.txt").write_text(
+              "NOT RELEASE EVIDENCE: clean native candidate "
+              "dc709c17d8d3b1efce6ded1224083ef2f94039d1 with Testlab "
+              "508ada91114a8004087b75ae2e724d84a77d7424. This focused check does not "
+              "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
-          before = "    let support_patches = support_patches(artifacts, &source)?;"
-          assert code.count(before) == 1
-          code = code.replace(before, f"    let support_patches = String::from({json.dumps(support_patches)});")
-          before = 'format!("kafkars-{version}-{}", &digest[..16])'
-          assert code.count(before) == 1
-          code = code.replace(before, 'format!("diagnostic-kafkars-{version}-{}", &digest[..16])')
-          manifest.write_text(code)
-          provenance = Path("testlab/crates/testctl/src/candidate_provenance.rs")
-          code = provenance.read_text()
-          before = "        let actual = locked_registry_artifact(&lock, name)?;"
-          assert code.count(before) == 1
-          code = code.replace(before, '''        if matches!(name, "kafka-driver" | "kafka-driver-core" | "kafka-driver-transport") {
-                      let packages: Vec<_> = lock.package.iter().filter(|package| package.name == name).collect();
-                      if packages.len() != 1 || packages[0].version != expected.version
-                          || packages[0].source.is_some() || packages[0].checksum.is_some() {
-                          return Err(candidate(format!("source-check driver lock mismatch: {name}")));
-                      }
-                      continue;
-                  }
-                  let actual = locked_registry_artifact(&lock, name)?;''')
-          provenance.write_text(code)
-          Path("DIAGNOSTIC-ONLY.txt").write_text(
-              "NOT RELEASE EVIDENCE: instrumented native c87c5a0e, Testlab receive fix "
-              "e9bc3abe28e43b01c0d5c9d46178c5b1a7e1e866, and instrumented driver "
-              "e5b697468eadbd99c27af48cb3653373e4599001. The three driver crates use "
-              "explicit source paths. Subject archive hashes for driver RC4 do not qualify "
-              "the fixed runtime. Native traces identify position/membership ownership; "
-              "driver traces distinguish historical-route rejection from AdmissionClosed. "
-              "Scenario and adapter receive behavior are unchanged.\n"
-          )
-          Path("testlab/packs/rc2-group-fault.toml").write_text('''schema_version = 1
-          id = "rc2-group-fault"
-          title = "RC2 classic readiness diagnostics, not release evidence"
+          Path("testlab/packs/rc2-classic-route-retention.toml").write_text('''schema_version = 1
+          id = "rc2-classic-route-retention"
+          title = "RC2 classic route retention source check"
           scenarios = ["scenarios/kafka/classic-group-session-recovery.toml"]
           ''')
-          Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
-          id = "rc2-group-fault"
-          title = "RC2 classic readiness diagnostics, not release evidence"
+          Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
+          id = "rc2-classic-route-retention"
+          title = "RC2 classic route retention source check"
           [[cells]]
-          id = "apache-kafka-4-3-1-{environment}"
-          environment = "clusters/apache-kafka/4.3.1/{environment}.toml"
-          pack = "packs/rc2-group-fault.toml"
-          attempts = 3
+          id = "apache-kafka-4-3-1-three-tls"
+          environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
+          pack = "packs/rc2-classic-route-retention.toml"
+          attempts = 5
           gating = true
           ''')
           PY
-          git -C kafkars-candidate diff > instrumented-candidate.patch
-          git -C kafka-driver-candidate diff > instrumented-driver.patch
           git -C testlab diff > focused-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
-          allow-dirty: "true"
-          evidence-directory: rc2-classic-readiness-diagnostic-evidence
+          evidence-directory: rc2-classic-route-retention-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-classic-readiness-diagnostic-${{ matrix.environment }}
+          name: rc2-classic-route-retention-source-check
           path: |
-            rc2-classic-readiness-diagnostic-evidence
-            DIAGNOSTIC-ONLY.txt
-            instrumented-candidate.patch
-            instrumented-driver.patch
+            rc2-classic-route-retention-evidence
+            SOURCE-CHECK-ONLY.txt
             focused-harness.patch
           if-no-files-found: error
