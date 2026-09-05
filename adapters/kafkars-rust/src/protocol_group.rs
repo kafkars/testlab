@@ -198,25 +198,45 @@ pub(crate) fn commit_batch(
         .records()
         .map(|record| normalize_record(&record))
         .collect::<Result<Vec<_>, _>>()?;
-    let checkpoint = batch.checkpoint();
+    let mut checkpoint = batch.checkpoint();
     let consumer = state.group_consumer_mut(consumer_id)?;
-    retry_owned_until(
-        deadline,
-        checkpoint,
-        |checkpoint| {
-            consumer
-                .try_commit(
-                    checkpoint,
-                    deadline.saturating_duration_since(Instant::now()),
-                )
-                .map_err(ConsumerCommitAdmissionError::into_parts)
-        },
-        |error| error.retry_advice() == RetryAdvice::RetrySafe,
-    )
-    .map_err(|(_, error)| AdapterError::Client(error))?
-    .wait()
-    .map_err(|error| AdapterError::Client(error.into_parts().1))?;
-    Ok(records)
+    loop {
+        let commit = retry_owned_until(
+            deadline,
+            checkpoint,
+            |checkpoint| {
+                consumer
+                    .try_commit(
+                        checkpoint,
+                        deadline.saturating_duration_since(Instant::now()),
+                    )
+                    .map_err(ConsumerCommitAdmissionError::into_parts)
+            },
+            |error| error.retry_advice() == RetryAdvice::RetrySafe,
+        )
+        .map_err(|(_, error)| AdapterError::Client(error))?;
+        match commit.wait() {
+            Ok(()) => return Ok(records),
+            Err(failure) => {
+                let (returned, error) = failure.into_parts();
+                checkpoint = match returned {
+                    Some(checkpoint)
+                        if error.retry_advice() == RetryAdvice::RetrySafe
+                            && Instant::now() < deadline =>
+                    {
+                        checkpoint
+                    }
+                    _ => return Err(AdapterError::Client(error)),
+                };
+                std::thread::sleep(
+                    POLL_SLICE.min(deadline.saturating_duration_since(Instant::now())),
+                );
+                if Instant::now() >= deadline {
+                    return Err(AdapterError::Client(error));
+                }
+            }
+        }
+    }
 }
 
 pub(crate) fn receive_batch(
