@@ -52,6 +52,16 @@ jobs:
                   assert code.count(before) == 1, relative
                   code = code.replace(before, after)
               source.write_text(code)
+          source = Path("kafkars-candidate/crates/kafka-client-engine/src/driver/rpc/share_group_heartbeat/invalidation_drive.rs")
+          code = source.read_text()
+          changes = [
+              ('    let result = match result {', '    eprintln!("RC2_SHARE_INVALIDATION_TERMINAL group={group_id:?} result={result:?}");\n    let result = match result {'),
+              ('let (source, token) = rejected.into_parts();', 'let (source, token) = rejected.into_parts();\n                    eprintln!("RC2_SHARE_INVALIDATION_SUBMIT {source:?}");'),
+          ]
+          for before, after in changes:
+              assert code.count(before) == 1
+              code = code.replace(before, after)
+          source.write_text(code)
           reader = Path("testlab/crates/testctl/src/process_io.rs")
           code = reader.read_text()
           before = "    let _ = sender.send(value);"
