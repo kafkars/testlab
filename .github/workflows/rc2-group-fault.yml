@@ -115,6 +115,20 @@ jobs:
           assert code.count(before) == 1
           code = code.replace(before, 'format!("diagnostic-kafkars-{version}-{}", &digest[..16])')
           manifest.write_text(code)
+          provenance = Path("testlab/crates/testctl/src/candidate_provenance.rs")
+          code = provenance.read_text()
+          before = "        let actual = locked_registry_artifact(&lock, name)?;"
+          assert code.count(before) == 1
+          code = code.replace(before, '''        if matches!(name, "kafka-driver" | "kafka-driver-core" | "kafka-driver-transport") {
+                      let packages: Vec<_> = lock.package.iter().filter(|package| package.name == name).collect();
+                      if packages.len() != 1 || packages[0].version != expected.version
+                          || packages[0].source.is_some() || packages[0].checksum.is_some() {
+                          return Err(candidate(format!("diagnostic driver source lock mismatch: {name}")));
+                      }
+                      continue;
+                  }
+                  let actual = locked_registry_artifact(&lock, name)?;''')
+          provenance.write_text(code)
           Path("DIAGNOSTIC-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: the adapter overrides all three driver packages with the "
               "logged disposable RC4 checkout. Subject archive hashes describe the original "
