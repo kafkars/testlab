@@ -25,43 +25,29 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          base = Path("kafkars-candidate/crates/kafka-client-engine/src/consumer")
+          base = Path("kafkars-candidate/crates")
           def patch(relative, before, after):
               source = base / relative
               code = source.read_text()
               assert code.count(before) == 1, relative
               source.write_text(code.replace(before, after))
-          patch("group/registry_graceful_revocation.rs",
-                ".map_err(GroupConsumerRevocationPortError::Acknowledge)",
-                '''.map_err(|error| {
-                      static CALLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                      if CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                          eprintln!("RC2_GROUP_ACK group={group_id:?} public={assignment_epoch} error={error:?}");
-                      }
-                      GroupConsumerRevocationPortError::Acknowledge(error)
-                  })''')
-          patch("group/registry_graceful_revocation.rs",
-                "return Err(GroupConsumerRevocationPortError::GroupUnavailable);",
-                '''static UNAVAILABLE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                  if UNAVAILABLE.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                      eprintln!("RC2_GROUP_UNAVAILABLE group={group_id:?} public={assignment_epoch} active={} fault={}", entry.state == GroupConsumerEntryState::Active, entry.fault.is_some());
-                  }
-                  return Err(GroupConsumerRevocationPortError::GroupUnavailable);''')
-          patch("group/classic_group_fetch/delivery.rs",
-                ") -> Result<Option<ClassicGroupFetchDelivery>, ClassicGroupFetchDeliveryError> {",
-                ''') -> Result<Option<ClassicGroupFetchDelivery>, ClassicGroupFetchDeliveryError> {
-                  static POLLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                  if POLLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                      eprintln!("RC2_GROUP_FETCH machine={:?} effects={} pending={} sessions={}", self.machine, self.effects.len(), self.pending_fetches.len(), self.fetches.retained_broker_sessions());
+          patch("kafka-client-core/src/consumer/consumer_group/transition_support.rs",
+                "        let fatal = ConsumerGroupHeartbeatFatal::new(attempt, failure);",
+                '''        eprintln!("RC2_GROUP_FATAL failure={failure:?} machine={self:?}");
+                  let fatal = ConsumerGroupHeartbeatFatal::new(attempt, failure);''')
+          patch("kafka-client-engine/src/consumer/group/consumer_group_heartbeat_settlement.rs",
+                "    let (resolution, route) = outcome.into_resolution();",
+                '''    let (resolution, route) = outcome.into_resolution();
+                  match &resolution {
+                      ConsumerGroupHeartbeatResolution::Failed(failure) => eprintln!("RC2_GROUP_HEARTBEAT kind={kind:?} failure={failure:?}"),
+                      ConsumerGroupHeartbeatResolution::BrokerRejected { error_code, .. } => eprintln!("RC2_GROUP_HEARTBEAT kind={kind:?} broker={error_code}"),
+                      _ => {},
                   }''')
-          patch("fetch_execution/broker_session_begin.rs",
-                "self.entries[index].in_flight = true;\n        Ok(BrokerSessionPlan {",
-                '''static PLANS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                  if PLANS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                      eprintln!("RC2_GROUP_SESSION broker={broker_id:?} session={:?} active={active:?} forgotten={forgotten:?}", self.entries[index].metadata);
-                  }
-                  self.entries[index].in_flight = true;
-                  Ok(BrokerSessionPlan {''')
+          patch("kafka-client-engine/src/driver/rpc/consumer_group_heartbeat_failure.rs",
+                ") -> ConsumerGroupHeartbeatDriverFailureKind {\n    #[allow(",
+                ''') -> ConsumerGroupHeartbeatDriverFailureKind {
+                  eprintln!("RC2_GROUP_DRIVER error={error:?}");
+                  #[allow(''')
           reader = Path("testlab/crates/testctl/src/process_io.rs")
           code = reader.read_text()
           for before, after in [
@@ -75,14 +61,14 @@ jobs:
           Path("testlab/packs/rc2-group-fault.toml").write_text('''schema_version = 1
           id = "rc2-group-fault"
           title = "RC2 group diagnostics, not release evidence"
-          scenarios = ["scenarios/kafka/consumer-protocol-group-membership-ownership.toml", "scenarios/kafka/classic-group-session-recovery.toml"]
+          scenarios = ["scenarios/kafka/consumer-protocol-group-session-recovery.toml"]
           ''')
           Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
           id = "rc2-group-fault"
           title = "RC2 group diagnostics, not release evidence"
           [[cells]]
-          id = "apache-kafka-4-3-1-three-sasl-plain"
-          environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
+          id = "apache-kafka-4-3-1-three-tls"
+          environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
           pack = "packs/rc2-group-fault.toml"
           attempts = 3
           gating = true
