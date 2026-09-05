@@ -49,7 +49,10 @@ fn repeated_host_port_collision_fails_closed_after_one_reassignment() {
 
     assert_eq!(
         setup.failure.as_ref().map(crate::ComposeFailure::code),
-        Some("environment_compose_up_failed")
+        Some("environment_compose_up_failed"),
+        "setup failure: {:?}; operations: {:?}",
+        setup.failure,
+        setup.operations,
     );
     assert_eq!(
         setup
