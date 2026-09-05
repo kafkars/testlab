@@ -1,4 +1,4 @@
-name: RC2 hosted classic recovery ownership diagnostics
+name: RC2 hosted receive recovery source checks
 
 on:
   pull_request:
@@ -14,10 +14,11 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        environment: [three-sasl-plain]
+        environment: [three-sasl-plain, three-tls]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
+          ref: e9bc3abe28e43b01c0d5c9d46178c5b1a7e1e866
           path: testlab
           persist-credentials: false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -32,7 +33,7 @@ jobs:
           ref: e5b697468eadbd99c27af48cb3653373e4599001
           path: kafka-driver-candidate
           persist-credentials: false
-      - name: Trace classic recovery without changing scenario behavior
+      - name: Select unchanged scenarios against clean fixed source
         env:
           TARGET_CELL: ${{ matrix.environment }}
         run: |
@@ -41,47 +42,7 @@ jobs:
           import os
           from pathlib import Path
           environment = os.environ["TARGET_CELL"]
-          assert environment == "three-sasl-plain"
-          base = Path("kafkars-candidate/crates/kafka-client-engine/src/consumer")
-          def patch(relative, before, after):
-              source = base / relative
-              code = source.read_text()
-              assert code.count(before) == 1, relative
-              source.write_text(code.replace(before, after))
-          patch("group/registry_delivery.rs",
-                "        if !entry.revocation.is_dormant() {",
-                '''        if !entry.revocation.is_dormant() {
-                      static POLLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                      if POLLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                          eprintln!("RC2_CLASSIC_RECV_BLOCKED group={group_id:?} at={:?} deadline={:?}", std::time::Instant::now(), entry.revocation.next_deadline());
-                      }''')
-          patch("group/registry_graceful_revocation.rs",
-                "            if entry.revocation.expire_if_due(now)? {",
-                '''            if entry.revocation.expire_if_due(now)? {
-                          eprintln!("RC2_CLASSIC_REVOCATION_EXPIRED group={:?} now={now:?}", entry.group_id());''')
-          patch("group/registry_graceful_revocation.rs",
-                ".map_err(GroupConsumerRevocationPortError::Acknowledge)",
-                '''.map_err(|error| {
-                      eprintln!("RC2_CLASSIC_ACK group={group_id:?} public={assignment_epoch} error={error:?}");
-                      GroupConsumerRevocationPortError::Acknowledge(error)
-                  })''')
-          patch("group/classic_group_fetch/delivery.rs",
-                ") -> Result<Option<ClassicGroupFetchDelivery>, ClassicGroupFetchDeliveryError> {",
-                ''') -> Result<Option<ClassicGroupFetchDelivery>, ClassicGroupFetchDeliveryError> {
-                  static POLLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-                  if POLLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 100 == 0 {
-                      eprintln!("RC2_CLASSIC_FETCH at={:?} machine={:?} effects={} pending={} sessions={}", std::time::Instant::now(), self.machine, self.effects.len(), self.pending_fetches.len(), self.fetches.retained_broker_sessions());
-                  }''')
-          reader = Path("testlab/crates/testctl/src/process_io.rs")
-          code = reader.read_text()
-          for before, after in [
-              ("const MAX_STDERR_BYTES: usize = 64 * 1024;", "const MAX_STDERR_BYTES: usize = 2 * 1024 * 1024;"),
-              ("const MAX_STDERR_READ: u64 = 64 * 1024 + 1;", "const MAX_STDERR_READ: u64 = 2 * 1024 * 1024 + 1;"),
-              ("    let _ = sender.send(value);", '    eprintln!("{value}");\n    let _ = sender.send(value);'),
-          ]:
-              assert code.count(before) == 1
-              code = code.replace(before, after)
-          reader.write_text(code)
+          assert environment in ("three-sasl-plain", "three-tls")
           driver = Path("kafka-driver-candidate")
           manifest = Path("testlab/crates/testctl/src/candidate_manifest.rs")
           code = manifest.read_text()
@@ -98,7 +59,7 @@ jobs:
           code = code.replace(before, f"    let support_patches = String::from({json.dumps(support_patches)});")
           before = 'format!("kafkars-{version}-{}", &digest[..16])'
           assert code.count(before) == 1
-          code = code.replace(before, 'format!("diagnostic-kafkars-{version}-{}", &digest[..16])')
+          code = code.replace(before, 'format!("source-check-kafkars-{version}-{}", &digest[..16])')
           manifest.write_text(code)
           provenance = Path("testlab/crates/testctl/src/candidate_provenance.rs")
           code = provenance.read_text()
@@ -114,44 +75,42 @@ jobs:
                   }
                   let actual = locked_registry_artifact(&lock, name)?;''')
           provenance.write_text(code)
-          Path("DIAGNOSTIC-ONLY.txt").write_text(
-              "NOT RELEASE EVIDENCE: instrumented native c87c5a0e plus clean unpublished driver "
+          Path("SOURCE-CHECK-ONLY.txt").write_text(
+              "NOT RELEASE EVIDENCE: clean native c87c5a0e, Testlab receive fix "
+              "e9bc3abe28e43b01c0d5c9d46178c5b1a7e1e866, and clean driver "
               "e5b697468eadbd99c27af48cb3653373e4599001. The three driver crates use "
               "explicit source paths. Subject archive hashes for driver RC4 do not qualify "
-              "the fixed runtime. Native stderr traces diagnose revocation and Fetch ownership; "
-              "scenario and adapter receive behavior are unchanged.\n"
+              "the fixed runtime. No native or driver instrumentation is applied.\n"
           )
           Path("testlab/packs/rc2-group-fault.toml").write_text('''schema_version = 1
           id = "rc2-group-fault"
-          title = "RC2 classic recovery diagnostics, not release evidence"
-          scenarios = ["scenarios/kafka/classic-group-session-recovery.toml"]
+          title = "RC2 focused source checks, not release evidence"
+          scenarios = ["scenarios/kafka/consumer-protocol-group-membership-ownership.toml", "scenarios/kafka/classic-group-session-recovery.toml", "scenarios/kafka/consumer-protocol-group-session-recovery.toml"]
           ''')
           Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
           id = "rc2-group-fault"
-          title = "RC2 classic recovery diagnostics, not release evidence"
+          title = "RC2 focused source checks, not release evidence"
           [[cells]]
           id = "apache-kafka-4-3-1-{environment}"
           environment = "clusters/apache-kafka/4.3.1/{environment}.toml"
           pack = "packs/rc2-group-fault.toml"
-          attempts = 5
+          attempts = 3
           gating = true
           ''')
           PY
-          git -C kafkars-candidate diff > instrumented-candidate.patch
+          git -C kafkars-candidate diff --exit-code
           git -C kafka-driver-candidate diff --exit-code
           git -C testlab diff > focused-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
-          allow-dirty: "true"
-          evidence-directory: rc2-classic-diagnostic-evidence
+          evidence-directory: rc2-receive-source-check-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-classic-diagnostic-${{ matrix.environment }}
+          name: rc2-receive-source-check-${{ matrix.environment }}
           path: |
-            rc2-classic-diagnostic-evidence
-            DIAGNOSTIC-ONLY.txt
-            instrumented-candidate.patch
+            rc2-receive-source-check-evidence
+            SOURCE-CHECK-ONLY.txt
             focused-harness.patch
           if-no-files-found: error
