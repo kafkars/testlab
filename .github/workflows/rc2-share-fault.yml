@@ -35,6 +35,23 @@ jobs:
               assert code.count(before) == 1
               code = code.replace(before, after)
           source.write_text(code)
+          base = Path("kafkars-candidate/crates/kafka-client-engine/src/consumer/share")
+          patches = [
+              ("fetch_session_set/execution.rs", '.map_err(|error| ShareFetchExecutionError::Settlement(error.kind()))?', '.map_err(|error| { eprintln!("RC2_SHARE_SETTLEMENT {error:?}"); ShareFetchExecutionError::Settlement(error.kind()) })?'),
+              ("fetch_session_settlement/settlement.rs", 'ShareFetchResolution::Succeeded(success) => {', 'ShareFetchResolution::Succeeded(success) => {\n                for topic in &success.topics { for partition in &topic.partitions { if let Some(rejection) = &partition.rejection { eprintln!("RC2_SHARE_PARTITION {rejection:?}"); } } }'),
+              ("settlement/failure.rs", 'let prepared = self.prepared.ok_or(ShareMembershipError::EffectShape)?;', 'let prepared = self.prepared.ok_or(ShareMembershipError::EffectShape)?;\n        eprintln!("RC2_SHARE_HEARTBEAT now={now:?} prepared={prepared:?} failure={failure:?}");'),
+              ("transition/retry.rs", 'let transition = self\n            .machine\n            .apply(ShareGroupHeartbeatInput::RetryDue { schedule, now })', 'eprintln!("RC2_SHARE_RETRY now={now:?} schedule={schedule:?}");\n        let transition = self\n            .machine\n            .apply(ShareGroupHeartbeatInput::RetryDue { schedule, now })'),
+          ]
+          for relative, before, after in patches:
+              source = base / relative
+              code = source.read_text()
+              if relative == "settlement/failure.rs":
+                  assert code.count(before) == 2
+                  code = code.replace(before, after, 1)
+              else:
+                  assert code.count(before) == 1, relative
+                  code = code.replace(before, after)
+              source.write_text(code)
           reader = Path("testlab/crates/testctl/src/process_io.rs")
           code = reader.read_text()
           before = "    let _ = sender.send(value);"
