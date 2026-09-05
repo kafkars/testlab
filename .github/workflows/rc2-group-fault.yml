@@ -1,4 +1,4 @@
-name: RC2 hosted coordinator routing diagnostics
+name: RC2 hosted coordinator recovery source checks
 
 on:
   pull_request:
@@ -10,6 +10,11 @@ jobs:
   group-fault:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        environment: [three-sasl-plain, three-tls]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -24,88 +29,28 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafka-driver
-          ref: 66c33e2f9de8dc787b8ccd2b4dd3eced39e7c6a4
-          path: kafka-driver-diagnostic
+          ref: 0a8bc088b93269ff6217737651784dd69e833063
+          path: kafka-driver-candidate
           persist-credentials: false
-      - name: Diagnose disposable copies with the unchanged recovery scenario
+      - name: Select unchanged scenarios against clean fixed source
+        env:
+          TARGET_CELL: ${{ matrix.environment }}
         run: |
           python3 - <<'PY'
           import json
+          import os
           from pathlib import Path
-          base = Path("kafkars-candidate/crates")
-          def patch(relative, before, after):
-              source = base / relative
-              code = source.read_text()
-              assert code.count(before) == 1, relative
-              source.write_text(code.replace(before, after))
-          patch("kafka-client-core/src/consumer/consumer_group/transition_support.rs",
-                "        let fatal = ConsumerGroupHeartbeatFatal::new(attempt, failure);",
-                '''        eprintln!("RC2_GROUP_FATAL failure={failure:?} machine={self:?}");
-                  let fatal = ConsumerGroupHeartbeatFatal::new(attempt, failure);''')
-          patch("kafka-client-engine/src/consumer/group/consumer_group_heartbeat_settlement.rs",
-                "    let (resolution, route) = outcome.into_resolution();",
-                '''    let (resolution, route) = outcome.into_resolution();
-                  match &resolution {
-                      ConsumerGroupHeartbeatResolution::Failed(failure) => eprintln!("RC2_GROUP_HEARTBEAT kind={kind:?} failure={failure:?}"),
-                      ConsumerGroupHeartbeatResolution::BrokerRejected { error_code, .. } => eprintln!("RC2_GROUP_HEARTBEAT kind={kind:?} broker={error_code}"),
-                      _ => {},
-                  }''')
-          patch("kafka-client-engine/src/driver/rpc/consumer_group_heartbeat_failure.rs",
-                ") -> ConsumerGroupHeartbeatDriverFailureKind {\n    #[allow(",
-                ''') -> ConsumerGroupHeartbeatDriverFailureKind {
-                  eprintln!("RC2_GROUP_DRIVER error={error:?}");
-                  #[allow(''')
-          patch("kafka-client-engine/src/consumer/group/registry_commit.rs",
-                "        let offset_commits = &mut self.offset_commits;",
-                '''        if entry.catalog.live_assignment().is_none() {
-                      eprintln!("RC2_COMMIT_NO_ASSIGNMENT checkpoint={checkpoint:?}");
-                  }
-                  let offset_commits = &mut self.offset_commits;''')
-          patch("kafka-client-engine/src/consumer/group/registry_commit.rs",
-                "fn delegated_failure(failure: GroupOffsetCommitAdmissionFailure) -> GroupConsumerCommitFailure {",
-                '''fn delegated_failure(failure: GroupOffsetCommitAdmissionFailure) -> GroupConsumerCommitFailure {
-                  eprintln!("RC2_COMMIT_REJECT kind={:?}", failure.kind);''')
-          base = Path("kafka-driver-diagnostic")
-          patch("src/reactor/host/coordinator_routing.rs",
-                "        let directory = self.metadata.as_ref()?.current()?.brokers();\n        let route = directory.route_to(coordinator.broker_id())?;",
-                '''        let Some(snapshot) = self.metadata.as_ref().and_then(|metadata| metadata.current()) else {
-                      eprintln!("RC2_COORD_ROUTE no_metadata");
-                      return None;
-                  };
-                  let directory = snapshot.brokers();
-                  let Some(route) = directory.route_to(coordinator.broker_id()) else {
-                      eprintln!("RC2_COORD_ROUTE missing_broker={:?}", coordinator.broker_id());
-                      return None;
-                  };''')
-          patch("src/reactor/host/coordinator_routing.rs",
-                "        (entry.endpoint() == coordinator.endpoint()).then_some(route)",
-                '''        if entry.endpoint() != coordinator.endpoint() {
-                      eprintln!("RC2_COORD_ROUTE endpoint_mismatch broker={:?}", coordinator.broker_id());
-                  }
-                  (entry.endpoint() == coordinator.endpoint()).then_some(route)''')
-          patch("src/reactor/host/coordinator_routing.rs",
-                "                    let Some(seed) = seed else {\n                        request.fail(RequestError::RouteUnavailable);",
-                '''                    let Some(seed) = seed else {
-                          eprintln!("RC2_COORD_ROUTE missing_seed");
-                          request.fail(RequestError::RouteUnavailable);''')
-          patch("src/reactor/coordinator/routing.rs",
-                "                        waiting.request.fail(RequestError::RouteUnavailable);",
-                '''                        eprintln!("RC2_COORD_WAIT no_route key={:?} state={:?}", waiting.key, self.entry(&waiting.key).map(|entry| entry.machine.state()));
-                          waiting.request.fail(RequestError::RouteUnavailable);''')
-          patch("src/reactor/coordinator/drive.rs",
-                "        let input = match result {",
-                '''        if let Ok(Err(error)) = &result {
-                      eprintln!("RC2_COORD_DISCOVERY error={error:?}");
-                  }
-                  let input = match result {''')
+          environment = os.environ["TARGET_CELL"]
+          assert environment in ("three-sasl-plain", "three-tls")
+          driver = Path("kafka-driver-candidate")
           manifest = Path("testlab/crates/testctl/src/candidate_manifest.rs")
           code = manifest.read_text()
           support_patches = "".join(
               f'{name} = {{ path = {json.dumps(str(path.resolve()))} }}\n'
               for name, path in [
-                  ("kafka-driver", base),
-                  ("kafka-driver-core", base / "crates/kafka-driver-core"),
-                  ("kafka-driver-transport", base / "crates/kafka-driver-transport"),
+                  ("kafka-driver", driver),
+                  ("kafka-driver-core", driver / "crates/kafka-driver-core"),
+                  ("kafka-driver-transport", driver / "crates/kafka-driver-transport"),
               ]
           )
           before = "    let support_patches = support_patches(artifacts, &source)?;"
@@ -113,7 +58,7 @@ jobs:
           code = code.replace(before, f"    let support_patches = String::from({json.dumps(support_patches)});")
           before = 'format!("kafkars-{version}-{}", &digest[..16])'
           assert code.count(before) == 1
-          code = code.replace(before, 'format!("diagnostic-kafkars-{version}-{}", &digest[..16])')
+          code = code.replace(before, 'format!("source-check-kafkars-{version}-{}", &digest[..16])')
           manifest.write_text(code)
           provenance = Path("testlab/crates/testctl/src/candidate_provenance.rs")
           code = provenance.read_text()
@@ -123,59 +68,47 @@ jobs:
                       let packages: Vec<_> = lock.package.iter().filter(|package| package.name == name).collect();
                       if packages.len() != 1 || packages[0].version != expected.version
                           || packages[0].source.is_some() || packages[0].checksum.is_some() {
-                          return Err(candidate(format!("diagnostic driver source lock mismatch: {name}")));
+                          return Err(candidate(format!("source-check driver lock mismatch: {name}")));
                       }
                       continue;
                   }
                   let actual = locked_registry_artifact(&lock, name)?;''')
           provenance.write_text(code)
-          Path("DIAGNOSTIC-ONLY.txt").write_text(
-              "NOT RELEASE EVIDENCE: the adapter overrides all three driver packages with the "
-              "logged disposable RC4 checkout. Subject archive hashes describe the original "
-              "packages, not the instrumented driver runtime. See instrumented-driver.patch.\n"
+          Path("SOURCE-CHECK-ONLY.txt").write_text(
+              "NOT RELEASE EVIDENCE: clean native c87c5a0e plus clean unpublished driver "
+              "0a8bc088b93269ff6217737651784dd69e833063. The three driver crates use "
+              "explicit source paths. Subject archive hashes for driver RC4 do not qualify "
+              "the fixed runtime. No native or driver instrumentation is applied.\n"
           )
-          reader = Path("testlab/crates/testctl/src/process_io.rs")
-          code = reader.read_text()
-          for before, after in [
-              ("const MAX_STDERR_BYTES: usize = 64 * 1024;", "const MAX_STDERR_BYTES: usize = 2 * 1024 * 1024;"),
-              ("const MAX_STDERR_READ: u64 = 64 * 1024 + 1;", "const MAX_STDERR_READ: u64 = 2 * 1024 * 1024 + 1;"),
-              ("    let _ = sender.send(value);", '    eprintln!("{value}");\n    let _ = sender.send(value);'),
-          ]:
-              assert code.count(before) == 1
-              code = code.replace(before, after)
-          reader.write_text(code)
           Path("testlab/packs/rc2-group-fault.toml").write_text('''schema_version = 1
           id = "rc2-group-fault"
-          title = "RC2 checkpoint diagnostics, not release evidence"
-          scenarios = ["scenarios/kafka/consumer-protocol-group-session-recovery.toml"]
+          title = "RC2 focused source checks, not release evidence"
+          scenarios = ["scenarios/kafka/consumer-protocol-group-membership-ownership.toml", "scenarios/kafka/classic-group-session-recovery.toml", "scenarios/kafka/consumer-protocol-group-session-recovery.toml"]
           ''')
-          Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
+          Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
           id = "rc2-group-fault"
-          title = "RC2 checkpoint diagnostics, not release evidence"
+          title = "RC2 focused source checks, not release evidence"
           [[cells]]
-          id = "apache-kafka-4-3-1-three-sasl-plain"
-          environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
+          id = "apache-kafka-4-3-1-{environment}"
+          environment = "clusters/apache-kafka/4.3.1/{environment}.toml"
           pack = "packs/rc2-group-fault.toml"
-          attempts = 5
+          attempts = 3
           gating = true
           ''')
           PY
-          git -C kafkars-candidate diff > instrumented-candidate.patch
-          git -C kafka-driver-diagnostic diff > instrumented-driver.patch
-          git -C testlab diff > instrumented-harness.patch
+          git -C kafkars-candidate diff --exit-code
+          git -C kafka-driver-candidate diff --exit-code
+          git -C testlab diff > focused-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
-          allow-dirty: "true"
-          evidence-directory: rc2-routing-diagnostic-evidence
+          evidence-directory: rc2-source-check-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-routing-diagnostic-evidence
+          name: rc2-source-check-${{ matrix.environment }}
           path: |
-            rc2-routing-diagnostic-evidence
-            DIAGNOSTIC-ONLY.txt
-            instrumented-candidate.patch
-            instrumented-driver.patch
-            instrumented-harness.patch
+            rc2-source-check-evidence
+            SOURCE-CHECK-ONLY.txt
+            focused-harness.patch
           if-no-files-found: error
