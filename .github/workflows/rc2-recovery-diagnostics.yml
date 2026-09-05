@@ -20,7 +20,7 @@ jobs:
           - driver: rc3
             candidate: b5961d2d427d5aa5d3d66fdcd9ef0ad5f11a3c82
           - driver: rc4
-            candidate: 12935ab6955d52602a9fb0d6b542ee464f9ee33e
+            candidate: 9a99f69acf6efca72d1c31ec7d7c77ba01719fbb
     steps:
       - name: Check out Testlab
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -137,7 +137,7 @@ jobs:
           id = "apache-kafka-4-3-1-plaintext"
           environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
           pack = "packs/rc2-recovery-diagnostic.toml"
-          attempts = 1
+          attempts = 3
           gating = true
           TOML
       - name: Package and run the hosted diagnostic
