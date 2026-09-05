@@ -233,7 +233,8 @@ committed-offset queries, and consumer-group member counts separately
 corroborate the broker-visible effects. Testlab does not parse private assignment
 state or infer a definite owner from an adapter success string.
 CONS-011 additionally requires three distinct successful broker stop/start
-pairs and a committed group receive while each broker remains stopped, so one
+pairs and a committed group receive, or a nonempty Share acquisition followed
+by its exact successful Accept acknowledgement, while each broker remains stopped, so one
 of the three disruptions necessarily covers the original coordinator.
 CONS-014 retains each exact group pause, resume, or seek command and one matching
 operation-identified completion. The completion proves only the public control
@@ -258,7 +259,10 @@ overlap, and broker visibility cannot manufacture a public client result.
 
 FAULT-001 requires one exact pre-stop owner and a distinct post-election owner
 for each typed broker-role target. FAULT-002 binds the observed original owner
-to one ordered successful stop, restore, and readiness sequence. FAULT-003
+to one ordered successful stop, restore, and readiness sequence. Restore accepts
+the recorded Compose `start` or `restart --no-deps` command for the exact same
+project and service. Contiguous readiness attempts retain their failures and
+must end in a successful probe of that same project and service. FAULT-003
 requires matching public progress after the replacement election and before
 the original owner is restored: an acknowledged produce, successful topic
 creation, committed group receive, or committed transaction according to the

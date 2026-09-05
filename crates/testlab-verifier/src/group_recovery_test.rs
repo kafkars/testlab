@@ -113,7 +113,7 @@ fn archived_compose_start_pairs_remain_valid() {
     assert!(violations.is_empty(), "{violations:?}");
 }
 
-fn recovery_scenario() -> Scenario {
+pub(super) fn recovery_scenario() -> Scenario {
     let mut steps = Vec::new();
     for ordinal in 1..=3 {
         steps.push(step(
@@ -144,7 +144,7 @@ fn recovery_scenario() -> Scenario {
     }
 }
 
-fn recovery_history(include_last_progress: bool) -> Vec<HistoryEntry> {
+pub(super) fn recovery_history(include_last_progress: bool) -> Vec<HistoryEntry> {
     let mut history = Vec::new();
     let mut sequence = 0;
     for ordinal in 1..=3 {

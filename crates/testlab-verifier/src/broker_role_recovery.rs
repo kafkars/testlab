@@ -5,6 +5,7 @@ use testlab_schema::{
     Scenario, ScenarioAction, TerminalStatus, TransactionDisposition, Violation,
 };
 
+use crate::group_recovery::disruption_target;
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
@@ -52,19 +53,19 @@ fn verify_target(target: &BrokerRoleTarget, index: &HistoryIndex, violations: &m
         before.service,
     );
     let start = starts.first().copied();
-    let readiness = start.is_some_and(|(sequence, _)| {
-        index
-            .environment_operations
-            .iter()
-            .any(|(candidate, operation)| {
-                *candidate == sequence.saturating_add(1)
-                    && exact_readiness(operation, before.service)
-            })
+    let readiness = start.is_some_and(|(sequence, operation)| {
+        ready_after(index, *sequence, operation, before.service)
     });
     let terminals = stop.len() == 1
         && starts.len() == 1
         && successful(stop.first().copied())
         && successful(start)
+        && stop
+            .first()
+            .zip(start)
+            .is_some_and(|((_, stop), (_, start))| {
+                disruption_target(stop) == disruption_target(start)
+            })
         && readiness;
     if !terminals {
         violations.push(violation(
@@ -150,23 +151,45 @@ fn exact_compose_control(
     kind: EnvironmentOperationKind,
     service: &str,
 ) -> bool {
-    let verb = match kind {
-        EnvironmentOperationKind::BrokerStop => "stop",
-        EnvironmentOperationKind::BrokerStart => "start",
-        _ => return false,
-    };
-    operation.program == "docker"
-        && operation.args.len() >= 2
-        && operation.args[operation.args.len() - 2] == verb
-        && operation.args.last().is_some_and(|value| value == service)
+    operation.kind == kind
+        && disruption_target(operation)
+            .is_some_and(|(program, _, target)| program == "docker" && target == service)
 }
 
-fn exact_readiness(operation: &EnvironmentOperation, service: &str) -> bool {
+fn ready_after(
+    index: &HistoryIndex,
+    start: u64,
+    control: &EnvironmentOperation,
+    service: &str,
+) -> bool {
+    let Some((_, prefix, _)) = disruption_target(control) else {
+        return false;
+    };
+    let mut expected = start.saturating_add(1);
+    for (sequence, operation) in &index.environment_operations {
+        if *sequence <= start {
+            continue;
+        }
+        if *sequence != expected || !exact_readiness(operation, prefix, service) {
+            return false;
+        }
+        if operation.status == EnvironmentOperationStatus::Succeeded {
+            return true;
+        }
+        if operation.status == EnvironmentOperationStatus::TimedOut {
+            return false;
+        }
+        expected = expected.saturating_add(1);
+    }
+    false
+}
+
+fn exact_readiness(operation: &EnvironmentOperation, prefix: &[String], service: &str) -> bool {
     let args = &operation.args;
     operation.kind == EnvironmentOperationKind::Readiness
-        && operation.status == EnvironmentOperationStatus::Succeeded
         && operation.program == "docker"
         && args.len() >= 6
+        && args[..args.len() - 6] == *prefix
         && args[args.len() - 6] == "exec"
         && args[args.len() - 5] == "--no-TTY"
         && args[args.len() - 4] == service

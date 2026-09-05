@@ -1,0 +1,78 @@
+name: RC2 hosted Share recovery diagnostics
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.96.0 --profile minimal
+      - run: cargo +1.96.0 install zrail --version 0.0.1 --locked
+      - name: Propose lock update without accepting grants
+        run: |
+          status=0
+          zrail update --format json > zrail-review.json || status=$?
+          git diff -- zrail.lock > zrail-lock.patch
+          exit "$status"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: ${{ always() }}
+        with:
+          name: rc2-verifier-contract-review
+          path: |
+            zrail-review.json
+            zrail-lock.patch
+          if-no-files-found: error
+
+  share-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: testlab
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: kafkars/kafkars
+          ref: c9901da076be8717b72ed0c06fc22bee9410112d
+          path: kafkars-candidate
+          persist-credentials: false
+      - name: Select unchanged Share recovery scenarios for diagnostics only
+        working-directory: testlab
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          Path("packs/rc2-share-diagnostic.toml").write_text('''schema_version = 1
+          id = "rc2-share-diagnostic"
+          title = "RC2 Share recovery diagnostics, not release evidence"
+          scenarios = ["scenarios/kafka/share-group-leader-recovery.toml", "scenarios/kafka/share-group-session-recovery.toml"]
+          ''')
+          Path("qualifications/kafkars-pr.toml").write_text('''schema_version = 2
+          id = "rc2-share-diagnostic"
+          title = "RC2 Share recovery diagnostics, not release evidence"
+          [[cells]]
+          id = "apache-kafka-4-3-1-three-plaintext"
+          environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
+          pack = "packs/rc2-share-diagnostic.toml"
+          attempts = 3
+          gating = true
+          ''')
+          PY
+      - uses: ./testlab
+        with:
+          kafkars-path: kafkars-candidate
+          evidence-directory: rc2-share-diagnostic-evidence
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: ${{ always() }}
+        with:
+          name: rc2-share-diagnostic-evidence
+          path: rc2-share-diagnostic-evidence
+          if-no-files-found: error
