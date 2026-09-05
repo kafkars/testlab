@@ -3,7 +3,8 @@
 use std::collections::BTreeSet;
 
 use testlab_schema::{
-    EnvironmentOperationKind, EnvironmentOperationStatus, Scenario, ScenarioAction, Violation,
+    EnvironmentOperationKind, EnvironmentOperationStatus, Scenario, ScenarioAction,
+    ShareDisposition, Violation,
 };
 
 use crate::index::HistoryIndex;
@@ -78,12 +79,12 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         .all(|((stop_sequence, _), (start_sequence, _))| {
             receive_sequences.iter().any(|receive_sequence| {
                 receive_sequence > stop_sequence && receive_sequence < start_sequence
-            })
+            }) || share_progress(index, *stop_sequence, *start_sequence)
         });
     if !terminals || !progress {
         violations.push(violation(
             "CONS-011",
-            "three-broker group recovery did not retain three distinct successful stop/start pairs with committed progress between each pair".to_owned(),
+            "three-broker group recovery did not retain three distinct successful stop/start pairs with committed or accepted Share progress between each pair".to_owned(),
             None,
             stops
                 .iter()
@@ -94,7 +95,35 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     }
 }
 
-fn disruption_target(
+fn share_progress(index: &HistoryIndex, after: u64, before: u64) -> bool {
+    index.share_acknowledgements.values().any(|values| {
+        let [ack] = values.as_slice() else {
+            return false;
+        };
+        ack.success
+            && ack.delivery.is_none()
+            && ack.code.is_none()
+            && ack.history_sequence < before
+            && ack
+                .dispositions
+                .iter()
+                .all(|value| *value == ShareDisposition::Accept)
+            && index
+                .share_receives
+                .get(&ack.receive_id)
+                .is_some_and(|receives| {
+                    let [receive] = receives.as_slice() else {
+                        return false;
+                    };
+                    !receive.records.is_empty()
+                        && receive.records.len() == ack.dispositions.len()
+                        && receive.history_sequence > after
+                        && receive.history_sequence < ack.history_sequence
+                })
+    })
+}
+
+pub(crate) fn disruption_target(
     operation: &testlab_schema::EnvironmentOperation,
 ) -> Option<(&str, &[String], &str)> {
     let (prefix, service) = match (operation.kind, operation.args.as_slice()) {

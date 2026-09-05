@@ -105,6 +105,8 @@ mod assigned_cursor_test;
 #[cfg(test)]
 mod broker_policy_test;
 #[cfg(test)]
+mod broker_role_recovery_terminal_test;
+#[cfg(test)]
 mod broker_role_recovery_test;
 #[cfg(test)]
 mod client_metrics_test;
@@ -124,6 +126,8 @@ mod group_consumer_controls_test;
 mod group_consumer_shutdown_test;
 #[cfg(test)]
 mod group_ownership_test;
+#[cfg(test)]
+mod group_recovery_share_test;
 #[cfg(test)]
 mod group_recovery_test;
 #[cfg(test)]

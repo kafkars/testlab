@@ -710,7 +710,7 @@ sha256 = "e8e33744bb9942ecf429de76bf61bf189d9b1d0a0d1a5844f11786b392d3c6f3"
 
 [[gate.input]]
 path = "contracts/conformance.toml"
-sha256 = "01247e0167925f8d1cb5ee42787523312adbddd10df0d6c07527dde5cce101a0"
+sha256 = "e9c387d1fe7a0f75da1897df744492be1ca55c1395a91b8c12396c34c55ff140"
 
 [[gate.input]]
 path = "packs/kafkars-assigned-consumer-cursors.toml"

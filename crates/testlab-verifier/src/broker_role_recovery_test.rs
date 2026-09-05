@@ -71,7 +71,7 @@ fn every_role_specific_public_progress_shape_passes() {
     }
 }
 
-fn scenario(target: BrokerRoleTarget) -> Scenario {
+pub(super) fn scenario(target: BrokerRoleTarget) -> Scenario {
     Scenario {
         schema_version: testlab_schema::SCENARIO_SCHEMA_VERSION,
         id: ScenarioId::new("fault.role-recovery")
@@ -100,7 +100,7 @@ fn scenario(target: BrokerRoleTarget) -> Scenario {
     }
 }
 
-fn history(replacement: i32, progress: bool) -> Vec<HistoryEntry> {
+pub(super) fn history(replacement: i32, progress: bool) -> Vec<HistoryEntry> {
     let progress = progress.then(|| AdapterEvent::OperationTerminal {
         operation_id: operation_id("op-after-election"),
         status: testlab_schema::TerminalStatus::Acknowledged,
@@ -206,7 +206,7 @@ fn environment_owned(
     }
 }
 
-fn target() -> BrokerRoleTarget {
+pub(super) fn target() -> BrokerRoleTarget {
     BrokerRoleTarget::PartitionLeader {
         topic: "records".to_owned(),
         partition: 0,

@@ -357,7 +357,7 @@ category = "fault"
 [[contract]]
 id = "FAULT-002"
 title = "Broker role disruption terminals are complete"
-statement = "The independently selected original owner has one successful stop, one later successful start of that same service, and one immediately following successful readiness probe."
+statement = "The independently selected original owner has one successful stop, one later successful restore of that same Compose project and service, and an immediately following contiguous readiness probe sequence ending in success for that same project and service."
 category = "fault"
 
 [[contract]]
@@ -411,7 +411,7 @@ category = "consumer"
 [[contract]]
 id = "CONS-011"
 title = "Group progress survives every three-broker disruption"
-statement = "Three distinct successful broker stop and start pairs each contain a committed group receive while the broker remains stopped."
+statement = "Three distinct successful broker stop and start pairs each contain a committed group receive or a nonempty Share acquisition followed by its exact successful Accept acknowledgement while the broker remains stopped."
 category = "consumer"
 
 [[contract]]
