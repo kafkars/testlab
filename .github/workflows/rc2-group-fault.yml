@@ -1,4 +1,4 @@
-name: RC2 hosted classic position recovery diagnostics
+name: RC2 hosted classic readiness origin diagnostics
 
 on:
   pull_request:
@@ -33,7 +33,7 @@ jobs:
           ref: e5b697468eadbd99c27af48cb3653373e4599001
           path: kafka-driver-candidate
           persist-credentials: false
-      - name: Trace position ownership without changing scenario behavior
+      - name: Trace readiness origin without changing scenario behavior
         env:
           TARGET_CELL: ${{ matrix.environment }}
         run: |
@@ -106,6 +106,23 @@ jobs:
               code = code.replace(before, after)
           reader.write_text(code)
           driver = Path("kafka-driver-candidate")
+          def driver_patch(relative, before, after):
+              source = driver / relative
+              code = source.read_text()
+              assert code.count(before) == 1, relative
+              source.write_text(code.replace(before, after))
+          driver_patch("src/reactor/direct_plaintext/cluster_runtime/route_admission.rs",
+                       "            request.fail_observed(not_ready(), observed_at);",
+                       '''            eprintln!("RC2_NOT_READY_ROUTE at={:?} lane={lane:?} failure_at={observed_at:?} physical_present={}", std::time::Instant::now(), physical.is_some());
+                      request.fail_observed(not_ready(), observed_at);''')
+          driver_patch("src/reactor/route_waiting.rs",
+                       "            let failure = if deadline <= now {",
+                       '''            eprintln!("RC2_NOT_READY_WAIT now={now:?} deadline={deadline:?} failure_at={observed_at:?} traffic={:?}", waiting.request.traffic_class());
+                      let failure = if deadline <= now {''')
+          driver_patch("src/reactor/direct_plaintext/failure_translation.rs",
+                       "            not_sent(CallFailure::NotReady)",
+                       '''            eprintln!("RC2_NOT_READY_RESERVE at={:?} reason=AdmissionClosed", std::time::Instant::now());
+                      not_sent(CallFailure::NotReady)''')
           manifest = Path("testlab/crates/testctl/src/candidate_manifest.rs")
           code = manifest.read_text()
           support_patches = "".join(
@@ -139,43 +156,45 @@ jobs:
           provenance.write_text(code)
           Path("DIAGNOSTIC-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: instrumented native c87c5a0e, Testlab receive fix "
-              "e9bc3abe28e43b01c0d5c9d46178c5b1a7e1e866, and clean driver "
+              "e9bc3abe28e43b01c0d5c9d46178c5b1a7e1e866, and instrumented driver "
               "e5b697468eadbd99c27af48cb3653373e4599001. The three driver crates use "
               "explicit source paths. Subject archive hashes for driver RC4 do not qualify "
-              "the fixed runtime. Native stderr traces identify position and membership "
-              "ownership. Scenario and adapter receive behavior are unchanged.\n"
+              "the fixed runtime. Native traces identify position/membership ownership; "
+              "driver traces distinguish historical-route rejection from AdmissionClosed. "
+              "Scenario and adapter receive behavior are unchanged.\n"
           )
           Path("testlab/packs/rc2-group-fault.toml").write_text('''schema_version = 1
           id = "rc2-group-fault"
-          title = "RC2 classic position diagnostics, not release evidence"
+          title = "RC2 classic readiness diagnostics, not release evidence"
           scenarios = ["scenarios/kafka/classic-group-session-recovery.toml"]
           ''')
           Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
           id = "rc2-group-fault"
-          title = "RC2 classic position diagnostics, not release evidence"
+          title = "RC2 classic readiness diagnostics, not release evidence"
           [[cells]]
           id = "apache-kafka-4-3-1-{environment}"
           environment = "clusters/apache-kafka/4.3.1/{environment}.toml"
           pack = "packs/rc2-group-fault.toml"
-          attempts = 5
+          attempts = 3
           gating = true
           ''')
           PY
           git -C kafkars-candidate diff > instrumented-candidate.patch
-          git -C kafka-driver-candidate diff --exit-code
+          git -C kafka-driver-candidate diff > instrumented-driver.patch
           git -C testlab diff > focused-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
           allow-dirty: "true"
-          evidence-directory: rc2-classic-position-diagnostic-evidence
+          evidence-directory: rc2-classic-readiness-diagnostic-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-classic-position-diagnostic-${{ matrix.environment }}
+          name: rc2-classic-readiness-diagnostic-${{ matrix.environment }}
           path: |
-            rc2-classic-position-diagnostic-evidence
+            rc2-classic-readiness-diagnostic-evidence
             DIAGNOSTIC-ONLY.txt
             instrumented-candidate.patch
+            instrumented-driver.patch
             focused-harness.patch
           if-no-files-found: error
