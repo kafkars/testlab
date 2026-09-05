@@ -1,4 +1,4 @@
-name: RC2 hosted checkpoint recovery diagnostics
+name: RC2 hosted coordinator routing diagnostics
 
 on:
   pull_request:
@@ -21,9 +21,16 @@ jobs:
           ref: c87c5a0eeebba4e676662e2c26ca35bb76970dea
           path: kafkars-candidate
           persist-credentials: false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/kafka-driver
+          ref: 66c33e2f9de8dc787b8ccd2b4dd3eced39e7c6a4
+          path: kafka-driver-diagnostic
+          persist-credentials: false
       - name: Diagnose disposable copies with the unchanged recovery scenario
         run: |
           python3 - <<'PY'
+          import json
           from pathlib import Path
           base = Path("kafkars-candidate/crates")
           def patch(relative, before, after):
@@ -50,12 +57,69 @@ jobs:
                   #[allow(''')
           patch("kafka-client-engine/src/consumer/group/registry_commit.rs",
                 "        let offset_commits = &mut self.offset_commits;",
-                '''        eprintln!("RC2_COMMIT_ADMIT checkpoint={checkpoint:?} live={:?}", entry.catalog.live_assignment());
+                '''        if entry.catalog.live_assignment().is_none() {
+                      eprintln!("RC2_COMMIT_NO_ASSIGNMENT checkpoint={checkpoint:?}");
+                  }
                   let offset_commits = &mut self.offset_commits;''')
           patch("kafka-client-engine/src/consumer/group/registry_commit.rs",
                 "fn delegated_failure(failure: GroupOffsetCommitAdmissionFailure) -> GroupConsumerCommitFailure {",
                 '''fn delegated_failure(failure: GroupOffsetCommitAdmissionFailure) -> GroupConsumerCommitFailure {
                   eprintln!("RC2_COMMIT_REJECT kind={:?}", failure.kind);''')
+          base = Path("kafka-driver-diagnostic")
+          patch("src/reactor/host/coordinator_routing.rs",
+                "        let directory = self.metadata.as_ref()?.current()?.brokers();\n        let route = directory.route_to(coordinator.broker_id())?;",
+                '''        let Some(snapshot) = self.metadata.as_ref().and_then(|metadata| metadata.current()) else {
+                      eprintln!("RC2_COORD_ROUTE no_metadata");
+                      return None;
+                  };
+                  let directory = snapshot.brokers();
+                  let Some(route) = directory.route_to(coordinator.broker_id()) else {
+                      eprintln!("RC2_COORD_ROUTE missing_broker={:?}", coordinator.broker_id());
+                      return None;
+                  };''')
+          patch("src/reactor/host/coordinator_routing.rs",
+                "        (entry.endpoint() == coordinator.endpoint()).then_some(route)",
+                '''        if entry.endpoint() != coordinator.endpoint() {
+                      eprintln!("RC2_COORD_ROUTE endpoint_mismatch broker={:?}", coordinator.broker_id());
+                  }
+                  (entry.endpoint() == coordinator.endpoint()).then_some(route)''')
+          patch("src/reactor/host/coordinator_routing.rs",
+                "                    let Some(seed) = seed else {\n                        request.fail(RequestError::RouteUnavailable);",
+                '''                    let Some(seed) = seed else {
+                          eprintln!("RC2_COORD_ROUTE missing_seed");
+                          request.fail(RequestError::RouteUnavailable);''')
+          patch("src/reactor/coordinator/routing.rs",
+                "                        waiting.request.fail(RequestError::RouteUnavailable);",
+                '''                        eprintln!("RC2_COORD_WAIT no_route key={:?} state={:?}", waiting.key, self.entry(&waiting.key).map(|entry| entry.machine.state()));
+                          waiting.request.fail(RequestError::RouteUnavailable);''')
+          patch("src/reactor/coordinator/drive.rs",
+                "        let input = match result {",
+                '''        if let Ok(Err(error)) = &result {
+                      eprintln!("RC2_COORD_DISCOVERY error={error:?}");
+                  }
+                  let input = match result {''')
+          manifest = Path("testlab/crates/testctl/src/candidate_manifest.rs")
+          code = manifest.read_text()
+          support_patches = "".join(
+              f'{name} = {{ path = {json.dumps(str(path.resolve()))} }}\n'
+              for name, path in [
+                  ("kafka-driver", base),
+                  ("kafka-driver-core", base / "crates/kafka-driver-core"),
+                  ("kafka-driver-transport", base / "crates/kafka-driver-transport"),
+              ]
+          )
+          before = "    let support_patches = support_patches(artifacts, &source)?;"
+          assert code.count(before) == 1
+          code = code.replace(before, f"    let support_patches = String::from({json.dumps(support_patches)});")
+          before = 'format!("kafkars-{version}-{}", &digest[..16])'
+          assert code.count(before) == 1
+          code = code.replace(before, 'format!("diagnostic-kafkars-{version}-{}", &digest[..16])')
+          manifest.write_text(code)
+          Path("DIAGNOSTIC-ONLY.txt").write_text(
+              "NOT RELEASE EVIDENCE: the adapter overrides all three driver packages with the "
+              "logged disposable RC4 checkout. Subject archive hashes describe the original "
+              "packages, not the instrumented driver runtime. See instrumented-driver.patch.\n"
+          )
           reader = Path("testlab/crates/testctl/src/process_io.rs")
           code = reader.read_text()
           for before, after in [
@@ -83,18 +147,21 @@ jobs:
           ''')
           PY
           git -C kafkars-candidate diff > instrumented-candidate.patch
+          git -C kafka-driver-diagnostic diff > instrumented-driver.patch
           git -C testlab diff > instrumented-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
           allow-dirty: "true"
-          evidence-directory: rc2-checkpoint-diagnostic-evidence
+          evidence-directory: rc2-routing-diagnostic-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-checkpoint-diagnostic-evidence
+          name: rc2-routing-diagnostic-evidence
           path: |
-            rc2-checkpoint-diagnostic-evidence
+            rc2-routing-diagnostic-evidence
+            DIAGNOSTIC-ONLY.txt
             instrumented-candidate.patch
+            instrumented-driver.patch
             instrumented-harness.patch
           if-no-files-found: error
