@@ -35,6 +35,11 @@ jobs:
               assert code.count(before) == 1
               code = code.replace(before, after)
           source.write_text(code)
+          reader = Path("testlab/crates/testctl/src/process_io.rs")
+          code = reader.read_text()
+          before = "    let _ = sender.send(value);"
+          assert code.count(before) == 1
+          reader.write_text(code.replace(before, '    eprintln!("{value}");\n' + before))
           Path("testlab/packs/rc2-share-fault.toml").write_text('''schema_version = 1
           id = "rc2-share-fault"
           title = "RC2 Share fault diagnostics, not release evidence"
@@ -52,6 +57,7 @@ jobs:
           ''')
           PY
           git -C kafkars-candidate diff > instrumented-candidate.patch
+          git -C testlab diff > instrumented-harness.patch
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
@@ -64,4 +70,5 @@ jobs:
           path: |
             rc2-share-fault-evidence
             instrumented-candidate.patch
+            instrumented-harness.patch
           if-no-files-found: error
