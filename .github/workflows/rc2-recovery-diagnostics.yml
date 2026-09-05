@@ -55,6 +55,45 @@ jobs:
                    };
                    let failure = finalize_exit(exit);
           PATCH
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs
+          @@ -31,7 +31,10 @@ impl GroupConsumerRegistry {
+                       Some(consumer) => current_consumer_group_position_fence(consumer, &entry.catalog),
+                       None => current_position_fence(&entry.classic, &entry.catalog),
+                   }
+          -        .map_err(|_error| ClassicGroupPositionExecutionError::ResetCurrentFence)?;
+          +        .map_err(|error| {
+          +            eprintln!("RC2 diagnostic reset fence unavailable: {error:?}");
+          +            ClassicGroupPositionExecutionError::ResetCurrentFence
+          +        })?;
+                   entry.position.begin_missing_offset_reset(current, now)?;
+                   Ok(ClassicGroupPositionResetTurn::Progress)
+               }
+          diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs
+          @@ -30,6 +30,7 @@ impl ClassicGroupPositionExecution {
+                       return Err(ClassicGroupPositionExecutionError::ResetNotRequired);
+                   };
+                   if completed.fence() != current {
+          +            eprintln!("RC2 diagnostic reset fence mismatch: completed={:?} current={current:?}", completed.fence());
+                       self.set(ClassicGroupPositionExecutionState::Complete(completed));
+                       return Err(ClassicGroupPositionExecutionError::ResetCurrentFence);
+                   }
+          diff --git a/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs b/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs
+          --- a/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs
+          +++ b/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs
+          @@ -46,6 +46,7 @@ pub(super) fn normalize_terminal(
+                       normalize_response(epoch, send_id, topic.as_ref(), partition, &response)
+                   }
+                   TransactionProduceResult::Driver(error) => {
+          +            eprintln!("RC2 diagnostic transaction Produce: {error:?}");
+                       let failure = TransactionProduceFailure::new(
+                           TransactionProduceFailureKind::Driver(request_failure_kind(&error)),
+                           request_failure_delivery(&error),
+          PATCH
           git -C testlab apply <<'PATCH'
           diff --git a/crates/testctl/src/session.rs b/crates/testctl/src/session.rs
           --- a/crates/testctl/src/session.rs
