@@ -16,12 +16,20 @@ jobs:
           persist-credentials: false
       - run: rustup toolchain install 1.96.0 --profile minimal
       - run: cargo +1.96.0 install zrail --version 0.0.1 --locked
-      - name: Propose lock update without accepting grants
+      - name: Accept only the explicitly reviewed conformance input update
         run: |
           status=0
           zrail update --format json > zrail-review.json || status=$?
+          test "$status" -eq 1
+          python3 - <<'PY'
+          import json
+          with open("zrail-review.json") as source:
+              review = json.load(source)
+          assert review["summary"] == {"grants": 0, "revokes": 0, "debt": 0, "cleanup": 0, "neutral": 0, "unknown": 1}
+          assert review["changes"] == [{"kind": "unknown", "rail": "qualification.gate-input-lock", "subject": "check:contracts/conformance.toml", "message": "reviewed qualification input contents changed", "before": "01247e0167925f8d1cb5ee42787523312adbddd10df0d6c07527dde5cce101a0", "after": "e9c387d1fe7a0f75da1897df744492be1ca55c1395a91b8c12396c34c55ff140"}]
+          PY
+          zrail update --accept-grants
           git diff -- zrail.lock > zrail-lock.patch
-          exit "$status"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
@@ -32,6 +40,7 @@ jobs:
           if-no-files-found: error
 
   share-recovery:
+    if: ${{ github.event.pull_request.head.sha == '42df35c7fa4b704b5f32f86df76f11bd53e551e8' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
