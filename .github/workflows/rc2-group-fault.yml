@@ -1,4 +1,4 @@
-name: RC2 hosted classic route retention check
+name: RC2 hosted classic revocation deadline check
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  classic-route-retention:
+  classic-revocation-deadline:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -19,33 +19,33 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: dc709c17d8d3b1efce6ded1224083ef2f94039d1
+          ref: a6861d75face09e15a0e92dadf8239a0668dbeb7
           path: kafkars-candidate
           persist-credentials: false
       - name: Select the unchanged classic recovery scenario
         run: |
-          test "$(git -C kafkars-candidate rev-parse HEAD)" = "dc709c17d8d3b1efce6ded1224083ef2f94039d1"
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "a6861d75face09e15a0e92dadf8239a0668dbeb7"
           test "$(git -C testlab rev-parse HEAD)" = "508ada91114a8004087b75ae2e724d84a77d7424"
           python3 - <<'PY'
           from pathlib import Path
           Path("SOURCE-CHECK-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: clean native candidate "
-              "dc709c17d8d3b1efce6ded1224083ef2f94039d1 with Testlab "
+              "a6861d75face09e15a0e92dadf8239a0668dbeb7 with Testlab "
               "508ada91114a8004087b75ae2e724d84a77d7424. This focused check does not "
               "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
-          Path("testlab/packs/rc2-classic-route-retention.toml").write_text('''schema_version = 1
-          id = "rc2-classic-route-retention"
-          title = "RC2 classic route retention source check"
+          Path("testlab/packs/rc2-classic-revocation-deadline.toml").write_text('''schema_version = 1
+          id = "rc2-classic-revocation-deadline"
+          title = "RC2 classic revocation deadline source check"
           scenarios = ["scenarios/kafka/classic-group-session-recovery.toml"]
           ''')
           Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
-          id = "rc2-classic-route-retention"
-          title = "RC2 classic route retention source check"
+          id = "rc2-classic-revocation-deadline"
+          title = "RC2 classic revocation deadline source check"
           [[cells]]
-          id = "apache-kafka-4-3-1-three-tls"
-          environment = "clusters/apache-kafka/4.3.1/three-tls.toml"
-          pack = "packs/rc2-classic-route-retention.toml"
+          id = "apache-kafka-4-3-1-three-scram-sha-512"
+          environment = "clusters/apache-kafka/4.3.1/three-scram-sha-512.toml"
+          pack = "packs/rc2-classic-revocation-deadline.toml"
           attempts = 5
           gating = true
           ''')
@@ -54,13 +54,13 @@ jobs:
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
-          evidence-directory: rc2-classic-route-retention-evidence
+          evidence-directory: rc2-classic-revocation-deadline-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-classic-route-retention-source-check
+          name: rc2-classic-revocation-deadline-source-check
           path: |
-            rc2-classic-route-retention-evidence
+            rc2-classic-revocation-deadline-evidence
             SOURCE-CHECK-ONLY.txt
             focused-harness.patch
           if-no-files-found: error
