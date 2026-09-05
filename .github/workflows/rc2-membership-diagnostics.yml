@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - driver: rc4
-            candidate: 9a99f69acf6efca72d1c31ec7d7c77ba01719fbb
+            candidate: e249769d28b31ac053fad24ba275b5e93a565aa2
     steps:
       - name: Check out Testlab
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -149,6 +149,7 @@ jobs:
           title = "Diagnostic only, never release evidence"
           scenarios = [
             "scenarios/kafka/classic-group-membership-ownership.toml",
+            "scenarios/kafka/consumer-protocol-group-membership-ownership.toml",
           ]
           TOML
           tee target/rc2-recovery-diagnostic/qualification.toml <<'TOML'
@@ -159,7 +160,7 @@ jobs:
           id = "apache-kafka-4-3-1-plaintext"
           environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
           pack = "packs/rc2-recovery-diagnostic.toml"
-          attempts = 1
+          attempts = 3
           gating = true
           TOML
       - name: Package and run the hosted diagnostic
