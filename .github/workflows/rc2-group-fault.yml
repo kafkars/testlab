@@ -1,4 +1,4 @@
-name: RC2 hosted classic revocation deadline check
+name: RC2 hosted receive progress diagnostics
 
 on:
   pull_request:
@@ -7,45 +7,61 @@ permissions:
   contents: read
 
 jobs:
-  classic-revocation-deadline:
+  receive-progress:
+    name: ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: classic-group-record-fidelity
+            scenario: scenarios/kafka/classic-group-record-fidelity.toml
+          - id: assigned-consumer-multi-partition
+            scenario: scenarios/kafka/assigned-consumer-multi-partition.toml
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: 1285ed53e550235c2d2cca8c90e2b9bd0a2820aa
+          ref: bbaf6cc50cdccb3878c0f32d909a656dd577c11d
           path: testlab
           persist-credentials: false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: eb6ed02753ee25f59f8da2f94737a9d298d9cdcb
+          ref: 2b9314b4530e6af75964db7e2bdaa2beb8d91a3d
           path: kafkars-candidate
           persist-credentials: false
-      - name: Select the unchanged classic recovery scenario
+      - name: Select one unchanged receive scenario
+        env:
+          DIAGNOSTIC_ID: ${{ matrix.id }}
+          SCENARIO_PATH: ${{ matrix.scenario }}
         run: |
-          test "$(git -C kafkars-candidate rev-parse HEAD)" = "eb6ed02753ee25f59f8da2f94737a9d298d9cdcb"
-          test "$(git -C testlab rev-parse HEAD)" = "1285ed53e550235c2d2cca8c90e2b9bd0a2820aa"
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "2b9314b4530e6af75964db7e2bdaa2beb8d91a3d"
+          test "$(git -C testlab rev-parse HEAD)" = "bbaf6cc50cdccb3878c0f32d909a656dd577c11d"
           python3 - <<'PY'
+          import os
           from pathlib import Path
+          diagnostic_id = os.environ["DIAGNOSTIC_ID"]
+          scenario_path = os.environ["SCENARIO_PATH"]
           Path("SOURCE-CHECK-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: clean native candidate "
-              "eb6ed02753ee25f59f8da2f94737a9d298d9cdcb with Testlab "
-              "1285ed53e550235c2d2cca8c90e2b9bd0a2820aa. This focused check does not "
+              "2b9314b4530e6af75964db7e2bdaa2beb8d91a3d with Testlab "
+              "bbaf6cc50cdccb3878c0f32d909a656dd577c11d. This focused check does not "
               "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
-          Path("testlab/packs/rc2-classic-revocation-deadline.toml").write_text('''schema_version = 1
-          id = "rc2-classic-revocation-deadline"
-          title = "RC2 classic revocation deadline source check"
-          scenarios = ["scenarios/kafka/classic-group-session-recovery.toml"]
+          pack_path = Path(f"testlab/packs/rc2-{diagnostic_id}.toml")
+          pack_path.write_text(f'''schema_version = 1
+          id = "rc2-{diagnostic_id}"
+          title = "RC2 {diagnostic_id} source check"
+          scenarios = ["{scenario_path}"]
           ''')
-          Path("testlab/qualifications/kafkars-pr.toml").write_text('''schema_version = 2
-          id = "rc2-classic-revocation-deadline"
-          title = "RC2 classic revocation deadline source check"
+          Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
+          id = "rc2-{diagnostic_id}"
+          title = "RC2 {diagnostic_id} source check"
           [[cells]]
-          id = "apache-kafka-4-3-1-three-scram-sha-512"
-          environment = "clusters/apache-kafka/4.3.1/three-scram-sha-512.toml"
-          pack = "packs/rc2-classic-revocation-deadline.toml"
+          id = "apache-kafka-4-3-1-plaintext"
+          environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
+          pack = "packs/rc2-{diagnostic_id}.toml"
           attempts = 5
           gating = true
           ''')
@@ -54,13 +70,13 @@ jobs:
       - uses: ./testlab
         with:
           kafkars-path: kafkars-candidate
-          evidence-directory: rc2-classic-revocation-deadline-evidence
+          evidence-directory: rc2-${{ matrix.id }}-evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-classic-revocation-deadline-source-check
+          name: rc2-${{ matrix.id }}-source-check
           path: |
-            rc2-classic-revocation-deadline-evidence
+            rc2-${{ matrix.id }}-evidence
             SOURCE-CHECK-ONLY.txt
             focused-harness.patch
           if-no-files-found: error
