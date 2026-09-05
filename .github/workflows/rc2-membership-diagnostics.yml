@@ -1,4 +1,4 @@
-name: RC2 hosted recovery diagnostics
+name: RC2 hosted membership diagnostics
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - driver: rc4
-            candidate: b28a18b9945184d01cfa98e76d609289ec820dcf
+            candidate: 2b91ca78baa700838a6212e183e6d7d335386b80
     steps:
       - name: Check out Testlab
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -161,6 +161,19 @@ jobs:
                    finish_consumer_group_leave_failure(entry, revoked, core_close_terminal(failure))
                } else {
           PATCH
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs b/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs
+          @@ -78,6 +78,7 @@ impl GroupConsumerRegistry {
+                       return Err(GroupConsumerDeliveryError::PositionFailure(failure));
+                   }
+                   if entry.fault.is_some() {
+          +            eprintln!("RC2 diagnostic delivery entry fault: {:?}", entry.fault);
+                       return Err(GroupConsumerDeliveryError::EntryFault);
+                   }
+                   if let Some(failure) = entry
+          PATCH
           git -C kafkars-candidate diff --check
           git -C testlab diff --check
           git -C kafkars-candidate diff > instrumented-candidate.diff
@@ -174,10 +187,7 @@ jobs:
           id = "rc2-recovery-diagnostic"
           title = "Diagnostic only, never release evidence"
           scenarios = [
-            "scenarios/kafka/classic-group-round-trip.toml",
-            "scenarios/kafka/classic-group-session-recovery.toml",
-            "scenarios/kafka/consumer-protocol-group-session-recovery.toml",
-            "scenarios/kafka/transaction-commit-abort.toml",
+            "scenarios/kafka/classic-group-membership-ownership.toml",
           ]
           TOML
           tee target/rc2-recovery-diagnostic/qualification.toml <<'TOML'
@@ -185,10 +195,10 @@ jobs:
           id = "rc2-recovery-diagnostic"
           title = "Diagnostic only, never release evidence"
           [[cells]]
-          id = "apache-kafka-4-3-1-three-sasl-plain"
-          environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
+          id = "apache-kafka-4-3-1-plaintext"
+          environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
           pack = "packs/rc2-recovery-diagnostic.toml"
-          attempts = 1
+          attempts = 3
           gating = true
           TOML
       - name: Package and run the hosted diagnostic
