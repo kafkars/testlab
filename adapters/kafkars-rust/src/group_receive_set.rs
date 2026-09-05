@@ -1,7 +1,10 @@
 //! Multi-member group receive round-robins public batches and commits every checkpoint.
 
 use std::collections::BTreeMap;
+use std::future::Future;
 use std::io::Write;
+use std::pin::pin;
+use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::RetryAdvice;
@@ -39,10 +42,23 @@ pub(crate) fn receive<W: Write>(
             if !crate::group_receive_events::drive(state, consumer_id, deadline)? {
                 continue;
             }
-            let batch = match state.group_consumer_mut(consumer_id)?.try_take_batch() {
-                Ok(batch) => batch,
-                Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => None,
-                Err(error) => return Err(AdapterError::Client(error)),
+            // Rebuild the public observer on every bounded round-robin probe.
+            let result = {
+                let mut receive = pin!(state.group_consumer_mut(consumer_id)?.recv());
+                receive
+                    .as_mut()
+                    .poll(&mut Context::from_waker(Waker::noop()))
+            };
+            let batch = match result {
+                Poll::Ready(Ok(batch)) => batch,
+                Poll::Ready(Err(error))
+                    if error.retry_advice() == RetryAdvice::RetrySafe
+                        && Instant::now() < deadline =>
+                {
+                    None
+                }
+                Poll::Ready(Err(error)) => return Err(AdapterError::Client(error)),
+                Poll::Pending => None,
             };
             if let Some(batch) = batch {
                 let batch_records =
