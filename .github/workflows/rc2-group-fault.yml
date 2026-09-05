@@ -19,18 +19,18 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: 818856051c0de27bb6209bd5e3fa4a757800cf5f
+          ref: c26835ce9fd1457fafeb8819eb71bbb9e2af8a74
           path: kafkars-candidate
           persist-credentials: false
       - name: Select the unchanged classic recovery scenario
         run: |
-          test "$(git -C kafkars-candidate rev-parse HEAD)" = "818856051c0de27bb6209bd5e3fa4a757800cf5f"
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "c26835ce9fd1457fafeb8819eb71bbb9e2af8a74"
           test "$(git -C testlab rev-parse HEAD)" = "508ada91114a8004087b75ae2e724d84a77d7424"
           python3 - <<'PY'
           from pathlib import Path
           Path("SOURCE-CHECK-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: clean native candidate "
-              "818856051c0de27bb6209bd5e3fa4a757800cf5f with Testlab "
+              "c26835ce9fd1457fafeb8819eb71bbb9e2af8a74 with Testlab "
               "508ada91114a8004087b75ae2e724d84a77d7424. This focused check does not "
               "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
