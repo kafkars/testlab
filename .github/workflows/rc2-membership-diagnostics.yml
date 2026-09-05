@@ -17,8 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - driver: rc3
-            candidate: b5961d2d427d5aa5d3d66fdcd9ef0ad5f11a3c82
           - driver: rc4
             candidate: 9a99f69acf6efca72d1c31ec7d7c77ba01719fbb
     steps:
@@ -111,6 +109,32 @@ jobs:
            }
           
           PATCH
+          ruby -e '
+            base = "kafkars-candidate/crates/kafka-client-engine/src/consumer/group/"
+            files = %w[classic_group_heartbeat_prepare.rs classic_group_heartbeat_submission.rs classic_group_heartbeat_settlement.rs classic_group_rediscovery_transfer.rs registry_membership_local.rs]
+            files.each do |name|
+              path = base + name
+              marker = %q({ eprintln!("RC2 diagnostic heartbeat state at {}:{}", file!(), line!()); ClassicGroupExecutionError::HeartbeatState })
+              source = File.read(path)
+                .gsub("return Err(ClassicGroupExecutionError::HeartbeatState);", "return Err(#{marker});")
+                .gsub("|_error| ClassicGroupExecutionError::HeartbeatState", "|_error| #{marker}")
+                .gsub("\n    ClassicGroupExecutionError::HeartbeatState\n}", "\n    #{marker}\n}")
+              File.write(path, source)
+            end
+          '
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_rejection_fault.rs
+          @@ -35,6 +35,7 @@ impl ClassicRejectionPostCore {
+                   effects: [Option<ClassicGroupEffect>; 2],
+                   failure: ClassicRejectionInstallFailure,
+               ) -> Self {
+          +        eprintln!("RC2 diagnostic post-core rejection: {failure:?}");
+                   Self {
+                       post_core_rejection_effects: effects,
+                       post_core_rejection_failure: failure,
+          PATCH
           git -C kafkars-candidate diff --check
           git -C testlab diff --check
           git -C kafkars-candidate diff > instrumented-candidate.diff
@@ -135,7 +159,7 @@ jobs:
           id = "apache-kafka-4-3-1-plaintext"
           environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
           pack = "packs/rc2-recovery-diagnostic.toml"
-          attempts = 3
+          attempts = 1
           gating = true
           TOML
       - name: Package and run the hosted diagnostic
@@ -161,4 +185,3 @@ jobs:
             testlab/packs/rc2-recovery-diagnostic.toml
           if-no-files-found: error
           retention-days: 30
-
