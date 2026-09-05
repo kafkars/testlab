@@ -1,9 +1,6 @@
 //! Classic-group commands retain public records and checkpoint truth.
 
-use std::future::Future;
 use std::io::Write;
-use std::pin::pin;
-use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{
@@ -20,6 +17,8 @@ use crate::admission_retry::retry_owned_until;
 use crate::group_consumers::GroupConsumerRegistration;
 use crate::protocol::emit;
 use crate::state::AdapterState;
+
+pub(crate) use crate::group_receive_events::receive_batch;
 
 const POLL_SLICE: Duration = Duration::from_millis(10);
 
@@ -236,39 +235,6 @@ pub(crate) fn commit_batch(
                 }
             }
         }
-    }
-}
-
-pub(crate) fn receive_batch(
-    state: &mut AdapterState,
-    consumer_id: &ConsumerId,
-    deadline: Instant,
-) -> Result<Option<ConsumerBatch>, AdapterError> {
-    if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
-        return Err(AdapterError::Client(error));
-    }
-    let result = {
-        let mut receive = pin!(state.group_consumer_mut(consumer_id)?.recv());
-        let mut context = Context::from_waker(Waker::noop());
-        loop {
-            if let Poll::Ready(result) = receive.as_mut().poll(&mut context) {
-                break Some(result);
-            }
-            if Instant::now() >= deadline {
-                break None;
-            }
-            std::thread::sleep(POLL_SLICE);
-        }
-    };
-    match result {
-        Some(Ok(None)) => {
-            if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
-                return Err(AdapterError::Client(error));
-            }
-            Ok(None)
-        }
-        Some(result) => result.map_err(AdapterError::Client),
-        None => Ok(None),
     }
 }
 

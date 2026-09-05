@@ -280,6 +280,13 @@ completion reports both the exact records and whether that checkpoint committed;
 the deterministic verifier requires both the expected record and a successful
 commit.
 
+Single-member and multi-member group receives also drain public assignment
+events and complete revocation leases within the receive's original deadline.
+They retain those transitions for the next matching assignment observation,
+preserving member identity and order. The adapter fails if its 256-transition
+evidence capacity is exhausted instead of silently dropping observed facts.
+Neither event handling nor receive observation extends background Fetch work.
+
 A batch direct assignment replaces the complete caller-ordered partition set
 through one public call. Stable group assignment observation drains public
 assigned, revoking, and lost transitions, explicitly completes current revocation
