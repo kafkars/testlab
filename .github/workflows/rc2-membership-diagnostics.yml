@@ -1,4 +1,4 @@
-name: RC2 hosted membership diagnostics
+name: RC2 hosted recovery diagnostics
 
 on:
   pull_request:
@@ -135,6 +135,32 @@ jobs:
                        [
                            Some(ClassicGroupEffect::Revoke {
           PATCH
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/consumer/group/consumer_group_execution_terminal.rs b/crates/kafka-client-engine/src/consumer/group/consumer_group_execution_terminal.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/consumer_group_execution_terminal.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/consumer_group_execution_terminal.rs
+          @@ -140,6 +140,7 @@ impl ConsumerGroupExecution {
+                   &mut self,
+                   failure: ConsumerGroupHeartbeatFailure,
+               ) -> Result<Option<LiveGroupAssignment>, ConsumerGroupExecutionError> {
+          +        eprintln!("RC2 diagnostic modern membership failure: {failure:?}");
+                   let prepared = self
+                       .prepared
+                       .ok_or(ConsumerGroupExecutionError::MissingPrepared)?;
+          PATCH
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_rediscovery_execution.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_rediscovery_execution.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/classic_group_rediscovery_execution.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_rediscovery_execution.rs
+          @@ -235,6 +235,7 @@ pub(super) fn finish_consumer_group_rediscovery_terminal(
+               revoked: Option<LiveGroupAssignment>,
+               failure: ConsumerGroupHeartbeatFailure,
+           ) -> Result<(), ConsumerGroupExecutionError> {
+          +    eprintln!("RC2 diagnostic modern rediscovery terminal: {failure:?}, leave={is_leave}");
+               if is_leave {
+                   finish_consumer_group_leave_failure(entry, revoked, core_close_terminal(failure))
+               } else {
+          PATCH
           git -C kafkars-candidate diff --check
           git -C testlab diff --check
           git -C kafkars-candidate diff > instrumented-candidate.diff
@@ -148,8 +174,10 @@ jobs:
           id = "rc2-recovery-diagnostic"
           title = "Diagnostic only, never release evidence"
           scenarios = [
-            "scenarios/kafka/classic-group-membership-ownership.toml",
-            "scenarios/kafka/consumer-protocol-group-membership-ownership.toml",
+            "scenarios/kafka/classic-group-round-trip.toml",
+            "scenarios/kafka/classic-group-session-recovery.toml",
+            "scenarios/kafka/consumer-protocol-group-session-recovery.toml",
+            "scenarios/kafka/transaction-commit-abort.toml",
           ]
           TOML
           tee target/rc2-recovery-diagnostic/qualification.toml <<'TOML'
@@ -157,10 +185,10 @@ jobs:
           id = "rc2-recovery-diagnostic"
           title = "Diagnostic only, never release evidence"
           [[cells]]
-          id = "apache-kafka-4-3-1-plaintext"
-          environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
+          id = "apache-kafka-4-3-1-three-sasl-plain"
+          environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
           pack = "packs/rc2-recovery-diagnostic.toml"
-          attempts = 3
+          attempts = 1
           gating = true
           TOML
       - name: Package and run the hosted diagnostic
