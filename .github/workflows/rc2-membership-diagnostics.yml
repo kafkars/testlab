@@ -1,0 +1,164 @@
+name: RC2 hosted membership diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    paths: [.github/workflows/rc2-membership-diagnostics.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  recovery:
+    if: github.head_ref == 'feat/rc2-qualification'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - driver: rc3
+            candidate: b5961d2d427d5aa5d3d66fdcd9ef0ad5f11a3c82
+          - driver: rc4
+            candidate: 9a99f69acf6efca72d1c31ec7d7c77ba01719fbb
+    steps:
+      - name: Check out Testlab
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: testlab
+          persist-credentials: false
+      - name: Check out exact comparison candidate
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/kafkars
+          ref: ${{ matrix.candidate }}
+          path: kafkars-candidate
+          persist-credentials: false
+      - uses: ./testlab/.github/actions/setup-rust
+      - run: rustup toolchain install 1.90.0 --profile minimal
+      - name: Retain errors from the disposable diagnostic candidate
+        run: |
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/engine_host/finalize.rs b/crates/kafka-client-engine/src/engine_host/finalize.rs
+          --- a/crates/kafka-client-engine/src/engine_host/finalize.rs
+          +++ b/crates/kafka-client-engine/src/engine_host/finalize.rs
+          @@ -11,7 +11,10 @@ pub(super) fn finish_host(mut resources: EngineHostResources, lifecycle: &EngineLife
+                   let outcome = catch_unwind(AssertUnwindSafe(|| run(&mut resources)));
+                   let exit = match outcome {
+                       Ok(Ok(exit)) => exit,
+          -            Ok(Err(error)) => recover(&mut resources, error),
+          +            Ok(Err(error)) => {
+          +                eprintln!("RC2 diagnostic host failure: {error:?}");
+          +                recover(&mut resources, error)
+          +            }
+                       Err(_panic) => recover(&mut resources, EngineHostError::HostPanicked),
+                   };
+                   let failure = finalize_exit(exit);
+          PATCH
+          git -C kafkars-candidate apply <<'PATCH'
+          diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/host.rs
+          @@ -31,7 +31,10 @@ impl GroupConsumerRegistry {
+                       Some(consumer) => current_consumer_group_position_fence(consumer, &entry.catalog),
+                       None => current_position_fence(&entry.classic, &entry.catalog),
+                   }
+          -        .map_err(|_error| ClassicGroupPositionExecutionError::ResetCurrentFence)?;
+          +        .map_err(|error| {
+          +            eprintln!("RC2 diagnostic reset fence unavailable: {error:?}");
+          +            ClassicGroupPositionExecutionError::ResetCurrentFence
+          +        })?;
+                   entry.position.begin_missing_offset_reset(current, now)?;
+                   Ok(ClassicGroupPositionResetTurn::Progress)
+               }
+          diff --git a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs
+          --- a/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs
+          +++ b/crates/kafka-client-engine/src/consumer/group/classic_group_position_reset/transition.rs
+          @@ -30,6 +30,7 @@ impl ClassicGroupPositionExecution {
+                       return Err(ClassicGroupPositionExecutionError::ResetNotRequired);
+                   };
+                   if completed.fence() != current {
+          +            eprintln!("RC2 diagnostic reset fence mismatch: completed={:?} current={current:?}", completed.fence());
+                       self.set(ClassicGroupPositionExecutionState::Complete(completed));
+                       return Err(ClassicGroupPositionExecutionError::ResetCurrentFence);
+                   }
+          diff --git a/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs b/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs
+          --- a/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs
+          +++ b/crates/kafka-client-engine/src/driver/rpc/transaction_produce/normalize.rs
+          @@ -46,6 +46,7 @@ pub(super) fn normalize_terminal(
+                       normalize_response(epoch, send_id, topic.as_ref(), partition, &response)
+                   }
+                   TransactionProduceResult::Driver(error) => {
+          +            eprintln!("RC2 diagnostic transaction Produce: {error:?}");
+                       let failure = TransactionProduceFailure::new(
+                           TransactionProduceFailureKind::Driver(request_failure_kind(&error)),
+                           request_failure_delivery(&error),
+          PATCH
+          git -C testlab apply <<'PATCH'
+          diff --git a/crates/testctl/src/session.rs b/crates/testctl/src/session.rs
+          --- a/crates/testctl/src/session.rs
+          +++ b/crates/testctl/src/session.rs
+          @@ -133,7 +133,10 @@ fn settle_process(
+           ) -> Result<(), RunFailure> {
+               process.close_input()?;
+               protocol.drain_to_eof(process, recorder, deadline)?;
+          -    let _stderr = process.wait_success(deadline)?;
+          +    let stderr = process.wait_success(deadline)?;
+          +    if !stderr.is_empty() {
+          +        eprintln!("RC2 diagnostic adapter stderr: {stderr}");
+          +    }
+               Ok(())
+           }
+          
+          PATCH
+          git -C kafkars-candidate diff --check
+          git -C testlab diff --check
+          git -C kafkars-candidate diff > instrumented-candidate.diff
+          git -C testlab diff > instrumented-harness.diff
+      - name: Select unchanged failing smoke scenarios
+        working-directory: testlab
+        run: |
+          mkdir -p target/rc2-recovery-diagnostic
+          tee packs/rc2-recovery-diagnostic.toml <<'TOML'
+          schema_version = 1
+          id = "rc2-recovery-diagnostic"
+          title = "Diagnostic only, never release evidence"
+          scenarios = [
+            "scenarios/kafka/classic-group-membership-ownership.toml",
+          ]
+          TOML
+          tee target/rc2-recovery-diagnostic/qualification.toml <<'TOML'
+          schema_version = 2
+          id = "rc2-recovery-diagnostic"
+          title = "Diagnostic only, never release evidence"
+          [[cells]]
+          id = "apache-kafka-4-3-1-plaintext"
+          environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
+          pack = "packs/rc2-recovery-diagnostic.toml"
+          attempts = 3
+          gating = true
+          TOML
+      - name: Package and run the hosted diagnostic
+        working-directory: testlab
+        run: |
+          set -o pipefail
+          cargo build --locked -p testctl
+          target/debug/testctl qualify-kafkars \
+            --root . --kafkars-root ../kafkars-candidate --allow-dirty \
+            --qualification target/rc2-recovery-diagnostic/qualification.toml \
+            --evidence-dir ../rc2-recovery-evidence 2>&1 | tee ../diagnostic.log
+      - name: Archive synthetic diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: rc2-driver-${{ matrix.driver }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            rc2-recovery-evidence
+            instrumented-candidate.diff
+            instrumented-harness.diff
+            diagnostic.log
+            testlab/target/rc2-recovery-diagnostic
+            testlab/packs/rc2-recovery-diagnostic.toml
+          if-no-files-found: error
+          retention-days: 30
+
