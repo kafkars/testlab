@@ -10,6 +10,13 @@ jobs:
   share-fault:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        candidate:
+          - 7e54c80c654f4228f2e84f3b583a6671d671c70a
+          - 192ed9c11ba4382a744440fb3b2df51b54e4d8bf
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: kafkars/kafkars
-          ref: 7e54c80c654f4228f2e84f3b583a6671d671c70a
+          ref: ${{ matrix.candidate }}
           path: kafkars-candidate
           persist-credentials: false
       - name: Instrument only the disposable candidate and select unchanged diagnostics
@@ -55,7 +62,7 @@ jobs:
           source = Path("kafkars-candidate/crates/kafka-client-engine/src/driver/rpc/share_group_heartbeat/invalidation_drive.rs")
           code = source.read_text()
           changes = [
-              ('    let result = match result {', '    eprintln!("RC2_SHARE_INVALIDATION_TERMINAL group={group_id:?} result={result:?}");\n    let result = match result {'),
+              ('return Ok(terminal(group_id, result));', 'eprintln!("RC2_SHARE_INVALIDATION_TERMINAL group={group_id:?} result={result:?}");\n            return Ok(terminal(group_id, result));'),
               ('let (source, token) = rejected.into_parts();', 'let (source, token) = rejected.into_parts();\n                    eprintln!("RC2_SHARE_INVALIDATION_SUBMIT {source:?}");'),
           ]
           for before, after in changes:
@@ -93,7 +100,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: ${{ always() }}
         with:
-          name: rc2-share-fault-evidence
+          name: rc2-share-fault-evidence-${{ matrix.candidate }}
           path: |
             rc2-share-fault-evidence
             instrumented-candidate.patch
