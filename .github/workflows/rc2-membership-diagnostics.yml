@@ -1,4 +1,4 @@
-name: RC2 hosted membership diagnostics
+name: RC2 hosted recovery diagnostics
 
 on:
   pull_request:
@@ -165,14 +165,40 @@ jobs:
           diff --git a/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs b/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs
           --- a/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs
           +++ b/crates/kafka-client-engine/src/consumer/group/registry_delivery.rs
-          @@ -78,6 +78,7 @@ impl GroupConsumerRegistry {
+          @@ -78,6 +78,16 @@ impl GroupConsumerRegistry {
                        return Err(GroupConsumerDeliveryError::PositionFailure(failure));
                    }
                    if entry.fault.is_some() {
-          +            eprintln!("RC2 diagnostic delivery entry fault: {:?}", entry.fault);
+          +            use super::classic_group_entry_fault::ClassicGroupEntryFault;
+          +            if let Some(fault) = &entry.fault {
+          +                match fault {
+          +                    ClassicGroupEntryFault::FetchTransfer(error) =>
+          +                        eprintln!("RC2 diagnostic delivery FetchTransfer: {error:?}"),
+          +                    ClassicGroupEntryFault::FetchOwner(error) =>
+          +                        eprintln!("RC2 diagnostic delivery FetchOwner: {error:?}"),
+          +                    _ => eprintln!("RC2 diagnostic delivery fault variant: {:?}", std::mem::discriminant(fault)),
+          +                }
+          +            }
                        return Err(GroupConsumerDeliveryError::EntryFault);
                    }
                    if let Some(failure) = entry
+          PATCH
+          git -C testlab apply <<'PATCH'
+          diff --git a/adapters/kafkars-rust/src/protocol_group.rs b/adapters/kafkars-rust/src/protocol_group.rs
+          --- a/adapters/kafkars-rust/src/protocol_group.rs
+          +++ b/adapters/kafkars-rust/src/protocol_group.rs
+          @@ -219,7 +219,10 @@ pub(crate) fn commit_batch(
+               )
+               .map_err(|(_, error)| AdapterError::Client(error))?
+               .wait()
+          -    .map_err(|error| AdapterError::Client(error.into_parts().1))?;
+          +    .map_err(|error| {
+          +        eprintln!("RC2 diagnostic public commit failure: {error:?}");
+          +        AdapterError::Client(error.into_parts().1)
+          +    })?;
+               Ok(records)
+           }
+           
           PATCH
           git -C kafkars-candidate diff --check
           git -C testlab diff --check
@@ -190,6 +216,15 @@ jobs:
             "scenarios/kafka/classic-group-membership-ownership.toml",
           ]
           TOML
+          tee packs/rc2-secure-recovery-diagnostic.toml <<'TOML'
+          schema_version = 1
+          id = "rc2-secure-recovery-diagnostic"
+          title = "Diagnostic only, never release evidence"
+          scenarios = [
+            "scenarios/kafka/classic-group-session-recovery.toml",
+            "scenarios/kafka/consumer-protocol-group-session-recovery.toml",
+          ]
+          TOML
           tee target/rc2-recovery-diagnostic/qualification.toml <<'TOML'
           schema_version = 2
           id = "rc2-recovery-diagnostic"
@@ -199,6 +234,12 @@ jobs:
           environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
           pack = "packs/rc2-recovery-diagnostic.toml"
           attempts = 3
+          gating = true
+          [[cells]]
+          id = "apache-kafka-4-3-1-three-sasl-plain"
+          environment = "clusters/apache-kafka/4.3.1/three-sasl-plain.toml"
+          pack = "packs/rc2-secure-recovery-diagnostic.toml"
+          attempts = 1
           gating = true
           TOML
       - name: Package and run the hosted diagnostic
@@ -222,5 +263,6 @@ jobs:
             diagnostic.log
             testlab/target/rc2-recovery-diagnostic
             testlab/packs/rc2-recovery-diagnostic.toml
+            testlab/packs/rc2-secure-recovery-diagnostic.toml
           if-no-files-found: error
           retention-days: 30
