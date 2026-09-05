@@ -9,7 +9,7 @@ use testlab_schema::ConsumerId;
 
 use crate::AdapterError;
 use crate::group_assignment_observe::drain_transitions;
-use crate::kafkars_api::ConsumerBatch;
+use crate::kafkars_api::{ConsumerBatch, RetryAdvice};
 use crate::state::AdapterState;
 
 const POLL_SLICE: Duration = Duration::from_millis(10);
@@ -39,7 +39,15 @@ pub(crate) fn receive_batch(
                     }
                     return Ok(None);
                 }
-                Poll::Ready(result) => return result.map_err(AdapterError::Client),
+                Poll::Ready(Ok(batch)) => return Ok(batch),
+                Poll::Ready(Err(error))
+                    if error.retry_advice() == RetryAdvice::RetrySafe
+                        && Instant::now() < deadline =>
+                {
+                    // No batch crossed the adapter boundary; reconstruct the
+                    // public observation without extending its deadline.
+                }
+                Poll::Ready(Err(error)) => return Err(AdapterError::Client(error)),
                 Poll::Pending => {}
             }
         }
