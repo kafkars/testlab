@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - driver: rc4
-            candidate: e249769d28b31ac053fad24ba275b5e93a565aa2
+            candidate: b28a18b9945184d01cfa98e76d609289ec820dcf
     steps:
       - name: Check out Testlab
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
