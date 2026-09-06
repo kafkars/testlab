@@ -15,6 +15,8 @@ jobs:
         include:
           - id: assigned-consumer-multi-partition
             scenario: scenarios/kafka/assigned-consumer-multi-partition.toml
+          - id: classic-group-record-fidelity
+            scenario: scenarios/kafka/classic-group-record-fidelity.toml
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -26,7 +28,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: c26835ce9fd1457fafeb8819eb71bbb9e2af8a74
+          ref: 64f6c9186daf816527d70d3ddd0ec2b576d4df17
           path: kafkars-candidate
           persist-credentials: false
       - name: Select one unchanged receive scenario
@@ -34,7 +36,7 @@ jobs:
           DIAGNOSTIC_ID: ${{ matrix.id }}
           SCENARIO_PATH: ${{ matrix.scenario }}
         run: |
-          test "$(git -C kafkars-candidate rev-parse HEAD)" = "c26835ce9fd1457fafeb8819eb71bbb9e2af8a74"
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "64f6c9186daf816527d70d3ddd0ec2b576d4df17"
           test "$(git -C testlab rev-parse HEAD)" = "32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8"
           python3 - <<'PY'
           import os
@@ -43,7 +45,7 @@ jobs:
           scenario_path = os.environ["SCENARIO_PATH"]
           Path("SOURCE-CHECK-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: clean native candidate "
-              "c26835ce9fd1457fafeb8819eb71bbb9e2af8a74 with Testlab "
+              "64f6c9186daf816527d70d3ddd0ec2b576d4df17 with Testlab "
               "32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8. This focused check does not "
               "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
