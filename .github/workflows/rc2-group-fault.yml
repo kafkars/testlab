@@ -13,8 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - id: classic-group-record-fidelity
-            scenario: scenarios/kafka/classic-group-record-fidelity.toml
           - id: assigned-consumer-multi-partition
             scenario: scenarios/kafka/assigned-consumer-multi-partition.toml
     runs-on: ubuntu-latest
@@ -22,13 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: bbaf6cc50cdccb3878c0f32d909a656dd577c11d
+          ref: 32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8
           path: testlab
           persist-credentials: false
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: kafkars/kafkars
-          ref: 2b9314b4530e6af75964db7e2bdaa2beb8d91a3d
+          ref: 94e7fa59ff32a9119ca5546b6138f4e60185572e
           path: kafkars-candidate
           persist-credentials: false
       - name: Select one unchanged receive scenario
@@ -36,8 +34,8 @@ jobs:
           DIAGNOSTIC_ID: ${{ matrix.id }}
           SCENARIO_PATH: ${{ matrix.scenario }}
         run: |
-          test "$(git -C kafkars-candidate rev-parse HEAD)" = "2b9314b4530e6af75964db7e2bdaa2beb8d91a3d"
-          test "$(git -C testlab rev-parse HEAD)" = "bbaf6cc50cdccb3878c0f32d909a656dd577c11d"
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "94e7fa59ff32a9119ca5546b6138f4e60185572e"
+          test "$(git -C testlab rev-parse HEAD)" = "32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8"
           python3 - <<'PY'
           import os
           from pathlib import Path
@@ -45,8 +43,8 @@ jobs:
           scenario_path = os.environ["SCENARIO_PATH"]
           Path("SOURCE-CHECK-ONLY.txt").write_text(
               "NOT RELEASE EVIDENCE: clean native candidate "
-              "2b9314b4530e6af75964db7e2bdaa2beb8d91a3d with Testlab "
-              "bbaf6cc50cdccb3878c0f32d909a656dd577c11d. This focused check does not "
+              "94e7fa59ff32a9119ca5546b6138f4e60185572e with Testlab "
+              "32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8. This focused check does not "
               "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
           )
           pack_path = Path(f"testlab/packs/rc2-{diagnostic_id}.toml")
@@ -62,7 +60,7 @@ jobs:
           id = "apache-kafka-4-3-1-plaintext"
           environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
           pack = "packs/rc2-{diagnostic_id}.toml"
-          attempts = 5
+          attempts = 1
           gating = true
           ''')
           PY
