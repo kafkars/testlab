@@ -1,0 +1,80 @@
+name: RC2 hosted receive progress diagnostics
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  receive-progress:
+    name: ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: assigned-consumer-multi-partition
+            scenario: scenarios/kafka/assigned-consumer-multi-partition.toml
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: 32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8
+          path: testlab
+          persist-credentials: false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: kafkars/kafkars
+          ref: c26835ce9fd1457fafeb8819eb71bbb9e2af8a74
+          path: kafkars-candidate
+          persist-credentials: false
+      - name: Select one unchanged receive scenario
+        env:
+          DIAGNOSTIC_ID: ${{ matrix.id }}
+          SCENARIO_PATH: ${{ matrix.scenario }}
+        run: |
+          test "$(git -C kafkars-candidate rev-parse HEAD)" = "c26835ce9fd1457fafeb8819eb71bbb9e2af8a74"
+          test "$(git -C testlab rev-parse HEAD)" = "32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          diagnostic_id = os.environ["DIAGNOSTIC_ID"]
+          scenario_path = os.environ["SCENARIO_PATH"]
+          Path("SOURCE-CHECK-ONLY.txt").write_text(
+              "NOT RELEASE EVIDENCE: clean native candidate "
+              "c26835ce9fd1457fafeb8819eb71bbb9e2af8a74 with Testlab "
+              "32a171b33c6f5f3ab4dc979b2efb0e0923cc94f8. This focused check does not "
+              "replace exact-merge code CI or the complete 12-cell release aggregate.\n"
+          )
+          pack_path = Path(f"testlab/packs/rc2-{diagnostic_id}.toml")
+          pack_path.write_text(f'''schema_version = 1
+          id = "rc2-{diagnostic_id}"
+          title = "RC2 {diagnostic_id} source check"
+          scenarios = ["{scenario_path}"]
+          ''')
+          Path("testlab/qualifications/kafkars-pr.toml").write_text(f'''schema_version = 2
+          id = "rc2-{diagnostic_id}"
+          title = "RC2 {diagnostic_id} source check"
+          [[cells]]
+          id = "apache-kafka-4-3-1-plaintext"
+          environment = "clusters/apache-kafka/4.3.1/single-plaintext.toml"
+          pack = "packs/rc2-{diagnostic_id}.toml"
+          attempts = 1
+          gating = true
+          ''')
+          PY
+          git -C testlab diff > focused-harness.patch
+      - uses: ./testlab
+        with:
+          kafkars-path: kafkars-candidate
+          evidence-directory: rc2-${{ matrix.id }}-evidence
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: ${{ always() }}
+        with:
+          name: rc2-${{ matrix.id }}-source-check
+          path: |
+            rc2-${{ matrix.id }}-evidence
+            SOURCE-CHECK-ONLY.txt
+            focused-harness.patch
+          if-no-files-found: error
