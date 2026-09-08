@@ -5,7 +5,7 @@ use testlab_schema::{
     DescribeTopicConfigAction, OperationId, ScenarioAction,
 };
 
-use crate::observer_admin_config::normalize_fixture;
+use crate::observer_admin_config::{capture_from_brokers, config_brokers, normalize_fixture};
 use crate::observer_admin_target::ConfigTarget;
 
 fn target() -> ConfigTarget {
@@ -60,6 +60,83 @@ fn unavailable_sensitive_value_is_not_manufactured() {
             .to_string()
             .contains("marked the selected configuration sensitive")
     );
+}
+
+#[test]
+fn mutation_waits_for_the_lagging_broker_before_the_next_public_read() {
+    let target = target();
+    let brokers =
+        config_brokers(vec![3, 1, 2], 3).unwrap_or_else(|error| panic!("broker topology: {error}"));
+    let mut queried = Vec::new();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1);
+    let observed = capture_from_brokers(&target, deadline, &brokers, |broker| {
+        queried.push(broker);
+        // The controller and one follower have applied the mutation. Broker 3
+        // still serves the old value during the first observation round.
+        let value = if queried.len() == 3 {
+            "delete"
+        } else {
+            "compact"
+        };
+        normalize_fixture(
+            7,
+            &target,
+            "orders",
+            vec![("cleanup.policy", Some(value), false)],
+        )
+    })
+    .unwrap_or_else(|error| panic!("converged configuration: {error}"));
+    assert_eq!(
+        queried,
+        [Some(1), Some(2), Some(3), Some(1), Some(2), Some(3)]
+    );
+    let BrokerStateObservation::TopicConfig(observed) = observed else {
+        panic!("topic configuration observation");
+    };
+    assert_eq!(observed.value, "compact");
+}
+
+#[test]
+fn query_preserves_a_mismatched_value_without_polling_it_away() {
+    let mut target = target();
+    target.poll_expected = false;
+    let mut calls = 0;
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(1);
+    let observed = capture_from_brokers(&target, deadline, &[None], |broker| {
+        calls += 1;
+        assert_eq!(broker, None);
+        normalize_fixture(
+            7,
+            &target,
+            "orders",
+            vec![("cleanup.policy", Some("delete"), false)],
+        )
+    })
+    .unwrap_or_else(|error| panic!("query observation: {error}"));
+    let BrokerStateObservation::TopicConfig(observed) = observed else {
+        panic!("topic configuration observation");
+    };
+    assert_eq!(observed.value, "delete");
+    assert_eq!(calls, 1);
+}
+
+#[test]
+fn incomplete_or_ambiguous_topology_cannot_establish_config_convergence() {
+    for ids in [vec![], vec![1, 2], vec![1, 1, 2], vec![-1, 1, 2]] {
+        assert!(config_brokers(ids, 3).is_err());
+    }
+}
+
+#[test]
+fn a_lagging_broker_cannot_extend_the_original_observation_deadline() {
+    let deadline = std::time::Instant::now();
+    let result = capture_from_brokers(&target(), deadline, &[Some(1)], |_broker| {
+        panic!("expired observation must not query another broker");
+    });
+    assert!(matches!(
+        result,
+        Err(crate::observer_error::ObserverError::Deadline)
+    ));
 }
 
 #[test]

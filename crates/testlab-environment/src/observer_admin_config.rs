@@ -1,7 +1,7 @@
 //! Topic-configuration observation uses an independent librdkafka admin client.
 
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use futures_executor::block_on;
 use rdkafka::admin::{
@@ -21,22 +21,72 @@ pub(super) fn capture(
     target: &ConfigTarget,
 ) -> Result<BrokerStateObservation, ObserverError> {
     let admin = client(request, "topic-config")?;
-    loop {
+    let brokers = if target.poll_expected {
+        let metadata = admin
+            .inner()
+            .fetch_metadata(None, remaining(request.deadline)?)?;
+        config_brokers(
+            metadata
+                .brokers()
+                .iter()
+                .map(rdkafka::metadata::MetadataBroker::id)
+                .collect(),
+            request.cluster_size,
+        )?
+    } else {
+        vec![None]
+    };
+    capture_from_brokers(target, request.deadline, &brokers, |broker_id| {
         let resource = ResourceSpecifier::Topic(&target.topic);
-        let options = AdminOptions::new().request_timeout(Some(remaining(request.deadline)?));
+        let options = AdminOptions::new()
+            .broker_id(broker_id)
+            .request_timeout(Some(remaining(request.deadline)?));
         let results = block_on(admin.describe_configs([&resource], &options))?;
-        let observed = normalize(request.first_observation, target, results)?;
-        if !target.poll_expected
-            || observed_value(&observed) == Some(target.expected_value.as_str())
-        {
-            return Ok(observed);
+        normalize(request.first_observation, target, results)
+    })
+}
+
+pub(super) fn config_brokers(
+    mut broker_ids: Vec<i32>,
+    cluster_size: u16,
+) -> Result<Vec<Option<i32>>, ObserverError> {
+    broker_ids.sort_unstable();
+    if broker_ids.is_empty()
+        || broker_ids.len() != usize::from(cluster_size)
+        || broker_ids.iter().any(|id| *id < 0)
+        || broker_ids.windows(2).any(|pair| pair[0] == pair[1])
+    {
+        return Err(ObserverError::InvalidBrokerState(format!(
+            "topic configuration metadata must expose {cluster_size} distinct valid brokers"
+        )));
+    }
+    Ok(broker_ids.into_iter().map(Some).collect())
+}
+
+/// Mutation barriers cover every broker that a later public read can select.
+/// Query observations still retain the first independent result without polling.
+pub(super) fn capture_from_brokers(
+    target: &ConfigTarget,
+    deadline: Instant,
+    brokers: &[Option<i32>],
+    mut describe: impl FnMut(Option<i32>) -> Result<BrokerStateObservation, ObserverError>,
+) -> Result<BrokerStateObservation, ObserverError> {
+    loop {
+        let mut pending = false;
+        let mut last = None;
+        for broker in brokers {
+            remaining(deadline)?;
+            let observed = describe(*broker)?;
+            if !target.poll_expected {
+                return Ok(observed);
+            }
+            pending |= observed_value(&observed) != Some(target.expected_value.as_str());
+            last = Some(observed);
         }
-        let wait = request
-            .deadline
-            .saturating_duration_since(std::time::Instant::now());
-        if wait.is_zero() {
-            return Err(ObserverError::Deadline);
+        if !pending {
+            return last.ok_or_else(|| invalid(target, "had no brokers to observe"));
         }
+        let wait = remaining(deadline)?;
         thread::sleep(POLL_SLICE.min(wait));
     }
 }

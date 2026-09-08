@@ -181,6 +181,13 @@ immediately after its exact correlated public admin command while later scenario
 steps are paused. A state query is never emitted for a public command that was
 not actually issued.
 
+After a topic-configuration mutation, the observer waits for the selected value
+on every broker in the environment's exact metadata topology, using broker-targeted
+DescribeConfigs requests and the original observation deadline. This prevents a
+later public read from racing a lagging broker's configuration update. The sealed
+value is independently observed; query and validate-only observations remain
+non-polling snapshots and retain mismatches.
+
 Protocol-v22 plural group-offset and classic-group operations retain the same
 broker-state fact shapes in schema v17. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
