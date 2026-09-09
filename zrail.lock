@@ -2,7 +2,7 @@
 schema = 1
 semantics = 1
 producer = "0.0.1"
-contract_sha256 = "ceb83dbe89f2fcc3c4f9a67e49dc266fc511a5adbe321ef0a8bbe3ae4bd6abf5"
+contract_sha256 = "6579d9badf92d08e5807bea76fecd3e26784aeda81651ad2624786e27719c3dc"
 ratchet = []
 
 [[package]]
@@ -566,7 +566,11 @@ requirement = "0.8"
 [[gate]]
 name = "check"
 path = "zcheck.toml"
-sha256 = "c7e9d477b355c31314668d5eb88283249b389768460838c9c516644f494b5e84"
+sha256 = "95613c7d551ae9d75838d4768a219ad3f38d1007e79a7d998ed0fbd04cab06b5"
+
+[[gate.input]]
+path = ".github/actions/setup-rust/action.yml"
+sha256 = "c50de48aff9500b11eba05a73e36df4ff58b11f170620beff1cfe3f4b81456f4"
 
 [[gate.input]]
 path = ".github/workflows/qualification-release.yml"
@@ -582,7 +586,7 @@ sha256 = "057a12c7e8cb3ef01ee6cf4c192bf9a76451d0c05a28a210f62ae23319fdc3b8"
 
 [[gate.input]]
 path = "action.yml"
-sha256 = "8850ceb256942d3712a64dea467ed1421784ea297ea56f7bfe32c8dfc4389846"
+sha256 = "7448f2cee5480b66dedc079fbff71a6410d7c673574d981d8047b8af180de4a1"
 
 [[gate.input]]
 path = "clippy.toml"
@@ -1231,6 +1235,10 @@ sha256 = "b1ac52525fab2dd91c7d2250102e8193c0590f486fb39bacbe0adc4b6f23077b"
 [[gate.input]]
 path = "scripts/check-scenarios"
 sha256 = "09440d6ce0e3b073f26db9eac1e7625e0169288ebb5e66e7ffc7e29702db4977"
+
+[[gate.input]]
+path = "scripts/install-native-build-dependencies"
+sha256 = "8f217bf4013b491dbe9e7773b176920cb1b11cbac94a6d450215f16c3013e530"
 
 [[gate.input]]
 path = "scripts/portable-environment"

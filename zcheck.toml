@@ -19,13 +19,16 @@ run = ["scripts/check-rust-lint"]
 tools = ["bash", "cargo"]
 resources = ["cargo-target"]
 inputs = [
+  ".github/actions/setup-rust/action.yml",
   "Cargo.toml",
   "Cargo.lock",
   "rust-toolchain.toml",
+  "action.yml",
   "clippy.toml",
   "adapters",
   "crates",
   "scripts/check-rust-lint",
+  "scripts/install-native-build-dependencies",
   "scripts/portable-environment",
 ]
 
@@ -35,12 +38,15 @@ run = ["scripts/check-rust-test"]
 tools = ["bash", "cargo"]
 resources = ["cargo-target"]
 inputs = [
+  ".github/actions/setup-rust/action.yml",
   "Cargo.toml",
   "Cargo.lock",
   "rust-toolchain.toml",
+  "action.yml",
   "adapters",
   "crates",
   "scripts/check-rust-test",
+  "scripts/install-native-build-dependencies",
   "scripts/portable-environment",
 ]
 

@@ -49,6 +49,8 @@ pub use app::run_cli;
 pub use run_error::AppError;
 
 #[cfg(test)]
+mod action_contract_test;
+#[cfg(test)]
 mod candidate_provenance_test;
 #[cfg(test)]
 mod candidate_test;

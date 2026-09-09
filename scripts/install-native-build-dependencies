@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly native_package="libcurl4-openssl-dev"
+
+ubuntu_sources_file() {
+  local apt_etc="$1"
+
+  if [[ -f "$apt_etc/sources.list.d/ubuntu.sources" ]]; then
+    printf '%s\n' "$apt_etc/sources.list.d/ubuntu.sources"
+  elif [[ -f "$apt_etc/sources.list" ]]; then
+    printf '%s\n' "$apt_etc/sources.list"
+  else
+    echo "no Ubuntu apt source file found beneath $apt_etc" >&2
+    return 1
+  fi
+}
+
+install_native_build_dependencies() {
+  local apt_etc="$1"
+  local package_status
+
+  command -v dpkg-query >/dev/null
+  if package_status="$(
+    dpkg-query --show --showformat='${Status}' "$native_package" 2>/dev/null
+  )" && [[ "$package_status" == "install ok installed" ]]; then
+    echo "$native_package is already installed; skipping apt index refresh"
+    return 0
+  fi
+
+  command -v apt-get >/dev/null
+  command -v sudo >/dev/null
+
+  local ubuntu_sources
+  ubuntu_sources="$(ubuntu_sources_file "$apt_etc")"
+  local -a apt_options=(
+    -o "Dir::Etc::sourcelist=$ubuntu_sources"
+    -o "Dir::Etc::sourceparts=-"
+    -o "APT::Get::List-Cleanup=0"
+  )
+
+  sudo apt-get "${apt_options[@]}" update
+  sudo apt-get "${apt_options[@]}" install \
+    --yes \
+    --no-install-recommends \
+    "$native_package"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  if [[ $# -ne 0 ]]; then
+    echo "usage: scripts/install-native-build-dependencies" >&2
+    exit 2
+  fi
+  install_native_build_dependencies /etc/apt
+fi

@@ -5,9 +5,7 @@ runs:
   steps:
     - name: Install native build dependencies
       shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install --yes --no-install-recommends libcurl4-openssl-dev
+      run: "$GITHUB_ACTION_PATH/../../../scripts/install-native-build-dependencies"
     - name: Install Rust
       shell: bash
       run: |
