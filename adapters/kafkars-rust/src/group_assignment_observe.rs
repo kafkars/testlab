@@ -79,7 +79,9 @@ pub(crate) fn observe<W: Write>(
             None
         };
         let stable = (!require_transition || !transitions.is_empty())
-            && current.as_deref().is_some_and(stable_assignment_candidate);
+            && current
+                .as_deref()
+                .is_some_and(|current| stable_assignment_candidate(current, &transitions));
         if stable && current == previous {
             break current.unwrap_or_default();
         }
@@ -112,7 +114,10 @@ pub(super) fn membership_changed(
     previous != Some(current)
 }
 
-pub(super) fn stable_assignment_candidate(assignments: &[GroupConsumerAssignment]) -> bool {
+pub(super) fn stable_assignment_candidate(
+    assignments: &[GroupConsumerAssignment],
+    transitions: &[GroupAssignmentTransition],
+) -> bool {
     let total = assignments
         .iter()
         .map(|assignment| assignment.partitions.len())
@@ -128,7 +133,18 @@ pub(super) fn stable_assignment_candidate(assignments: &[GroupConsumerAssignment
         .iter()
         .flat_map(|assignment| &assignment.partitions)
         .collect::<BTreeSet<_>>();
+    // A released fence cannot prove settled ownership even when snapshots repeat.
     total == unique.len()
+        && assignments.iter().all(|assignment| {
+            transitions
+                .iter()
+                .filter(|transition| transition.consumer_id == assignment.consumer_id)
+                .all(|transition| {
+                    assignment.assignment_epoch > transition.assignment_epoch
+                        || (assignment.assignment_epoch == transition.assignment_epoch
+                            && transition.kind == GroupAssignmentTransitionKind::Assigned)
+                })
+        })
 }
 
 pub(crate) fn drain_transitions(

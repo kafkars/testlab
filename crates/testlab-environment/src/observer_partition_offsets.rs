@@ -5,7 +5,6 @@ use std::time::Duration;
 
 use testlab_schema::{BrokerPartitionOffsets, BrokerStateObservation};
 
-use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
 use crate::observer_admin_target::PartitionOffsetsTarget;
 use crate::observer_error::ObserverError;
@@ -18,11 +17,12 @@ pub(super) fn capture(
 ) -> Result<BrokerStateObservation, ObserverError> {
     let admin = client(request, "partition-offsets")?;
     loop {
-        let (low_watermark, high_watermark) = admin.inner().fetch_watermarks(
-            &target.topic,
-            target.partition,
-            remaining(request.deadline)?,
-        )?;
+        let (low_watermark, high_watermark) =
+            crate::observer_watermarks::capture(request.deadline, |timeout| {
+                admin
+                    .inner()
+                    .fetch_watermarks(&target.topic, target.partition, timeout)
+            })?;
         if low_watermark < 0 || high_watermark < low_watermark {
             return Err(ObserverError::InvalidBrokerState(format!(
                 "watermarks for {}[{}] were {low_watermark}..{high_watermark}",

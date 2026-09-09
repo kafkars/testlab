@@ -61,6 +61,7 @@ mod observer_group_offset;
 mod observer_group_offsets;
 mod observer_partition_offsets;
 mod observer_record;
+mod observer_watermarks;
 mod security;
 mod terminal;
 mod terminal_capture;
@@ -139,6 +140,8 @@ mod observer_group_offset_test;
 mod observer_group_offsets_test;
 #[cfg(test)]
 mod observer_test;
+#[cfg(test)]
+mod observer_watermarks_test;
 #[cfg(test)]
 mod security_test;
 #[cfg(test)]

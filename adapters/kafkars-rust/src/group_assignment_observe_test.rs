@@ -1,7 +1,8 @@
 //! Stable group-assignment candidate checks for provisional and settled ownership.
 
 use testlab_schema::{
-    ConsumerId, GroupConsumerAssignment, GroupMembershipEpoch, TopicPartitionIdentity,
+    ConsumerId, GroupAssignmentTransition, GroupAssignmentTransitionKind, GroupConsumerAssignment,
+    GroupMembershipEpoch, TopicPartitionIdentity,
 };
 
 use super::group_assignment_observe::{
@@ -39,18 +40,73 @@ fn unchanged_membership_does_not_require_a_new_rebalance_event() {
 
 #[test]
 fn stable_candidate_requires_nonempty_disjoint_member_ownership() {
-    assert!(!stable_assignment_candidate(&[
-        assignment("consumer-1", &[("orders", 0)]),
-        assignment("consumer-2", &[]),
-    ]));
-    assert!(!stable_assignment_candidate(&[
-        assignment("consumer-1", &[("orders", 0)]),
-        assignment("consumer-2", &[("orders", 0)]),
-    ]));
-    assert!(stable_assignment_candidate(&[
-        assignment("consumer-1", &[("orders", 0), ("orders", 1)]),
-        assignment("consumer-2", &[("orders", 2), ("orders", 3)]),
-    ]));
+    assert!(!stable_assignment_candidate(
+        &[
+            assignment("consumer-1", &[("orders", 0)]),
+            assignment("consumer-2", &[]),
+        ],
+        &[]
+    ));
+    assert!(!stable_assignment_candidate(
+        &[
+            assignment("consumer-1", &[("orders", 0)]),
+            assignment("consumer-2", &[("orders", 0)]),
+        ],
+        &[]
+    ));
+    assert!(stable_assignment_candidate(
+        &[
+            assignment("consumer-1", &[("orders", 0), ("orders", 1)]),
+            assignment("consumer-2", &[("orders", 2), ("orders", 3)]),
+        ],
+        &[]
+    ));
+}
+
+#[test]
+fn revocation_cannot_settle_on_the_assignment_it_is_releasing() {
+    let current = assignment("consumer-1", &[("orders", 0), ("orders", 1)]);
+    let mut next = assignment(
+        "consumer-1",
+        &[("orders", 0), ("orders", 1), ("orders", 2), ("orders", 3)],
+    );
+    next.assignment_epoch = current.assignment_epoch + 1;
+    for kind in [
+        GroupAssignmentTransitionKind::Revoking,
+        GroupAssignmentTransitionKind::Lost,
+    ] {
+        let transitions = [GroupAssignmentTransition {
+            consumer_id: current.consumer_id.clone(),
+            kind,
+            assignment_epoch: current.assignment_epoch,
+            partitions: current.partitions.clone(),
+        }];
+        assert!(!stable_assignment_candidate(
+            std::slice::from_ref(&current),
+            &transitions
+        ));
+        assert!(stable_assignment_candidate(
+            std::slice::from_ref(&next),
+            &transitions
+        ));
+    }
+}
+
+#[test]
+fn a_snapshot_cannot_precede_an_already_observed_assignment() {
+    let current = assignment("consumer-1", &[("orders", 0)]);
+    let mut transition = GroupAssignmentTransition {
+        consumer_id: current.consumer_id.clone(),
+        kind: GroupAssignmentTransitionKind::Assigned,
+        assignment_epoch: current.assignment_epoch + 1,
+        partitions: current.partitions.clone(),
+    };
+    assert!(!stable_assignment_candidate(
+        std::slice::from_ref(&current),
+        &[transition.clone()]
+    ));
+    transition.assignment_epoch = current.assignment_epoch;
+    assert!(stable_assignment_candidate(&[current], &[transition]));
 }
 
 fn assignment(consumer_id: &str, partitions: &[(&str, i32)]) -> GroupConsumerAssignment {

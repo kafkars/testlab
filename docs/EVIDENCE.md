@@ -239,6 +239,12 @@ packaged consumer claimed each partition; independent record observations,
 committed-offset queries, and consumer-group member counts separately
 corroborate the broker-visible effects. Testlab does not parse private assignment
 state or infer a definite owner from an adapter success string.
+
+Assignment observation cannot settle on a fence that a drained revoking or lost
+event invalidated; it waits for a newer public assignment under the original
+observation deadline. Independent watermark capture retries broker leadership
+transitions under its original deadline and preserves permanent query errors.
+
 CONS-011 additionally requires three distinct successful broker stop/start
 pairs and a committed group receive, or a nonempty Share acquisition followed
 by its exact successful Accept acknowledgement, while each broker remains stopped, so one

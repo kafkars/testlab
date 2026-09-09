@@ -129,7 +129,9 @@ fn assignment(
     let mut assignment = TopicPartitionList::new();
     let mut cursors = BTreeMap::new();
     for (topic, partition) in targets {
-        let (low, high) = consumer.fetch_watermarks(&topic, partition, remaining(deadline)?)?;
+        let (low, high) = crate::observer_watermarks::capture(deadline, |timeout| {
+            consumer.fetch_watermarks(&topic, partition, timeout)
+        })?;
         if high < low {
             return Err(ObserverError::InvalidRecord(format!(
                 "watermarks for {topic}:{partition} are {low}..{high}"
