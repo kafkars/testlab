@@ -9,6 +9,7 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -46,10 +47,10 @@ jobs:
     name: ${{ matrix.cell }}
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 75
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 8
       matrix:
         cell: ${{ fromJSON(needs.plan.outputs.cells) }}
     steps:
@@ -77,16 +78,18 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: testlab-release-cell-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.cell }}
+          name: testlab-release-cell-${{ github.run_id }}-${{ matrix.cell }}
           path: cell-evidence
           if-no-files-found: error
+          overwrite: true
           retention-days: 90
 
   aggregate:
     if: ${{ always() && needs.plan.result == 'success' }}
     needs: [plan, cells]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -94,13 +97,19 @@ jobs:
           ref: ${{ inputs.testlab-ref }}
           persist-credentials: false
       - uses: ./.github/actions/setup-rust
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          pattern: testlab-release-cell-${{ github.run_id }}-${{ github.run_attempt }}-*
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.run_id }}
+          pattern: testlab-release-cell-${{ github.run_id }}-*
           path: downloaded-shards
       - name: Verify and seal every expected cell
+        env:
+          CELLS_RESULT: ${{ needs.cells.result }}
         run: |
           set -euo pipefail
+          test "$CELLS_RESULT" = success
           cargo build --locked -p testctl
           shards=()
           for manifest in "$GITHUB_WORKSPACE"/downloaded-shards/*/*/qualification.json; do
@@ -120,8 +129,118 @@ jobs:
           path: testlab-release-evidence
           if-no-files-found: error
           retention-days: 90
-      - name: Require successful cell jobs
-        if: ${{ always() }}
+
+  verdict:
+    if: ${{ always() && needs.plan.result == 'success' }}
+    needs: [plan, cells, aggregate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download this attempt's complete release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.run_id }}
+          name: testlab-release-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence
+      - name: Require intact passing evidence from successful cells
         env:
           CELLS_RESULT: ${{ needs.cells.result }}
-        run: test "$CELLS_RESULT" = success
+          EXPECTED_CELLS: ${{ needs.plan.outputs.cells }}
+        run: |
+          set -euo pipefail
+          test "$CELLS_RESULT" = success
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path("release-evidence")
+
+          def reject_duplicate_keys(pairs):
+              value = {}
+              for key, item in pairs:
+                  if key in value:
+                      raise SystemExit(f"duplicate JSON key: {key}")
+                  value[key] = item
+              return value
+
+          def load_json(path):
+              with path.open("r", encoding="utf-8") as source:
+                  return json.load(source, object_pairs_hook=reject_duplicate_keys)
+
+          entries = list(root.iterdir())
+          if len(entries) != 1 or not entries[0].is_dir() or entries[0].is_symlink():
+              raise SystemExit("release evidence must contain exactly one qualification directory")
+          qualification_dir = entries[0]
+
+          recorded = load_json(qualification_dir / "digests.json")
+          if not isinstance(recorded, dict):
+              raise SystemExit("qualification digests must be a JSON object")
+
+          actual = {}
+          for path in qualification_dir.rglob("*"):
+              if path.is_symlink():
+                  raise SystemExit(f"symlink in release evidence: {path}")
+              if path.is_dir():
+                  continue
+              if not path.is_file():
+                  raise SystemExit(f"unsupported release evidence entry: {path}")
+              relative = path.relative_to(qualification_dir).as_posix()
+              if relative == "digests.json":
+                  continue
+              digest = hashlib.sha256()
+              with path.open("rb") as source:
+                  for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                      digest.update(chunk)
+              actual[relative] = digest.hexdigest()
+
+          if actual != recorded:
+              missing = sorted(set(recorded) - set(actual))
+              unexpected = sorted(set(actual) - set(recorded))
+              changed = sorted(
+                  path for path in set(actual) & set(recorded)
+                  if actual[path] != recorded[path]
+              )
+              raise SystemExit(
+                  "release evidence digest mismatch: "
+                  f"missing={missing[:3]} unexpected={unexpected[:3]} changed={changed[:3]}"
+              )
+
+          manifest = load_json(qualification_dir / "manifest.json")
+          qualification = load_json(qualification_dir / "qualification.json")
+          subject = load_json(qualification_dir / "subject.json")
+          if manifest.get("schema_version") != 2:
+              raise SystemExit("unsupported qualification evidence schema")
+          if qualification.get("id") != "kafkars-release":
+              raise SystemExit("unexpected release qualification")
+          if manifest.get("qualification_id") != qualification["id"]:
+              raise SystemExit("qualification identity mismatch")
+          if manifest.get("run_id") != qualification_dir.name:
+              raise SystemExit("qualification run identity mismatch")
+          if manifest.get("subject_id") != subject.get("id"):
+              raise SystemExit("qualification subject identity mismatch")
+          if manifest.get("status") != "passed":
+              raise SystemExit("complete release qualification did not pass")
+
+          expected = qualification.get("cells")
+          observed = manifest.get("cells")
+          if not isinstance(expected, list) or not isinstance(observed, list):
+              raise SystemExit("qualification cells must be arrays")
+          planned = json.loads(os.environ["EXPECTED_CELLS"])
+          if [cell.get("id") for cell in expected] != planned:
+              raise SystemExit("sealed cells differ from the reviewed workflow plan")
+          if [cell.get("id") for cell in expected] != [cell.get("cell_id") for cell in observed]:
+              raise SystemExit("qualification cell membership or order mismatch")
+          for configured, result in zip(expected, observed, strict=True):
+              if result.get("attempts") != configured.get("attempts"):
+                  raise SystemExit(f"attempt mismatch for {configured.get('id')}")
+              if result.get("gating") != configured.get("gating"):
+                  raise SystemExit(f"gating mismatch for {configured.get('id')}")
+              if result.get("status") != "passed":
+                  raise SystemExit(f"cell did not pass: {configured.get('id')}")
+
+          print(f"Verified passing release evidence: {qualification_dir.name}")
+          PY

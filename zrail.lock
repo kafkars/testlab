@@ -574,7 +574,7 @@ sha256 = "c50de48aff9500b11eba05a73e36df4ff58b11f170620beff1cfe3f4b81456f4"
 
 [[gate.input]]
 path = ".github/workflows/qualification-release.yml"
-sha256 = "dfd88d8b57225ad6d74b811151daf19a49ff105a0757e76e72afebe8a6e3e95f"
+sha256 = "499e2bf3750de635fa45aaefe8d2e11a7f5227778442a795d15437aa066a11e7"
 
 [[gate.input]]
 path = "Cargo.lock"
@@ -790,7 +790,7 @@ sha256 = "7a211907f4a159aeed7eb4dd335b9be1df4ea2d81b644afdc54f588c051e635a"
 
 [[gate.input]]
 path = "qualifications/kafkars-release.toml"
-sha256 = "38b5f9380824be669ee988b578dca9a570413f76531871ccbb6473e4ba363f1f"
+sha256 = "9a91657ed7eaab10b5658c602dedd38e8536a0d987aadc3f12266574bdcb132b"
 
 [[gate.input]]
 path = "qualifications/repository-pr.toml"
