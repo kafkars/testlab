@@ -159,7 +159,8 @@ fn current_attempt_evidence_is_the_fail_closed_release_verdict() {
     assert!(RELEASE_WORKFLOW.contains("if: ${{ always() && needs.plan.result == 'success' }}"));
     assert!(RELEASE_WORKFLOW.contains("Verify and seal every expected cell"));
     assert!(RELEASE_WORKFLOW.contains("Require intact passing evidence from successful cells"));
-    assert!(RELEASE_WORKFLOW.contains("test \"$CELLS_RESULT\" = success"));
+    assert!(!aggregate_job.contains("test \"$CELLS_RESULT\" = success"));
+    assert!(verdict_job.contains("test \"$CELLS_RESULT\" = success"));
     assert!(
         RELEASE_WORKFLOW.contains(
             "name: testlab-release-evidence-${{ github.run_id }}-${{ github.run_attempt }}"

@@ -105,11 +105,8 @@ jobs:
           pattern: testlab-release-cell-${{ github.run_id }}-*
           path: downloaded-shards
       - name: Verify and seal every expected cell
-        env:
-          CELLS_RESULT: ${{ needs.cells.result }}
         run: |
           set -euo pipefail
-          test "$CELLS_RESULT" = success
           cargo build --locked -p testctl
           shards=()
           for manifest in "$GITHUB_WORKSPACE"/downloaded-shards/*/*/qualification.json; do

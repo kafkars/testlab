@@ -80,9 +80,10 @@ repetitions. Client repositories call the pinned reusable workflow
 `.github/workflows/qualification-release.yml`, passing the same commit in
 `testlab-ref`. It derives cells from Testlab's release manifest, schedules the
 longest cells first across at most eight runners, and aggregates the latest
-artifact for every expected cell across rerun attempts. A small final job
-recursively verifies the current attempt's sealed aggregate and is the release
-verdict. Missing, stale, corrupt, failed, or incomplete evidence fails closed;
+artifact for every expected cell across rerun attempts. Failed cell shards are
+still sealed into complete diagnostic evidence before the workflow reports the
+failure. A small final job recursively verifies the current attempt's sealed
+aggregate and is the release verdict. Missing, stale, corrupt, failed, or incomplete evidence fails closed;
 an aggregate runner that stalls during post-upload cleanup is bounded without
 discarding already sealed evidence. Cell jobs have a 75-minute outer bound.
 For manual cell execution, use the action's optional `cell` input and

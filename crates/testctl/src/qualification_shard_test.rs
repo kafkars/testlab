@@ -2,7 +2,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use serde_json::Value;
 use testlab_schema::{
@@ -16,6 +16,7 @@ use crate::qualification_merge::aggregate_qualification;
 use crate::qualification_shard::{read_json, same_candidate, verify_shard};
 
 const QUALIFICATION: &str = "qualifications/repository-pr.toml";
+static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 #[test]
 fn pr_is_one_pass_and_release_retains_repetitions() {
@@ -210,11 +211,11 @@ struct Fixture {
 impl Fixture {
     fn new() -> Self {
         let repository = repository();
-        let nonce = must(SystemTime::now().duration_since(UNIX_EPOCH)).as_nanos();
+        let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
         let root = repository
             .root()
             .join("target")
-            .join(format!("shard-test-{}-{nonce}", std::process::id()));
+            .join(format!("shard-test-{}-{sequence}", std::process::id()));
         must(fs::create_dir_all(&root));
         let subject = root.join("subject.toml");
         must(fs::write(
