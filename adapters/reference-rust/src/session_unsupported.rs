@@ -42,6 +42,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DescribeShareGroup(_)
         | AdapterCommand::DescribeShareGroups(_)
         | AdapterCommand::ListShareGroupOffsets(_)
+        | AdapterCommand::ListShareGroupsOffsets(_)
         | AdapterCommand::AlterShareGroupOffsets(_)
         | AdapterCommand::DeleteShareGroupOffsets(_)
         | AdapterCommand::DeleteShareGroups(_)

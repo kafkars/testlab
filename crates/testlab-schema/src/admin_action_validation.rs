@@ -35,6 +35,14 @@ pub(crate) fn validate(
     ) {
         return;
     }
+    if crate::admin_share_group_offset_batch_validation::validate(
+        action,
+        clients,
+        operation_ids,
+        problems,
+    ) {
+        return;
+    }
     if crate::admin_delete_records_action_validation::validate(
         action,
         clients,

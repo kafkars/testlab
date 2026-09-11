@@ -62,7 +62,6 @@ pub enum ScenarioAction {
     AlterBrokerPolicy(crate::BrokerPolicyAction),
     /// Offers one record.
     Send {
-        /// Existing producer.
         producer_id: ProducerId,
         /// Stable operation identity.
         operation_id: OperationId,
@@ -222,6 +221,7 @@ pub enum ScenarioAction {
     DescribeShareGroup(crate::DescribeShareGroupAction),
     DescribeShareGroups(crate::DescribeShareGroupsAction),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsAction),
+    ListShareGroupsOffsets(crate::ListShareGroupsOffsetsAction),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsAction),
     DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsAction),
     DeleteShareGroups(crate::DeleteShareGroupsAction),

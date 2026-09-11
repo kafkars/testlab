@@ -73,6 +73,8 @@ mod admin_share_group_protocol_test;
 #[cfg(test)]
 mod admin_share_groups_description_protocol_test;
 #[cfg(test)]
+mod admin_share_groups_offsets_protocol_test;
+#[cfg(test)]
 mod admin_user_scram_protocol_test;
 #[cfg(test)]
 mod candidate_provenance_test;

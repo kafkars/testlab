@@ -64,6 +64,11 @@ pub use crate::admin_share_group_offset::{
     AlterShareGroupOffsetsAction, AlterShareGroupOffsetsCommand, DeleteShareGroupOffsetsAction,
     DeleteShareGroupOffsetsCommand, ListShareGroupOffsetsAction, ListShareGroupOffsetsCommand,
 };
+pub use crate::admin_share_group_offset_batch::{
+    AdminShareGroupOffsetOutcome, AdminShareGroupOffsetsOutcome, AdminShareGroupsOffsetsListing,
+    ListShareGroupsOffsetsAction, ListShareGroupsOffsetsCommand, ShareGroupOffsetExpectation,
+    ShareGroupOffsetSelection, ShareGroupOffsetsExpectation, ShareGroupOffsetsSelection,
+};
 pub use crate::admin_topic::{
     AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription, AdminTopicsListing,
     CreatePartitionsCommand, CreateTopicAction, CreateTopicCommand, DeleteTopicAction,

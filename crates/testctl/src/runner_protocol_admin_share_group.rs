@@ -47,6 +47,20 @@ pub(super) fn classify(
                 && partition == &actual.partition
         }
         (
+            ExpectedEvent::ShareGroupsOffsetsListed {
+                operation_id,
+                group_ids,
+            },
+            AdapterEvent::ShareGroupsOffsetsListed(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .groups
+                    .iter()
+                    .map(|group| group.group_id.as_str())
+                    .eq(group_ids.iter().map(String::as_str))
+        }
+        (
             ExpectedEvent::ShareGroupOffsetsAltered {
                 operation_id,
                 group_id,
@@ -103,6 +117,9 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
         ) | (
             ExpectedEvent::ShareGroupOffsetsListed { .. },
             AdapterEvent::ShareGroupOffsetsListed(_)
+        ) | (
+            ExpectedEvent::ShareGroupsOffsetsListed { .. },
+            AdapterEvent::ShareGroupsOffsetsListed(_)
         ) | (
             ExpectedEvent::ShareGroupOffsetsAltered { .. },
             AdapterEvent::ShareGroupOffsetsAltered(_)

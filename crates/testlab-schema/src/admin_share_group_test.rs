@@ -12,10 +12,10 @@ use super::{
 };
 
 #[test]
-fn plural_share_group_description_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 46);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 49);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 35);
+fn plural_share_group_offset_cut_advances_all_versioned_boundaries() {
+    assert_eq!(PROTOCOL_VERSION, 47);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 50);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 36);
 }
 
 #[test]

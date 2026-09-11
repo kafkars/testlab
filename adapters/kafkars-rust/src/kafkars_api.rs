@@ -7,8 +7,9 @@ pub(crate) use kafkars::admin::{
     ClusterBroker, ConfigAlteration, ConsumerGroupOffsetAlteration, CreateAclOutcome,
     CreateAclResult, DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult,
     DeleteRecordsTarget, DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery,
-    ListConsumerGroupOffsetsResult, ListOffsetsQuery, NewPartitions, NewTopic, OffsetSpec,
-    ResourcePattern, ScramCredentialInfo, ScramMechanism, ShareGroupDescription,
+    ListConsumerGroupOffsetsResult, ListOffsetsQuery, ListShareGroupOffsetsQuery,
+    ListShareGroupOffsetsResult, NewPartitions, NewTopic, OffsetSpec, ResourcePattern,
+    ScramCredentialInfo, ScramMechanism, ShareGroupDescription, ShareGroupOffset,
     ShareGroupOffsetAlteration, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
     UserScramCredentialAlteration,
 };

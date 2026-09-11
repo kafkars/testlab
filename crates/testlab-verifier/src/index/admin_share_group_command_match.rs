@@ -7,6 +7,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
         ScenarioAction::DescribeShareGroup(value) => Some(&value.operation_id),
         ScenarioAction::DescribeShareGroups(value) => Some(&value.operation_id),
         ScenarioAction::ListShareGroupOffsets(value) => Some(&value.operation_id),
+        ScenarioAction::ListShareGroupsOffsets(value) => Some(&value.operation_id),
         ScenarioAction::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         ScenarioAction::DeleteShareGroupOffsets(value) => Some(&value.operation_id),
         ScenarioAction::DeleteShareGroups(value) => Some(&value.operation_id),
@@ -19,6 +20,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
         AdapterCommand::DescribeShareGroup(value) => Some(&value.operation_id),
         AdapterCommand::DescribeShareGroups(value) => Some(&value.operation_id),
         AdapterCommand::ListShareGroupOffsets(value) => Some(&value.operation_id),
+        AdapterCommand::ListShareGroupsOffsets(value) => Some(&value.operation_id),
         AdapterCommand::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         AdapterCommand::DeleteShareGroupOffsets(value) => Some(&value.operation_id),
         AdapterCommand::DeleteShareGroups(value) => Some(&value.operation_id),
@@ -68,6 +70,31 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         }
         (ScenarioAction::ListShareGroupOffsets(_), _)
         | (_, AdapterCommand::ListShareGroupOffsets(_)) => false,
+        (
+            ScenarioAction::ListShareGroupsOffsets(action),
+            AdapterCommand::ListShareGroupsOffsets(command),
+        ) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.groups.len() == command.groups.len()
+                && action
+                    .groups
+                    .iter()
+                    .zip(&command.groups)
+                    .all(|(action, command)| {
+                        action.group_id == command.group_id
+                            && action.partitions.len() == command.partitions.len()
+                            && action.partitions.iter().zip(&command.partitions).all(
+                                |(action, command)| {
+                                    action.topic == command.topic
+                                        && action.partition == command.partition
+                                },
+                            )
+                    })
+                && action.timeout_ms == command.timeout_ms
+        }
+        (ScenarioAction::ListShareGroupsOffsets(_), _)
+        | (_, AdapterCommand::ListShareGroupsOffsets(_)) => false,
         (
             ScenarioAction::AlterShareGroupOffsets(action),
             AdapterCommand::AlterShareGroupOffsets(command),

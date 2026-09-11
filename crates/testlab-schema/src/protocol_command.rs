@@ -205,6 +205,7 @@ pub enum AdapterCommand {
     DescribeShareGroup(crate::DescribeShareGroupCommand),
     DescribeShareGroups(crate::DescribeShareGroupsCommand),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsCommand),
+    ListShareGroupsOffsets(crate::ListShareGroupsOffsetsCommand),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsCommand),
     DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsCommand),
     DeleteShareGroups(crate::DeleteShareGroupsCommand),
@@ -283,7 +284,6 @@ pub enum AdapterCommand {
         /// Transactional producer to close.
         producer_id: ProducerId,
     },
-    /// Flushes one producer.
     Flush {
         producer_id: ProducerId,
     },

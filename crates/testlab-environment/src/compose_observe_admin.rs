@@ -39,6 +39,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::ShareGroupDescriptions(_)) = &target {
             return self.observe_share_group_descriptions_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::ShareGroupsOffsets(_)) = &target {
+            return self.observe_share_groups_offsets_with_cli(target, timeout);
+        }
         if let Ok(
             target @ (AdminTarget::ShareGroup(_)
             | AdminTarget::ShareGroups(_)

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v46. It is not a
+An adapter translates one packaged client surface to protocol v47. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -19,8 +19,9 @@ runner and not a verifier.
   topic IDs, and partition assignments without replacing them with CLI state.
 - Preserve caller order, exact outer and inner group identities, full detailed
   descriptions, and per-group errors for plural Share-group descriptions.
-- Preserve selected Share-group start offset, leader epoch, lag, topic identity,
-  and partition-scoped errors without receiving scenario expectations.
+- Preserve singleton and caller-ordered plural selected Share-group start
+  offset, leader epoch, lag, topic identity, group errors, and partition-scoped
+  errors without receiving scenario expectations.
 - Preserve Share-group offset-alteration partition identity, nonzero topic ID,
   and partition-scoped errors; resulting lag remains verifier-owned.
 - Preserve Share-group topic-offset deletion identity, nonzero topic ID, and

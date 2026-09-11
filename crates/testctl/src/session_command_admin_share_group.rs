@@ -3,7 +3,8 @@
 use testlab_schema::{
     AdapterCommand, AlterShareGroupOffsetsCommand, DeleteShareGroupOffsetsCommand,
     DeleteShareGroupsCommand, DescribeShareGroupCommand, DescribeShareGroupsCommand,
-    ListShareGroupOffsetsCommand, ScenarioAction,
+    ListShareGroupOffsetsCommand, ListShareGroupsOffsetsCommand, ScenarioAction,
+    ShareGroupOffsetSelection, ShareGroupOffsetsSelection,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -56,6 +57,36 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 group_id: value.group_id.clone(),
                 topic: value.topic.clone(),
                 partition: value.partition,
+            },
+        ),
+        ScenarioAction::ListShareGroupsOffsets(value) => (
+            AdapterCommand::ListShareGroupsOffsets(ListShareGroupsOffsetsCommand {
+                client_id: value.client_id.clone(),
+                operation_id: value.operation_id.clone(),
+                groups: value
+                    .groups
+                    .iter()
+                    .map(|group| ShareGroupOffsetsSelection {
+                        group_id: group.group_id.clone(),
+                        partitions: group
+                            .partitions
+                            .iter()
+                            .map(|partition| ShareGroupOffsetSelection {
+                                topic: partition.topic.clone(),
+                                partition: partition.partition,
+                            })
+                            .collect(),
+                    })
+                    .collect(),
+                timeout_ms: value.timeout_ms,
+            }),
+            ExpectedEvent::ShareGroupsOffsetsListed {
+                operation_id: value.operation_id.clone(),
+                group_ids: value
+                    .groups
+                    .iter()
+                    .map(|group| group.group_id.clone())
+                    .collect(),
             },
         ),
         ScenarioAction::AlterShareGroupOffsets(value) => (

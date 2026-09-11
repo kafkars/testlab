@@ -1,4 +1,4 @@
-schema_version = 49
+schema_version = 50
 id = "adversary.metadata-stall"
 title = "metadata response stall respects the public deadline"
 description = "The external Kafka peer delays a valid Metadata response beyond the public request bound; the packaged client must return the declared timeout while the environment records the exact bounded stall."

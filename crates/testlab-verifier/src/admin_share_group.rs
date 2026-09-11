@@ -28,6 +28,9 @@ pub(crate) fn verify_share_group_action(
         ScenarioAction::ListShareGroupOffsets(value) => {
             verify_offset_action(action, value, index, violations)
         }
+        ScenarioAction::ListShareGroupsOffsets(value) => {
+            crate::admin_share_groups_offsets::verify(action, value, index, violations);
+        }
         ScenarioAction::AlterShareGroupOffsets(value) => {
             crate::admin_share_group_offset_mutation::verify(
                 scenario, action, value, index, violations,

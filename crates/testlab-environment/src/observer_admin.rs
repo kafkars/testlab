@@ -54,6 +54,9 @@ pub(super) fn capture(
         AdminTarget::ShareGroupOffset(_) => Err(ObserverError::InvalidTarget(
             "Share-group offset target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::ShareGroupsOffsets(_) => Err(ObserverError::InvalidTarget(
+            "Share-group offsets target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Topic(target) => Ok(vec![observer_admin_metadata::capture_topic(
             request, target,
         )?]),

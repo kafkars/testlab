@@ -218,6 +218,7 @@ pub enum AdapterEvent {
     ShareGroupDescribed(crate::AdminShareGroupDescription),
     ShareGroupsDescribed(crate::AdminShareGroupsDescription),
     ShareGroupOffsetsListed(crate::AdminShareGroupOffsetListing),
+    ShareGroupsOffsetsListed(crate::AdminShareGroupsOffsetsListing),
     ShareGroupOffsetsAltered(crate::AdminShareGroupOffsetAlteration),
     ShareGroupOffsetsDeleted(crate::AdminShareGroupOffsetDeletion),
     ShareGroupsDeleted(crate::AdminShareGroupsDeletion),
@@ -278,7 +279,6 @@ pub enum AdapterEvent {
         producer_id: ProducerId,
     },
     ClientShutdown {
-        /// Shut down client.
         client_id: ClientId,
     },
     /// One public client command returned a normal API failure.

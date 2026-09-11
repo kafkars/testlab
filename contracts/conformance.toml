@@ -313,6 +313,12 @@ statement = "One public description of multiple active Share groups preserves de
 category = "admin"
 
 [[contract]]
+id = "ADMIN-043"
+title = "Plural Share-group offsets preserve caller order and broker truth"
+statement = "One public selected-offset listing for multiple Share groups preserves every successful group and partition outcome in caller order, and separate immediate read-only Kafka CLI queries confirm every start offset and lag in the same flattened order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

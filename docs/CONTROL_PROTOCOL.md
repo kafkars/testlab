@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v46 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v49 and evidence schema v35.
+Protocol v47 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v50 and evidence schema v36.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -85,6 +85,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_share_group`
 - `describe_share_groups`
 - `list_share_group_offsets`
+- `list_share_groups_offsets`
 - `alter_share_group_offsets`
 - `delete_share_group_offsets`
 - `delete_share_groups`
@@ -230,6 +231,7 @@ timeouts invalidate evidence.
 - `share_group_described`
 - `share_groups_described`
 - `share_group_offsets_listed`
+- `share_groups_offsets_listed`
 - `share_group_offsets_altered`
 - `share_group_offsets_deleted`
 - `share_groups_deleted`
@@ -579,6 +581,14 @@ offset, optional leader epoch, optional lag, and any partition-scoped failure.
 An immediate pinned `kafka-share-groups.sh --describe --offsets` query
 independently confirms the exact start offset and lag.
 
+Plural Share-group offset listing carries two through 32 distinct groups in
+caller order, each with one through 32 distinct selected topic-partitions.
+Scenario-owned start-offset and lag expectations stay in `testctl`. One public
+call preserves exact group-level and partition-level success or failure
+outcomes in caller order. Separate immediate pinned
+`kafka-share-groups.sh --describe --offsets` queries run once per group and
+retain every selected start offset and lag in the same flattened order.
+
 Share-group offset alteration carries one exact nonnegative requested start
 offset but keeps expected resulting lag in `testctl`. Scenario validation
 requires a distinct earlier listing and successful closure of every modeled
@@ -686,6 +696,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v46 is an exact semantic contract. New capabilities may be declared
+Protocol v47 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

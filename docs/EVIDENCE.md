@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v35 records the exact environment identity in `manifest.json`,
-retains protocol-v46 direct and hosted-group consumer controls and shutdown,
+Evidence schema v36 records the exact environment identity in `manifest.json`,
+retains protocol-v47 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -176,8 +176,8 @@ replica topology, or untested offset selectors.
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
 consumer-group existence and member count, active Share-group state and member
-count, one selected Share-group partition start offset and lag or explicit
-absence, one consumer-group committed offset,
+count, caller-ordered selected Share-group partition start offsets and lags or
+explicit absence, one consumer-group committed offset,
 exact partition low and high watermarks, exact literal wildcard-host ACL
 presence, exact named-user byte-rate quota state, and exact non-secret named-user
 SCRAM mechanism and iteration state or absence. Each query runs
@@ -193,7 +193,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in scenario schema v49. Plural offset
+retain the same broker-state fact shapes in scenario schema v50. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -294,6 +294,13 @@ retain an exact acquired public batch with positive member and assignment
 fences before the admin command. Separate immediate read-only Kafka CLI state
 queries retain consecutive history and observation order and must agree on
 every group, stable state, and member count.
+
+ADMIN-043 binds one caller-ordered public batch to every selected Share-group
+and topic-partition outcome, including nonzero topic identity, start offset,
+leader epoch, lag, and absence of group-level or partition-level errors.
+Separate immediate read-only Kafka CLI offset queries run once per group; their
+normalized facts retain consecutive history and observation order and must
+agree on every selected start offset and lag.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

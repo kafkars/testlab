@@ -227,6 +227,16 @@ fn plural_admin_targets(
                     .map(|item| (item.topic.as_str(), item.partition))
             }),
         ),
+        ScenarioAction::ListShareGroupsOffsets(action) => require_offset_topics(
+            topics,
+            subject_created,
+            action.groups.iter().flat_map(|group| {
+                group
+                    .partitions
+                    .iter()
+                    .map(|item| (item.topic.as_str(), item.partition))
+            }),
+        ),
         ScenarioAction::AlterConsumerGroupOffsets(action) => require_offset_topics(
             topics,
             subject_created,

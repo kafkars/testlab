@@ -88,6 +88,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::ListShareGroupOffsets(command) => {
             crate::protocol_admin_share_group::list_offsets(state, writer, command_id, command)
         }
+        AdapterCommand::ListShareGroupsOffsets(command) => {
+            crate::protocol_admin_share_group_offset_batch::list(state, writer, command_id, command)
+        }
         AdapterCommand::AlterShareGroupOffsets(command) => {
             crate::protocol_admin_share_group::alter_offsets(state, writer, command_id, command)
         }

@@ -29,6 +29,16 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     action.expected_start_offset,
                 );
             }
+            ScenarioAction::ListShareGroupsOffsets(action) => {
+                for group in &action.groups {
+                    for partition in &group.partitions {
+                        offsets.insert(
+                            key(&group.group_id, &partition.topic, partition.partition),
+                            partition.expected_start_offset,
+                        );
+                    }
+                }
+            }
             ScenarioAction::AlterShareGroupOffsets(action) => {
                 validate_empty_group(&action.operation_id, &action.group_id, &consumers, problems);
                 let key = key(&action.group_id, &action.topic, action.partition);

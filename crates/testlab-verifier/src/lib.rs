@@ -22,6 +22,7 @@ mod admin_share_group_offset_deletion;
 mod admin_share_group_offset_mutation;
 mod admin_share_groups_deletion;
 mod admin_share_groups_description;
+mod admin_share_groups_offsets;
 mod admin_topic;
 mod admin_user_scram;
 mod admin_validate_only;
@@ -115,6 +116,8 @@ mod admin_share_group_test;
 mod admin_share_groups_deletion_test;
 #[cfg(test)]
 mod admin_share_groups_description_test;
+#[cfg(test)]
+mod admin_share_groups_offsets_test;
 #[cfg(test)]
 mod admin_test;
 #[cfg(test)]
