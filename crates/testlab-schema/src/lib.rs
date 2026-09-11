@@ -136,7 +136,7 @@ pub use admin_topic::{
     AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription, AdminTopicsListing,
     CreatePartitionsCommand, CreateTopicAction, CreateTopicCommand, DeleteTopicAction,
     DeleteTopicCommand, DescribeTopicCommand, ListOffsetsCommand, ListTopicsCommand,
-    TOPIC_ALREADY_EXISTS_ERROR_CODE, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    ROUTING_ERROR_CODE, TOPIC_ALREADY_EXISTS_ERROR_CODE, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 pub use assigned_consumer_control::*;
 pub use broker_policy::{

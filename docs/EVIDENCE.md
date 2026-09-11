@@ -207,9 +207,10 @@ observed topic state, including an exact expected duplicate-topic code without
 turning the successful sibling result into a failure. ADMIN-014 binds an exact
 correlated topic-already-exists public failure to an unchanged topic snapshot;
 an unrelated or differently coded failure cannot satisfy it. ADMIN-019 applies
-the same correlation and no-success rules to unknown-topic partition creation,
-deletion, and description, and to a selected-offset request for an independently
-proven absent partition. ADMIN-020 through ADMIN-022 require distinct
+the same correlation and no-success rules to exact unknown-topic broker failures
+during partition creation, deletion, and description, and to an exact public
+routing failure for a selected-offset request whose partition is independently
+proven absent. ADMIN-020 through ADMIN-022 require distinct
 validate-only completions, forbid the corresponding mutation completions, and
 join immediate non-polling independent reads to unchanged topic existence,
 partition topology, or selected configuration state. Partition and

@@ -8,6 +8,8 @@ use crate::{AdminOffsetPosition, ClientId, OperationId};
 pub const TOPIC_ALREADY_EXISTS_ERROR_CODE: &str = "broker:broker_36";
 /// Normalized Kafka error for a topic or partition that does not exist.
 pub const UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE: &str = "broker:broker_3";
+/// Normalized public error when current metadata cannot route an operation.
+pub const ROUTING_ERROR_CODE: &str = "routing";
 
 /// Scenario intent for one bounded topic creation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

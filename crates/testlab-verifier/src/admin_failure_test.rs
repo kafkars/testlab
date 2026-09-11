@@ -4,8 +4,8 @@ use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminOffsetPosition, BrokerStateObservation, BrokerTopicState,
     ClientId, CreatePartitionsAction, CreatePartitionsCommand, DeleteTopicAction,
     DeleteTopicCommand, DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload,
-    ListOffsetsAction, ListOffsetsCommand, OperationId, ScenarioAction, TerminalStatus,
-    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE, VisibilityExpectation,
+    ListOffsetsAction, ListOffsetsCommand, OperationId, ROUTING_ERROR_CODE, ScenarioAction,
+    TerminalStatus, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -15,7 +15,10 @@ use crate::verify_fixture::{command, event, scenario, step};
 #[test]
 fn exact_missing_resource_failures_with_unchanged_state_pass() {
     for action in failure_actions() {
-        assert!(violations(&action, expected_failure(), state(&action)).is_empty());
+        assert!(
+            violations(&action, expected_failure(&action), state(&action)).is_empty(),
+            "{action:?}"
+        );
     }
 }
 
@@ -35,7 +38,7 @@ fn wrong_code_success_or_changed_state_fails() {
     assert_contract(&violations(&action, success, state(&action)));
 
     let changed = topic_state(2, &action, true, vec![0]);
-    assert_contract(&violations(&action, expected_failure(), changed));
+    assert_contract(&violations(&action, expected_failure(&action), changed));
 }
 
 fn failure_actions() -> Vec<ScenarioAction> {
@@ -73,7 +76,7 @@ fn failure_actions() -> Vec<ScenarioAction> {
             partition: 1,
             position: AdminOffsetPosition::Latest,
             expected_offset: None,
-            expected_error_code: code(),
+            expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),
             timeout_ms: 1_000,
         }),
     ]
@@ -176,10 +179,14 @@ fn action_identity(action: &ScenarioAction) -> (&OperationId, &str) {
     }
 }
 
-fn expected_failure() -> AdapterEvent {
+fn expected_failure(action: &ScenarioAction) -> AdapterEvent {
+    let code = match action {
+        ScenarioAction::ListOffsets(_) => ROUTING_ERROR_CODE,
+        _ => UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    };
     AdapterEvent::CommandFailed {
-        code: UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned(),
-        diagnostic: "unknown topic or partition".to_owned(),
+        code: code.to_owned(),
+        diagnostic: "expected public admin failure".to_owned(),
     }
 }
 

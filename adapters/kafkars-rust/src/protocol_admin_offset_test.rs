@@ -1,9 +1,10 @@
 //! Offset-result normalization tests enforce one exact topic-partition identity.
 
 use crate::kafkars_api::{ErrorKind, KafkaError, OffsetSpec, StartPosition, TopicPartition};
-use testlab_schema::{AdminOffsetPosition, OperationId};
+use testlab_schema::{AdminOffsetPosition, OperationId, ROUTING_ERROR_CODE};
 
 use crate::AdapterError;
+use crate::normalize::error_code;
 use crate::protocol_admin_read::offset_spec;
 use crate::protocol_admin_result::listed_offset;
 
@@ -81,19 +82,26 @@ fn listed_offset_rejects_empty_extra_and_mismatched_results() {
 }
 
 #[test]
-fn listed_offset_preserves_per_partition_client_failure() {
+fn listed_offset_preserves_and_normalizes_routing_failure() {
     let result = listed_offset(
         vec![entry(
             "orders",
             2,
-            Err(KafkaError::new(ErrorKind::Broker, "offset lookup failed")),
+            Err(KafkaError::new(
+                ErrorKind::Routing,
+                "partition is unroutable",
+            )),
         )],
         &operation_id(),
         "orders",
         2,
     );
 
-    assert!(matches!(result, Err(AdapterError::Client(_))));
+    let Err(AdapterError::Client(error)) = result else {
+        panic!("routing failure must remain a client failure");
+    };
+    assert_eq!(error.kind(), ErrorKind::Routing);
+    assert_eq!(error_code(&error), ROUTING_ERROR_CODE);
 }
 
 fn entry(

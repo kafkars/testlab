@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     AdminOffsetPosition, ClientId, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
-    OperationId, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    OperationId, ROUTING_ERROR_CODE, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 use crate::admin_action_validation::validate;
 
@@ -185,21 +185,13 @@ fn query_expectations_require_exactly_one_result_or_error() {
 }
 
 #[test]
-fn missing_offset_partition_requires_positive_index_and_exact_code() {
+fn absent_offset_partition_requires_positive_index_and_exact_routing_code() {
     let clients = BTreeMap::from([(client("client-1"), false)]);
     let mut operation_ids = BTreeSet::new();
     let mut problems = Vec::new();
     for (operation_id, partition, code) in [
-        (
-            "admin-offset-valid",
-            1,
-            UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
-        ),
-        (
-            "admin-offset-zero",
-            0,
-            UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
-        ),
+        ("admin-offset-valid", 1, ROUTING_ERROR_CODE),
+        ("admin-offset-zero", 0, ROUTING_ERROR_CODE),
         ("admin-offset-wrong-code", 2, "broker:broker_36"),
     ] {
         let action = ScenarioAction::ListOffsets(ListOffsetsAction {
@@ -219,7 +211,7 @@ fn missing_offset_partition_requires_positive_index_and_exact_code() {
         &problems,
         "expected missing partition must query a positive partition",
     );
-    assert_problem(&problems, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE);
+    assert_problem(&problems, ROUTING_ERROR_CODE);
     assert_eq!(problems.len(), 2, "{problems:?}");
 }
 

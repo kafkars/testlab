@@ -4,7 +4,8 @@ use super::{
     AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription,
     AdminTopicsListing, ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction,
     ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION,
-    SCENARIO_SCHEMA_VERSION, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    ROUTING_ERROR_CODE, SCENARIO_SCHEMA_VERSION, ScenarioAction,
+    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[test]
@@ -165,7 +166,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         partition: 1,
         position: AdminOffsetPosition::Latest,
         expected_offset: None,
-        expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
+        expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),
         timeout_ms: 1_000,
     });
     let describe_command = AdapterCommand::DescribeTopic(DescribeTopicCommand {
@@ -184,7 +185,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
     });
 
     assert!(encode_action(&described).contains("expected_error_code = \"broker:broker_3\""));
-    assert!(encode_action(&offset).contains("expected_error_code = \"broker:broker_3\""));
+    assert!(encode_action(&offset).contains("expected_error_code = \"routing\""));
     assert!(!encode(&describe_command).contains("expected_error_code"));
     assert!(!encode(&offset_command).contains("expected_error_code"));
 }

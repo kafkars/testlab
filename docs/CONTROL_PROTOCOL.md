@@ -386,13 +386,15 @@ later recovery steps in the same adapter session.
 
 Expected singleton failures for partition creation, topic deletion, topic
 description, and selected-offset listing likewise keep `expected_error_code`
-only in the scenario. Each uses its normal wire command and must emit one exact
-correlated `command_failed` with normalized `broker:broker_3`, no success event,
+only in the scenario. Each uses its normal wire command, emits no success event,
 and may continue only when later scenario steps declare recovery work.
-Missing-topic cases are followed by one nonpolling absence snapshot. The
-invalid-partition case provisions the topic
-with every lower partition and snapshots that topology, proving the queried
-partition is absent without treating an adapter error string as broker truth.
+Missing-topic operations require one exact correlated `command_failed` with
+normalized `broker:broker_3` and one nonpolling absence snapshot. The
+invalid-partition ListOffsets operation instead requires normalized `routing`:
+current metadata cannot route the absent partition, so no ListOffsets request
+reaches a broker. Its independently provisioned topic contains every lower
+partition, and the immediate topology snapshot proves the queried partition is
+absent without treating an adapter diagnostic as broker truth.
 
 An ordered `create_topics_batch` command carries multiple topic requests in
 caller order and emits exactly one `topics_creation_completed` event. Its

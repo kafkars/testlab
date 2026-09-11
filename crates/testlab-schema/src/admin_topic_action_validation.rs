@@ -140,7 +140,7 @@ fn validate_list_offsets(
             action.operation_id
         ));
     }
-    validate_missing_topic_error(
+    validate_missing_partition_error(
         &action.operation_id,
         action.expected_error_code.as_deref(),
         problems,
@@ -171,6 +171,19 @@ fn validate_missing_topic_error(
         problems.push(format!(
             "admin operation {operation_id} missing topic must expect error code {}",
             crate::UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE
+        ));
+    }
+}
+
+fn validate_missing_partition_error(
+    operation_id: &OperationId,
+    error_code: Option<&str>,
+    problems: &mut Vec<String>,
+) {
+    if error_code.is_some_and(|code| code != crate::ROUTING_ERROR_CODE) {
+        problems.push(format!(
+            "admin operation {operation_id} absent partition must expect error code {}",
+            crate::ROUTING_ERROR_CODE
         ));
     }
 }

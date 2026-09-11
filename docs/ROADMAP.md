@@ -11,7 +11,8 @@
   three-broker clusters, TLS, SASL/PLAIN, and SCRAM-SHA-256/512.
 - Real-Kafka scenarios cover producing, assigned, group, and share consumption;
   singleton and ordered partial-batch topic creation, exact duplicate-creation
-  rejection, exact unknown-topic rejection, partition
+  rejection, exact unknown-topic rejection, source-preserving routing failure
+  for an independently proven absent partition, partition
   expansion and deletion, validate-only topic creation, partition expansion,
   and topic-configuration replacement, scoped topic, cluster, and
   consumer-group discovery, earliest- and
@@ -83,15 +84,13 @@
 
 ## Now — complete the stable boundary
 
-1. Replace the excluded invalid-partition offset contract with a
-   source-preserving route failure before adding it to Kafkars packs.
-2. Add explicit independent producer and directly assigned consumer ownership
+1. Add explicit independent producer and directly assigned consumer ownership
    in Kafkars before enabling the corresponding multi-handle scenarios.
-3. Extend black-box coverage across high-use public group configuration and
+2. Extend black-box coverage across high-use public group configuration and
    Admin operations that currently have only client-repository evidence.
-4. Fix client failures exposed by Testlab until every gating release cell
+3. Fix client failures exposed by Testlab until every gating release cell
    passes.
-5. Derive Kafkars support and release eligibility from archived qualification
+4. Derive Kafkars support and release eligibility from archived qualification
    evidence.
 
 ## Next — broaden failure coverage
