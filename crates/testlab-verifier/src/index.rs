@@ -76,7 +76,6 @@ pub(crate) struct IndexedAssignedConsumerControl {
     pub(crate) history_sequence: u64,
     pub(crate) completion: testlab_schema::AssignedConsumerControlCompletion,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedGroupConsumerControl {
     pub(crate) history_sequence: u64,
@@ -225,6 +224,8 @@ pub(crate) struct HistoryIndex {
     pub(crate) topic_configs_described: BTreeMap<OperationId, Vec<IndexedTopicConfigDescription>>,
     pub(crate) topic_configs_batch_described:
         BTreeMap<OperationId, Vec<IndexedAdminTopicConfigsDescription>>,
+    pub(crate) topic_configs_batch_altered:
+        BTreeMap<OperationId, Vec<admin_types::IndexedConfigBatch>>,
     pub(crate) topic_configs_altered: BTreeMap<OperationId, Vec<IndexedAdminTopicConfigCompletion>>,
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,

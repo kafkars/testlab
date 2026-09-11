@@ -1,4 +1,4 @@
-schema_version = 55
+schema_version = 56
 id = "kafka.admin-topic-lifecycle"
 title = "packaged admin composes a complete independently observed topic lifecycle"
 description = "The packaged admin creates one partition, expands the same topic first to two and then four partitions, describes and lists the final topology, and deletes the topic; every public transition is followed by an exact independent metadata observation."

@@ -197,7 +197,7 @@ pub enum AdapterCommand {
     DeleteRecordsBatch(crate::DeleteRecordsBatchCommand),
     DescribeTopicConfig(crate::DescribeTopicConfigCommand),
     DescribeTopicConfigs(crate::DescribeTopicConfigsCommand),
-    /// Replaces one selected topic configuration through the public admin surface.
+    AlterTopicConfigs(crate::AlterTopicConfigsCommand),
     AlterTopicConfig(crate::AlterTopicConfigCommand),
     /// Describes the connected Kafka cluster through the public admin surface.
     DescribeCluster(crate::DescribeClusterCommand),

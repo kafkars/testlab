@@ -33,6 +33,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeTopicConfigs(command) => {
             describe_batch(state, writer, command_id, command)
         }
+        AdapterCommand::AlterTopicConfigs(command) => {
+            crate::protocol_admin_config_batch_mutation::alter(state, writer, command_id, command)
+        }
         AdapterCommand::AlterTopicConfig(command) => alter(state, writer, command_id, command),
         _ => Err(AdapterError::AdminResult(
             "non-config command reached admin config dispatcher".to_owned(),

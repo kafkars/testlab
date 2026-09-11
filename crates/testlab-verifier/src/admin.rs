@@ -90,7 +90,7 @@ pub(crate) fn verify_admin(
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
             || verify_group_batch_action(scenario, &step.action, index, violations)
-            || verify_config_batch_action(&step.action, index, violations)
+            || verify_config_batch_action(scenario, &step.action, index, violations)
             || verify_config_action(&step.action, index, violations)
             || verify_topic_action(&step.action, index, violations)
             || verify_topics_deletion_action(scenario, &step.action, index, violations)
@@ -177,6 +177,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",
         ScenarioAction::DescribeTopicConfig(_) => "ADMIN-015",
         ScenarioAction::DescribeTopicConfigs(_) => "ADMIN-048",
+        ScenarioAction::AlterTopicConfigs(_) => "ADMIN-049",
         ScenarioAction::AlterTopicConfig(_) => "ADMIN-016",
         ScenarioAction::ListConsumerGroupOffsets(_) => "ADMIN-006",
         ScenarioAction::DeleteTopic(_) => "ADMIN-007",
@@ -206,6 +207,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DeleteRecordsBatch(value) => &value.operation_id,
         ScenarioAction::DescribeTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeTopicConfigs(value) => &value.operation_id,
+        ScenarioAction::AlterTopicConfigs(value) => &value.operation_id,
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeCluster(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroups(value) => &value.operation_id,

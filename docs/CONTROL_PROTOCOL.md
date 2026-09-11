@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v52 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v55 and evidence schema v41.
+Protocol v53 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v56 and evidence schema v42.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -82,6 +82,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `delete_records_batch`
 - `describe_topic_config`
 - `describe_topic_configs`
+- `alter_topic_configs`
 - `alter_topic_config`
 - `describe_cluster`
 - `list_consumer_groups`
@@ -233,6 +234,7 @@ timeouts invalidate evidence.
 - `records_batch_deleted`
 - `topic_config_described`
 - `topic_configs_described`
+- `topic_configs_altered`
 - `topic_config_altered`
 - `cluster_described`
 - `consumer_groups_listed`
@@ -521,6 +523,14 @@ different baseline. The public completion and a polling independent query must
 then establish the requested value. Sensitive or unavailable values invalidate
 the evidence instead of being converted into a definite result.
 
+`alter_topic_configs` carries two through 32 distinct topics with one exact
+`SET` replacement each into one public call. Its named prior
+`describe_topic_configs` baseline must match every topic, key, and previous value
+in caller order, each replacement must differ, and no selected key may be
+mutated between baseline observation and submission. The single completion
+retains every public per-topic success or normalized error in caller order;
+contiguous immediate independent polling must confirm all requested values.
+
 Topic creation, partition increase, and incremental topic-configuration
 replacement carry an exact `validate_only` wire flag. Successful validation
 uses a distinct correlated completion rather than the corresponding mutation
@@ -746,6 +756,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v52 is an exact semantic contract. New capabilities may be declared
+Protocol v53 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

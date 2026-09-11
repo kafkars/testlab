@@ -208,7 +208,7 @@ pub enum AdapterEvent {
     RecordsBatchDeleted(crate::AdminRecordsBatchDeleted),
     TopicConfigDescribed(crate::AdminTopicConfigDescription),
     TopicConfigsDescribed(crate::AdminTopicConfigsDescription),
-    /// One selected public topic configuration was replaced.
+    TopicConfigsAltered(crate::AdminTopicConfigsAlteration),
     TopicConfigAltered(crate::AdminTopicConfigCompletion),
     /// One selected topic-configuration replacement validated without mutation.
     TopicConfigAlterationValidated(crate::AdminTopicConfigCompletion),

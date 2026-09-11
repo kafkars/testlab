@@ -72,6 +72,7 @@ scenarios = [
   "scenarios/kafka/admin-delete-records-batch.toml",
   "scenarios/kafka/admin-topic-config-lifecycle.toml",
   "scenarios/kafka/admin-describe-topic-configs.toml",
+  "scenarios/kafka/admin-alter-topic-configs.toml",
   "scenarios/kafka/admin-topic-config-validate-only.toml",
   "scenarios/kafka/admin-topic-config-restore.toml",
   "scenarios/kafka/admin-describe-cluster.toml",

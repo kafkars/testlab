@@ -349,6 +349,12 @@ statement = "One public selected-configuration description over multiple topics 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-049"
+title = "Plural topic-configuration replacement preserves caller order and broker transitions"
+statement = "One public incremental configuration replacement over multiple topics follows an exact named caller-ordered description whose prior values differ from their replacements and have no intervening mutation, preserves every successful topic and selected key in caller order, and contiguous immediate independent polling confirms every replacement."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

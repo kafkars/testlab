@@ -203,6 +203,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeUserScramCredential(_)
             | ScenarioAction::DescribeTopicConfig(_)
             | ScenarioAction::DescribeTopicConfigs(_)
+            | ScenarioAction::AlterTopicConfigs(_)
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::ExecuteTransaction { .. }
             | ScenarioAction::FenceTransaction { .. }

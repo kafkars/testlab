@@ -23,7 +23,6 @@ use crate::transaction_fence;
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
 const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
 
-/// Runs the packaged Kafkars adapter against process standard streams.
 pub fn run_stdio() -> Result<(), AdapterError> {
     let stdin = io::stdin();
     let stdout = io::stdout();
@@ -178,6 +177,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ListOffsetsBatch(_)
         | AdapterCommand::DescribeTopicConfig(_)
         | AdapterCommand::DescribeTopicConfigs(_)
+        | AdapterCommand::AlterTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::ListConsumerGroups(_)

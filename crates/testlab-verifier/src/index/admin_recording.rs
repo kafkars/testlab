@@ -6,7 +6,7 @@ use super::{
     IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion,
     IndexedAdminTopicsDescription, IndexedClusterDescription, IndexedConsumerGroupDescription,
     IndexedConsumerGroupOffset, IndexedConsumerGroupsList, IndexedOffsetList,
-    IndexedTopicConfigDescription, IndexedTopicDescription, IndexedTopicsList,
+    IndexedTopicDescription, IndexedTopicsList,
     admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
 
@@ -38,6 +38,9 @@ impl HistoryIndex {
             return true;
         }
         if super::admin_records::record(self, event, sequence) {
+            return true;
+        }
+        if super::admin_config_command_match::record(self, event, sequence) {
             return true;
         }
         match event {
@@ -106,33 +109,6 @@ impl HistoryIndex {
                     topic: value.topic.clone(),
                     partition: value.partition,
                     offset: value.offset,
-                }),
-            AdapterEvent::TopicConfigDescribed(value) => self
-                .topic_configs_described
-                .entry(value.operation_id.clone())
-                .or_default()
-                .push(IndexedTopicConfigDescription {
-                    history_sequence: sequence,
-                    topic: value.topic.clone(),
-                    config_name: value.config_name.clone(),
-                    value: value.value.clone(),
-                }),
-            AdapterEvent::TopicConfigsDescribed(value) => self
-                .topic_configs_batch_described
-                .entry(value.operation_id.clone())
-                .or_default()
-                .push(IndexedAdminTopicConfigsDescription {
-                    history_sequence: sequence,
-                    value: value.clone(),
-                }),
-            AdapterEvent::TopicConfigAltered(value) => self
-                .topic_configs_altered
-                .entry(value.operation_id.clone())
-                .or_default()
-                .push(super::IndexedAdminTopicConfigCompletion {
-                    history_sequence: sequence,
-                    topic: value.topic.clone(),
-                    config_name: value.config_name.clone(),
                 }),
             AdapterEvent::ClusterDescribed(value) => self
                 .clusters_described

@@ -39,6 +39,22 @@ pub(super) fn classify(
                         .map(|(topic, config_name)| (topic.as_str(), config_name.as_str())))
         }
         (
+            ExpectedEvent::TopicConfigsAltered {
+                operation_id,
+                topics,
+            },
+            AdapterEvent::TopicConfigsAltered(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| (outcome.topic.as_str(), outcome.config_name.as_str()))
+                    .eq(topics
+                        .iter()
+                        .map(|(topic, config_name)| (topic.as_str(), config_name.as_str())))
+        }
+        (
             ExpectedEvent::TopicConfigAltered {
                 operation_id,
                 topic,
@@ -75,6 +91,7 @@ pub(super) fn expected(expected: &ExpectedEvent) -> bool {
         expected,
         ExpectedEvent::TopicConfigDescribed { .. }
             | ExpectedEvent::TopicConfigsDescribed { .. }
+            | ExpectedEvent::TopicConfigsAltered { .. }
             | ExpectedEvent::TopicConfigAltered { .. }
             | ExpectedEvent::TopicConfigAlterationValidated { .. }
     )
@@ -85,6 +102,7 @@ pub(super) fn event(event: &AdapterEvent) -> bool {
         event,
         AdapterEvent::TopicConfigDescribed(_)
             | AdapterEvent::TopicConfigsDescribed(_)
+            | AdapterEvent::TopicConfigsAltered(_)
             | AdapterEvent::TopicConfigAltered(_)
             | AdapterEvent::TopicConfigAlterationValidated(_)
     )

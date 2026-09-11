@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v41 records the exact environment identity in `manifest.json`,
-retains protocol-v52 direct and hosted-group consumer controls and shutdown,
+Evidence schema v42 records the exact environment identity in `manifest.json`,
+retains protocol-v53 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -335,6 +335,12 @@ ADMIN-048 binds one caller-ordered public selected-configuration batch to every
 topic, key, non-sensitive value, and absence of a per-topic error. Immediate
 independent configuration facts retain consecutive history and observation
 order and must confirm every exact selected value before the next command.
+
+ADMIN-049 binds one caller-ordered public incremental configuration mutation to
+an exact named ADMIN-048 baseline with a distinct prior value for every selected
+topic and key and no intervening mutation. Every public per-topic outcome must
+succeed in caller order, and consecutive immediate independent polling must
+confirm every exact replacement before the next command.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

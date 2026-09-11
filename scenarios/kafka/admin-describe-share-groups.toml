@@ -1,4 +1,4 @@
-schema_version = 55
+schema_version = 56
 id = "kafka.admin-describe-share-groups"
 title = "packaged admin describes two independently observed active Share groups"
 description = "Two Share groups retain distinct acquired records while one caller-ordered public batch preserves each detailed state and assignment; separate read-only Kafka CLI state queries confirm both group states and member counts."

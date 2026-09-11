@@ -78,6 +78,7 @@ pub(crate) fn dispatch<W: Write>(
         }
         command @ (AdapterCommand::DescribeTopicConfig(_)
         | AdapterCommand::DescribeTopicConfigs(_)
+        | AdapterCommand::AlterTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)) => {
             protocol_admin_config::dispatch(state, writer, command_id, command)
         }

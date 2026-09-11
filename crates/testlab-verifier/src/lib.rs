@@ -84,6 +84,8 @@ mod admin_classic_groups_test;
 #[cfg(test)]
 mod admin_client_quota_test;
 #[cfg(test)]
+mod admin_config_batch_mutation_test;
+#[cfg(test)]
 mod admin_config_batch_test;
 #[cfg(test)]
 mod admin_config_test;

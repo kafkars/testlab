@@ -1,5 +1,4 @@
 //! Versioned data contracts shared across the testlab trust boundary.
-
 mod adapter;
 mod admin_acl;
 mod admin_acl_validation;
@@ -11,6 +10,7 @@ mod admin_client_quota_validation;
 mod admin_cluster;
 mod admin_config;
 mod admin_config_action_validation;
+mod admin_config_batch_mutation;
 mod admin_config_transition_validation;
 mod admin_consumer_group_deletion_batch;
 mod admin_create_topics_batch;

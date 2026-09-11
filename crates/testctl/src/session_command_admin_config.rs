@@ -1,8 +1,8 @@
 //! Topic-configuration scenario actions translate without leaking expected values.
 
 use testlab_schema::{
-    AdapterCommand, AlterTopicConfigCommand, DescribeTopicConfigCommand,
-    DescribeTopicConfigsCommand, ScenarioAction, TopicConfigSelection,
+    AdapterCommand, AlterTopicConfigCommand, AlterTopicConfigsCommand, DescribeTopicConfigCommand,
+    DescribeTopicConfigsCommand, ScenarioAction, TopicConfigAlteration, TopicConfigSelection,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -40,6 +40,32 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                     timeout_ms: action.timeout_ms,
                 }),
                 ExpectedEvent::TopicConfigsDescribed {
+                    operation_id: action.operation_id.clone(),
+                    topics: topics
+                        .into_iter()
+                        .map(|selected| (selected.topic, selected.config_name))
+                        .collect(),
+                },
+            )
+        }
+        ScenarioAction::AlterTopicConfigs(action) => {
+            let topics = action
+                .topics
+                .iter()
+                .map(|selected| TopicConfigAlteration {
+                    topic: selected.topic.clone(),
+                    config_name: selected.config_name.clone(),
+                    value: selected.value.clone(),
+                })
+                .collect::<Vec<_>>();
+            (
+                AdapterCommand::AlterTopicConfigs(AlterTopicConfigsCommand {
+                    client_id: action.client_id.clone(),
+                    operation_id: action.operation_id.clone(),
+                    topics: topics.clone(),
+                    timeout_ms: action.timeout_ms,
+                }),
+                ExpectedEvent::TopicConfigsAltered {
                     operation_id: action.operation_id.clone(),
                     topics: topics
                         .into_iter()

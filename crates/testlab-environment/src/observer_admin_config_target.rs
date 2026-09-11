@@ -1,8 +1,8 @@
 //! Topic-configuration targets require exact scenario and wire identities.
 
 use testlab_schema::{
-    AdapterCommand, AlterTopicConfigCommand, DescribeTopicConfigCommand,
-    DescribeTopicConfigsCommand, ScenarioAction, TopicConfigSelection,
+    AdapterCommand, AlterTopicConfigCommand, AlterTopicConfigsCommand, DescribeTopicConfigCommand,
+    DescribeTopicConfigsCommand, ScenarioAction, TopicConfigAlteration, TopicConfigSelection,
 };
 
 use crate::observer_admin_target::{
@@ -60,6 +60,44 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                             config_name: selected.config_name.clone(),
                             expected_value: selected.expected_value.clone(),
                             poll_expected: false,
+                        })
+                        .collect(),
+                }),
+            )
+        }
+        ScenarioAction::AlterTopicConfigs(action) => {
+            let topics = action
+                .topics
+                .iter()
+                .map(|selected| selected.topic.clone())
+                .collect::<Vec<_>>();
+            unique(&topics, &action.operation_id, "topics")?;
+            (
+                AdapterCommand::AlterTopicConfigs(AlterTopicConfigsCommand {
+                    client_id: action.client_id.clone(),
+                    operation_id: action.operation_id.clone(),
+                    topics: action
+                        .topics
+                        .iter()
+                        .map(|selected| TopicConfigAlteration {
+                            topic: selected.topic.clone(),
+                            config_name: selected.config_name.clone(),
+                            value: selected.value.clone(),
+                        })
+                        .collect(),
+                    timeout_ms: action.timeout_ms,
+                }),
+                AdminTarget::TopicConfigs(ConfigBatchTarget {
+                    operation_id: action.operation_id.clone(),
+                    configs: action
+                        .topics
+                        .iter()
+                        .map(|selected| ConfigTarget {
+                            operation_id: action.operation_id.clone(),
+                            topic: selected.topic.clone(),
+                            config_name: selected.config_name.clone(),
+                            expected_value: selected.value.clone(),
+                            poll_expected: true,
                         })
                         .collect(),
                 }),

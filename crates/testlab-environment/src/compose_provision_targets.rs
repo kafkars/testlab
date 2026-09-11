@@ -148,6 +148,11 @@ fn admin_targets(
                 require_topic(topics, subject_created, &selected.topic, 1);
             }
         }
+        ScenarioAction::AlterTopicConfigs(action) => {
+            for selected in &action.topics {
+                require_topic(topics, subject_created, &selected.topic, 1);
+            }
+        }
         ScenarioAction::AlterTopicConfig(action) => {
             require_topic(topics, subject_created, &action.topic, 1);
         }

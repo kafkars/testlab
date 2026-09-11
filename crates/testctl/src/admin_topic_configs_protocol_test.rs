@@ -1,9 +1,10 @@
 //! Plural topic-configuration protocol tests pin expectation-free caller order.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminTopicConfigDescriptionOutcome, AdminTopicConfigsDescription,
-    ClientId, DescribeTopicConfigExpectation, DescribeTopicConfigsAction, OperationId,
-    ScenarioAction,
+    AdapterCommand, AdapterEvent, AdminTopicConfigAlterationOutcome,
+    AdminTopicConfigDescriptionOutcome, AdminTopicConfigsAlteration, AdminTopicConfigsDescription,
+    AlterTopicConfigExpectation, AlterTopicConfigsAction, ClientId, DescribeTopicConfigExpectation,
+    DescribeTopicConfigsAction, OperationId, ScenarioAction,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -61,6 +62,53 @@ fn completion_requires_every_selected_identity_in_order() {
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 
+#[test]
+fn mutation_translation_preserves_order_without_baseline_expectations() {
+    let scenario_action = ScenarioAction::AlterTopicConfigs(mutation_action());
+    let Some((AdapterCommand::AlterTopicConfigs(command), expected)) =
+        crate::session_command_admin_config::translate(&scenario_action)
+    else {
+        panic!("plural topic-configuration mutation translation");
+    };
+    assert_eq!(command.operation_id, mutation_operation());
+    assert_eq!(command.topics[0].topic, "topic-z");
+    assert_eq!(command.topics[1].topic, "topic-a");
+    let encoded = serde_json::to_string(&command)
+        .unwrap_or_else(|error| panic!("encode plural configuration mutation: {error}"));
+    assert!(!encoded.contains("baseline_operation_id"), "{encoded}");
+    assert!(!encoded.contains("expected_previous_value"), "{encoded}");
+    assert!(matches!(
+        expected,
+        ExpectedEvent::TopicConfigsAltered { .. }
+    ));
+}
+
+#[test]
+fn mutation_completion_requires_every_selected_identity_in_order() {
+    let expected = ExpectedEvent::TopicConfigsAltered {
+        operation_id: mutation_operation(),
+        topics: vec![
+            ("topic-z".to_owned(), "cleanup.policy".to_owned()),
+            ("topic-a".to_owned(), "cleanup.policy".to_owned()),
+        ],
+    };
+    let mut event = AdapterEvent::TopicConfigsAltered(mutation_completion());
+    assert_eq!(
+        expected
+            .classify(&event)
+            .unwrap_or_else(|error| panic!("classify plural configuration mutation: {error}")),
+        EventDisposition::Complete
+    );
+    let AdapterEvent::TopicConfigsAltered(actual) = &mut event else {
+        panic!("plural topic-configuration mutation event");
+    };
+    actual.outcomes.swap(0, 1);
+    let error = expected
+        .classify(&event)
+        .expect_err("reordered mutation outcomes must not complete");
+    assert_eq!(error.harness_error().code, "event_identity_mismatch");
+}
+
 fn action() -> DescribeTopicConfigsAction {
     DescribeTopicConfigsAction {
         client_id: client(),
@@ -80,6 +128,46 @@ fn completion() -> AdminTopicConfigsDescription {
             outcome("topic-z", "cleanup.policy", "delete"),
             outcome("topic-a", "retention.ms", "604800000"),
         ],
+    }
+}
+
+fn mutation_action() -> AlterTopicConfigsAction {
+    AlterTopicConfigsAction {
+        client_id: client(),
+        operation_id: mutation_operation(),
+        baseline_operation_id: operation(),
+        topics: vec![
+            mutation("topic-z", "cleanup.policy"),
+            mutation("topic-a", "cleanup.policy"),
+        ],
+        timeout_ms: 1_000,
+    }
+}
+
+fn mutation_completion() -> AdminTopicConfigsAlteration {
+    AdminTopicConfigsAlteration {
+        operation_id: mutation_operation(),
+        outcomes: vec![
+            mutation_outcome("topic-z", "cleanup.policy"),
+            mutation_outcome("topic-a", "cleanup.policy"),
+        ],
+    }
+}
+
+fn mutation(topic: &str, config_name: &str) -> AlterTopicConfigExpectation {
+    AlterTopicConfigExpectation {
+        topic: topic.to_owned(),
+        config_name: config_name.to_owned(),
+        expected_previous_value: "delete".to_owned(),
+        value: "compact".to_owned(),
+    }
+}
+
+fn mutation_outcome(topic: &str, config_name: &str) -> AdminTopicConfigAlterationOutcome {
+    AdminTopicConfigAlterationOutcome {
+        topic: topic.to_owned(),
+        config_name: config_name.to_owned(),
+        error_code: None,
     }
 }
 
@@ -106,4 +194,8 @@ fn client() -> ClientId {
 
 fn operation() -> OperationId {
     OperationId::new("describe-topic-configs").unwrap_or_else(|error| panic!("operation: {error}"))
+}
+
+fn mutation_operation() -> OperationId {
+    OperationId::new("alter-topic-configs").unwrap_or_else(|error| panic!("operation: {error}"))
 }

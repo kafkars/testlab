@@ -23,7 +23,6 @@ pub enum ScenarioAction {
     AlterNetworkFault(crate::NetworkFaultAction),
     CutNetworkConnections(crate::NetworkConnectionCutAction),
     RestartBroker {
-        /// One-based declared broker ordinal.
         broker_ordinal: u16,
         /// Complete disruption bound.
         timeout_ms: u64,
@@ -215,6 +214,7 @@ pub enum ScenarioAction {
     DeleteRecordsBatch(crate::DeleteRecordsBatchAction),
     DescribeTopicConfig(crate::DescribeTopicConfigAction),
     DescribeTopicConfigs(crate::DescribeTopicConfigsAction),
+    AlterTopicConfigs(crate::AlterTopicConfigsAction),
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),

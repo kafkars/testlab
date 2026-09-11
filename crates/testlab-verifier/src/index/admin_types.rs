@@ -89,6 +89,12 @@ pub(crate) struct IndexedAdminTopicConfigsDescription {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedConfigBatch {
+    pub(crate) history_sequence: u64,
+    pub(crate) value: testlab_schema::AdminTopicConfigsAlteration,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedAdminTopicConfigCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) topic: String,

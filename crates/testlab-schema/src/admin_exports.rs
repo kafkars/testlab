@@ -13,6 +13,10 @@ pub use crate::admin_config::{
     DescribeTopicConfigExpectation, DescribeTopicConfigsAction, DescribeTopicConfigsCommand,
     TopicConfigSelection,
 };
+pub use crate::admin_config_batch_mutation::{
+    AdminTopicConfigAlterationOutcome, AdminTopicConfigsAlteration, AlterTopicConfigExpectation,
+    AlterTopicConfigsAction, AlterTopicConfigsCommand, TopicConfigAlteration,
+};
 pub use crate::admin_consumer_group_deletion_batch::{
     AdminConsumerGroupDeletionOutcome, AdminConsumerGroupsDeletion, DeleteConsumerGroupsAction,
     DeleteConsumerGroupsCommand,
