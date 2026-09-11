@@ -183,6 +183,7 @@ pub enum AdapterCommand {
     CreatePartitions(crate::CreatePartitionsCommand),
     /// Deletes one Kafka topic through the public admin surface.
     DeleteTopic(crate::DeleteTopicCommand),
+    DeleteTopics(crate::DeleteTopicsCommand),
     /// Describes one Kafka topic through the public admin surface.
     DescribeTopic(crate::DescribeTopicCommand),
     DescribeTopics(crate::DescribeTopicsCommand),
@@ -292,7 +293,6 @@ pub enum AdapterCommand {
         producer_id: ProducerId,
     },
     ShutdownClient {
-        /// Client to shut down.
         client_id: ClientId,
     },
     Finish,

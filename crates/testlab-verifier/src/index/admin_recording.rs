@@ -3,10 +3,11 @@ use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
 
 use super::{
     HistoryIndex, IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion,
-    IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDescription,
-    IndexedClusterDescription, IndexedConsumerGroupDescription, IndexedConsumerGroupOffset,
-    IndexedConsumerGroupsList, IndexedOffsetList, IndexedRecordsDeleted,
-    IndexedTopicConfigDescription, IndexedTopicDescription, IndexedTopicsList,
+    IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion,
+    IndexedAdminTopicsDescription, IndexedClusterDescription, IndexedConsumerGroupDescription,
+    IndexedConsumerGroupOffset, IndexedConsumerGroupsList, IndexedOffsetList,
+    IndexedRecordsDeleted, IndexedTopicConfigDescription, IndexedTopicDescription,
+    IndexedTopicsList,
     admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
 
@@ -61,6 +62,14 @@ impl HistoryIndex {
                 .entry(value.operation_id.clone())
                 .or_default()
                 .push(topic_completion(sequence, value.topic.clone())),
+            AdapterEvent::TopicsDeleted(value) => self
+                .topics_batch_deleted
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(IndexedAdminTopicsDeletion {
+                    history_sequence: sequence,
+                    value: value.clone(),
+                }),
             AdapterEvent::TopicDescribed(value) => self
                 .topics_described
                 .entry(value.operation_id.clone())

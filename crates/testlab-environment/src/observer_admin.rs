@@ -61,6 +61,9 @@ pub(super) fn capture(
             request, target,
         )?]),
         AdminTarget::Topics(target) => observer_admin_metadata::capture_topics(request, target),
+        AdminTarget::TopicDeletions(target) => {
+            observer_admin_metadata::capture_absent_topics(request, target)
+        }
         AdminTarget::Cluster(operation_id) => Ok(vec![observer_admin_metadata::capture_cluster(
             request,
             operation_id,

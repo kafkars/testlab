@@ -9,6 +9,7 @@ type TopicDefinition = (i32, i16);
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     crate::admin_config_transition_validation::validate(scenario, problems);
     crate::admin_delete_records_transition_validation::validate(scenario, problems);
+    crate::admin_delete_topics_batch_transition_validation::validate(scenario, problems);
     crate::admin_group_offset_transition_validation::validate(scenario, problems);
     crate::admin_share_group_offset_transition_validation::validate(scenario, problems);
     crate::admin_share_group_description_transition_validation::validate(scenario, problems);

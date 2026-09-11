@@ -194,6 +194,7 @@ pub enum AdapterEvent {
     TopicPartitionIncreaseValidated(crate::AdminTopicCompletion),
     /// One public admin topic deletion completed successfully.
     TopicDeleted(crate::AdminTopicCompletion),
+    TopicsDeleted(crate::AdminTopicsDeletion),
     /// One public admin topic description completed successfully.
     TopicDescribed(crate::AdminTopicDescription),
     TopicsDescribed(crate::AdminTopicsDescription),
@@ -274,7 +275,6 @@ pub enum AdapterEvent {
     FlushCompleted {
         producer_id: ProducerId,
     },
-    /// Producer close completed.
     ProducerClosed {
         producer_id: ProducerId,
     },

@@ -17,6 +17,9 @@ mod admin_create_topics_batch_validation;
 mod admin_delete_records;
 mod admin_delete_records_action_validation;
 mod admin_delete_records_transition_validation;
+mod admin_delete_topics_batch;
+mod admin_delete_topics_batch_transition_validation;
+mod admin_delete_topics_batch_validation;
 mod admin_expected_error;
 mod admin_exports;
 mod admin_group;
@@ -203,6 +206,8 @@ mod admin_create_topics_batch_test;
 mod admin_delete_records_target_test;
 #[cfg(test)]
 mod admin_delete_records_test;
+#[cfg(test)]
+mod admin_delete_topics_batch_test;
 #[cfg(test)]
 mod admin_group_offset_test;
 #[cfg(test)]

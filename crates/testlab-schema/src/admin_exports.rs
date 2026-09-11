@@ -18,6 +18,10 @@ pub use crate::admin_create_topics_batch::{
 pub use crate::admin_delete_records::{
     AdminRecordsDeleted, DeleteRecordsAction, DeleteRecordsCommand,
 };
+pub use crate::admin_delete_topics_batch::{
+    AdminTopicDeletionOutcome, AdminTopicsDeletion, DeleteTopicExpectation, DeleteTopicsAction,
+    DeleteTopicsCommand,
+};
 pub use crate::admin_group::*;
 pub use crate::admin_group_offset::{
     AdminConsumerGroupOffsetListing, ListConsumerGroupOffsetsAction,

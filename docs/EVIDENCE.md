@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v37 records the exact environment identity in `manifest.json`,
-retains protocol-v48 direct and hosted-group consumer controls and shutdown,
+Evidence schema v38 records the exact environment identity in `manifest.json`,
+retains protocol-v49 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -308,6 +308,13 @@ retain a nonzero topic identity, the internal marker, and every ordered
 partition without hidden errors. Immediate metadata facts retain consecutive
 history and observation order and must prove each exact partition topology or
 topic absence before the next command.
+
+ADMIN-045 requires a prior caller-ordered plural description whose independent
+metadata proves each selected name present with its exact topology or absent as
+declared. One public name-based deletion then preserves every success or exact
+missing-topic error in that order. Immediate independent metadata polling must
+settle with every selected name absent; its normalized facts retain consecutive
+history and observation order before the next command.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

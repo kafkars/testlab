@@ -52,16 +52,47 @@ pub(super) fn capture_topics(
     let metadata = admin
         .inner()
         .fetch_metadata(None, remaining(request.deadline)?)?;
+    normalize_topics(request.first_observation, target, &metadata)
+}
+
+pub(super) fn capture_absent_topics(
+    request: AdminObserverRequest<'_>,
+    target: &ListTarget,
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
+    let admin = client(request, "topic-deletions")?;
+    loop {
+        let metadata = admin
+            .inner()
+            .fetch_metadata(None, remaining(request.deadline)?)?;
+        let observed = normalize_topics(request.first_observation, target, &metadata)?;
+        if observed.iter().all(topic_absent) {
+            return Ok(observed);
+        }
+        let wait = request
+            .deadline
+            .saturating_duration_since(std::time::Instant::now());
+        if wait.is_zero() {
+            return Err(ObserverError::Deadline);
+        }
+        thread::sleep(POLL_SLICE.min(wait));
+    }
+}
+
+fn normalize_topics(
+    first_observation: u64,
+    target: &ListTarget,
+    metadata: &Metadata,
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     target
         .names
         .iter()
         .enumerate()
         .map(|(index, topic)| {
             normalize_topic(
-                ordinal(request.first_observation, index)?,
+                ordinal(first_observation, index)?,
                 &target.operation_id,
                 topic,
-                &metadata,
+                metadata,
             )
         })
         .collect()
@@ -178,6 +209,13 @@ fn topic_matches(observation: &BrokerStateObservation, target: &TopicTarget) -> 
             .expected_partitions
             .as_ref()
             .is_none_or(|partitions| observed.partitions == *partitions)
+}
+
+fn topic_absent(observation: &BrokerStateObservation) -> bool {
+    matches!(
+        observation,
+        BrokerStateObservation::Topic(topic) if !topic.exists && topic.partitions.is_empty()
+    )
 }
 
 fn invalid(detail: impl std::fmt::Display) -> ObserverError {

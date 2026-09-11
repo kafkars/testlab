@@ -25,6 +25,12 @@ pub(crate) struct IndexedAdminTopicsDescription {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedAdminTopicsDeletion {
+    pub(crate) history_sequence: u64,
+    pub(crate) value: testlab_schema::AdminTopicsDeletion,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedAdminGroupCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) group_id: String,

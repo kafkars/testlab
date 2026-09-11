@@ -169,6 +169,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::CreateTopicsBatch(_)
         | AdapterCommand::CreatePartitions(_)
         | AdapterCommand::DeleteTopic(_)
+        | AdapterCommand::DeleteTopics(_)
         | AdapterCommand::DeleteRecords(_)
         | AdapterCommand::DescribeTopic(_)
         | AdapterCommand::DescribeTopics(_)

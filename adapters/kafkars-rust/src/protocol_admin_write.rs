@@ -33,6 +33,9 @@ pub(crate) fn dispatch<W: Write>(
             create_partitions(state, writer, command_id, command)
         }
         AdapterCommand::DeleteTopic(command) => delete_topic(state, writer, command_id, command),
+        AdapterCommand::DeleteTopics(command) => {
+            crate::protocol_admin_topic_deletion_batch::delete(state, writer, command_id, command)
+        }
         AdapterCommand::DeleteRecords(command) => {
             delete_records(state, writer, command_id, command)
         }

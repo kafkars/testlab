@@ -35,7 +35,7 @@ mod share;
 pub(super) use admin_types::push;
 pub(crate) use admin_types::{
     IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion, IndexedAdminTopicCompletion,
-    IndexedAdminTopicConfigCompletion, IndexedAdminTopicsCreationBatch,
+    IndexedAdminTopicConfigCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion,
     IndexedAdminTopicsDescription, IndexedClusterDescription, IndexedClusterObservation,
     IndexedConsumerGroupDescription, IndexedConsumerGroupObservation, IndexedConsumerGroupOffset,
     IndexedConsumerGroupOffsetObservation, IndexedConsumerGroupsList, IndexedOffsetList,
@@ -69,7 +69,6 @@ pub(crate) struct IndexedClientMetrics {
     pub(crate) history_sequence: u64,
     pub(crate) observation: testlab_schema::ClientMetricsObservation,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedAssignedConsumerControl {
     pub(crate) history_sequence: u64,
@@ -214,6 +213,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) topics_creation_completed:
         BTreeMap<OperationId, Vec<IndexedAdminTopicsCreationBatch>>,
     pub(crate) topics_batch_described: BTreeMap<OperationId, Vec<IndexedAdminTopicsDescription>>,
+    pub(crate) topics_batch_deleted: BTreeMap<OperationId, Vec<IndexedAdminTopicsDeletion>>,
     pub(crate) topic_partitions_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
     pub(crate) topics_deleted: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
     pub(crate) topics_described: BTreeMap<OperationId, Vec<IndexedTopicDescription>>,

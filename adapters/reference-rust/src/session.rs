@@ -126,6 +126,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::CreateTopicsBatch(_)
         | AdapterCommand::CreatePartitions(_)
         | AdapterCommand::DeleteTopic(_)
+        | AdapterCommand::DeleteTopics(_)
         | AdapterCommand::DescribeTopic(_)
         | AdapterCommand::DescribeTopics(_)
         | AdapterCommand::ListTopics(_)

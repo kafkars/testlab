@@ -16,13 +16,13 @@ pub(super) use crate::observer_admin_share_group_offset_batch_target::{
     ShareGroupOffsetSelectionTarget, ShareGroupOffsetsSelectionTarget, ShareGroupsOffsetsTarget,
 };
 use crate::observer_admin_share_group_target;
+use crate::observer_admin_topic_deletion_batch_target;
 use crate::observer_admin_topic_description_batch_target;
 use crate::observer_admin_topic_target;
 use crate::observer_admin_user_scram_target;
 use crate::observer_error::ObserverError;
 
 pub(super) type TargetMatch = (AdapterCommand, AdminTarget);
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) enum AdminTarget {
     Acls(AclsTarget),
@@ -30,6 +30,7 @@ pub(super) enum AdminTarget {
     UserScramCredential(UserScramCredentialTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
+    TopicDeletions(ListTarget),
     Cluster(OperationId),
     ConsumerGroups(ListTarget),
     ConsumerGroup(GroupTarget),
@@ -46,13 +47,11 @@ pub(super) enum AdminTarget {
     PartitionOffsets(PartitionOffsetsTarget),
     PartitionOffsetsBatch(PartitionOffsetsBatchTarget),
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct AclsTarget {
     pub(super) operation_id: OperationId,
     pub(super) bindings: Vec<testlab_schema::LiteralAclBinding>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct ClientQuotaTarget {
     pub(super) operation_id: OperationId,
@@ -190,6 +189,9 @@ impl AdminTarget {
             .or(observer_admin_acl_target::match_action(action)?)
             .or(observer_admin_offset_batch_target::match_action(action)?)
             .or(observer_admin_batch_topic_target::match_action(action)?)
+            .or(observer_admin_topic_deletion_batch_target::match_action(
+                action,
+            )?)
             .or(observer_admin_topic_description_batch_target::match_action(
                 action,
             )?)
@@ -219,7 +221,9 @@ impl AdminTarget {
             Self::ClientQuota(target) => &target.operation_id,
             Self::UserScramCredential(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
-            Self::Topics(target) | Self::ConsumerGroups(target) => &target.operation_id,
+            Self::Topics(target) | Self::TopicDeletions(target) | Self::ConsumerGroups(target) => {
+                &target.operation_id
+            }
             Self::Cluster(operation_id) => operation_id,
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
@@ -242,7 +246,9 @@ impl AdminTarget {
             Self::Acls(target) => target.bindings.len(),
             Self::ClientQuota(_) => 1,
             Self::UserScramCredential(_) => 1,
-            Self::Topics(target) | Self::ConsumerGroups(target) => target.names.len(),
+            Self::Topics(target) | Self::TopicDeletions(target) | Self::ConsumerGroups(target) => {
+                target.names.len()
+            }
             Self::ConsumerGroupOffsets(target) => target.offsets.len(),
             Self::ConsumerGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()

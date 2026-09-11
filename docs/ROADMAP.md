@@ -16,7 +16,8 @@
   expansion and deletion, validate-only topic creation, partition expansion,
   and topic-configuration replacement, metadata-backed and explicit
   `DescribeTopicPartitions` singleton topic description, caller-ordered
-  detailed plural topic descriptions with mixed resource outcomes, scoped topic, cluster,
+  detailed plural topic descriptions and name-based deletion with mixed resource
+  outcomes, scoped topic, cluster,
   consumer-only, and generic all-group discovery, singleton and caller-ordered batch earliest- and
   latest-offset administration, consumer-group offset listing, alteration, and
   deletion, record-prefix deletion, empty-group deletion, and selected

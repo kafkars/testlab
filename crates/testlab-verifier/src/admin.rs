@@ -15,6 +15,7 @@ use crate::admin_offset_batch::verify_offset_batch_action;
 use crate::admin_records::verify_records_action;
 use crate::admin_share_group::verify_share_group_action;
 use crate::admin_topic::verify_topic_action;
+use crate::admin_topics_deletion::verify_topics_deletion_action;
 use crate::admin_topics_description::verify_topics_description_action;
 use crate::admin_user_scram::verify_user_scram_action;
 use crate::admin_validate_only::verify_validate_only_action;
@@ -89,6 +90,7 @@ pub(crate) fn verify_admin(
             || verify_group_batch_action(scenario, &step.action, index, violations)
             || verify_config_action(&step.action, index, violations)
             || verify_topic_action(&step.action, index, violations)
+            || verify_topics_deletion_action(scenario, &step.action, index, violations)
             || verify_topics_description_action(&step.action, index, violations)
             || verify_cluster_action(&step.action, index, violations)
             || verify_group_action(&step.action, index, violations)
@@ -163,6 +165,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
         ScenarioAction::DescribeTopic(_) => "ADMIN-003",
         ScenarioAction::DescribeTopics(_) => "ADMIN-044",
+        ScenarioAction::DeleteTopics(_) => "ADMIN-045",
         ScenarioAction::ListTopics(_) => "ADMIN-004",
         ScenarioAction::ListOffsets(_) => "ADMIN-005",
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
@@ -186,6 +189,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::CreateTopicsBatch(value) => &value.operation_id,
         ScenarioAction::CreatePartitions(value) => &value.operation_id,
         ScenarioAction::DeleteTopic(value) => &value.operation_id,
+        ScenarioAction::DeleteTopics(value) => &value.operation_id,
         ScenarioAction::DescribeTopic(value) => &value.operation_id,
         ScenarioAction::DescribeTopics(value) => &value.operation_id,
         ScenarioAction::ListTopics(value) => &value.operation_id,

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v48 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v51 and evidence schema v37.
+Protocol v49 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v52 and evidence schema v38.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -72,6 +72,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_topics_batch`
 - `create_partitions`
 - `delete_topic`
+- `delete_topics`
 - `describe_topic`
 - `describe_topics`
 - `list_topics`
@@ -219,6 +220,7 @@ timeouts invalidate evidence.
 - `topics_creation_completed`
 - `topic_partitions_created`
 - `topic_deleted`
+- `topics_deleted`
 - `topic_described`
 - `topics_described`
 - `topics_listed`
@@ -460,6 +462,16 @@ nonzero topic IDs, internal-topic flags, and per-topic or per-partition errors.
 Immediate independent metadata snapshots run in that same order and must prove
 each expected topology or missing-topic absence without replacing the public
 result.
+
+`delete_topics` carries two through 32 unique topic names in caller order and
+invokes one public name-based Admin operation. Scenario-only expected errors
+stay in Testlab. Its single `topics_deleted` completion preserves the same
+outer order, exact topic keys, and each success or normalized per-topic error;
+a mixed result does not collapse into `command_failed`. A prior plural
+description and its independent metadata establish every selected topic's
+presence or absence. After the public deletion result, independent metadata is
+polled within the original observation bound until every selected name is
+absent, then recorded with consecutive ordinals in caller order.
 
 Offset listing selects `earliest` or `latest` for one isolated partition after
 two acknowledged records or deterministic environment seeding. An immediate
@@ -708,6 +720,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v48 is an exact semantic contract. New capabilities may be declared
+Protocol v49 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

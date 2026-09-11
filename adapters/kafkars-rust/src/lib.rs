@@ -45,6 +45,7 @@ mod protocol_admin_share_group_deletion;
 mod protocol_admin_share_group_description_batch;
 mod protocol_admin_share_group_offset_batch;
 mod protocol_admin_share_group_offset_deletion;
+mod protocol_admin_topic_deletion_batch;
 mod protocol_admin_topic_description;
 mod protocol_admin_topic_description_batch;
 mod protocol_admin_user_scram;
@@ -119,6 +120,8 @@ mod protocol_admin_offset_test;
 mod protocol_admin_plural_result_test;
 #[cfg(test)]
 mod protocol_admin_test;
+#[cfg(test)]
+mod protocol_admin_topic_deletion_batch_test;
 #[cfg(test)]
 mod protocol_admin_user_scram_test;
 #[cfg(test)]

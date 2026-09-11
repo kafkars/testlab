@@ -69,6 +69,7 @@ mod observer_admin_plural_group_target;
 mod observer_admin_share_group_offset_batch_target;
 mod observer_admin_share_group_target;
 mod observer_admin_target;
+mod observer_admin_topic_deletion_batch_target;
 mod observer_admin_topic_description_batch_target;
 mod observer_admin_topic_target;
 mod observer_admin_user_scram_target;
@@ -168,6 +169,8 @@ mod observer_admin_share_groups_description_test;
 mod observer_admin_share_groups_offsets_test;
 #[cfg(test)]
 mod observer_admin_target_test;
+#[cfg(test)]
+mod observer_admin_topics_deletion_test;
 #[cfg(test)]
 mod observer_admin_topics_description_test;
 #[cfg(test)]

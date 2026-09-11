@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v48. It is not a
+An adapter translates one packaged client surface to protocol v49. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -18,6 +18,9 @@ runner and not a verifier.
 - Preserve caller order, exact topic keys, topic IDs, internal markers, ordered
   partitions, and per-topic or per-partition errors for plural topic
   descriptions.
+- Preserve caller order, exact topic keys, and every success or per-topic error
+  for plural topic deletion without receiving expected outcomes or replacing
+  the public result with later metadata absence.
 - Preserve Share-group state, epochs, assignor, ordered members, subscriptions,
   topic IDs, and partition assignments without replacing them with CLI state.
 - Preserve caller order, exact outer and inner group identities, full detailed

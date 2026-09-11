@@ -40,6 +40,7 @@ pub(crate) fn dispatch<W: Write>(
         | AdapterCommand::CreateTopicsBatch(_)
         | AdapterCommand::CreatePartitions(_)
         | AdapterCommand::DeleteTopic(_)
+        | AdapterCommand::DeleteTopics(_)
         | AdapterCommand::DeleteRecords(_)) => {
             protocol_admin_write::dispatch(state, writer, command_id, command)
         }

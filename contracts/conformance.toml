@@ -325,6 +325,12 @@ statement = "One public description of multiple topics preserves each detailed s
 category = "admin"
 
 [[contract]]
+id = "ADMIN-045"
+title = "Plural topic deletion preserves caller order and broker absence"
+statement = "One public name-based deletion of multiple topics follows an independent caller-ordered presence or absence baseline, preserves each success or exact missing-topic error in caller order, and immediate polling of independent metadata confirms every requested topic absent in the same order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

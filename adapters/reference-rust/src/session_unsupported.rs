@@ -29,6 +29,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::CreateTopicsBatch(_)
         | AdapterCommand::CreatePartitions(_)
         | AdapterCommand::DeleteTopic(_)
+        | AdapterCommand::DeleteTopics(_)
         | AdapterCommand::DescribeTopic(_)
         | AdapterCommand::DescribeTopics(_)
         | AdapterCommand::ListTopics(_)
