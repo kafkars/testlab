@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v59 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v62 and evidence schema v48.
+Protocol v60 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v63 and evidence schema v49.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -92,6 +92,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_metadata_quorum`
 - `list_transactions`
 - `describe_transactions`
+- `fence_producers`
 - `list_consumer_groups`
 - `describe_consumer_group`
 - `describe_share_group`
@@ -248,6 +249,7 @@ timeouts invalidate evidence.
 - `producers_described`
 - `transactions_listed`
 - `transactions_described`
+- `producers_fenced`
 - `consumer_groups_listed`
 - `consumer_group_described`
 - `share_group_described`
@@ -747,6 +749,17 @@ Immediate pinned `kafka-transactions.sh list` and one
 snapshots. Scenario validation requires all selected transactional producers
 to be initialized and closed before either read.
 
+Caller-ordered producer fencing carries only the selected transactional IDs
+and complete deadline. Its completion retains the maximum broker throttle and
+one returned producer ID and epoch per caller position. One immediate pinned
+transaction description per selected ID must match those post-fence identities
+and the scenario-owned stable state. Its broker-reported transaction timeout
+must be positive and no greater than the complete public deadline because the
+client derives that timeout from the operation's remaining budget. Scenario
+validation requires every owner to be initialized and closed before the
+mutation, avoiding concurrent fixture changes between the public result and
+independent snapshots.
+
 Group listing carries an exact `api` selector for the consumer-only compatibility
 view or the generic unfiltered `ListGroups` view, while required group IDs remain
 scenario-only. Either public result must contain the independently listed live
@@ -821,6 +834,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v59 is an exact semantic contract. New capabilities may be declared
+Protocol v60 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

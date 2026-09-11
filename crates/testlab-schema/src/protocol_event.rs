@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterEvent {
-    /// Successful handshake and capability declaration.
     Ready {
         /// Adapter identity and capabilities.
         descriptor: AdapterDescriptor,
@@ -216,6 +215,7 @@ pub enum AdapterEvent {
     MetadataQuorumDescribed(crate::AdminMetadataQuorumDescription),
     TransactionsListed(crate::AdminTransactionsListing),
     TransactionsDescribed(crate::AdminTransactionsDescription),
+    ProducersFenced(crate::AdminProducersFenced),
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),

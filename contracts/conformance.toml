@@ -397,6 +397,12 @@ statement = "One bounded public metadata-quorum description preserves canonical 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-057"
+title = "Producer fencing preserves caller order and matches Kafka CLI state"
+statement = "One public producer-fencing batch preserves every caller-selected transactional ID and returned producer identity in caller order, while contiguous immediate Kafka CLI descriptions match each post-fence producer ID and epoch, the declared stable transaction state, and a positive transaction timeout bounded by the public deadline."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

@@ -6,7 +6,7 @@ use testlab_schema::{AdapterCommand, ScenarioAction};
     reason = "the exhaustive translator keeps every scenario action visibly routed"
 )]
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    let pair = match action {
+    Some(match action {
         action @ (ScenarioAction::CreateClient { .. }
         | ScenarioAction::CreateConfiguredClient(_)
         | ScenarioAction::AwaitClientReady { .. }
@@ -97,6 +97,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DescribeReplicaLogDirs(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
+        | ScenarioAction::FenceProducers(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
@@ -162,8 +163,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::AlterBrokerPolicy(_) => {
             return None;
         }
-    };
-    Some(pair)
+    })
 }
 
 fn creation(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {

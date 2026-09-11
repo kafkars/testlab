@@ -1,4 +1,4 @@
-//! Transaction discovery joins public Admin results to pinned Kafka CLI snapshots.
+//! Transaction Admin joins public results to pinned Kafka CLI snapshots.
 
 use testlab_schema::{
     DescribeTransactionsAction, ListTransactionsAction, ScenarioAction,
@@ -22,6 +22,9 @@ pub(crate) fn verify_transactions_action(
         }
         ScenarioAction::DescribeTransactions(action) => {
             verify_descriptions(scenario_action, action, index, violations);
+        }
+        ScenarioAction::FenceProducers(action) => {
+            crate::admin_producer_fencing::verify(scenario_action, action, index, violations);
         }
         _ => return false,
     }
@@ -177,7 +180,7 @@ fn canonical_list(transactions: &[TransactionListingSnapshot]) -> bool {
         .all(|pair| pair[0].transactional_id.as_bytes() < pair[1].transactional_id.as_bytes())
 }
 
-fn valid_description(transaction: &TransactionDescriptionSnapshot) -> bool {
+pub(crate) fn valid_description(transaction: &TransactionDescriptionSnapshot) -> bool {
     valid_name(&transaction.transactional_id)
         && valid_name(&transaction.transaction_state)
         && transaction.transaction_timeout_ms > 0
@@ -200,11 +203,11 @@ fn canonical_topics(topics: &[TransactionTopicSnapshot]) -> bool {
         .all(|pair| pair[0].topic.as_bytes() < pair[1].topic.as_bytes())
 }
 
-fn valid_name(value: &str) -> bool {
+pub(crate) fn valid_name(value: &str) -> bool {
     !value.is_empty() && !value.chars().any(char::is_whitespace)
 }
 
-fn contiguous(values: impl Iterator<Item = u64>) -> bool {
+pub(crate) fn contiguous(values: impl Iterator<Item = u64>) -> bool {
     let mut previous: Option<u64> = None;
     for value in values {
         if previous.is_some_and(|previous| value != previous.saturating_add(1)) {
@@ -215,14 +218,14 @@ fn contiguous(values: impl Iterator<Item = u64>) -> bool {
     true
 }
 
-fn one<T>(values: Option<&Vec<Indexed<T>>>) -> Option<&Indexed<T>> {
+pub(crate) fn one<T>(values: Option<&Vec<Indexed<T>>>) -> Option<&Indexed<T>> {
     let [value] = values?.as_slice() else {
         return None;
     };
     Some(value)
 }
 
-fn references<T>(
+pub(crate) fn references<T>(
     public: Option<&Indexed<T>>,
     observations: impl Iterator<Item = u64>,
 ) -> Vec<String> {

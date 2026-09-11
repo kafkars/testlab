@@ -138,6 +138,72 @@ pub struct DescribeTransactionsCommand {
     pub timeout_ms: u64,
 }
 
+/// Scenario intent for one caller-ordered transactional producer-fencing batch.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FenceProducersAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Caller-ordered exact post-fence transaction expectations.
+    pub producers: Vec<ProducerFenceExpectation>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Scenario-owned stable state expected after fencing one transactional ID.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProducerFenceExpectation {
+    /// Exact transactional identifier.
+    pub transactional_id: String,
+    /// Exact Kafka-owned post-fence transaction-state spelling.
+    pub expected_state: String,
+    /// Whether Kafka must expose a current transaction start time.
+    pub expected_start_time_present: bool,
+    /// Exact canonical topic-partition participation after fencing.
+    pub expected_topics: Vec<TransactionTopicSnapshot>,
+}
+
+/// Wire payload for one caller-ordered transactional producer-fencing batch.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FenceProducersCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Caller-ordered exact transactional identifiers.
+    pub transactional_ids: Vec<String>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Exact public post-fence producer identity.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FencedProducerSnapshot {
+    /// Exact transactional identifier.
+    pub transactional_id: String,
+    /// Exact signed producer identity returned by Kafka.
+    pub producer_id: i64,
+    /// Exact signed producer epoch returned by Kafka.
+    pub producer_epoch: i16,
+}
+
+/// Public caller-ordered producer-fencing completion.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminProducersFenced {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Maximum nonnegative throttle observed across broker calls.
+    pub throttle_time_ms: u64,
+    /// One successful post-fence identity per caller-selected ID.
+    pub producers: Vec<FencedProducerSnapshot>,
+}
+
 /// Exact public transaction-description fields shared with independent evidence.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

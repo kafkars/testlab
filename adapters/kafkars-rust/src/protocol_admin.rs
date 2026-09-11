@@ -92,7 +92,8 @@ pub(crate) fn dispatch<W: Write>(
             crate::protocol_admin_metadata_quorum::describe(state, writer, command_id, command)
         }
         command @ (AdapterCommand::ListTransactions(_)
-        | AdapterCommand::DescribeTransactions(_)) => {
+        | AdapterCommand::DescribeTransactions(_)
+        | AdapterCommand::FenceProducers(_)) => {
             crate::protocol_admin_transactions::dispatch(state, writer, command_id, command)
         }
         command @ (AdapterCommand::DescribeTopicConfig(_)

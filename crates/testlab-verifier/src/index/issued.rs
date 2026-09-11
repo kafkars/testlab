@@ -116,6 +116,7 @@ impl HistoryIndex {
             | ScenarioAction::DescribeMetadataQuorum(_)
             | ScenarioAction::ListTransactions(_)
             | ScenarioAction::DescribeTransactions(_)
+            | ScenarioAction::FenceProducers(_)
             | ScenarioAction::ListConsumerGroups(_)
             | ScenarioAction::DescribeConsumerGroup(_)
             | ScenarioAction::DescribeShareGroup(_)

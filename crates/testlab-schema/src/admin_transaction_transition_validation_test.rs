@@ -1,10 +1,24 @@
-//! Transaction discovery transition tests reject unstable or invented identities.
+//! Transaction Admin transition tests reject unstable or invented identities.
 
 use crate::{Scenario, ScenarioAction};
 
 #[test]
 fn initialized_closed_transaction_discovery_is_valid() {
     assert!(problems(fixture()).is_empty());
+    assert!(problems(fence_fixture()).is_empty());
+}
+
+#[test]
+fn fencing_rejects_an_open_transactional_owner() {
+    let mut scenario = fence_fixture();
+    scenario.steps.remove(3);
+    let problems = problems(scenario);
+    assert!(
+        problems
+            .iter()
+            .any(|problem| problem.contains("every producer") && problem.contains("closed")),
+        "{problems:?}"
+    );
 }
 
 #[test]
@@ -46,6 +60,13 @@ fn fixture() -> Scenario {
         "../../../scenarios/kafka/admin-transaction-discovery.toml"
     ))
     .unwrap_or_else(|error| panic!("transaction discovery fixture: {error}"))
+}
+
+fn fence_fixture() -> Scenario {
+    toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-fence-producers.toml"
+    ))
+    .unwrap_or_else(|error| panic!("producer fencing fixture: {error}"))
 }
 
 fn problems(scenario: Scenario) -> Vec<String> {

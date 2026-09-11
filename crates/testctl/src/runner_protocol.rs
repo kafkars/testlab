@@ -136,10 +136,8 @@ pub(crate) enum ExpectedEvent {
     },
     ReplicaLogDirsDescribed(OperationId, String, i32),
     TransactionsListed(OperationId),
-    TransactionsDescribed {
-        operation_id: OperationId,
-        transactional_ids: Vec<String>,
-    },
+    TransactionsDescribed(OperationId, Vec<String>),
+    ProducersFenced(OperationId, Vec<String>),
     ConsumerGroupsListed {
         operation_id: OperationId,
     },

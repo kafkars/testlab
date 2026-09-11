@@ -2,7 +2,6 @@ pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, Produc
 use crate::transaction_action_validation::TransactionStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 use std::collections::BTreeSet;
-const MAX_BATCH_RECORDS: usize = 31;
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn validate_action(
     action: &ScenarioAction,
@@ -136,6 +135,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeMetadataQuorum(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
+        | ScenarioAction::FenceProducers(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
@@ -204,9 +204,9 @@ fn validate_batch(
     if batch.is_empty() {
         problems.push(format!("producer {producer_id} received an empty batch"));
     }
-    if batch.len() > MAX_BATCH_RECORDS {
+    if batch.len() > 31 {
         problems.push(format!(
-            "producer {producer_id} batch has {} records, maximum is {MAX_BATCH_RECORDS}",
+            "producer {producer_id} batch has {} records, maximum is 31",
             batch.len()
         ));
     }

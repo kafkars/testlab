@@ -1,9 +1,10 @@
-//! Transaction discovery protocol tests pin expectation-free exact identities.
+//! Transaction Admin protocol tests pin expectation-free exact identities.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminTransactionsDescription, AdminTransactionsListing, ClientId,
-    DescribeTransactionsAction, ListTransactionsAction, OperationId, ScenarioAction,
-    TransactionDescriptionExpectation, TransactionDescriptionSnapshot,
+    AdapterCommand, AdapterEvent, AdminProducersFenced, AdminTransactionsDescription,
+    AdminTransactionsListing, ClientId, DescribeTransactionsAction, FenceProducersAction,
+    FencedProducerSnapshot, ListTransactionsAction, OperationId, ProducerFenceExpectation,
+    ScenarioAction, TransactionDescriptionExpectation, TransactionDescriptionSnapshot,
     TransactionListingExpectation,
 };
 
@@ -37,10 +38,23 @@ fn translation_omits_listing_and_description_expectations() {
     let encoded = serde_json::to_string(&describe)
         .unwrap_or_else(|error| panic!("encode description command: {error}"));
     assert!(!encoded.contains("expected_state"));
-    assert!(matches!(
-        expected,
-        ExpectedEvent::TransactionsDescribed { .. }
-    ));
+    assert!(matches!(expected, ExpectedEvent::TransactionsDescribed(..)));
+
+    let Some((AdapterCommand::FenceProducers(fence), expected)) =
+        crate::session_command_admin_transactions::translate(&ScenarioAction::FenceProducers(
+            fence_action(),
+        ))
+    else {
+        panic!("producer-fencing translation");
+    };
+    assert_eq!(
+        fence.transactional_ids,
+        vec!["zulu".to_owned(), "alpha".to_owned()]
+    );
+    let encoded = serde_json::to_string(&fence)
+        .unwrap_or_else(|error| panic!("encode producer-fencing command: {error}"));
+    assert!(!encoded.contains("expected_state"));
+    assert!(matches!(expected, ExpectedEvent::ProducersFenced(..)));
 }
 
 #[test]
@@ -58,10 +72,10 @@ fn completions_require_exact_operation_and_caller_order() {
         EventDisposition::Complete
     );
 
-    let described = ExpectedEvent::TransactionsDescribed {
-        operation_id: operation("describe-transactions"),
-        transactional_ids: vec!["zulu".to_owned(), "alpha".to_owned()],
-    };
+    let described = ExpectedEvent::TransactionsDescribed(
+        operation("describe-transactions"),
+        vec!["zulu".to_owned(), "alpha".to_owned()],
+    );
     let mut event = AdapterEvent::TransactionsDescribed(AdminTransactionsDescription {
         operation_id: operation("describe-transactions"),
         transactions: vec![description("zulu"), description("alpha")],
@@ -80,6 +94,27 @@ fn completions_require_exact_operation_and_caller_order() {
         .classify(&event)
         .expect_err("reordered descriptions must not complete");
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
+
+    let fenced = ExpectedEvent::ProducersFenced(
+        operation("fence-producers"),
+        vec!["zulu".to_owned(), "alpha".to_owned()],
+    );
+    let mut event = AdapterEvent::ProducersFenced(AdminProducersFenced {
+        operation_id: operation("fence-producers"),
+        throttle_time_ms: 3,
+        producers: vec![fenced_producer("zulu"), fenced_producer("alpha")],
+    });
+    assert_eq!(
+        fenced
+            .classify(&event)
+            .unwrap_or_else(|error| panic!("classify producer fencing: {error}")),
+        EventDisposition::Complete
+    );
+    let AdapterEvent::ProducersFenced(actual) = &mut event else {
+        panic!("producer fencing event");
+    };
+    actual.producers.swap(0, 1);
+    assert!(fenced.classify(&event).is_err());
 }
 
 fn list_action() -> ListTransactionsAction {
@@ -96,6 +131,24 @@ fn describe_action() -> DescribeTransactionsAction {
         client_id: client(),
         operation_id: operation("describe-transactions"),
         transactions: vec![expectation("zulu"), expectation("alpha")],
+        timeout_ms: 1_000,
+    }
+}
+
+fn fence_expectation(id: &str) -> ProducerFenceExpectation {
+    ProducerFenceExpectation {
+        transactional_id: id.to_owned(),
+        expected_state: "Empty".to_owned(),
+        expected_start_time_present: false,
+        expected_topics: Vec::new(),
+    }
+}
+
+fn fence_action() -> FenceProducersAction {
+    FenceProducersAction {
+        client_id: client(),
+        operation_id: operation("fence-producers"),
+        producers: vec![fence_expectation("zulu"), fence_expectation("alpha")],
         timeout_ms: 1_000,
     }
 }
@@ -126,6 +179,14 @@ fn description(id: &str) -> TransactionDescriptionSnapshot {
         producer_id: 71,
         producer_epoch: 0,
         topics: Vec::new(),
+    }
+}
+
+fn fenced_producer(id: &str) -> FencedProducerSnapshot {
+    FencedProducerSnapshot {
+        transactional_id: id.to_owned(),
+        producer_id: 71,
+        producer_epoch: 2,
     }
 }
 

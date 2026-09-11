@@ -1,4 +1,4 @@
-schema_version = 62
+schema_version = 63
 id = "kafka.assigned-consumer-seek-replay"
 title = "an assigned consumer seek replays an exact broker record"
 description = "The packaged direct consumer reads one record, seeks the same partition to the beginning through the public control, and reads the same broker coordinate again."

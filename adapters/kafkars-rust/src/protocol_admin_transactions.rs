@@ -1,10 +1,12 @@
-//! Transaction discovery preserves canonical public listing and description facts.
+//! Transaction Admin preserves canonical discovery and producer-fencing facts.
 
 use std::io::Write;
+use std::time::Duration;
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminTransactionsDescription,
-    AdminTransactionsListing, CommandId, DescribeTransactionsCommand, ListTransactionsCommand,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminProducersFenced,
+    AdminTransactionsDescription, AdminTransactionsListing, CommandId, DescribeTransactionsCommand,
+    FenceProducersCommand, FencedProducerSnapshot, ListTransactionsCommand,
     TransactionDescriptionSnapshot, TransactionListingSnapshot, TransactionTopicSnapshot,
 };
 
@@ -25,10 +27,63 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeTransactions(command) => {
             describe(state, writer, command_id, command)
         }
-        _ => Err(invalid(
-            "non-transaction-discovery command reached dispatcher",
-        )),
+        AdapterCommand::FenceProducers(command) => fence(state, writer, command_id, command),
+        _ => Err(invalid("non-transaction-admin command reached dispatcher")),
     }
+}
+
+fn fence<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: FenceProducersCommand,
+) -> Result<(), AdapterError> {
+    let result = state
+        .client(&command.client_id)?
+        .admin()
+        .fence_producers(command.transactional_ids.clone())
+        .deadline_after(Duration::from_millis(command.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let throttle_time_ms = u64::try_from(result.throttle_time().as_millis())
+        .map_err(|_| invalid("producer fencing returned an unrepresentable throttle time"))?;
+    let entries = result.into_producers().into_entries();
+    if entries.len() != command.transactional_ids.len() {
+        return Err(invalid("producer fencing returned the wrong outcome count"));
+    }
+    let producers = entries
+        .into_iter()
+        .zip(&command.transactional_ids)
+        .map(|((transactional_id, result), expected)| {
+            if &transactional_id != expected {
+                return Err(invalid("producer fencing changed caller transaction order"));
+            }
+            let identity = result.map_err(AdapterError::Client)?;
+            if invalid_id(&transactional_id)
+                || identity.producer_id() < 0
+                || identity.producer_epoch() < 0
+            {
+                return Err(invalid("producer fencing returned malformed identity"));
+            }
+            Ok(FencedProducerSnapshot {
+                transactional_id,
+                producer_id: identity.producer_id(),
+                producer_epoch: identity.producer_epoch(),
+            })
+        })
+        .collect::<Result<Vec<_>, AdapterError>>()?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::ProducersFenced(AdminProducersFenced {
+                operation_id: command.operation_id,
+                throttle_time_ms,
+                producers,
+            }),
+        ),
+    )
 }
 
 fn list<W: Write>(
@@ -196,5 +251,5 @@ fn invalid_state(value: &str) -> bool {
 }
 
 fn invalid(detail: &str) -> AdapterError {
-    AdapterError::AdminResult(format!("transaction discovery {detail}"))
+    AdapterError::AdminResult(format!("transaction Admin {detail}"))
 }

@@ -5,9 +5,9 @@ use crate::{AdapterCommand, AdapterEvent, BrokerStateObservation, ScenarioAction
 
 #[test]
 fn transaction_discovery_versions_are_explicit() {
-    assert_eq!(crate::PROTOCOL_VERSION, 59);
-    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 62);
-    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 48);
+    assert_eq!(crate::PROTOCOL_VERSION, 60);
+    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 63);
+    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 49);
 }
 
 #[test]
@@ -78,6 +78,40 @@ fn expectations_stay_off_commands_and_all_results_round_trip() {
             transaction: description,
         },
     ));
+
+    let fence_action = ScenarioAction::FenceProducers(FenceProducersAction {
+        client_id: client(),
+        operation_id: operation("fence-producers"),
+        producers: vec![fence_expectation("alpha")],
+        timeout_ms: 1_000,
+    });
+    let fence_command = AdapterCommand::FenceProducers(FenceProducersCommand {
+        client_id: client(),
+        operation_id: operation("fence-producers"),
+        transactional_ids: vec!["alpha".to_owned()],
+        timeout_ms: 1_000,
+    });
+    round_trip(&fence_action);
+    round_trip(&fence_command);
+    assert!(!encoded(&fence_command).contains("expected_state"));
+    round_trip(&AdapterEvent::ProducersFenced(AdminProducersFenced {
+        operation_id: operation("fence-producers"),
+        throttle_time_ms: 7,
+        producers: vec![FencedProducerSnapshot {
+            transactional_id: "alpha".to_owned(),
+            producer_id: 71,
+            producer_epoch: 2,
+        }],
+    }));
+}
+
+fn fence_expectation(transactional_id: &str) -> ProducerFenceExpectation {
+    ProducerFenceExpectation {
+        transactional_id: transactional_id.to_owned(),
+        expected_state: "Empty".to_owned(),
+        expected_start_time_present: false,
+        expected_topics: Vec::new(),
+    }
 }
 
 fn listing_expectation(transactional_id: &str) -> TransactionListingExpectation {

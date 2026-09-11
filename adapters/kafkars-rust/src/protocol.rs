@@ -16,7 +16,6 @@ use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
-const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
 
 pub fn run_stdio() -> Result<(), AdapterError> {
     let (stdin, stdout) = (io::stdin(), io::stdout());
@@ -31,7 +30,7 @@ where
     let mut line = String::new();
     loop {
         line.clear();
-        let mut bounded = (&mut reader).take(MAX_COMMAND_READ);
+        let mut bounded = (&mut reader).take(4 * 1024 * 1024 + 1);
         let bytes = bounded.read_line(&mut line)?;
         if bytes == 0 {
             return Err(AdapterError::UnexpectedEof);
@@ -180,6 +179,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeMetadataQuorum(_)
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
+        | AdapterCommand::FenceProducers(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

@@ -154,6 +154,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::StopBrokerRole { .. }
             | ScenarioAction::RestoreBrokerRole { .. }
             | ScenarioAction::AlterBrokerPolicy(_)
+            | ScenarioAction::FenceProducers(_)
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::StartConcurrentActors(_)

@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v48 records the exact environment identity in `manifest.json`,
-retains protocol-v59 direct and hosted-group consumer controls and shutdown,
+Evidence schema v49 records the exact environment identity in `manifest.json`,
+retains protocol-v60 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -177,7 +177,8 @@ replica topology, or untested offset selectors.
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
 cluster feature ranges, active partition producer states, canonical cluster
-transaction listings, and caller-ordered transaction descriptions,
+transaction listings, caller-ordered transaction descriptions, and post-fence
+producer identities,
 consumer-group existence and member count, active Share-group state and member
 count, caller-ordered selected Share-group partition start offsets and lags or
 explicit absence, one consumer-group committed offset,
@@ -405,6 +406,18 @@ membership, leader, epoch, represented directories, and optional v2 listeners
 exactly. Known offsets, watermark, and timestamps may only advance before the
 CLI snapshot; the later snapshot may resolve an earlier unknown value but may
 not lose one.
+
+ADMIN-057 binds one caller-ordered public producer-fencing batch to one
+immediate pinned Kafka CLI transaction description per selected ID. Every
+successful public outcome must retain its exact caller position and a
+nonnegative producer ID and epoch. Contiguous CLI observations must match those
+post-fence identities exactly and independently confirm each scenario-declared
+stable transaction state, start-time presence, and topic-partition set. The
+broker-reported transaction timeout must be positive and no greater than the
+complete public deadline; it is deliberately not compared with the original
+producer timeout because fencing derives it from the remaining operation
+budget. Every selected producer is initialized and closed before fencing, so
+no fixture owner can race the public result and independent snapshots.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

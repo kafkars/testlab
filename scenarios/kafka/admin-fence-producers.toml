@@ -1,7 +1,7 @@
 schema_version = 63
-id = "kafka.admin-transaction-discovery"
-title = "packaged admin lists and describes independently observed transactions"
-description = "Two initialized and closed transactional producers leave stable Empty transaction state; the packaged client's canonical listing and caller-ordered descriptions must preserve every public field exposed by the pinned Kafka administration CLI."
+id = "kafka.admin-fence-producers"
+title = "packaged admin fences caller-ordered transactional producers"
+description = "Two initialized and closed transactional producers are fenced through one public caller-ordered Admin batch; every returned identity and epoch must match immediate pinned Kafka CLI descriptions, whose positive transaction timeout is bounded by the public deadline."
 timeout_ms = 90000
 requires = ["transactions", "admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -21,7 +21,7 @@ id = "create-zulu-transaction"
 kind = "create_transactional_producer"
 client_id = "client-1"
 producer_id = "transactional-producer-zulu"
-transactional_id = "testlab-admin-transaction-zulu"
+transactional_id = "testlab-admin-fence-zulu"
 transaction_timeout_ms = 30000
 initialization_timeout_ms = 30000
 
@@ -35,7 +35,7 @@ id = "create-alpha-transaction"
 kind = "create_transactional_producer"
 client_id = "client-1"
 producer_id = "transactional-producer-alpha"
-transactional_id = "testlab-admin-transaction-alpha"
+transactional_id = "testlab-admin-fence-alpha"
 transaction_timeout_ms = 30000
 initialization_timeout_ms = 30000
 
@@ -45,38 +45,21 @@ kind = "close_transactional_producer"
 producer_id = "transactional-producer-alpha"
 
 [[steps]]
-id = "list-transactions"
-kind = "list_transactions"
+id = "fence-producers"
+kind = "fence_producers"
 client_id = "client-1"
-operation_id = "admin-list-transactions"
+operation_id = "admin-fence-producers"
 timeout_ms = 20000
 
-[[steps.expected_transactions]]
-transactional_id = "testlab-admin-transaction-alpha"
+[[steps.producers]]
+transactional_id = "testlab-admin-fence-zulu"
 expected_state = "Empty"
-
-[[steps.expected_transactions]]
-transactional_id = "testlab-admin-transaction-zulu"
-expected_state = "Empty"
-
-[[steps]]
-id = "describe-transactions"
-kind = "describe_transactions"
-client_id = "client-1"
-operation_id = "admin-describe-transactions"
-timeout_ms = 20000
-
-[[steps.transactions]]
-transactional_id = "testlab-admin-transaction-zulu"
-expected_state = "Empty"
-expected_transaction_timeout_ms = 30000
 expected_start_time_present = false
 expected_topics = []
 
-[[steps.transactions]]
-transactional_id = "testlab-admin-transaction-alpha"
+[[steps.producers]]
+transactional_id = "testlab-admin-fence-alpha"
 expected_state = "Empty"
-expected_transaction_timeout_ms = 30000
 expected_start_time_present = false
 expected_topics = []
 

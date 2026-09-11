@@ -3,14 +3,19 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
-    ClientId, DescribeTransactionsAction, ListTransactionsAction, OperationId, ScenarioAction,
-    TransactionDescriptionExpectation, TransactionListingExpectation, TransactionTopicSnapshot,
+    ClientId, DescribeTransactionsAction, FenceProducersAction, ListTransactionsAction,
+    OperationId, ProducerFenceExpectation, ScenarioAction, TransactionDescriptionExpectation,
+    TransactionListingExpectation, TransactionTopicSnapshot,
 };
 
 #[test]
 fn canonical_list_and_caller_ordered_descriptions_validate() {
     assert!(problems(ScenarioAction::ListTransactions(list_action())).is_empty());
     assert!(problems(ScenarioAction::DescribeTransactions(describe_action())).is_empty());
+    assert!(
+        problems(ScenarioAction::FenceProducers(fence_action())).is_empty(),
+        "canonical producer fencing must validate"
+    );
 }
 
 #[test]
@@ -32,6 +37,10 @@ fn duplicate_ids_whitespace_and_noncanonical_topics_fail() {
         },
     ];
     assert!(!problems(ScenarioAction::DescribeTransactions(describe)).is_empty());
+
+    let mut fence = fence_action();
+    fence.producers[1].transactional_id = fence.producers[0].transactional_id.clone();
+    assert!(!problems(ScenarioAction::FenceProducers(fence)).is_empty());
 }
 
 fn list_action() -> ListTransactionsAction {
@@ -48,6 +57,24 @@ fn describe_action() -> DescribeTransactionsAction {
         client_id: client(),
         operation_id: operation("describe-transactions"),
         transactions: vec![description("zulu"), description("alpha")],
+        timeout_ms: 1_000,
+    }
+}
+
+fn fence(id: &str) -> ProducerFenceExpectation {
+    ProducerFenceExpectation {
+        transactional_id: id.to_owned(),
+        expected_state: "Empty".to_owned(),
+        expected_start_time_present: false,
+        expected_topics: Vec::new(),
+    }
+}
+
+fn fence_action() -> FenceProducersAction {
+    FenceProducersAction {
+        client_id: client(),
+        operation_id: operation("fence-producers"),
+        producers: vec![fence("zulu"), fence("alpha")],
         timeout_ms: 1_000,
     }
 }

@@ -4,10 +4,11 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminFeaturesDescription, AdminLogDirsDescription,
-    AdminMetadataQuorumDescription, AdminProducersDescription, AdminReplicaLogDirsDescription,
-    AdminTransactionsDescription, AdminTransactionsListing, BrokerFeaturesState,
-    BrokerLogDirsState, BrokerMetadataQuorumState, BrokerProducersState, BrokerStateObservation,
-    BrokerTransactionState, BrokerTransactionsState, OperationId, ScenarioAction,
+    AdminMetadataQuorumDescription, AdminProducersDescription, AdminProducersFenced,
+    AdminReplicaLogDirsDescription, AdminTransactionsDescription, AdminTransactionsListing,
+    BrokerFeaturesState, BrokerLogDirsState, BrokerMetadataQuorumState, BrokerProducersState,
+    BrokerStateObservation, BrokerTransactionState, BrokerTransactionsState, OperationId,
+    ScenarioAction,
 };
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
@@ -19,6 +20,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
         ScenarioAction::DescribeMetadataQuorum(value) => Some(&value.operation_id),
         ScenarioAction::ListTransactions(value) => Some(&value.operation_id),
         ScenarioAction::DescribeTransactions(value) => Some(&value.operation_id),
+        ScenarioAction::FenceProducers(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -32,6 +34,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
         AdapterCommand::DescribeMetadataQuorum(value) => Some(&value.operation_id),
         AdapterCommand::ListTransactions(value) => Some(&value.operation_id),
         AdapterCommand::DescribeTransactions(value) => Some(&value.operation_id),
+        AdapterCommand::FenceProducers(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -93,6 +96,16 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                     .eq(&command.transactional_ids)
                 && action.timeout_ms == command.timeout_ms
         }
+        (ScenarioAction::FenceProducers(action), AdapterCommand::FenceProducers(command)) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action
+                    .producers
+                    .iter()
+                    .map(|transaction| &transaction.transactional_id)
+                    .eq(&command.transactional_ids)
+                && action.timeout_ms == command.timeout_ms
+        }
         (ScenarioAction::DescribeFeatures(_), _) | (_, AdapterCommand::DescribeFeatures(_)) => {
             false
         }
@@ -109,6 +122,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         }
         (ScenarioAction::DescribeTransactions(_), _)
         | (_, AdapterCommand::DescribeTransactions(_)) => false,
+        (ScenarioAction::FenceProducers(_), _) | (_, AdapterCommand::FenceProducers(_)) => false,
         _ => return None,
     })
 }
@@ -137,6 +151,7 @@ pub(crate) struct AdminFeaturesIndex {
     pub(crate) transactions_observed: BTreeMap<OperationId, Vec<Indexed<BrokerTransactionsState>>>,
     pub(crate) transactions_described:
         BTreeMap<OperationId, Vec<Indexed<AdminTransactionsDescription>>>,
+    pub(crate) producers_fenced: BTreeMap<OperationId, Vec<Indexed<AdminProducersFenced>>>,
     pub(crate) transaction_states_observed:
         BTreeMap<OperationId, Vec<Indexed<BrokerTransactionState>>>,
 }
@@ -182,6 +197,12 @@ impl AdminFeaturesIndex {
             ),
             AdapterEvent::TransactionsDescribed(value) => push(
                 &mut self.transactions_described,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            AdapterEvent::ProducersFenced(value) => push(
+                &mut self.producers_fenced,
                 value.operation_id.clone(),
                 value.clone(),
                 sequence,

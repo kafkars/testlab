@@ -50,7 +50,6 @@ pub enum ScenarioAction {
         timeout_ms: u64,
     },
     AlterBrokerPolicy(crate::BrokerPolicyAction),
-    /// Offers one record.
     Send {
         producer_id: ProducerId,
         /// Stable operation identity.
@@ -218,6 +217,7 @@ pub enum ScenarioAction {
     DescribeMetadataQuorum(crate::DescribeMetadataQuorumAction),
     ListTransactions(crate::ListTransactionsAction),
     DescribeTransactions(crate::DescribeTransactionsAction),
+    FenceProducers(crate::FenceProducersAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),

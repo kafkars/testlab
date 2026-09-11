@@ -1,4 +1,4 @@
-//! Transaction discovery fixtures require initialized, closed transactional owners.
+//! Transaction Admin fixtures require initialized, closed transactional owners.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -52,6 +52,15 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 &action.operation_id,
                 action
                     .transactions
+                    .iter()
+                    .map(|transaction| transaction.transactional_id.as_str()),
+                &owners,
+                problems,
+            ),
+            ScenarioAction::FenceProducers(action) => require_closed(
+                &action.operation_id,
+                action
+                    .producers
                     .iter()
                     .map(|transaction| transaction.transactional_id.as_str()),
                 &owners,

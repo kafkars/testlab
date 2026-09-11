@@ -3,7 +3,6 @@ use crate::{BatchRecord, ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterCommand {
-    /// Starts one adapter session and declares the environment endpoints.
     Hello {
         /// Unique test attempt.
         run_id: crate::RunId,
@@ -203,6 +202,7 @@ pub enum AdapterCommand {
     DescribeMetadataQuorum(crate::DescribeMetadataQuorumCommand),
     ListTransactions(crate::ListTransactionsCommand),
     DescribeTransactions(crate::DescribeTransactionsCommand),
+    FenceProducers(crate::FenceProducersCommand),
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),

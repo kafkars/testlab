@@ -45,37 +45,94 @@ pub(crate) fn validate(
             true
         }
         ScenarioAction::DescribeTransactions(action) => {
-            validate_identity(
+            validate_descriptions(
                 &action.client_id,
                 &action.operation_id,
+                &action.transactions,
+                action.timeout_ms,
                 clients,
                 operation_ids,
                 problems,
             );
-            validate_count(&action.operation_id, action.transactions.len(), problems);
-            let mut ids = BTreeSet::new();
-            for expected in &action.transactions {
-                validate_id(&action.operation_id, &expected.transactional_id, problems);
-                validate_state(&action.operation_id, &expected.expected_state, problems);
-                if !ids.insert(&expected.transactional_id) {
-                    problems.push(format!(
-                        "admin operation {} transactions contain a duplicate transactional_id",
-                        action.operation_id
-                    ));
-                }
-                if expected.expected_transaction_timeout_ms <= 0 {
-                    problems.push(format!(
-                        "admin operation {} expected_transaction_timeout_ms must be positive",
-                        action.operation_id
-                    ));
-                }
-                validate_topics(&action.operation_id, &expected.expected_topics, problems);
-            }
-            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+            true
+        }
+        ScenarioAction::FenceProducers(action) => {
+            validate_fencing(
+                &action.client_id,
+                &action.operation_id,
+                &action.producers,
+                action.timeout_ms,
+                clients,
+                operation_ids,
+                problems,
+            );
             true
         }
         _ => false,
     }
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "fencing has one bounded batch contract"
+)]
+fn validate_fencing(
+    client_id: &ClientId,
+    operation_id: &OperationId,
+    producers: &[crate::ProducerFenceExpectation],
+    timeout_ms: u64,
+    clients: &BTreeMap<ClientId, bool>,
+    operation_ids: &mut BTreeSet<OperationId>,
+    problems: &mut Vec<String>,
+) {
+    validate_identity(client_id, operation_id, clients, operation_ids, problems);
+    validate_count(operation_id, producers.len(), problems);
+    let mut ids = BTreeSet::new();
+    for expected in producers {
+        validate_id(operation_id, &expected.transactional_id, problems);
+        validate_state(operation_id, &expected.expected_state, problems);
+        if !ids.insert(&expected.transactional_id) {
+            problems.push(format!(
+                "admin operation {operation_id} producers contain a duplicate transactional_id"
+            ));
+        }
+        validate_topics(operation_id, &expected.expected_topics, problems);
+    }
+    validate_timeout(operation_id, timeout_ms, problems);
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "both transaction batches share exact rules"
+)]
+fn validate_descriptions(
+    client_id: &ClientId,
+    operation_id: &OperationId,
+    transactions: &[crate::TransactionDescriptionExpectation],
+    timeout_ms: u64,
+    clients: &BTreeMap<ClientId, bool>,
+    operation_ids: &mut BTreeSet<OperationId>,
+    problems: &mut Vec<String>,
+) {
+    validate_identity(client_id, operation_id, clients, operation_ids, problems);
+    validate_count(operation_id, transactions.len(), problems);
+    let mut ids = BTreeSet::new();
+    for expected in transactions {
+        validate_id(operation_id, &expected.transactional_id, problems);
+        validate_state(operation_id, &expected.expected_state, problems);
+        if !ids.insert(&expected.transactional_id) {
+            problems.push(format!(
+                "admin operation {operation_id} transactions contain a duplicate transactional_id"
+            ));
+        }
+        if expected.expected_transaction_timeout_ms <= 0 {
+            problems.push(format!(
+                "admin operation {operation_id} expected_transaction_timeout_ms must be positive"
+            ));
+        }
+        validate_topics(operation_id, &expected.expected_topics, problems);
+    }
+    validate_timeout(operation_id, timeout_ms, problems);
 }
 
 fn validate_count(operation_id: &OperationId, count: usize, problems: &mut Vec<String>) {
