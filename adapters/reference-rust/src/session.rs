@@ -149,6 +149,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::FenceProducers(_)
         | AdapterCommand::AlterPartitionReassignments(_)
         | AdapterCommand::ListPartitionReassignments(_)
+        | AdapterCommand::ElectLeaders(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

@@ -36,6 +36,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::ProducersFenced(..)
             | ExpectedEvent::PartitionReassignmentsAltered(_)
             | ExpectedEvent::PartitionReassignmentsListed(_)
+            | ExpectedEvent::LeadersElected(_)
             | ExpectedEvent::ConsumerGroupsListed { .. }
             | ExpectedEvent::ConsumerGroupDescribed { .. }
             | ExpectedEvent::ConsumerGroupOffsetListed { .. }
@@ -73,6 +74,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::ProducersFenced(_)
             | AdapterEvent::PartitionReassignmentsAltered(_)
             | AdapterEvent::PartitionReassignmentsListed(_)
+            | AdapterEvent::LeadersElected(_)
             | AdapterEvent::ConsumerGroupsListed(_)
             | AdapterEvent::ConsumerGroupDescribed(_)
             | AdapterEvent::ConsumerGroupOffsetListed(_)

@@ -18,6 +18,7 @@ mod admin_group_batch;
 mod admin_group_batch_mutation;
 mod admin_group_evidence;
 mod admin_group_mutation;
+mod admin_leader_election;
 mod admin_log_dirs;
 mod admin_metadata_quorum;
 mod admin_offset_batch;
@@ -121,6 +122,8 @@ mod admin_group_mutation_test;
 mod admin_group_test;
 #[cfg(test)]
 mod admin_group_verdict_test;
+#[cfg(test)]
+mod admin_leader_election_test;
 #[cfg(test)]
 mod admin_log_dirs_test;
 #[cfg(test)]

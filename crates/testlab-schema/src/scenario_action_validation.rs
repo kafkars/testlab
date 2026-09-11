@@ -138,6 +138,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::FenceProducers(_)
         | ScenarioAction::AlterPartitionReassignments(_)
         | ScenarioAction::ListPartitionReassignments(_)
+        | ScenarioAction::ElectLeaders(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
@@ -284,7 +285,6 @@ pub(crate) fn require_open_producer(
         None => problems.push(format!("missing producer {producer_id} was used")),
     }
 }
-
 fn close_producer(
     producer_id: &ProducerId,
     producers: &mut ProducerStates,

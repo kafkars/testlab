@@ -6,13 +6,14 @@ pub(crate) use kafkars::admin::{
     ClientQuotaEntity, ClientQuotaEntityComponent, ClientQuotaEntry, ClientQuotaFilterComponent,
     ClusterBroker, ConfigAlteration, ConsumerGroupOffsetAlteration, CreateAclOutcome,
     CreateAclResult, DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult,
-    DeleteRecordsTarget, DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery,
-    ListConsumerGroupOffsetsResult, ListOffsetsQuery, ListShareGroupOffsetsQuery,
-    ListShareGroupOffsetsResult, MetadataQuorumListener, MetadataQuorumNode, MetadataQuorumReplica,
-    NewPartitions, NewTopic, OffsetSpec, PartitionReassignment, PartitionReassignmentChange,
-    ResourcePattern, ScramCredentialInfo, ScramMechanism, ShareGroupDescription, ShareGroupOffset,
-    ShareGroupOffsetAlteration, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
-    TopicPartitionReplica, UserScramCredentialAlteration,
+    DeleteRecordsTarget, DescribeTopicPartitionsTopic, LeaderElectionTarget, LeaderElectionType,
+    ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult, ListOffsetsQuery,
+    ListShareGroupOffsetsQuery, ListShareGroupOffsetsResult, MetadataQuorumListener,
+    MetadataQuorumNode, MetadataQuorumReplica, NewPartitions, NewTopic, OffsetSpec,
+    PartitionReassignment, PartitionReassignmentChange, ResourcePattern, ScramCredentialInfo,
+    ScramMechanism, ShareGroupDescription, ShareGroupOffset, ShareGroupOffsetAlteration,
+    TopicConfigAlterations, TopicConfigQuery, TopicDescription, TopicPartitionReplica,
+    UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

@@ -1,10 +1,10 @@
 //! Destructive admin scenarios require independently observable precondition actions.
 use crate::{Scenario, ScenarioAction};
 use std::collections::{BTreeMap, BTreeSet};
-
 type TopicDefinition = (i32, i16);
 
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
+    crate::admin_leader_election::transition_validation::validate(scenario, problems);
     crate::admin_log_dirs::transition_validation::validate(scenario, problems);
     crate::admin_partition_reassignments::transition_validation::validate(scenario, problems);
     crate::admin_transaction_transition_validation::validate(scenario, problems);

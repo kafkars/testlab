@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v50 records the exact environment identity in `manifest.json`,
-retains protocol-v61 direct and hosted-group consumer controls and shutdown,
+Evidence schema v51 records the exact environment identity in `manifest.json`,
+retains protocol-v62 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -435,6 +435,16 @@ fixture lists only after ADMIN-058 has independently converged, requiring both
 public paths and the exact Kafka 4.3.1 CLI empty result to agree that no active
 movement remains.
 
+ADMIN-060 binds selected and cluster-wide public preferred elections to exact
+broker-role transitions and immediate metadata. Each public path operates on a
+separate three-replica partition whose independently observed original leader
+is stopped, replaced, exercised by an acknowledged produce, restored into the
+full ISR, and still observed as a follower before the election command. Public
+selected outcomes preserve caller order and cluster-wide outcomes use canonical
+topic-byte and partition order while containing the required fixture partition.
+The immediate metadata observation must show the assignment's first replica as
+leader and the complete replica set in the ISR.
+
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which
 packaged consumer claimed each partition; independent record observations,
@@ -477,7 +487,10 @@ for each typed broker-role target. FAULT-002 binds the observed original owner
 to one ordered successful stop, restore, and readiness sequence. Restore accepts
 the recorded Compose `start` or `restart --no-deps` command for the exact same
 project and service. Contiguous readiness attempts retain their failures and
-must end in a successful probe of that same project and service. FAULT-003
+must end in a successful probe of that same project and service. Restoring a
+partition leader additionally waits until the exact restarted broker rejoins
+the partition's full ISR, then records the still-current leader as an
+`after_restore` role fact. FAULT-003
 requires matching public progress after the replacement election and before
 the original owner is restored: an acknowledged produce, successful topic
 creation, committed group receive, or committed transaction according to the

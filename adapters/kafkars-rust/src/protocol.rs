@@ -74,7 +74,6 @@ pub(super) fn handle_dispatch<W: Write>(
     };
     Ok(finished)
 }
-
 #[allow(clippy::too_many_lines, reason = "exhaustive versioned routing")]
 fn dispatch<W: Write>(
     state: &mut AdapterState,
@@ -180,6 +179,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::FenceProducers(_)
         | AdapterCommand::AlterPartitionReassignments(_)
         | AdapterCommand::ListPartitionReassignments(_)
+        | AdapterCommand::ElectLeaders(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

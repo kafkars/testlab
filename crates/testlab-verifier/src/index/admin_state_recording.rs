@@ -11,6 +11,12 @@ use super::{
 impl HistoryIndex {
     pub(super) fn record_state(&mut self, observation: &BrokerStateObservation, sequence: u64) {
         if self
+            .admin_leader_elections
+            .record_state(observation, sequence)
+        {
+            return;
+        }
+        if self
             .admin_partition_reassignments
             .record_state(observation, sequence)
         {
@@ -123,6 +129,9 @@ impl HistoryIndex {
             BrokerStateObservation::PartitionAssignments(_)
             | BrokerStateObservation::PartitionReassignments(_) => {
                 unreachable!("reassignment observations are indexed before generic admin state")
+            }
+            BrokerStateObservation::LeaderElection(_) => {
+                unreachable!("leader-election observations are indexed before generic admin state")
             }
             BrokerStateObservation::UserScramCredential(_) => {
                 unreachable!("user SCRAM observations are indexed before generic admin state")

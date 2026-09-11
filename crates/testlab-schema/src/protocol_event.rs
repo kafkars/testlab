@@ -216,6 +216,7 @@ pub enum AdapterEvent {
     ProducersFenced(crate::AdminProducersFenced),
     PartitionReassignmentsAltered(crate::AdminPartitionReassignmentsAlteration),
     PartitionReassignmentsListed(crate::AdminPartitionReassignmentsListing),
+    LeadersElected(crate::AdminLeaderElection),
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),
@@ -269,7 +270,6 @@ pub enum AdapterEvent {
         commit_error_code: Option<String>,
     },
     TransactionalProducerClosed {
-        /// Closed transactional producer.
         producer_id: ProducerId,
     },
     FlushCompleted {

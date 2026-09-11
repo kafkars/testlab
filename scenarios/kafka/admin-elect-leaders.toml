@@ -1,0 +1,191 @@
+schema_version = 65
+id = "kafka.admin-elect-leaders"
+title = "packaged admin restores preferred leaders through selected and cluster-wide paths"
+description = "Testlab independently disrupts two exact leaders on separate three-replica partitions, proves public progress through distinct replacements, restores each original replica into the full ISR, and requires the selected and cluster-wide preferred-election paths to move both leaders back to their independently observed preferred replicas."
+timeout_ms = 240000
+requires = ["producer", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-create-leader-election-topic"
+topic = "testlab-kafkars-admin-leader-election"
+partitions = 1
+replication_factor = 3
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "create-all-election-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-create-all-leader-election-topic"
+topic = "testlab-kafkars-admin-all-leader-election"
+partitions = 1
+replication_factor = 3
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-before-leader-change"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-before-admin-leader-change"
+
+[steps.record]
+topic = "testlab-kafkars-admin-leader-election"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "before-admin-leader-change" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-before-admin-leader-change" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "stop-original-partition-leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-admin-leader-election"
+partition = 0
+
+[[steps]]
+id = "send-through-replacement-leader"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-through-replacement-leader"
+
+[steps.record]
+topic = "testlab-kafkars-admin-leader-election"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "through-replacement-leader" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-through-replacement-leader" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "restore-original-partition-leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-admin-leader-election"
+partition = 0
+
+[[steps]]
+id = "elect-selected-preferred-leader"
+kind = "elect_leaders"
+client_id = "client-1"
+operation_id = "admin-elect-selected-preferred-leader"
+election_type = "preferred"
+require_leader_change = true
+timeout_ms = 20000
+
+[[steps.targets]]
+topic = "testlab-kafkars-admin-leader-election"
+partition = 0
+
+[[steps]]
+id = "stop-all-election-topic-leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-admin-all-leader-election"
+partition = 0
+
+[[steps]]
+id = "send-through-all-election-replacement"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-through-all-election-replacement"
+
+[steps.record]
+topic = "testlab-kafkars-admin-all-leader-election"
+partition = 0
+sequence = 3
+value = { encoding = "utf8", data = "through-all-election-replacement" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-through-all-election-replacement" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "restore-all-election-topic-leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-admin-all-leader-election"
+partition = 0
+
+[[steps]]
+id = "elect-all-preferred-leaders"
+kind = "elect_leaders"
+client_id = "client-1"
+operation_id = "admin-elect-all-preferred-leaders"
+election_type = "preferred"
+require_leader_change = true
+timeout_ms = 20000
+
+[[steps.required_partitions]]
+topic = "testlab-kafkars-admin-all-leader-election"
+partition = 0
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-before-admin-leader-change"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-through-replacement-leader"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-through-all-election-replacement"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

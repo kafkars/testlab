@@ -127,6 +127,15 @@ fn facts<'a>(index: &'a HistoryIndex, target: &BrokerRoleTarget, stage: &str) ->
         .collect()
 }
 
+pub(crate) fn exact_role_owner(
+    index: &HistoryIndex,
+    target: &BrokerRoleTarget,
+    stage: &str,
+) -> Option<(u64, i32)> {
+    let facts = facts(index, target, stage);
+    (facts.len() == 1).then_some((facts[0].sequence, facts[0].node))
+}
+
 fn matching_operations<'a>(
     index: &'a HistoryIndex,
     kind: EnvironmentOperationKind,

@@ -415,6 +415,12 @@ statement = "Selected and all-active public partition-reassignment listings reta
 category = "admin"
 
 [[contract]]
+id = "ADMIN-060"
+title = "Leader elections restore independently proven preferred replicas"
+statement = "Selected and cluster-wide public preferred elections retain valid throttle and deterministic successful outcomes while independent role facts and metadata prove that each exact leader moved from its preferred replica to a distinct replacement and back after the original replica rejoined the full ISR."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

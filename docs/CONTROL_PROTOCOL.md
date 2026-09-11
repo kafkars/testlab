@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v61 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v64 and evidence schema v50.
+Protocol v62 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v65 and evidence schema v51.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -775,6 +775,16 @@ immediate pinned `kafka-reassign-partitions.sh --list` snapshot independently
 confirms the active rows. The stable scenario first waits for convergence, then
 requires both listing forms and the CLI to report no remaining movement.
 
+Leader election carries an explicit preferred or unclean policy, one complete
+deadline, and either caller-ordered selected partitions or an absent selection
+for the distinct cluster-wide path. Required cluster-wide partitions and the
+leader-change requirement remain scenario-only. Selected outcomes preserve
+caller order; cluster-wide outcomes use canonical topic-byte and partition
+order. For each stable preferred-election path, Testlab independently stops the
+exact original leader, proves a distinct replacement and public progress,
+restores the original replica into the full ISR, and polls metadata until that
+preferred replica is leader again.
+
 Group listing carries an exact `api` selector for the consumer-only compatibility
 view or the generic unfiltered `ListGroups` view, while required group IDs remain
 scenario-only. Either public result must contain the independently listed live
@@ -849,6 +859,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v61 is an exact semantic contract. New capabilities may be declared
+Protocol v62 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

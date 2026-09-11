@@ -1,4 +1,4 @@
-schema_version = 64
+schema_version = 65
 id = "kafka.producer-repeated-readiness-flush"
 title = "repeated readiness and flush preserve producer progress"
 description = "One public client and producer tolerate repeated readiness probes and empty or successive flushes while later sends retain exact broker-visible coordinates."

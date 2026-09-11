@@ -31,6 +31,7 @@ mod admin_group_offset_batch_mutation;
 mod admin_group_offset_mutation;
 mod admin_group_offset_transition_validation;
 mod admin_group_plural_action_validation;
+mod admin_leader_election;
 mod admin_list_offsets_batch;
 mod admin_list_offsets_batch_validation;
 mod admin_log_dirs;

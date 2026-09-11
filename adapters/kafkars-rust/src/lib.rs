@@ -40,6 +40,7 @@ mod protocol_admin_group;
 mod protocol_admin_group_offset_batch;
 mod protocol_admin_group_offset_batch_mutation;
 mod protocol_admin_group_offset_mutation;
+mod protocol_admin_leader_election;
 mod protocol_admin_list_offsets_batch;
 mod protocol_admin_log_dirs;
 mod protocol_admin_metadata_quorum;

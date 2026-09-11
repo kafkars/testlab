@@ -137,6 +137,27 @@ impl DockerComposeEnvironment {
             deadline,
         ) {
             self.wait_restart_ready(&mut phase, &service, operation, deadline);
+            if phase.succeeded() && matches!(target, BrokerRoleTarget::PartitionLeader { .. }) {
+                match self.wait_partition_replica_restored(target, i32::from(ordinal), deadline) {
+                    Ok(leader) => {
+                        let Some((_, leader_service)) = self.service_for_node(leader) else {
+                            phase.fail(
+                                "environment_broker_target_invalid",
+                                format!("restored partition leader {leader} is not declared"),
+                            );
+                            return phase;
+                        };
+                        self.record_role(
+                            &mut phase,
+                            target,
+                            "after_restore",
+                            leader,
+                            &leader_service,
+                        );
+                    }
+                    Err(error) => phase.fail(error.code, error.diagnostic),
+                }
+            }
         }
         if phase.succeeded() {
             self.stopped_roles.remove(target);

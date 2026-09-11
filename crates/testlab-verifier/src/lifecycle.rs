@@ -154,6 +154,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::FenceProducers(_)
             | ScenarioAction::AlterPartitionReassignments(_)
             | ScenarioAction::ListPartitionReassignments(_)
+            | ScenarioAction::ElectLeaders(_)
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::StartConcurrentActors(_)

@@ -1,5 +1,7 @@
 //! Testctl owns scenario execution, subject supervision, and sealed evidence.
 
+#[cfg(test)]
+mod admin_leader_election_protocol_test;
 mod app;
 mod candidate;
 mod candidate_manifest;
@@ -47,6 +49,7 @@ mod session_command_admin_batch;
 mod session_command_admin_client_quota;
 mod session_command_admin_config;
 mod session_command_admin_group_batch;
+mod session_command_admin_leader_election;
 mod session_command_admin_partition_reassignments;
 mod session_command_admin_records;
 mod session_command_admin_share_group;

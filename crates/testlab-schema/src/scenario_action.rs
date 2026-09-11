@@ -218,6 +218,7 @@ pub enum ScenarioAction {
     FenceProducers(crate::FenceProducersAction),
     AlterPartitionReassignments(crate::AlterPartitionReassignmentsAction),
     ListPartitionReassignments(crate::ListPartitionReassignmentsAction),
+    ElectLeaders(crate::ElectLeadersAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
@@ -284,7 +285,6 @@ pub enum ScenarioAction {
         transaction_timeout_ms: u64,
         /// Complete replacement initialization bound.
         initialization_timeout_ms: u64,
-        /// Complete fencing bound.
         timeout_ms: u64,
     },
     CloseTransactionalProducer(crate::CloseTransactionalProducerAction),

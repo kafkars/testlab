@@ -45,3 +45,13 @@ fn restore_requires_an_exact_retained_partition_owner() {
     );
     assert!(phase.operations.is_empty());
 }
+
+#[test]
+fn restored_partition_requires_a_member_leader_and_full_isr() {
+    use crate::compose_broker_role_readiness::partition_replica_ready;
+
+    assert!(partition_replica_ready(2, &[1, 2, 3], &[3, 1, 2], 1));
+    assert!(!partition_replica_ready(2, &[1, 2, 3], &[2, 3], 1));
+    assert!(!partition_replica_ready(4, &[1, 2, 3], &[1, 2, 3], 1));
+    assert!(!partition_replica_ready(2, &[1, 2, 3], &[1, 2, 3], 4));
+}

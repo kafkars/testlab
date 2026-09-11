@@ -63,6 +63,7 @@ pub use crate::admin_group_offset_mutation::{
     AlterConsumerGroupOffsetCommand, DeleteConsumerGroupOffsetAction,
     DeleteConsumerGroupOffsetCommand,
 };
+pub use crate::admin_leader_election::*;
 pub use crate::admin_list_offsets_batch::{
     AdminOffsetListingOutcome, AdminOffsetsListing, ListOffsetsBatchAction,
     ListOffsetsBatchCommand, OffsetListingExpectation, OffsetListingSelection,

@@ -17,6 +17,7 @@ mod admin_config_command_match;
 mod admin_delete_records_command_match;
 pub(crate) mod admin_features;
 pub(crate) mod admin_group_batch;
+pub(crate) mod admin_leader_election;
 pub(crate) mod admin_offset_batch;
 pub(crate) mod admin_partition_reassignments;
 mod admin_recording;
@@ -112,13 +113,11 @@ pub(crate) struct IndexedTransactionCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) disposition: TransactionDisposition,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionalTransform {
     pub(crate) history_sequence: u64,
     pub(crate) completion: TransactionalTransformCompletion,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionFence {
     pub(crate) history_sequence: u64,
@@ -226,6 +225,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) topic_configs_altered: BTreeMap<OperationId, Vec<IndexedAdminTopicConfigCompletion>>,
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
+    pub(crate) admin_leader_elections: admin_leader_election::AdminLeaderElectionIndex,
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
     pub(crate) admin_partition_reassignments:
         admin_partition_reassignments::AdminPartitionReassignmentsIndex,

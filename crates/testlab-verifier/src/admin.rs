@@ -13,6 +13,7 @@ use crate::admin_failure::verify_expected_failure;
 use crate::admin_features::verify_features_action;
 use crate::admin_group::verify_group_action;
 use crate::admin_group_batch::verify_group_batch_action;
+use crate::admin_leader_election::verify_leader_election_action;
 use crate::admin_log_dirs::verify_log_dirs_action;
 use crate::admin_metadata_quorum::verify_metadata_quorum_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
@@ -95,6 +96,7 @@ pub(crate) fn verify_admin(
             || verify_share_group_action(scenario, &step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
+            || verify_leader_election_action(&step.action, index, violations)
             || verify_partition_reassignments_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
             || verify_group_batch_action(scenario, &step.action, index, violations)
@@ -199,6 +201,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::FenceProducers(_) => "ADMIN-057",
         ScenarioAction::AlterPartitionReassignments(_) => "ADMIN-058",
         ScenarioAction::ListPartitionReassignments(_) => "ADMIN-059",
+        ScenarioAction::ElectLeaders(_) => "ADMIN-060",
         ScenarioAction::DescribeLogDirs(_) => "ADMIN-054",
         ScenarioAction::DescribeReplicaLogDirs(_) => "ADMIN-055",
         ScenarioAction::DescribeMetadataQuorum(_) => "ADMIN-056",
@@ -241,6 +244,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::FenceProducers(value) => &value.operation_id,
         ScenarioAction::AlterPartitionReassignments(value) => &value.operation_id,
         ScenarioAction::ListPartitionReassignments(value) => &value.operation_id,
+        ScenarioAction::ElectLeaders(value) => &value.operation_id,
         ScenarioAction::DescribeLogDirs(value) => &value.operation_id,
         ScenarioAction::DescribeReplicaLogDirs(value) => &value.operation_id,
         ScenarioAction::DescribeMetadataQuorum(value) => &value.operation_id,

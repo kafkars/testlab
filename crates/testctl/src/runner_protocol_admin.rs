@@ -147,6 +147,9 @@ pub(super) fn classify_admin(
             ExpectedEvent::PartitionReassignmentsListed(operation_id),
             AdapterEvent::PartitionReassignmentsListed(actual),
         ) => operation_id == &actual.operation_id,
+        (ExpectedEvent::LeadersElected(operation_id), AdapterEvent::LeadersElected(actual)) => {
+            operation_id == &actual.operation_id
+        }
         (
             ExpectedEvent::FeaturesDescribed(operation_id),
             AdapterEvent::FeaturesDescribed(actual),

@@ -99,6 +99,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::FenceProducers(_)
         | ScenarioAction::AlterPartitionReassignments(_)
         | ScenarioAction::ListPartitionReassignments(_)
+        | ScenarioAction::ElectLeaders(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
@@ -198,7 +199,6 @@ fn creation(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> 
     };
     Some(pair)
 }
-
 fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     let pair = match action {
         ScenarioAction::CreateTransactionalProducer {

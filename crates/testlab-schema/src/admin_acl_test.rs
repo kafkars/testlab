@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn acl_cut_advances_all_three_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 61);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 64);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 50);
+    assert_eq!(PROTOCOL_VERSION, 62);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 65);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 51);
 }
 
 #[test]

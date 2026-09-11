@@ -1,6 +1,3 @@
-use std::collections::BTreeSet;
-use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
-
 use crate::run_error::RunFailure;
 use crate::runner_protocol_admin::classify_admin;
 use crate::runner_protocol_admin_config::classify as classify_admin_config;
@@ -8,6 +5,8 @@ use crate::runner_protocol_admin_group_batch::classify as classify_admin_group_b
 pub(crate) use crate::runner_protocol_event::EventDisposition;
 use crate::runner_protocol_event::classify_core;
 use crate::runner_protocol_family::{classify_group, classify_transaction};
+use std::collections::BTreeSet;
+use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
 
 #[derive(Clone, Debug)]
 pub(crate) enum ExpectedEvent {
@@ -140,6 +139,7 @@ pub(crate) enum ExpectedEvent {
     ProducersFenced(OperationId, Vec<String>),
     PartitionReassignmentsAltered(OperationId),
     PartitionReassignmentsListed(OperationId),
+    LeadersElected(OperationId),
     ConsumerGroupsListed {
         operation_id: OperationId,
     },

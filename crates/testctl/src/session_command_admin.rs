@@ -13,6 +13,7 @@ use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     crate::session_command_admin_user_scram::translate(action)
+        .or_else(|| crate::session_command_admin_leader_election::translate(action))
         .or_else(|| crate::session_command_admin_partition_reassignments::translate(action))
         .or_else(|| crate::session_command_admin_transactions::translate(action))
         .or_else(|| crate::session_command_admin_share_group::translate(action))

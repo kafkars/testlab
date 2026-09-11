@@ -11,6 +11,7 @@ use crate::observer_admin_classic_group;
 use crate::observer_admin_config;
 use crate::observer_admin_consumer_group_deletion_batch;
 use crate::observer_admin_group;
+use crate::observer_admin_leader_election;
 use crate::observer_admin_metadata;
 use crate::observer_admin_partition_reassignment;
 use crate::observer_admin_target::AdminTarget;
@@ -124,6 +125,9 @@ pub(super) fn capture(
         AdminTarget::PartitionOffsetsBatch(target) => {
             observer_partition_offsets::capture_batch(request, target)
         }
+        AdminTarget::LeaderElection(target) => Ok(vec![observer_admin_leader_election::capture(
+            request, target,
+        )?]),
         AdminTarget::PartitionAssignments(target) => {
             Ok(vec![observer_admin_partition_reassignment::capture(
                 request, target,

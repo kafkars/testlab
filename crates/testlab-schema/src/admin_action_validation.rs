@@ -10,6 +10,14 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
+    if crate::admin_leader_election::action_validation::validate(
+        action,
+        clients,
+        operation_ids,
+        problems,
+    ) {
+        return;
+    }
     if crate::admin_partition_reassignments::action_validation::validate(
         action,
         clients,

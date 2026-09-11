@@ -203,6 +203,7 @@ pub enum AdapterCommand {
     FenceProducers(crate::FenceProducersCommand),
     AlterPartitionReassignments(crate::AlterPartitionReassignmentsCommand),
     ListPartitionReassignments(crate::ListPartitionReassignmentsCommand),
+    ElectLeaders(crate::ElectLeadersCommand),
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),
@@ -283,7 +284,6 @@ pub enum AdapterCommand {
         timeout_ms: u64,
     },
     CloseTransactionalProducer {
-        /// Transactional producer to close.
         producer_id: ProducerId,
     },
     Flush {
