@@ -147,6 +147,7 @@ fn group_creation_preserves_public_configuration() {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadCommitted,
         group_instance_id: Some("worker-static-1".to_owned()),
+        classic_assignor: Some(testlab_schema::GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(120_000),
     };
     let action = ScenarioAction::CreateGroupConsumer {

@@ -21,10 +21,11 @@ pub(crate) use kafkars::admin::{
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{
-    AssignedConsumer, AssignedConsumerBuildError, Checkpoint, ClassicGroupConfig, Consumer,
-    ConsumerAssignment, ConsumerBatch, ConsumerBuildError, ConsumerCommitAdmissionError,
-    ConsumerEvent, ConsumerGroupProtocol, ConsumerRecord, GroupConsumerRecord,
-    GroupMembershipEpoch, GroupMetadata, OffsetReset, ReadIsolation, StartPosition, TopicPartition,
+    AssignedConsumer, AssignedConsumerBuildError, Checkpoint, ClassicGroupAssignor,
+    ClassicGroupConfig, Consumer, ConsumerAssignment, ConsumerBatch, ConsumerBuildError,
+    ConsumerCommitAdmissionError, ConsumerEvent, ConsumerGroupProtocol, ConsumerRecord,
+    GroupConsumerRecord, GroupMembershipEpoch, GroupMetadata, OffsetReset, ReadIsolation,
+    StartPosition, TopicPartition,
 };
 #[cfg(kafkars_share_candidate)]
 pub(crate) use kafkars::consumer::{

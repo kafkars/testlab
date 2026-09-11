@@ -1,4 +1,4 @@
-schema_version = 70
+schema_version = 71
 id = "kafka.producer-leader-failover"
 title = "producer recovers across an observed partition leader election"
 description = "Testlab independently selects and stops the exact leader for the record partition, proves a distinct replacement, and the live packaged producer acknowledges independently visible work while the original owner remains offline."

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{AdapterCommand, AdapterEvent, CommandId};
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 67;
+pub const PROTOCOL_VERSION: u16 = 68;
 
 /// One correlated command sent from testctl to an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

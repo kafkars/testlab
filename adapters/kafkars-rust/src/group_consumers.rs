@@ -4,12 +4,13 @@ use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{
-    ClassicGroupConfig, Client, Consumer, ConsumerBuildError, ConsumerGroupProtocol, OffsetReset,
-    RetryAdvice, StartPosition, TopicPartition,
+    ClassicGroupAssignor, ClassicGroupConfig, Client, Consumer, ConsumerBuildError,
+    ConsumerGroupProtocol, OffsetReset, RetryAdvice, StartPosition, TopicPartition,
 };
 use testlab_schema::{
-    AssignedStartPosition, ClientId, ConsumerId, GroupConsumerConfiguration, GroupConsumerControl,
-    GroupConsumerControlCommand, GroupOffsetReset, GroupProtocol, GroupReadIsolation,
+    AssignedStartPosition, ClientId, ConsumerId, GroupClassicAssignor, GroupConsumerConfiguration,
+    GroupConsumerControl, GroupConsumerControlCommand, GroupOffsetReset, GroupProtocol,
+    GroupReadIsolation,
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
@@ -51,6 +52,7 @@ impl GroupConsumers {
             offset_reset,
             read_isolation,
             group_instance_id,
+            classic_assignor,
             classic_session_timeout_ms,
         } = registration
             .configuration
@@ -58,6 +60,7 @@ impl GroupConsumers {
                 offset_reset: GroupOffsetReset::Earliest,
                 read_isolation: GroupReadIsolation::ReadUncommitted,
                 group_instance_id: None,
+                classic_assignor: None,
                 classic_session_timeout_ms: None,
             });
         let builder = client
@@ -73,6 +76,10 @@ impl GroupConsumers {
             .close_timeout(OPERATION_TIMEOUT);
         let builder = match group_instance_id {
             Some(group_instance_id) => builder.group_instance_id(group_instance_id),
+            None => builder,
+        };
+        let builder = match classic_assignor {
+            Some(assignor) => builder.classic_group_assignor(public_classic_assignor(assignor)),
             None => builder,
         };
         let builder = match classic_session_timeout_ms {
@@ -230,6 +237,15 @@ pub(crate) const fn public_offset_reset(offset_reset: GroupOffsetReset) -> Offse
     match offset_reset {
         GroupOffsetReset::Earliest => OffsetReset::Earliest,
         GroupOffsetReset::Latest => OffsetReset::Latest,
+    }
+}
+
+pub(crate) const fn public_classic_assignor(
+    assignor: GroupClassicAssignor,
+) -> ClassicGroupAssignor {
+    match assignor {
+        GroupClassicAssignor::Range => ClassicGroupAssignor::Range,
+        GroupClassicAssignor::CooperativeSticky => ClassicGroupAssignor::CooperativeSticky,
     }
 }
 

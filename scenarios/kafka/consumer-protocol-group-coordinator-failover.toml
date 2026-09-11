@@ -1,4 +1,4 @@
-schema_version = 70
+schema_version = 71
 id = "kafka.consumer-protocol-group-coordinator-failover"
 title = "KIP-848 member recovers across its observed coordinator election"
 description = "After a KIP-848 member commits initial work, Testlab independently selects and stops that exact group coordinator, proves a distinct replacement, and the live member commits exact new work while the original coordinator remains offline."

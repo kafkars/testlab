@@ -1,8 +1,8 @@
 //! Group protocol tests retain configured policy and its capability boundary.
 
 use crate::{
-    Capability, GroupConsumerConfiguration, GroupOffsetReset, GroupReadIsolation, Scenario,
-    ScenarioAction,
+    Capability, GroupClassicAssignor, GroupConsumerConfiguration, GroupOffsetReset,
+    GroupReadIsolation, Scenario, ScenarioAction,
 };
 
 #[test]
@@ -17,6 +17,7 @@ fn configured_group_policy_round_trips() {
             offset_reset: GroupOffsetReset::Latest,
             read_isolation: GroupReadIsolation::ReadCommitted,
             group_instance_id: Some("worker-static-1".to_owned()),
+            classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
             classic_session_timeout_ms: Some(120_000),
         }),
     };
@@ -45,6 +46,7 @@ fn configured_group_requires_its_capability() {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
         group_instance_id: None,
+        classic_assignor: None,
         classic_session_timeout_ms: None,
     });
     let error = match scenario.validate() {
@@ -61,7 +63,7 @@ fn configured_group_requires_its_capability() {
 }
 
 #[test]
-fn classic_session_timeout_is_protocol_specific_and_positive() {
+fn classic_configuration_is_protocol_specific_and_session_timeout_is_positive() {
     let mut modern = scenario("../../../scenarios/kafka/consumer-protocol-group-round-trip.toml");
     modern
         .requires
@@ -70,12 +72,15 @@ fn classic_session_timeout_is_protocol_specific_and_positive() {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
         group_instance_id: None,
+        classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(10_000),
     });
     let error = modern
         .validate()
         .expect_err("KIP-848 group must reject classic timing");
-    assert!(error.to_string().contains("non-classic group"));
+    let message = error.to_string();
+    assert!(message.contains("classic_assignor for a non-classic group"));
+    assert!(message.contains("classic_session_timeout_ms for a non-classic group"));
 
     let mut classic = scenario("../../../scenarios/kafka/classic-group-round-trip.toml");
     classic
@@ -85,6 +90,7 @@ fn classic_session_timeout_is_protocol_specific_and_positive() {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
         group_instance_id: None,
+        classic_assignor: Some(GroupClassicAssignor::Range),
         classic_session_timeout_ms: Some(0),
     });
     let error = classic

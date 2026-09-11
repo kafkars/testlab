@@ -389,9 +389,11 @@ Group creation may carry one capability-gated public configuration block.
 Missing-offset reset selects earliest or latest, and read isolation selects
 uncommitted or committed visibility before membership starts. An optional
 nonempty `group_instance_id` selects static membership. Classic membership may
-also select a session timeout from one through `i32::MAX` milliseconds; this is
-rejected for KIP-848 membership. An omitted block retains Testlab's established
-earliest, read-uncommitted, dynamic-member behavior. The adapter receives no
+also select the range or cooperative-sticky assignor and a session timeout from
+one through `i32::MAX` milliseconds; both fields are rejected for KIP-848
+membership. An omitted assignor retains the classic range default. An omitted
+block retains Testlab's established earliest, read-uncommitted, dynamic-member
+behavior. The adapter receives no
 expected record identity: latest reset is proved by a stable assignment that
 skips an independently visible pre-join record, while read-committed isolation
 is proved by returning only a nontransactional sentinel after a separately

@@ -34,6 +34,17 @@ pub enum GroupReadIsolation {
     ReadCommitted,
 }
 
+/// Public partition assignor selected for classic group membership.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupClassicAssignor {
+    /// Assign each topic's partitions in contiguous ranges.
+    #[default]
+    Range,
+    /// Retain prior ownership where possible through cooperative rebalances.
+    CooperativeSticky,
+}
+
 /// Portable group-consumer policy fixed before membership starts.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -45,6 +56,9 @@ pub struct GroupConsumerConfiguration {
     /// Optional stable broker-visible member identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group_instance_id: Option<String>,
+    /// Optional classic-group partition assignor.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_assignor: Option<GroupClassicAssignor>,
     /// Optional classic-group session timeout sent with each Join request.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub classic_session_timeout_ms: Option<u64>,

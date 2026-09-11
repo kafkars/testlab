@@ -1,9 +1,9 @@
 //! Group-consumer configuration tests pin portable policy to public Kafkars enums.
 
-use testlab_schema::{GroupOffsetReset, GroupReadIsolation};
+use testlab_schema::{GroupClassicAssignor, GroupOffsetReset, GroupReadIsolation};
 
-use crate::group_consumers::{public_offset_reset, public_read_isolation};
-use crate::kafkars_api::{OffsetReset, ReadIsolation};
+use crate::group_consumers::{public_classic_assignor, public_offset_reset, public_read_isolation};
+use crate::kafkars_api::{ClassicGroupAssignor, OffsetReset, ReadIsolation};
 
 #[test]
 fn public_group_shutdown_surface_is_facade_only() {
@@ -16,6 +16,14 @@ fn public_group_shutdown_surface_is_facade_only() {
 
 #[test]
 fn portable_group_policy_maps_every_public_selection() {
+    assert_eq!(
+        public_classic_assignor(GroupClassicAssignor::Range),
+        ClassicGroupAssignor::Range
+    );
+    assert_eq!(
+        public_classic_assignor(GroupClassicAssignor::CooperativeSticky),
+        ClassicGroupAssignor::CooperativeSticky
+    );
     assert_eq!(
         public_offset_reset(GroupOffsetReset::Earliest),
         OffsetReset::Earliest

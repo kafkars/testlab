@@ -77,7 +77,8 @@
   joined to positive protocol epochs and independent broker coordinates.
 - Classic and KIP-848 configured groups cover latest missing-offset reset and
   read-committed isolation against pre-membership records and independently
-  verified aborted transactions.
+  verified aborted transactions; classic membership also proves explicit
+  cooperative-sticky selection through a broker-reported public description.
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.

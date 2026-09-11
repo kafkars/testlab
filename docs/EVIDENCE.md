@@ -506,10 +506,11 @@ report the exact group with zero members.
 
 ADMIN-069 binds one caller-ordered public description batch spanning classic
 and KIP-848 consumer groups to the scenario's live committed members. The
-public result must preserve exact protocol variants, state, assignor, epochs,
-member identities, subscriptions, typed assignments, raw classic payloads, and
-per-group errors without receiving those expectations. Matching positive
-membership epochs and contiguous immediate independent member-count
+classic member explicitly selects cooperative-sticky before joining, and the
+public result must preserve that selected assignor plus exact protocol variants,
+state, epochs, member identities, subscriptions, typed assignments, raw classic
+payloads, and per-group errors without receiving those expectations. Matching
+positive membership epochs and contiguous immediate independent member-count
 observations establish the broker-visible live groups in the same caller order.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member

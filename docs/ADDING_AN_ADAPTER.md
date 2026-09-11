@@ -70,9 +70,10 @@ runner and not a verifier.
 - Advertise group-consumer controls only when pause, resume, and seek use public
   hosted-consumer calls and retain exact operation, consumer, partition, and
   position identity without receiving later record expectations.
-- Advertise group-consumer configuration only when missing-offset reset and
-  read isolation are fixed through public builder calls before membership
-  starts; never receive the record expected to prove those selections.
+- Advertise group-consumer configuration only when missing-offset reset, read
+  isolation, and an optional classic assignor are fixed through public builder
+  calls before membership starts; reject a classic assignor for KIP-848 and
+  never receive the record or description expected to prove those selections.
 - Advertise group-consumer shutdown only when clone-shared public requests are
   idempotent and public event observation can distinguish terminal stream
   closure; never report that closure as broker-visible leave truth.
