@@ -35,6 +35,7 @@ mod admin_list_offsets_batch;
 mod admin_list_offsets_batch_validation;
 mod admin_log_dirs;
 mod admin_offset_position;
+mod admin_partition_reassignments;
 mod admin_scenario_action;
 mod admin_share_group_action_validation;
 mod admin_share_group_description_batch;
@@ -296,5 +297,3 @@ mod scenario_test;
 mod share_action_validation_test;
 #[cfg(test)]
 mod subject_test;
-#[cfg(test)]
-mod transaction_offsets_test;

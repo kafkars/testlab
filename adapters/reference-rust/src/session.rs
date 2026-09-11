@@ -147,6 +147,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::FenceProducers(_)
+        | AdapterCommand::AlterPartitionReassignments(_)
+        | AdapterCommand::ListPartitionReassignments(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 49;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 50;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -48,6 +48,10 @@ pub enum BrokerStateObservation {
     Transactions(crate::BrokerTransactionsState),
     /// One transaction description independently read through Kafka's pinned CLI.
     Transaction(crate::BrokerTransactionState),
+    /// Exact converged partition assignments independently read from Kafka metadata.
+    PartitionAssignments(crate::BrokerPartitionAssignmentsState),
+    /// Active partition reassignments independently read through Kafka's pinned CLI.
+    PartitionReassignments(crate::BrokerPartitionReassignmentsState),
     /// One consumer-group state independently read from Kafka.
     ConsumerGroup(crate::BrokerConsumerGroupState),
     /// One Share-group state independently read through Kafka's CLI.

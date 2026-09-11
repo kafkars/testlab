@@ -43,6 +43,7 @@ mod protocol_admin_group_offset_mutation;
 mod protocol_admin_list_offsets_batch;
 mod protocol_admin_log_dirs;
 mod protocol_admin_metadata_quorum;
+mod protocol_admin_partition_reassignments;
 mod protocol_admin_plural_result;
 mod protocol_admin_producers;
 mod protocol_admin_read;

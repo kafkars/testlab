@@ -138,6 +138,8 @@ pub(crate) enum ExpectedEvent {
     TransactionsListed(OperationId),
     TransactionsDescribed(OperationId, Vec<String>),
     ProducersFenced(OperationId, Vec<String>),
+    PartitionReassignmentsAltered(OperationId),
+    PartitionReassignmentsListed(OperationId),
     ConsumerGroupsListed {
         operation_id: OperationId,
     },

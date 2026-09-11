@@ -10,6 +10,7 @@ use crate::observer_admin_group_target;
 use crate::observer_admin_log_dirs_target;
 use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
+use crate::observer_admin_partition_reassignment_target;
 use crate::observer_admin_plural_group_target;
 use crate::observer_admin_producer_target;
 pub(super) use crate::observer_admin_share_group_offset_batch_target::{
@@ -56,6 +57,10 @@ pub(super) enum AdminTarget {
     TopicConfigs(ConfigBatchTarget),
     PartitionOffsets(PartitionOffsetsTarget),
     PartitionOffsetsBatch(PartitionOffsetsBatchTarget),
+    PartitionAssignments(observer_admin_partition_reassignment_target::PartitionAssignmentsTarget),
+    PartitionReassignments(
+        observer_admin_partition_reassignment_target::PartitionReassignmentsTarget,
+    ),
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct AclsTarget {
@@ -193,6 +198,7 @@ impl AdminTarget {
             )?)
             .or(observer_admin_topic_target::match_action(action)?)
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
+            .or_else(|| observer_admin_partition_reassignment_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)
             .or(observer_admin_producer_target::match_action(action)?)
             .or(observer_admin_log_dirs_target::match_action(action)?)
@@ -246,6 +252,8 @@ impl AdminTarget {
             Self::TopicConfigs(target) => &target.operation_id,
             Self::PartitionOffsets(target) => &target.operation_id,
             Self::PartitionOffsetsBatch(target) => &target.operation_id,
+            Self::PartitionAssignments(target) => &target.operation_id,
+            Self::PartitionReassignments(target) => &target.operation_id,
         }
     }
 

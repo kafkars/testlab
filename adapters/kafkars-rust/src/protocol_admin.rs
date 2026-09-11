@@ -96,6 +96,12 @@ pub(crate) fn dispatch<W: Write>(
         | AdapterCommand::FenceProducers(_)) => {
             crate::protocol_admin_transactions::dispatch(state, writer, command_id, command)
         }
+        command @ (AdapterCommand::AlterPartitionReassignments(_)
+        | AdapterCommand::ListPartitionReassignments(_)) => {
+            crate::protocol_admin_partition_reassignments::dispatch(
+                state, writer, command_id, command,
+            )
+        }
         command @ (AdapterCommand::DescribeTopicConfig(_)
         | AdapterCommand::DescribeTopicConfigs(_)
         | AdapterCommand::AlterTopicConfigs(_)

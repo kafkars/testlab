@@ -140,6 +140,14 @@ pub(super) fn classify_admin(
             AdapterEvent::ClusterDescribed(actual),
         ) => operation_id == &actual.operation_id,
         (
+            ExpectedEvent::PartitionReassignmentsAltered(operation_id),
+            AdapterEvent::PartitionReassignmentsAltered(actual),
+        ) => operation_id == &actual.operation_id,
+        (
+            ExpectedEvent::PartitionReassignmentsListed(operation_id),
+            AdapterEvent::PartitionReassignmentsListed(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::FeaturesDescribed(operation_id),
             AdapterEvent::FeaturesDescribed(actual),
         ) => operation_id == &actual.operation_id,

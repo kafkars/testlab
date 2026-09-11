@@ -12,6 +12,7 @@ use crate::observer_admin_config;
 use crate::observer_admin_consumer_group_deletion_batch;
 use crate::observer_admin_group;
 use crate::observer_admin_metadata;
+use crate::observer_admin_partition_reassignment;
 use crate::observer_admin_target::AdminTarget;
 use crate::observer_error::ObserverError;
 use crate::observer_group_offset;
@@ -73,6 +74,9 @@ pub(super) fn capture(
         AdminTarget::Transactions(_) => Err(ObserverError::InvalidTarget(
             "transaction target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::PartitionReassignments(_) => Err(ObserverError::InvalidTarget(
+            "partition-reassignment listing requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::ShareGroupsOffsets(_) => Err(ObserverError::InvalidTarget(
             "Share-group offsets target requires the pinned Kafka CLI observer".to_owned(),
         )),
@@ -119,6 +123,11 @@ pub(super) fn capture(
         }
         AdminTarget::PartitionOffsetsBatch(target) => {
             observer_partition_offsets::capture_batch(request, target)
+        }
+        AdminTarget::PartitionAssignments(target) => {
+            Ok(vec![observer_admin_partition_reassignment::capture(
+                request, target,
+            )?])
         }
     }
 }

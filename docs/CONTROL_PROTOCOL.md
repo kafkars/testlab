@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v60 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v63 and evidence schema v49.
+Protocol v61 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v64 and evidence schema v50.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -93,6 +93,8 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `list_transactions`
 - `describe_transactions`
 - `fence_producers`
+- `alter_partition_reassignments`
+- `list_partition_reassignments`
 - `list_consumer_groups`
 - `describe_consumer_group`
 - `describe_share_group`
@@ -760,6 +762,19 @@ validation requires every owner to be initialized and closed before the
 mutation, avoiding concurrent fixture changes between the public result and
 independent snapshots.
 
+Partition-reassignment mutation carries one through 32 caller-ordered exact
+topic-partition replacement replica lists, the explicit replication-factor
+change policy, and one complete deadline. Its public completion retains Kafka's
+throttle and one success or normalized error per caller position. An immediate
+independent metadata observer polls until every successful target has the exact
+requested replica order, full canonical ISR, and a leader within that set.
+Selected listing carries caller-ordered topic-partitions, while an absent
+selection invokes the separate all-active public path. Expectations stay in
+Testlab; both completion forms preserve deterministic rows and throttle. One
+immediate pinned `kafka-reassign-partitions.sh --list` snapshot independently
+confirms the active rows. The stable scenario first waits for convergence, then
+requires both listing forms and the CLI to report no remaining movement.
+
 Group listing carries an exact `api` selector for the consumer-only compatibility
 view or the generic unfiltered `ListGroups` view, while required group IDs remain
 scenario-only. Either public result must contain the independently listed live
@@ -834,6 +849,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v60 is an exact semantic contract. New capabilities may be declared
+Protocol v61 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

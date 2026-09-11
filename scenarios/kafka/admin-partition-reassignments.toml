@@ -1,0 +1,75 @@
+schema_version = 64
+id = "kafka.admin-partition-reassignments"
+title = "packaged admin alters and lists partition reassignments"
+description = "A three-broker topic is reassigned through one caller-ordered public mutation that changes replication factor; exact replica order and full ISR must converge in independent metadata before selected and all-active public listings independently agree with Kafka's pinned CLI that no movement remains active."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-topic"
+kind = "create_topic"
+client_id = "client-1"
+operation_id = "admin-create-reassignment-topic"
+topic = "testlab-kafkars-admin-reassignments"
+partitions = 2
+replication_factor = 3
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "alter-partition-reassignments"
+kind = "alter_partition_reassignments"
+client_id = "client-1"
+operation_id = "admin-alter-partition-reassignments"
+allow_replication_factor_change = true
+timeout_ms = 30000
+
+[[steps.changes]]
+topic = "testlab-kafkars-admin-reassignments"
+partition = 1
+replicas = [2, 1]
+
+[[steps.changes]]
+topic = "testlab-kafkars-admin-reassignments"
+partition = 0
+replicas = [3, 2]
+
+[[steps]]
+id = "list-selected-partition-reassignments"
+kind = "list_partition_reassignments"
+client_id = "client-1"
+operation_id = "admin-list-selected-partition-reassignments"
+expected_reassignments = []
+timeout_ms = 20000
+
+[[steps.targets]]
+topic = "testlab-kafkars-admin-reassignments"
+partition = 1
+
+[[steps.targets]]
+topic = "testlab-kafkars-admin-reassignments"
+partition = 0
+
+[[steps]]
+id = "list-all-partition-reassignments"
+kind = "list_partition_reassignments"
+client_id = "client-1"
+operation_id = "admin-list-all-partition-reassignments"
+expected_reassignments = []
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

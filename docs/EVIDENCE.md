@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v49 records the exact environment identity in `manifest.json`,
-retains protocol-v60 direct and hosted-group consumer controls and shutdown,
+Evidence schema v50 records the exact environment identity in `manifest.json`,
+retains protocol-v61 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -418,6 +418,22 @@ complete public deadline; it is deliberately not compared with the original
 producer timeout because fencing derives it from the remaining operation
 budget. Every selected producer is initialized and closed before fencing, so
 no fixture owner can race the public result and independent snapshots.
+
+ADMIN-058 binds one caller-ordered public partition-reassignment mutation to
+one immediate independent metadata observation. Every public per-partition
+outcome must retain its caller position and succeed. The observer polls within
+the original action window until each target exposes the exact requested
+ordered replica list, full ISR as a canonical broker set, and a live leader
+inside that set. The three-broker fixture deliberately changes replication
+factor, so request policy and broker mutation are both exercised.
+
+ADMIN-059 binds selected and all-active public partition-reassignment listings
+to immediate pinned `kafka-reassign-partitions.sh --list` snapshots. Public
+selected rows follow caller order with inactive selections omitted; all-active
+rows and CLI state use canonical topic-byte and partition order. The stable
+fixture lists only after ADMIN-058 has independently converged, requiring both
+public paths and the exact Kafka 4.3.1 CLI empty result to agree that no active
+movement remains.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

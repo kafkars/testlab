@@ -18,6 +18,7 @@ mod admin_delete_records_command_match;
 pub(crate) mod admin_features;
 pub(crate) mod admin_group_batch;
 pub(crate) mod admin_offset_batch;
+pub(crate) mod admin_partition_reassignments;
 mod admin_recording;
 mod admin_records;
 pub(crate) mod admin_share_group;
@@ -96,19 +97,16 @@ pub(crate) struct IndexedReceive {
     pub(crate) committed: Option<bool>,
     pub(crate) group_epoch: Option<GroupMembershipEpoch>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedGroupAssignments {
     pub(crate) history_sequence: u64,
     pub(crate) observation: GroupAssignmentsObservation,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedGroupReceiveSet {
     pub(crate) history_sequence: u64,
     pub(crate) completion: GroupReceiveSetCompletion,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionCompletion {
     pub(crate) history_sequence: u64,
@@ -229,6 +227,8 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
+    pub(crate) admin_partition_reassignments:
+        admin_partition_reassignments::AdminPartitionReassignmentsIndex,
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
     pub(crate) admin_features: admin_features::AdminFeaturesIndex,

@@ -403,6 +403,18 @@ statement = "One public producer-fencing batch preserves every caller-selected t
 category = "admin"
 
 [[contract]]
+id = "ADMIN-058"
+title = "Partition reassignment mutations converge to exact broker assignments"
+statement = "One public partition-reassignment mutation preserves every caller-selected topic-partition outcome in caller order and succeeds under one bound, while an immediate independent metadata observer waits for each exact ordered replacement replica list, full ISR, and a member leader."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-059"
+title = "Partition reassignment listings match Kafka CLI state"
+statement = "Selected and all-active public partition-reassignment listings retain valid throttle and deterministic result order, omit completed movements, and match one immediate canonical snapshot from Kafka's pinned reassignment CLI."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

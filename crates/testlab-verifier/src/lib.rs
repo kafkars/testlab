@@ -21,6 +21,7 @@ mod admin_group_mutation;
 mod admin_log_dirs;
 mod admin_metadata_quorum;
 mod admin_offset_batch;
+mod admin_partition_reassignments;
 mod admin_producer_fencing;
 mod admin_producers;
 mod admin_records;
@@ -126,6 +127,8 @@ mod admin_log_dirs_test;
 mod admin_metadata_quorum_test;
 #[cfg(test)]
 mod admin_offset_batch_test;
+#[cfg(test)]
+mod admin_partition_reassignments_test;
 #[cfg(test)]
 mod admin_producer_fencing_test;
 #[cfg(test)]

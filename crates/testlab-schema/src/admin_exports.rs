@@ -70,6 +70,7 @@ pub use crate::admin_list_offsets_batch::{
 pub use crate::admin_log_dirs::replica::*;
 pub use crate::admin_log_dirs::*;
 pub use crate::admin_offset_position::AdminOffsetPosition;
+pub use crate::admin_partition_reassignments::*;
 pub use crate::admin_scenario_action::{
     CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
     TopicDescriptionApi,

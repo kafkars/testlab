@@ -195,9 +195,7 @@ pub enum AdapterEvent {
     TopicDescribed(crate::AdminTopicDescription),
     TopicsDescribed(crate::AdminTopicsDescription),
     TopicsListed(crate::AdminTopicsListing),
-    /// One public admin offset listing completed successfully.
     OffsetListed(crate::AdminOffsetListing),
-    /// One public admin batch offset listing returned ordered outcomes.
     OffsetsListed(crate::AdminOffsetsListing),
     RecordsDeleted(crate::AdminRecordsDeleted),
     RecordsBatchDeleted(crate::AdminRecordsBatchDeleted),
@@ -216,6 +214,8 @@ pub enum AdapterEvent {
     TransactionsListed(crate::AdminTransactionsListing),
     TransactionsDescribed(crate::AdminTransactionsDescription),
     ProducersFenced(crate::AdminProducersFenced),
+    PartitionReassignmentsAltered(crate::AdminPartitionReassignmentsAlteration),
+    PartitionReassignmentsListed(crate::AdminPartitionReassignmentsListing),
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),

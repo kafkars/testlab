@@ -9,9 +9,10 @@ pub(crate) use kafkars::admin::{
     DeleteRecordsTarget, DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery,
     ListConsumerGroupOffsetsResult, ListOffsetsQuery, ListShareGroupOffsetsQuery,
     ListShareGroupOffsetsResult, MetadataQuorumListener, MetadataQuorumNode, MetadataQuorumReplica,
-    NewPartitions, NewTopic, OffsetSpec, ResourcePattern, ScramCredentialInfo, ScramMechanism,
-    ShareGroupDescription, ShareGroupOffset, ShareGroupOffsetAlteration, TopicConfigAlterations,
-    TopicConfigQuery, TopicDescription, TopicPartitionReplica, UserScramCredentialAlteration,
+    NewPartitions, NewTopic, OffsetSpec, PartitionReassignment, PartitionReassignmentChange,
+    ResourcePattern, ScramCredentialInfo, ScramMechanism, ShareGroupDescription, ShareGroupOffset,
+    ShareGroupOffsetAlteration, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
+    TopicPartitionReplica, UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

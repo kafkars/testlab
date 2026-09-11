@@ -67,3 +67,7 @@ pub struct TransactionalTransformCompletion {
     /// Public membership fence paired with the checkpoint.
     pub group_epoch: GroupMembershipEpoch,
 }
+
+#[cfg(test)]
+#[path = "transaction_offsets_test.rs"]
+mod tests;

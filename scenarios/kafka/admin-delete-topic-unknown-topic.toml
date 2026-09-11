@@ -1,4 +1,4 @@
-schema_version = 63
+schema_version = 64
 id = "kafka.admin-delete-topic-unknown-topic"
 title = "packaged admin rejects deletion of an unknown Kafka topic"
 description = "The packaged client's public admin requests deletion of an absent topic, reports the exact normalized unknown-topic error, and an immediate independent metadata query confirms the topic remains absent."

@@ -117,6 +117,8 @@ impl HistoryIndex {
             | ScenarioAction::ListTransactions(_)
             | ScenarioAction::DescribeTransactions(_)
             | ScenarioAction::FenceProducers(_)
+            | ScenarioAction::AlterPartitionReassignments(_)
+            | ScenarioAction::ListPartitionReassignments(_)
             | ScenarioAction::ListConsumerGroups(_)
             | ScenarioAction::DescribeConsumerGroup(_)
             | ScenarioAction::DescribeShareGroup(_)

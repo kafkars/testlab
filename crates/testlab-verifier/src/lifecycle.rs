@@ -1,9 +1,7 @@
 //! Lifecycle verification proves every requested public boundary settles once.
-
-use testlab_schema::{Scenario, ScenarioAction, Violation};
-
 use crate::index::HistoryIndex;
 use crate::support::{references, violation};
+use testlab_schema::{Scenario, ScenarioAction, Violation};
 
 pub(crate) fn verify_lifecycle(
     scenario: &Scenario,
@@ -109,7 +107,6 @@ pub(crate) fn verify_lifecycle(
     }
     verify_finish(index, violations);
 }
-
 fn verify_group_lifecycle(
     action: &ScenarioAction,
     index: &HistoryIndex,
@@ -155,6 +152,8 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::RestoreBrokerRole { .. }
             | ScenarioAction::AlterBrokerPolicy(_)
             | ScenarioAction::FenceProducers(_)
+            | ScenarioAction::AlterPartitionReassignments(_)
+            | ScenarioAction::ListPartitionReassignments(_)
             | ScenarioAction::Send { .. }
             | ScenarioAction::SendBatch { .. }
             | ScenarioAction::StartConcurrentActors(_)

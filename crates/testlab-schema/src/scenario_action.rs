@@ -26,12 +26,10 @@ pub enum ScenarioAction {
         timeout_ms: u64,
     },
     StopBroker {
-        /// One-based declared broker ordinal.
         broker_ordinal: u16,
         timeout_ms: u64,
     },
     StartBroker {
-        /// One-based declared broker ordinal.
         broker_ordinal: u16,
         timeout_ms: u64,
     },
@@ -218,6 +216,8 @@ pub enum ScenarioAction {
     ListTransactions(crate::ListTransactionsAction),
     DescribeTransactions(crate::DescribeTransactionsAction),
     FenceProducers(crate::FenceProducersAction),
+    AlterPartitionReassignments(crate::AlterPartitionReassignmentsAction),
+    ListPartitionReassignments(crate::ListPartitionReassignmentsAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),

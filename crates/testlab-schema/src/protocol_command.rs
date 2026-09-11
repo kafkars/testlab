@@ -175,9 +175,7 @@ pub enum AdapterCommand {
     },
     CreateTopic(crate::CreateTopicCommand),
     CreateTopicsBatch(crate::CreateTopicsBatchCommand),
-    /// Increases one Kafka topic through the public admin surface.
     CreatePartitions(crate::CreatePartitionsCommand),
-    /// Deletes one Kafka topic through the public admin surface.
     DeleteTopic(crate::DeleteTopicCommand),
     DeleteTopics(crate::DeleteTopicsCommand),
     /// Describes one Kafka topic through the public admin surface.
@@ -203,6 +201,8 @@ pub enum AdapterCommand {
     ListTransactions(crate::ListTransactionsCommand),
     DescribeTransactions(crate::DescribeTransactionsCommand),
     FenceProducers(crate::FenceProducersCommand),
+    AlterPartitionReassignments(crate::AlterPartitionReassignmentsCommand),
+    ListPartitionReassignments(crate::ListPartitionReassignmentsCommand),
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),

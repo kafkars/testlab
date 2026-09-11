@@ -47,6 +47,7 @@ mod session_command_admin_batch;
 mod session_command_admin_client_quota;
 mod session_command_admin_config;
 mod session_command_admin_group_batch;
+mod session_command_admin_partition_reassignments;
 mod session_command_admin_records;
 mod session_command_admin_share_group;
 mod session_command_admin_transactions;
@@ -74,6 +75,8 @@ mod admin_delete_records_batch_protocol_test;
 mod admin_log_dirs_protocol_test;
 #[cfg(test)]
 mod admin_metadata_quorum_protocol_test;
+#[cfg(test)]
+mod admin_partition_reassignments_protocol_test;
 #[cfg(test)]
 mod admin_producers_protocol_test;
 #[cfg(test)]

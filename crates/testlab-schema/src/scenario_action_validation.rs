@@ -136,6 +136,8 @@ pub(crate) fn validate_action(
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::FenceProducers(_)
+        | ScenarioAction::AlterPartitionReassignments(_)
+        | ScenarioAction::ListPartitionReassignments(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
@@ -237,7 +239,6 @@ pub(crate) fn validate_operation(
         ));
     }
 }
-
 fn require_live_client(client_id: &ClientId, clients: &ClientStates, problems: &mut Vec<String>) {
     match clients.get(client_id) {
         Some(false) => {}
@@ -270,7 +271,6 @@ fn create_producer(
         problems.push(format!("duplicate producer id {producer_id}"));
     }
 }
-
 pub(crate) fn require_open_producer(
     producer_id: &ProducerId,
     producers: &ProducerStates,

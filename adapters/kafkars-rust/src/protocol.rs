@@ -16,7 +16,6 @@ use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
-
 pub fn run_stdio() -> Result<(), AdapterError> {
     let (stdin, stdout) = (io::stdin(), io::stdout());
     run_session(stdin.lock(), stdout.lock())
@@ -57,7 +56,6 @@ where
         }
     }
 }
-
 pub(super) fn handle_dispatch<W: Write>(
     writer: &mut W,
     envelope: CommandEnvelope,
@@ -180,6 +178,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::FenceProducers(_)
+        | AdapterCommand::AlterPartitionReassignments(_)
+        | AdapterCommand::ListPartitionReassignments(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)
