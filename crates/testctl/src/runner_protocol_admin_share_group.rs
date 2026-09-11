@@ -58,6 +58,20 @@ pub(super) fn classify(
                 && group_id == &actual.group_id
                 && topic == &actual.topic
         }
+        (
+            ExpectedEvent::ShareGroupsDeleted {
+                operation_id,
+                group_ids,
+            },
+            AdapterEvent::ShareGroupsDeleted(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| outcome.group_id.as_str())
+                    .eq(group_ids.iter().map(String::as_str))
+        }
         _ => return None,
     };
     Some(identity_result(matches, event, expected))
@@ -78,6 +92,9 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
         ) | (
             ExpectedEvent::ShareGroupOffsetsDeleted { .. },
             AdapterEvent::ShareGroupOffsetsDeleted(_)
+        ) | (
+            ExpectedEvent::ShareGroupsDeleted { .. },
+            AdapterEvent::ShareGroupsDeleted(_)
         )
     )
 }

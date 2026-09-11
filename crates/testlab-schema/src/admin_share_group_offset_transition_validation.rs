@@ -60,6 +60,11 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     ));
                 }
             }
+            ScenarioAction::DeleteShareGroups(action) => {
+                for group_id in &action.group_ids {
+                    validate_empty_group(&action.operation_id, group_id, &consumers, problems);
+                }
+            }
             _ => {}
         }
     }

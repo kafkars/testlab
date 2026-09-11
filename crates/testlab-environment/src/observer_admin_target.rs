@@ -30,6 +30,7 @@ pub(super) enum AdminTarget {
     ConsumerGroups(ListTarget),
     ConsumerGroup(GroupTarget),
     ShareGroup(ShareGroupTarget),
+    ShareGroups(ShareGroupsTarget),
     ShareGroupOffset(ShareGroupOffsetTarget),
     ConsumerGroupOffset(OffsetTarget),
     ConsumerGroupOffsets(GroupOffsetsTarget),
@@ -88,6 +89,12 @@ pub(super) struct GroupTarget {
 pub(super) struct ShareGroupTarget {
     pub(super) operation_id: OperationId,
     pub(super) group_id: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct ShareGroupsTarget {
+    pub(super) operation_id: OperationId,
+    pub(super) group_ids: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -207,6 +214,7 @@ impl AdminTarget {
             Self::Cluster(operation_id) => operation_id,
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
+            Self::ShareGroups(target) => &target.operation_id,
             Self::ShareGroupOffset(target) => &target.operation_id,
             Self::ConsumerGroupOffset(target) => &target.operation_id,
             Self::ConsumerGroupOffsets(target) => &target.operation_id,
@@ -229,6 +237,7 @@ impl AdminTarget {
                 target.groups.iter().map(|group| group.offsets.len()).sum()
             }
             Self::ClassicGroups(target) => target.group_ids.len(),
+            Self::ShareGroups(target) => target.group_ids.len(),
             Self::PartitionOffsetsBatch(target) => target.offsets.len(),
             _ => 1,
         }

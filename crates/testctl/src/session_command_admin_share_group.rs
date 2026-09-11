@@ -2,7 +2,8 @@
 
 use testlab_schema::{
     AdapterCommand, AlterShareGroupOffsetsCommand, DeleteShareGroupOffsetsCommand,
-    DescribeShareGroupCommand, ListShareGroupOffsetsCommand, ScenarioAction,
+    DeleteShareGroupsCommand, DescribeShareGroupCommand, ListShareGroupOffsetsCommand,
+    ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -66,6 +67,18 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 operation_id: value.operation_id.clone(),
                 group_id: value.group_id.clone(),
                 topic: value.topic.clone(),
+            },
+        ),
+        ScenarioAction::DeleteShareGroups(value) => (
+            AdapterCommand::DeleteShareGroups(DeleteShareGroupsCommand {
+                client_id: value.client_id.clone(),
+                operation_id: value.operation_id.clone(),
+                group_ids: value.group_ids.clone(),
+                timeout_ms: value.timeout_ms,
+            }),
+            ExpectedEvent::ShareGroupsDeleted {
+                operation_id: value.operation_id.clone(),
+                group_ids: value.group_ids.clone(),
             },
         ),
         _ => return None,

@@ -1,8 +1,11 @@
-//! Pinned Kafka Share-group state and offset output become exact independent facts.
+//! Pinned Kafka Share-group state, listing, and offset output become exact independent facts.
+
+use std::collections::BTreeSet;
 
 use testlab_schema::{BrokerShareGroupOffset, BrokerShareGroupState, BrokerStateObservation};
 
 use crate::observer_admin_target::AdminTarget;
+use crate::observer_admin_target::{ShareGroupsTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 pub(super) fn normalize(
@@ -16,6 +19,39 @@ pub(super) fn normalize(
         AdminTarget::ShareGroupOffset(target) => normalize_offset(observation, target, text),
         _ => Err(invalid("unsupported observation target")),
     }
+}
+
+pub(super) fn normalize_list(
+    first: u64,
+    target: &ShareGroupsTarget,
+    stdout: &[u8],
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
+    let text = std::str::from_utf8(stdout).map_err(|_| invalid("list output is not UTF-8"))?;
+    let mut listed = BTreeSet::new();
+    for line in text.lines().map(str::trim).filter(|line| !line.is_empty()) {
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        let [group_id] = fields.as_slice() else {
+            return Err(invalid("unexpected list row shape"));
+        };
+        if !listed.insert(*group_id) {
+            return Err(invalid("list output repeated a Share-group identity"));
+        }
+    }
+    target
+        .group_ids
+        .iter()
+        .enumerate()
+        .map(|(index, group_id)| {
+            Ok(BrokerStateObservation::ShareGroup(BrokerShareGroupState {
+                observation: ordinal(first, index)?,
+                operation_id: target.operation_id.clone(),
+                group_id: group_id.clone(),
+                exists: listed.contains(group_id.as_str()),
+                state: None,
+                member_count: None,
+            }))
+        })
+        .collect()
 }
 
 fn normalize_state(

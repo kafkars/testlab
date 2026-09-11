@@ -2,11 +2,12 @@
 
 use testlab_schema::{
     AdapterCommand, AlterShareGroupOffsetsCommand, DeleteShareGroupOffsetsCommand,
-    DescribeShareGroupCommand, ListShareGroupOffsetsCommand, ScenarioAction,
+    DeleteShareGroupsCommand, DescribeShareGroupCommand, ListShareGroupOffsetsCommand,
+    ScenarioAction,
 };
 
 use crate::observer_admin_target::{
-    AdminTarget, ShareGroupOffsetTarget, ShareGroupTarget, TargetMatch,
+    AdminTarget, ShareGroupOffsetTarget, ShareGroupTarget, ShareGroupsTarget, TargetMatch, unique,
 };
 use crate::observer_error::ObserverError;
 
@@ -72,6 +73,25 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 partition: action.partition,
             }),
         ),
+        ScenarioAction::DeleteShareGroups(action) => {
+            unique(
+                &action.group_ids,
+                &action.operation_id,
+                "Share-group identity",
+            )?;
+            (
+                AdapterCommand::DeleteShareGroups(DeleteShareGroupsCommand {
+                    client_id: action.client_id.clone(),
+                    operation_id: action.operation_id.clone(),
+                    group_ids: action.group_ids.clone(),
+                    timeout_ms: action.timeout_ms,
+                }),
+                AdminTarget::ShareGroups(ShareGroupsTarget {
+                    operation_id: action.operation_id.clone(),
+                    group_ids: action.group_ids.clone(),
+                }),
+            )
+        }
         _ => return Ok(None),
     }))
 }

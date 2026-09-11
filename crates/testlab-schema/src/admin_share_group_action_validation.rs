@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::admin_action_validation::{validate_resource, validate_timeout};
+use crate::admin_action_validation::{validate_identity, validate_resource, validate_timeout};
 use crate::{ClientId, OperationId, ScenarioAction};
 
 pub(crate) fn validate(
@@ -100,6 +100,37 @@ pub(crate) fn validate(
                 operation_ids,
                 problems,
             );
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
+        ScenarioAction::DeleteShareGroups(action) => {
+            validate_identity(
+                &action.client_id,
+                &action.operation_id,
+                clients,
+                operation_ids,
+                problems,
+            );
+            if !(2..=32).contains(&action.group_ids.len()) {
+                problems.push(format!(
+                    "admin operation {} group_ids must contain between 2 and 32 groups",
+                    action.operation_id
+                ));
+            }
+            let mut groups = BTreeSet::new();
+            for group_id in &action.group_ids {
+                if group_id.is_empty() || group_id.len() > 255 {
+                    problems.push(format!(
+                        "admin operation {} has invalid group_id",
+                        action.operation_id
+                    ));
+                }
+                if !groups.insert(group_id) {
+                    problems.push(format!(
+                        "admin operation {} contains duplicate group_id {}",
+                        action.operation_id, group_id
+                    ));
+                }
+            }
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
         _ => return false,

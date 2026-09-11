@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterEvent, AdminShareGroupDescription, AdminShareGroupOffsetAlteration,
-    AdminShareGroupOffsetDeletion, AdminShareGroupOffsetListing, BrokerShareGroupOffset,
-    BrokerShareGroupState, BrokerStateObservation, OperationId,
+    AdminShareGroupOffsetDeletion, AdminShareGroupOffsetListing, AdminShareGroupsDeletion,
+    BrokerShareGroupOffset, BrokerShareGroupState, BrokerStateObservation, OperationId,
 };
 
 pub(crate) use super::admin_client_quota::Indexed;
@@ -17,6 +17,7 @@ pub(crate) struct AdminShareGroupIndex {
     pub(crate) offsets_altered:
         BTreeMap<OperationId, Vec<Indexed<AdminShareGroupOffsetAlteration>>>,
     pub(crate) offsets_deleted: BTreeMap<OperationId, Vec<Indexed<AdminShareGroupOffsetDeletion>>>,
+    pub(crate) groups_deleted: BTreeMap<OperationId, Vec<Indexed<AdminShareGroupsDeletion>>>,
     pub(crate) observed: BTreeMap<OperationId, Vec<Indexed<BrokerShareGroupState>>>,
     pub(crate) offsets_observed: BTreeMap<OperationId, Vec<Indexed<BrokerShareGroupOffset>>>,
 }
@@ -50,6 +51,14 @@ impl AdminShareGroupIndex {
                 }),
             AdapterEvent::ShareGroupOffsetsDeleted(value) => self
                 .offsets_deleted
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(Indexed {
+                    history_sequence: sequence,
+                    value: value.clone(),
+                }),
+            AdapterEvent::ShareGroupsDeleted(value) => self
+                .groups_deleted
                 .entry(value.operation_id.clone())
                 .or_default()
                 .push(Indexed {

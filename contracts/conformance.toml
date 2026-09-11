@@ -301,6 +301,12 @@ statement = "One public topic-wide Share-group offset deletion follows successfu
 category = "admin"
 
 [[contract]]
+id = "ADMIN-041"
+title = "Share-group deletion preserves caller order and broker absence"
+statement = "One caller-ordered public deletion of multiple Share groups follows successful closure of every modeled member, returns one successful outcome per requested group in caller order, and an immediate read-only Kafka CLI listing independently confirms every selected group is absent."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

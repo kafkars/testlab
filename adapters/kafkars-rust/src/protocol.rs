@@ -183,6 +183,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ListShareGroupOffsets(_)
         | AdapterCommand::AlterShareGroupOffsets(_)
         | AdapterCommand::DeleteShareGroupOffsets(_)
+        | AdapterCommand::DeleteShareGroups(_)
         | AdapterCommand::ListConsumerGroupOffsets(_)
         | AdapterCommand::ListConsumerGroupOffsetsBatch(_)
         | AdapterCommand::ListConsumerGroupsOffsets(_)

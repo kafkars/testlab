@@ -94,6 +94,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::ListShareGroupOffsets(_)
         | ScenarioAction::AlterShareGroupOffsets(_)
         | ScenarioAction::DeleteShareGroupOffsets(_)
+        | ScenarioAction::DeleteShareGroups(_)
         | ScenarioAction::ListConsumerGroupOffsets(_)
         | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
         | ScenarioAction::ListConsumerGroupsOffsets(_)

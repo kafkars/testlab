@@ -1,0 +1,154 @@
+schema_version = 48
+id = "kafka.admin-delete-share-groups"
+title = "packaged admin deletes two independently observed empty Share groups"
+description = "Two Share groups independently accept the same record and close their only modeled members before one caller-ordered public deletion; an immediate read-only Kafka CLI listing confirms both groups are absent."
+timeout_ms = 240000
+requires = ["producer", "share_consumer", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-first-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-first-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-second-client"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "await-second-client-ready"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-shared-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-groups-delete-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-share-groups-delete"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "delete-share-groups" }
+value = { encoding = "utf8", data = "caller-ordered-batch" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-groups-delete-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-marker"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-z-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-z"
+group_id = "testlab-admin-share-group-delete-z"
+topic = "testlab-kafkars-admin-share-groups-delete"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "z-group-receives-marker"
+kind = "share_receive"
+consumer_id = "share-z"
+receive_id = "receive-share-group-z-delete"
+expected_operation_ids = ["op-share-groups-delete-marker"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "z-group-accepts-marker"
+kind = "share_acknowledge"
+consumer_id = "share-z"
+receive_id = "receive-share-group-z-delete"
+acknowledgement_id = "ack-share-group-z-delete"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-z-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-z"
+expect_success = true
+
+[[steps]]
+id = "create-a-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-2"
+consumer_id = "share-a"
+group_id = "testlab-admin-share-group-delete-a"
+topic = "testlab-kafkars-admin-share-groups-delete"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "a-group-receives-marker"
+kind = "share_receive"
+consumer_id = "share-a"
+receive_id = "receive-share-group-a-delete"
+expected_operation_ids = ["op-share-groups-delete-marker"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "a-group-accepts-marker"
+kind = "share_acknowledge"
+consumer_id = "share-a"
+receive_id = "receive-share-group-a-delete"
+acknowledgement_id = "ack-share-group-a-delete"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-a-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-a"
+expect_success = true
+
+[[steps]]
+id = "delete-share-groups"
+kind = "delete_share_groups"
+client_id = "client-1"
+operation_id = "admin-delete-share-groups-1"
+group_ids = [
+  "testlab-admin-share-group-delete-z",
+  "testlab-admin-share-group-delete-a",
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-first-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[steps]]
+id = "shutdown-second-client"
+kind = "shutdown_client"
+client_id = "client-2"
+
+[[assertions]]
+operation_id = "op-share-groups-delete-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

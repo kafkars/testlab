@@ -20,6 +20,7 @@ mod admin_records;
 mod admin_share_group;
 mod admin_share_group_offset_deletion;
 mod admin_share_group_offset_mutation;
+mod admin_share_groups_deletion;
 mod admin_topic;
 mod admin_user_scram;
 mod admin_validate_only;
@@ -109,6 +110,8 @@ mod admin_share_group_offset_mutation_test;
 mod admin_share_group_offset_test;
 #[cfg(test)]
 mod admin_share_group_test;
+#[cfg(test)]
+mod admin_share_groups_deletion_test;
 #[cfg(test)]
 mod admin_test;
 #[cfg(test)]

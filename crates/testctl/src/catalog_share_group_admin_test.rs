@@ -1,4 +1,4 @@
-//! Share-capable Kafkars packs retain Share-group description and offset lifecycle proofs.
+//! Share-capable Kafkars packs retain Share-group Admin lifecycle proofs.
 
 use std::path::Path;
 
@@ -40,6 +40,12 @@ fn share_packs_retain_public_and_independent_group_admin_proofs() {
                 .iter()
                 .any(|scenario| scenario.ends_with("admin-delete-share-group-offsets.toml")),
             "{path} omitted Share-group offset deletion"
+        );
+        assert!(
+            pack.scenarios
+                .iter()
+                .any(|scenario| scenario.ends_with("admin-delete-share-groups.toml")),
+            "{path} omitted Share-group deletion"
         );
     }
 }

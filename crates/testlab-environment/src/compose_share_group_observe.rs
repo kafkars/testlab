@@ -17,9 +17,26 @@ impl DockerComposeEnvironment {
         timeout: Duration,
     ) -> ComposeObservation {
         let mut observed = ComposeObservation::default();
-        let (group_id, detail, artifact) = match target {
-            AdminTarget::ShareGroup(target) => (&target.group_id, "--state", "state"),
-            AdminTarget::ShareGroupOffset(target) => (&target.group_id, "--offsets", "offsets"),
+        let (selection, artifact) = match target {
+            AdminTarget::ShareGroup(target) => (
+                vec![
+                    "--describe".to_owned(),
+                    "--state".to_owned(),
+                    "--group".to_owned(),
+                    target.group_id.clone(),
+                ],
+                "state",
+            ),
+            AdminTarget::ShareGroups(_) => (vec!["--list".to_owned()], "list"),
+            AdminTarget::ShareGroupOffset(target) => (
+                vec![
+                    "--describe".to_owned(),
+                    "--offsets".to_owned(),
+                    "--group".to_owned(),
+                    target.group_id.clone(),
+                ],
+                "offsets",
+            ),
             _ => {
                 observed.phase.fail(
                     "environment_observation_failed",
@@ -52,23 +69,21 @@ impl DockerComposeEnvironment {
             return observed;
         };
         let operation = self.next_operation;
+        let mut args = vec![
+            "exec".to_owned(),
+            "--no-TTY".to_owned(),
+            service,
+            "/opt/kafka/bin/kafka-share-groups.sh".to_owned(),
+            "--bootstrap-server".to_owned(),
+            format!("localhost:{}", self.client_port),
+            "--timeout".to_owned(),
+            remaining(deadline).as_millis().to_string(),
+        ];
+        args.extend(selection);
         let spec = compose_owned(
             EnvironmentOperationKind::BrokerObserve,
             &self.prefix,
-            vec![
-                "exec".to_owned(),
-                "--no-TTY".to_owned(),
-                service,
-                "/opt/kafka/bin/kafka-share-groups.sh".to_owned(),
-                "--bootstrap-server".to_owned(),
-                format!("localhost:{}", self.client_port),
-                "--timeout".to_owned(),
-                remaining(deadline).as_millis().to_string(),
-                "--describe".to_owned(),
-                detail.to_owned(),
-                "--group".to_owned(),
-                group_id.clone(),
-            ],
+            args,
             format!("share-group-{artifact}-{operation:05}.txt"),
             format!("share-group-{artifact}-{operation:05}.stderr.txt"),
         );
@@ -79,10 +94,16 @@ impl DockerComposeEnvironment {
                 return observed;
             }
         };
-        let result = crate::share_group_cli_observation::normalize(first, target, &output.stdout);
+        let result = match target {
+            AdminTarget::ShareGroups(target) => {
+                crate::share_group_cli_observation::normalize_list(first, target, &output.stdout)
+            }
+            _ => crate::share_group_cli_observation::normalize(first, target, &output.stdout)
+                .map(|observation| vec![observation]),
+        };
         if observed.phase.retain(output) {
             match result {
-                Ok(state) => observed.state_observations.push(state),
+                Ok(states) => observed.state_observations.extend(states),
                 Err(error) => observed
                     .phase
                     .fail("environment_observation_failed", error.to_string()),

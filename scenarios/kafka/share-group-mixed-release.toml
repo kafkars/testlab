@@ -1,4 +1,4 @@
-schema_version = 47
+schema_version = 48
 id = "kafka.share-group-mixed-release"
 title = "Share batches apply record-specific accept and release decisions"
 description = "One public Share batch acquires three ordered records, acknowledges them with mixed decisions, and independently proves that only the released record returns with an increased delivery count."

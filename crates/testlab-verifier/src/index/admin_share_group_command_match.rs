@@ -8,6 +8,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
         ScenarioAction::ListShareGroupOffsets(value) => Some(&value.operation_id),
         ScenarioAction::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         ScenarioAction::DeleteShareGroupOffsets(value) => Some(&value.operation_id),
+        ScenarioAction::DeleteShareGroups(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -18,6 +19,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
         AdapterCommand::ListShareGroupOffsets(value) => Some(&value.operation_id),
         AdapterCommand::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         AdapterCommand::DeleteShareGroupOffsets(value) => Some(&value.operation_id),
+        AdapterCommand::DeleteShareGroups(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -75,6 +77,15 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         }
         (ScenarioAction::DeleteShareGroupOffsets(_), _)
         | (_, AdapterCommand::DeleteShareGroupOffsets(_)) => false,
+        (ScenarioAction::DeleteShareGroups(action), AdapterCommand::DeleteShareGroups(command)) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.group_ids == command.group_ids
+                && action.timeout_ms == command.timeout_ms
+        }
+        (ScenarioAction::DeleteShareGroups(_), _) | (_, AdapterCommand::DeleteShareGroups(_)) => {
+            false
+        }
         _ => return None,
     };
     Some(matches)

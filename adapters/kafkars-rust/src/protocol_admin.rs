@@ -91,6 +91,9 @@ pub(crate) fn dispatch<W: Write>(
                 state, writer, command_id, command,
             )
         }
+        AdapterCommand::DeleteShareGroups(command) => {
+            crate::protocol_admin_share_group_deletion::delete(state, writer, command_id, command)
+        }
         _ => Err(AdapterError::AdminResult(
             "non-admin command reached admin dispatcher".to_owned(),
         )),

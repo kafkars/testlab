@@ -23,7 +23,6 @@ pub enum AdapterCommand {
     CreateConfiguredClient(crate::CreateConfiguredClientAction),
     /// Waits for one public client readiness probe.
     AwaitClientReady {
-        /// Existing client identity.
         client_id: ClientId,
     },
     /// Observes one bounded public client metrics snapshot.
@@ -208,6 +207,7 @@ pub enum AdapterCommand {
     ListShareGroupOffsets(crate::ListShareGroupOffsetsCommand),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsCommand),
     DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsCommand),
+    DeleteShareGroups(crate::DeleteShareGroupsCommand),
     /// Lists one committed consumer-group offset through the public admin surface.
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsCommand),
     /// Lists selected offsets from one consumer group through one public call.

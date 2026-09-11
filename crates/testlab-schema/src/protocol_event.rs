@@ -20,7 +20,6 @@ pub enum AdapterEvent {
     },
     /// Public client readiness completed.
     ClientReady {
-        /// Ready client.
         client_id: ClientId,
     },
     /// One complete public client metrics snapshot was observed.
@@ -221,6 +220,7 @@ pub enum AdapterEvent {
     ShareGroupOffsetsListed(crate::AdminShareGroupOffsetListing),
     ShareGroupOffsetsAltered(crate::AdminShareGroupOffsetAlteration),
     ShareGroupOffsetsDeleted(crate::AdminShareGroupOffsetDeletion),
+    ShareGroupsDeleted(crate::AdminShareGroupsDeletion),
     /// One public admin consumer-group offset listing completed successfully.
     ConsumerGroupOffsetListed(crate::AdminConsumerGroupOffsetListing),
     /// One public single-group offset batch listing returned ordered outcomes.

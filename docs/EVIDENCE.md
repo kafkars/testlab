@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v33 records the exact environment identity in `manifest.json`,
-retains protocol-v44 direct and hosted-group consumer controls and shutdown,
+Evidence schema v34 records the exact environment identity in `manifest.json`,
+retains protocol-v45 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -193,7 +193,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in scenario schema v47. Plural offset
+retain the same broker-state fact shapes in scenario schema v48. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -281,6 +281,12 @@ every modeled member before the deletion command, one exact successful public
 topic outcome with a nonzero topic ID, and an immediate independent Kafka CLI
 observation with no start offset or lag for the scenario-selected partition.
 The selected partition stays out of the topic-wide public deletion command.
+
+ADMIN-041 requires successful public closure of every modeled member in every
+selected Share group, one exact public deletion outcome per group in caller
+order, and one immediate read-only Kafka CLI list snapshot. The normalized
+independent observations retain consecutive ordinals in caller order and must
+report every selected group absent; unrelated listed groups remain irrelevant.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

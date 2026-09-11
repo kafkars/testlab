@@ -39,7 +39,7 @@ fn operation_records_cluster_replication_factor() {
 fn share_groups_are_preconfigured_for_deterministic_earliest_start() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 47
+schema_version = 48
 id = "share.provisioning"
 title = "share provisioning"
 description = "share group provisioning fixture"
@@ -138,7 +138,7 @@ fn delete_records_targets_are_seeded_and_recorded_in_provisioning_evidence() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 47
+schema_version = 48
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -260,7 +260,7 @@ fn fenced_transaction_record_contributes_its_topic() {
 fn describe_then_delete_without_records_is_preprovisioned() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 47
+schema_version = 48
 id = "kafka.admin-describe-delete"
 title = "describe and delete"
 description = "provisioning fixture"

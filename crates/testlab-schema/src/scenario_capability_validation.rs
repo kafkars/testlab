@@ -80,6 +80,7 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::ListShareGroupOffsets(_)
         | ScenarioAction::AlterShareGroupOffsets(_)
         | ScenarioAction::DeleteShareGroupOffsets(_)
+        | ScenarioAction::DeleteShareGroups(_)
         | ScenarioAction::ListConsumerGroupOffsets(_)
         | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
         | ScenarioAction::ListConsumerGroupsOffsets(_)

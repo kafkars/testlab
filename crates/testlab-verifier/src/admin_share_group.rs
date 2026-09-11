@@ -33,6 +33,9 @@ pub(crate) fn verify_share_group_action(
                 scenario, action, value, index, violations,
             );
         }
+        ScenarioAction::DeleteShareGroups(value) => {
+            crate::admin_share_groups_deletion::verify(scenario, action, value, index, violations);
+        }
         _ => return false,
     }
     true

@@ -43,6 +43,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::ListShareGroupOffsets(_)
         | AdapterCommand::AlterShareGroupOffsets(_)
         | AdapterCommand::DeleteShareGroupOffsets(_)
+        | AdapterCommand::DeleteShareGroups(_)
         | AdapterCommand::ListConsumerGroupOffsets(_)
         | AdapterCommand::ListConsumerGroupOffsetsBatch(_)
         | AdapterCommand::ListConsumerGroupsOffsets(_)
