@@ -2,7 +2,7 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminTopicDescriptionOutcome, AdminTopicsDescription, ClientId,
-    DescribeTopicExpectation, DescribeTopicsAction, OperationId, ScenarioAction,
+    DescribeTopicExpectation, DescribeTopicsAction, OperationId, ScenarioAction, TopicSelection,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
@@ -50,6 +50,7 @@ fn action() -> DescribeTopicsAction {
     DescribeTopicsAction {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: vec![
             expectation("topic-z", Some(vec![0, 1]), None),
             expectation(
@@ -70,6 +71,7 @@ fn completion() -> AdminTopicsDescription {
             .into_iter()
             .map(|topic| AdminTopicDescriptionOutcome {
                 topic,
+                topic_id: None,
                 description: None,
                 error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
             })

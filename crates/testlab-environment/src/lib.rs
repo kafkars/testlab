@@ -46,6 +46,7 @@ mod compose_share_groups_description_observe;
 mod compose_share_groups_offsets_observe;
 mod compose_startup;
 mod compose_support;
+mod compose_topic_identity_observe;
 mod compose_topic_readiness;
 mod compose_transactions_observe;
 mod compose_types;
@@ -107,6 +108,7 @@ mod security;
 mod share_group_cli_observation;
 mod terminal;
 mod terminal_capture;
+mod topic_identity_cli_observation;
 mod transaction_cli_observation;
 mod user_scram_cli_observation;
 

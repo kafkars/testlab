@@ -34,6 +34,7 @@ pub(super) enum AdminTarget {
     UserScramCredential(UserScramCredentialTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
+    TopicIdentities(ListTarget),
     TopicDeletions(ListTarget),
     Cluster(OperationId),
     Features(OperationId),
@@ -107,7 +108,6 @@ pub(super) struct ShareGroupTarget {
     pub(super) operation_id: OperationId,
     pub(super) group_id: String,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct ShareGroupsTarget {
     pub(super) operation_id: OperationId,
@@ -231,6 +231,7 @@ impl AdminTarget {
             Self::UserScramCredential(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
             Self::Topics(target)
+            | Self::TopicIdentities(target)
             | Self::TopicDeletions(target)
             | Self::ConsumerGroups(target)
             | Self::ConsumerGroupDeletions(target) => &target.operation_id,
@@ -267,6 +268,7 @@ impl AdminTarget {
             Self::ClientQuota(_) => 1,
             Self::UserScramCredential(_) => 1,
             Self::Topics(target)
+            | Self::TopicIdentities(target)
             | Self::TopicDeletions(target)
             | Self::ConsumerGroups(target)
             | Self::ConsumerGroupDeletions(target) => target.names.len(),

@@ -163,6 +163,8 @@ mod admin_topic_cluster_test;
 #[cfg(test)]
 mod admin_topic_failure_test;
 #[cfg(test)]
+mod admin_topic_ids_test;
+#[cfg(test)]
 mod admin_topics_deletion_test;
 #[cfg(test)]
 mod admin_topics_description_test;

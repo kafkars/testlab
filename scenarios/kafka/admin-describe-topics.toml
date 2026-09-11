@@ -1,4 +1,4 @@
-schema_version = 65
+schema_version = 66
 id = "kafka.admin-describe-topics"
 title = "packaged admin describes caller-ordered topics with mixed outcomes"
 description = "One public plural topic description preserves caller order, detailed partitions, and an exact missing-topic error while immediate independent metadata confirms every success and absence."

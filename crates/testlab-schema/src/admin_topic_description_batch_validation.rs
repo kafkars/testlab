@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::admin_action_validation::{validate_identity, validate_timeout};
-use crate::{ClientId, OperationId, ScenarioAction};
+use crate::{ClientId, OperationId, ScenarioAction, TopicSelection};
 
 pub(crate) fn validate(
     action: &ScenarioAction,
@@ -38,6 +38,12 @@ pub(crate) fn validate(
         if topic.expected_partitions.is_some() == topic.expected_error_code.is_some() {
             problems.push(format!(
                 "admin operation {} topic {} must declare exactly one public outcome",
+                action.operation_id, topic.topic
+            ));
+        }
+        if action.selection == TopicSelection::TopicId && topic.expected_error_code.is_some() {
+            problems.push(format!(
+                "admin operation {} topic-ID lookup topic {} must exist",
                 action.operation_id, topic.topic
             ));
         }

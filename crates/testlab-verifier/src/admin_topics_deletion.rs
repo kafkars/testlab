@@ -2,11 +2,14 @@
 
 use testlab_schema::{
     DeleteTopicExpectation, DeleteTopicsAction, DescribeTopicExpectation, DescribeTopicsAction,
-    Scenario, ScenarioAction, Violation,
+    Scenario, ScenarioAction, TopicSelection, Violation,
 };
 
 use crate::admin::{immediate_after_public, public_after_command};
-use crate::index::{HistoryIndex, IndexedAdminTopicsDeletion, IndexedTopicObservation};
+use crate::index::{
+    HistoryIndex, IndexedAdminTopicsDeletion, IndexedTopicIdentityObservation,
+    IndexedTopicObservation,
+};
 use crate::support::violation;
 
 pub(crate) fn verify_topics_deletion_action(
@@ -33,6 +36,8 @@ fn verify(
     let public = one(index.topics_batch_deleted.get(&action.operation_id));
     let description = prior_description(scenario, action);
     let baseline = description.and_then(|value| index.topics_observed.get(&value.operation_id));
+    let identity_baseline =
+        description.and_then(|value| index.topic_identities_observed.get(&value.operation_id));
     let observed = index.topics_observed.get(&action.operation_id);
     let public_matches = public.is_some_and(|value| {
         public_after_command(window, value.history_sequence)
@@ -43,13 +48,28 @@ fn verify(
                 .outcomes
                 .iter()
                 .zip(&action.topics)
-                .all(|(actual, expected)| {
-                    actual.topic == expected.topic
-                        && actual.error_code == expected.expected_error_code
+                .enumerate()
+                .all(|(index, (actual, expected))| match action.selection {
+                    TopicSelection::Name => {
+                        actual.topic == expected.topic
+                            && actual.topic_id.is_none()
+                            && actual.error_code == expected.expected_error_code
+                    }
+                    TopicSelection::TopicId => {
+                        actual.topic == expected.topic
+                            && actual.error_code.is_none()
+                            && identity_baseline
+                                .and_then(|values| values.get(index))
+                                .is_some_and(|baseline| actual.topic_id == Some(baseline.topic_id))
+                    }
                 })
     });
-    let baseline_matches = description.is_some_and(|description| {
-        baseline.is_some_and(|values| baseline_is_exact(values, description, window))
+    let baseline_matches = description.is_some_and(|description| match action.selection {
+        TopicSelection::Name => {
+            baseline.is_some_and(|values| baseline_is_exact(values, description, window))
+        }
+        TopicSelection::TopicId => identity_baseline
+            .is_some_and(|values| identity_baseline_is_exact(values, description, window)),
     });
     let observed_matches = public.is_some_and(|public| {
         observed.is_some_and(|values| post_delete_is_exact(values, action, window, public))
@@ -58,16 +78,22 @@ fn verify(
         return;
     }
     violations.push(violation(
-        "ADMIN-045",
+        contract(action.selection),
         format!(
-            "admin operation {} expected prior caller-ordered topic state, exact mixed deletion outcomes, and immediate independent absence for every requested topic",
-            action.operation_id
+            "admin operation {} expected prior caller-ordered {:?} topic state, exact deletion outcomes, and immediate independent absence for every requested topic",
+            action.operation_id, action.selection
         ),
         Some(action.operation_id.clone()),
         baseline
             .into_iter()
             .flatten()
             .map(observation_evidence)
+            .chain(
+                identity_baseline
+                    .into_iter()
+                    .flatten()
+                    .map(identity_observation_evidence),
+            )
             .chain(
                 public
                     .map(|value| format!("history:{}", value.history_sequence)),
@@ -99,13 +125,37 @@ fn prior_description<'a>(
 }
 
 fn expectations_match(description: &DescribeTopicsAction, deletion: &DeleteTopicsAction) -> bool {
-    description.topics.len() == deletion.topics.len()
+    description.selection == deletion.selection
+        && description.topics.len() == deletion.topics.len()
         && description
             .topics
             .iter()
             .zip(&deletion.topics)
             .all(|(before, deleted)| {
                 before.topic == deleted.topic && expectation_matches(before, deleted)
+            })
+}
+
+fn identity_baseline_is_exact(
+    values: &[IndexedTopicIdentityObservation],
+    description: &DescribeTopicsAction,
+    window: Option<crate::admin::AdminCommandWindow>,
+) -> bool {
+    let command = window.map(|(command, _)| command);
+    values.len() == description.topics.len()
+        && contiguous(values.iter().map(|value| value.observation))
+        && contiguous(values.iter().map(|value| value.history_sequence))
+        && values
+            .iter()
+            .zip(&description.topics)
+            .all(|(actual, expected)| {
+                command.is_some_and(|command| actual.history_sequence < command)
+                    && actual.topic == expected.topic
+                    && actual.topic_id != [0; 16]
+                    && expected
+                        .expected_partitions
+                        .as_deref()
+                        .is_some_and(|partitions| partitions == actual.partitions.as_slice())
             })
 }
 
@@ -174,6 +224,17 @@ fn contiguous(values: impl Iterator<Item = u64>) -> bool {
 
 fn observation_evidence(value: &IndexedTopicObservation) -> String {
     format!("broker-state-observation:{}", value.observation)
+}
+
+fn identity_observation_evidence(value: &IndexedTopicIdentityObservation) -> String {
+    format!("broker-state-observation:{}", value.observation)
+}
+
+const fn contract(selection: TopicSelection) -> &'static str {
+    match selection {
+        TopicSelection::Name => "ADMIN-045",
+        TopicSelection::TopicId => "ADMIN-062",
+    }
 }
 
 fn one(values: Option<&Vec<IndexedAdminTopicsDeletion>>) -> Option<&IndexedAdminTopicsDeletion> {

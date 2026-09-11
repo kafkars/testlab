@@ -5,7 +5,7 @@ use testlab_schema::BrokerStateObservation;
 use super::{
     HistoryIndex, IndexedClusterObservation, IndexedConsumerGroupObservation,
     IndexedConsumerGroupOffsetObservation, IndexedPartitionOffsetsObservation,
-    IndexedTopicConfigObservation, IndexedTopicObservation,
+    IndexedTopicConfigObservation, IndexedTopicIdentityObservation, IndexedTopicObservation,
 };
 
 impl HistoryIndex {
@@ -47,6 +47,17 @@ impl HistoryIndex {
                     observation: value.observation,
                     topic: value.topic.clone(),
                     exists: value.exists,
+                    partitions: value.partitions.clone(),
+                }),
+            BrokerStateObservation::TopicIdentity(value) => self
+                .topic_identities_observed
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(IndexedTopicIdentityObservation {
+                    history_sequence: sequence,
+                    observation: value.observation,
+                    topic: value.topic.clone(),
+                    topic_id: value.topic_id,
                     partitions: value.partitions.clone(),
                 }),
             BrokerStateObservation::Cluster(value) => self

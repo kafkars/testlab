@@ -4,6 +4,24 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+/// Public Kafka topic key used by one plural description or deletion call.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TopicSelection {
+    /// Address topics by their names.
+    #[default]
+    Name,
+    /// Resolve scenario-owned names once, then address topics by Kafka UUID.
+    TopicId,
+}
+
+impl TopicSelection {
+    /// Returns whether the public request uses topic names.
+    pub const fn is_name(&self) -> bool {
+        matches!(self, Self::Name)
+    }
+}
+
 /// One scenario-side topic description expectation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -26,6 +44,9 @@ pub struct DescribeTopicsAction {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public topic key used after scenario-owned resource resolution.
+    #[serde(default, skip_serializing_if = "TopicSelection::is_name")]
+    pub selection: TopicSelection,
     /// Caller-ordered topic expectations.
     pub topics: Vec<DescribeTopicExpectation>,
     /// Complete public operation bound.
@@ -40,6 +61,9 @@ pub struct DescribeTopicsCommand {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public topic key used after scenario-owned resource resolution.
+    #[serde(default, skip_serializing_if = "TopicSelection::is_name")]
+    pub selection: TopicSelection,
     /// Caller-ordered topic names without verifier expectations.
     pub topics: Vec<String>,
     /// Complete public operation bound.
@@ -74,6 +98,9 @@ pub struct AdminTopicDescriptionValue {
 pub struct AdminTopicDescriptionOutcome {
     /// Exact topic key returned for this request position.
     pub topic: String,
+    /// Exact nonzero topic-ID request key, or none for a name-based request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub topic_id: Option<[u8; 16]>,
     /// Full public description on success.
     pub description: Option<AdminTopicDescriptionValue>,
     /// Stable normalized topic error on failure.

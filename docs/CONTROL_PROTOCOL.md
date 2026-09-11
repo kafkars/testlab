@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v62 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v65 and evidence schema v51.
+Protocol v63 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v66 and evidence schema v52.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -476,24 +476,27 @@ independent metadata observations. These singleton and listing checks do not
 claim exhaustive topic listing, internal-topic filtering, topic IDs, or replica
 topology.
 
-`describe_topics` carries two through 32 unique topic names in caller order and
-invokes one public Admin operation. Scenario-only partitions and expected
-errors stay in Testlab. Its single `topics_described` completion preserves the
-same outer order, exact topic keys, complete successful partition results,
-nonzero topic IDs, internal-topic flags, and per-topic or per-partition errors.
-Immediate independent metadata snapshots run in that same order and must prove
-each expected topology or missing-topic absence without replacing the public
-result.
+`describe_topics` carries two through 32 unique scenario-owned topic names in
+caller order. Its `selection` is either the default `name` or `topic_id`. The
+topic-ID path resolves each name once under the same deadline and invokes the
+public ID-keyed operation with the resulting nonzero unique UUIDs. Scenario-only
+partitions and expected errors stay in Testlab. Its single `topics_described`
+completion preserves the same outer order, exact request UUID when ID-keyed,
+complete successful partition results, matching nonzero inner topic IDs,
+internal-topic flags, and per-topic or per-partition errors. Name-keyed calls use
+immediate independent metadata. ID-keyed calls use one immediate pinned Kafka
+topic-CLI snapshot per topic to prove both UUID and topology in caller order.
 
-`delete_topics` carries two through 32 unique topic names in caller order and
-invokes one public name-based Admin operation. Scenario-only expected errors
-stay in Testlab. Its single `topics_deleted` completion preserves the same
-outer order, exact topic keys, and each success or normalized per-topic error;
-a mixed result does not collapse into `command_failed`. A prior plural
-description and its independent metadata establish every selected topic's
-presence or absence. After the public deletion result, independent metadata is
-polled within the original observation bound until every selected name is
-absent, then recorded with consecutive ordinals in caller order.
+`delete_topics` carries two through 32 unique scenario-owned topic names in
+caller order and selects either the default name-keyed operation or the public
+topic-ID operation. Scenario-only expected errors stay in Testlab. Its single
+`topics_deleted` completion preserves outer order, each exact ID request key
+when selected, and every success or normalized per-topic error; a mixed result
+does not collapse into `command_failed`. A matching prior plural description
+and independent observation establish every selected topic's state and, for
+ID-keyed deletion, the exact UUID deletion fence. After the public result,
+independent metadata is polled within the original observation bound until
+every selected name is absent, then recorded with consecutive ordinals.
 
 Offset listing selects `earliest` or `latest` for one isolated partition after
 two acknowledged records or deterministic environment seeding. An immediate
@@ -859,6 +862,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v62 is an exact semantic contract. New capabilities may be declared
+Protocol v63 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

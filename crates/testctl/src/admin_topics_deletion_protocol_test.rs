@@ -2,7 +2,7 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminTopicDeletionOutcome, AdminTopicsDeletion, ClientId,
-    DeleteTopicExpectation, DeleteTopicsAction, OperationId, ScenarioAction,
+    DeleteTopicExpectation, DeleteTopicsAction, OperationId, ScenarioAction, TopicSelection,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
@@ -50,6 +50,7 @@ fn action() -> DeleteTopicsAction {
     DeleteTopicsAction {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: vec![
             expectation("topic-z", None),
             expectation("topic-missing", Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE)),
@@ -66,6 +67,7 @@ fn completion() -> AdminTopicsDeletion {
             .into_iter()
             .map(|topic| AdminTopicDeletionOutcome {
                 topic,
+                topic_id: None,
                 error_code: None,
             })
             .collect(),

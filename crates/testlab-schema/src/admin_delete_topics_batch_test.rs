@@ -6,14 +6,14 @@ use super::{
     AdapterCommand, AdapterEvent, AdminTopicDeletionOutcome, AdminTopicsDeletion, ClientId,
     DeleteTopicExpectation, DeleteTopicsAction, DeleteTopicsCommand, EVIDENCE_SCHEMA_VERSION,
     OperationId, PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
-    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    TopicSelection, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[test]
 fn plural_topic_deletion_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 62);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 65);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 51);
+    assert_eq!(PROTOCOL_VERSION, 63);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 66);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 52);
 }
 
 #[test]
@@ -71,6 +71,25 @@ fn validation_rejects_nonplural_duplicate_and_wrong_error() {
 }
 
 #[test]
+fn topic_id_selection_rejects_a_missing_deletion_name() {
+    let mut action = action();
+    action.selection = TopicSelection::TopicId;
+    let mut problems = Vec::new();
+    crate::admin_action_validation::validate(
+        &ScenarioAction::DeleteTopics(action),
+        &BTreeMap::from([(client(), false)]),
+        &mut BTreeSet::new(),
+        &mut problems,
+    );
+    assert!(
+        problems
+            .iter()
+            .any(|problem| problem.contains("topic-ID deletion") && problem.contains("must exist")),
+        "{problems:?}"
+    );
+}
+
+#[test]
 fn transition_requires_matching_prior_topic_descriptions() {
     let mut scenario = scenario();
     scenario
@@ -91,6 +110,7 @@ fn action() -> DeleteTopicsAction {
     DeleteTopicsAction {
         client_id: client(),
         operation_id: operation("delete-topics"),
+        selection: TopicSelection::Name,
         topics: vec![
             expectation("topic-z", None),
             expectation("topic-missing", Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE)),
@@ -104,6 +124,7 @@ fn command() -> DeleteTopicsCommand {
     DeleteTopicsCommand {
         client_id: client(),
         operation_id: operation("delete-topics"),
+        selection: TopicSelection::Name,
         topics: topic_names(),
         timeout_ms: 1_000,
     }
@@ -130,6 +151,7 @@ fn expectation(topic: &str, expected_error_code: Option<&str>) -> DeleteTopicExp
 fn outcome(topic: &str, error_code: Option<&str>) -> AdminTopicDeletionOutcome {
     AdminTopicDeletionOutcome {
         topic: topic.to_owned(),
+        topic_id: None,
         error_code: error_code.map(str::to_owned),
     }
 }

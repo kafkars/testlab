@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterCommand, ClientId, DescribeTopicExpectation, DescribeTopicsAction,
-    DescribeTopicsCommand, OperationId, Scenario, ScenarioAction,
+    DescribeTopicsCommand, OperationId, Scenario, ScenarioAction, TopicSelection,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
@@ -32,6 +32,29 @@ fn altered_wire_order_is_rejected_before_observation() {
 }
 
 #[test]
+fn topic_id_selection_maps_to_pinned_cli_identity_observations() {
+    let mut action = action();
+    action.selection = TopicSelection::TopicId;
+    action.topics.remove(1);
+    let mut command = command();
+    command.selection = TopicSelection::TopicId;
+    command.topics.remove(1);
+    let target = AdminTarget::from_exact(
+        &ScenarioAction::DescribeTopics(action),
+        &AdapterCommand::DescribeTopics(command),
+    )
+    .unwrap_or_else(|error| panic!("map topic-ID descriptions: {error}"))
+    .unwrap_or_else(|| panic!("topic-ID description target"));
+    assert_eq!(
+        target,
+        AdminTarget::TopicIdentities(ListTarget {
+            operation_id: operation(),
+            names: vec!["topic-z".to_owned(), "topic-a".to_owned()],
+        })
+    );
+}
+
+#[test]
 fn provisioning_creates_only_topics_expected_to_succeed() {
     let scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/admin-describe-topics.toml"
@@ -50,6 +73,7 @@ fn action() -> DescribeTopicsAction {
     DescribeTopicsAction {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: vec![
             expectation("topic-z", Some(vec![0, 1]), None),
             expectation(
@@ -67,6 +91,7 @@ fn command() -> DescribeTopicsCommand {
     DescribeTopicsCommand {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: topic_names(),
         timeout_ms: 1_000,
     }

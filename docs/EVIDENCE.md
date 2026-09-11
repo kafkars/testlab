@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v51 records the exact environment identity in `manifest.json`,
-retains protocol-v62 direct and hosted-group consumer controls and shutdown,
+Evidence schema v52 records the exact environment identity in `manifest.json`,
+retains protocol-v63 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -444,6 +444,21 @@ selected outcomes preserve caller order and cluster-wide outcomes use canonical
 topic-byte and partition order while containing the required fixture partition.
 The immediate metadata observation must show the assignment's first replica as
 leader and the complete replica set in the ISR.
+
+ADMIN-061 uses scenario-owned names only to resolve the broker-assigned topic
+UUIDs under the same public deadline. The target public call is
+`describe_topics_by_id`: every caller-positioned result must retain its exact
+nonzero request UUID, repeat that UUID inside the successful description, and
+preserve the expected partition topology without hidden errors. One pinned
+Kafka topic-CLI query per name immediately supplies independent UUID and
+partition facts in the same contiguous caller order.
+
+ADMIN-062 requires a prior ADMIN-061 description over the same ordered topics.
+The independently observed UUIDs become the deletion baseline, so a topic
+deleted and recreated under the same name cannot satisfy the contract. The
+target public `delete_topics_by_id` call must return those exact UUID keys in
+caller order with no per-topic errors, after which independent metadata polling
+must prove every selected name absent.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

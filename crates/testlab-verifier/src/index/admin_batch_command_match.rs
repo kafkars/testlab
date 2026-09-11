@@ -63,6 +63,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         (ScenarioAction::DescribeTopics(action), AdapterCommand::DescribeTopics(command)) => Some(
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
+                && action.selection == command.selection
                 && action.timeout_ms == command.timeout_ms
                 && action
                     .topics
@@ -89,6 +90,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         (ScenarioAction::DeleteTopics(action), AdapterCommand::DeleteTopics(command)) => Some(
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
+                && action.selection == command.selection
                 && action.timeout_ms == command.timeout_ms
                 && action
                     .topics

@@ -45,8 +45,8 @@ pub(crate) use admin_types::{
     IndexedConsumerGroupObservation, IndexedConsumerGroupOffset,
     IndexedConsumerGroupOffsetObservation, IndexedConsumerGroupsList, IndexedOffsetList,
     IndexedPartitionOffsetsObservation, IndexedRecordsDeleted, IndexedTopicConfigDescription,
-    IndexedTopicConfigObservation, IndexedTopicDescription, IndexedTopicObservation,
-    IndexedTopicsList,
+    IndexedTopicConfigObservation, IndexedTopicDescription, IndexedTopicIdentityObservation,
+    IndexedTopicObservation, IndexedTopicsList,
 };
 pub(crate) use concurrent::{
     ConcurrentPublicEventKind, IndexedConcurrentActorCompletion, IndexedConcurrentBoundary,
@@ -123,7 +123,6 @@ pub(crate) struct IndexedTransactionFence {
     pub(crate) history_sequence: u64,
     pub(crate) commit_error_code: Option<String>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedShareReceive {
     pub(crate) history_sequence: u64,
@@ -133,7 +132,6 @@ pub(crate) struct IndexedShareReceive {
     pub(crate) member_epoch: Option<i32>,
     pub(crate) assignment_epoch: Option<u64>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedShareAcknowledgement {
     pub(crate) history_sequence: u64,
@@ -246,6 +244,8 @@ pub(crate) struct HistoryIndex {
         BTreeMap<OperationId, Vec<IndexedAdminGroupOffsetCompletion>>,
     pub(crate) consumer_groups_deleted: BTreeMap<OperationId, Vec<IndexedAdminGroupCompletion>>,
     pub(crate) topics_observed: BTreeMap<OperationId, Vec<IndexedTopicObservation>>,
+    pub(crate) topic_identities_observed:
+        BTreeMap<OperationId, Vec<IndexedTopicIdentityObservation>>,
     pub(crate) clusters_observed: BTreeMap<OperationId, Vec<IndexedClusterObservation>>,
     pub(crate) consumer_groups_observed:
         BTreeMap<OperationId, Vec<IndexedConsumerGroupObservation>>,

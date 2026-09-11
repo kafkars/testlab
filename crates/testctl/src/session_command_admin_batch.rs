@@ -27,6 +27,7 @@ fn delete_topics(action: &testlab_schema::DeleteTopicsAction) -> (AdapterCommand
         AdapterCommand::DeleteTopics(DeleteTopicsCommand {
             client_id: action.client_id.clone(),
             operation_id: action.operation_id.clone(),
+            selection: action.selection,
             topics: topics.clone(),
             timeout_ms: action.timeout_ms,
         }),
@@ -49,6 +50,7 @@ fn describe_topics(
         AdapterCommand::DescribeTopics(DescribeTopicsCommand {
             client_id: action.client_id.clone(),
             operation_id: action.operation_id.clone(),
+            selection: action.selection,
             topics: topics.clone(),
             timeout_ms: action.timeout_ms,
         }),

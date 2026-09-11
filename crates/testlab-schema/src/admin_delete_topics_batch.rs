@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{ClientId, OperationId};
+use crate::{ClientId, OperationId, TopicSelection};
 
 /// One scenario-side topic-deletion expectation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -23,6 +23,9 @@ pub struct DeleteTopicsAction {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public topic key used after scenario-owned resource resolution.
+    #[serde(default, skip_serializing_if = "TopicSelection::is_name")]
+    pub selection: TopicSelection,
     /// Caller-ordered topic expectations.
     pub topics: Vec<DeleteTopicExpectation>,
     /// Complete public operation bound.
@@ -37,6 +40,9 @@ pub struct DeleteTopicsCommand {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public topic key used after scenario-owned resource resolution.
+    #[serde(default, skip_serializing_if = "TopicSelection::is_name")]
+    pub selection: TopicSelection,
     /// Caller-ordered topic names without verifier expectations.
     pub topics: Vec<String>,
     /// Complete public operation bound.
@@ -49,6 +55,9 @@ pub struct DeleteTopicsCommand {
 pub struct AdminTopicDeletionOutcome {
     /// Exact topic key returned for this request position.
     pub topic: String,
+    /// Exact nonzero topic-ID request key, or none for a name-based request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub topic_id: Option<[u8; 16]>,
     /// Stable normalized public error, or none on success.
     pub error_code: Option<String>,
 }

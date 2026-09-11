@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterCommand, ClientId, DeleteTopicExpectation, DeleteTopicsAction, DeleteTopicsCommand,
-    OperationId, Scenario, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    OperationId, Scenario, ScenarioAction, TopicSelection, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 use crate::observer_admin_target::{AdminTarget, ListTarget};
@@ -37,6 +37,29 @@ fn altered_wire_order_is_rejected_before_observation() {
 }
 
 #[test]
+fn topic_id_selection_still_maps_to_ordered_absence_polling() {
+    let mut action = action();
+    action.selection = TopicSelection::TopicId;
+    action.topics.remove(1);
+    let mut command = command();
+    command.selection = TopicSelection::TopicId;
+    command.topics.remove(1);
+    let target = AdminTarget::from_exact(
+        &ScenarioAction::DeleteTopics(action),
+        &AdapterCommand::DeleteTopics(command),
+    )
+    .unwrap_or_else(|error| panic!("map topic-ID deletions: {error}"))
+    .unwrap_or_else(|| panic!("topic-ID deletion target"));
+    assert_eq!(
+        target,
+        AdminTarget::TopicDeletions(ListTarget {
+            operation_id: operation(),
+            names: vec!["topic-z".to_owned(), "topic-a".to_owned()],
+        })
+    );
+}
+
+#[test]
 fn provisioning_creates_only_topics_expected_to_delete_successfully() {
     let scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/admin-delete-topics.toml"
@@ -55,6 +78,7 @@ fn action() -> DeleteTopicsAction {
     DeleteTopicsAction {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: vec![
             expectation("topic-z", None),
             expectation("topic-missing", Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE)),
@@ -68,6 +92,7 @@ fn command() -> DeleteTopicsCommand {
     DeleteTopicsCommand {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: topic_names(),
         timeout_ms: 1_000,
     }

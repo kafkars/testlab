@@ -421,6 +421,18 @@ statement = "Selected and cluster-wide public preferred elections retain valid t
 category = "admin"
 
 [[contract]]
+id = "ADMIN-061"
+title = "Topic-ID descriptions preserve caller order and broker identities"
+statement = "One public topic-ID description resolves scenario-owned names to nonzero unique Kafka UUIDs, preserves each UUID, matching inner identity, and exact partition topology in caller order, while contiguous immediate snapshots from Kafka's pinned topic CLI independently confirm every UUID and topology."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-062"
+title = "Topic-ID deletion preserves caller order, identity, and broker absence"
+statement = "One public topic-ID deletion follows a caller-ordered topic-ID description whose immediate Kafka CLI snapshots independently prove every nonzero UUID and topology, returns those same UUID keys successfully in caller order, and immediate polling of independent metadata confirms every selected topic absent."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

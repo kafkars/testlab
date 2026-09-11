@@ -4,7 +4,7 @@ use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
     AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, BrokerStateObservation,
     BrokerTopicState, ClientId, DescribeTopicsCommand, HistoryEntry, HistoryPayload, OperationId,
-    Scenario, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    Scenario, TopicSelection, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 use crate::admin::verify_admin;
@@ -96,6 +96,7 @@ fn command_payload() -> DescribeTopicsCommand {
     DescribeTopicsCommand {
         client_id: client(),
         operation_id: operation(),
+        selection: TopicSelection::Name,
         topics: topic_names(),
         timeout_ms: 20_000,
     }
@@ -108,6 +109,7 @@ fn completion_value() -> AdminTopicsDescription {
             successful(zulu_topic(), vec![0, 1], 1),
             AdminTopicDescriptionOutcome {
                 topic: missing_topic().to_owned(),
+                topic_id: None,
                 description: None,
                 error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
             },
@@ -119,6 +121,7 @@ fn completion_value() -> AdminTopicsDescription {
 fn successful(topic: &str, partitions: Vec<i32>, topic_id: u8) -> AdminTopicDescriptionOutcome {
     AdminTopicDescriptionOutcome {
         topic: topic.to_owned(),
+        topic_id: None,
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some([topic_id; 16]),
             internal: false,

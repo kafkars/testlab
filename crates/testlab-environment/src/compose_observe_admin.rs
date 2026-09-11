@@ -57,6 +57,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::PartitionReassignments(_)) = &target {
             return self.observe_partition_reassignments_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::TopicIdentities(_)) = &target {
+            return self.observe_topic_identities_with_cli(target, timeout);
+        }
         if let Ok(target @ AdminTarget::ShareGroupDescriptions(_)) = &target {
             return self.observe_share_group_descriptions_with_cli(target, timeout);
         }

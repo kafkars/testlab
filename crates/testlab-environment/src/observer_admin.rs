@@ -84,6 +84,9 @@ pub(super) fn capture(
         AdminTarget::Topic(target) => Ok(vec![observer_admin_metadata::capture_topic(
             request, target,
         )?]),
+        AdminTarget::TopicIdentities(_) => Err(ObserverError::InvalidTarget(
+            "topic-identity target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Topics(target) => observer_admin_metadata::capture_topics(request, target),
         AdminTarget::TopicDeletions(target) => {
             observer_admin_metadata::capture_absent_topics(request, target)

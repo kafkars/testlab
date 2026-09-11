@@ -103,7 +103,8 @@ pub use crate::admin_topic::{
 pub use crate::admin_topic_description_batch::{
     AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
     AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, DescribeTopicExpectation,
-    DescribeTopicsAction, DescribeTopicsCommand,
+    DescribeTopicsAction, DescribeTopicsCommand, TopicSelection,
 };
 pub use crate::admin_transactions::*;
 pub use crate::admin_user_scram::*;
+pub use crate::broker_state::BrokerTopicIdentityState;

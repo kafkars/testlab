@@ -4,17 +4,18 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     AdapterCommand, AdapterEvent, AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
-    AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, ClientId, CreateTopicAction,
-    DescribeTopicExpectation, DescribeTopicsAction, DescribeTopicsCommand, EVIDENCE_SCHEMA_VERSION,
-    OperationId, PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioStep,
-    StepId, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, BrokerStateObservation,
+    BrokerTopicIdentityState, ClientId, CreateTopicAction, DescribeTopicExpectation,
+    DescribeTopicsAction, DescribeTopicsCommand, EVIDENCE_SCHEMA_VERSION, OperationId,
+    PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioStep, StepId,
+    TopicSelection, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 62);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 65);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 51);
+    assert_eq!(PROTOCOL_VERSION, 63);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 66);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 52);
 }
 
 #[test]
@@ -22,6 +23,15 @@ fn action_command_and_completion_round_trip_in_caller_order() {
     round_trip(&ScenarioAction::DescribeTopics(action()));
     round_trip(&AdapterCommand::DescribeTopics(command()));
     round_trip(&AdapterEvent::TopicsDescribed(completion()));
+    round_trip(&BrokerStateObservation::TopicIdentity(
+        BrokerTopicIdentityState {
+            observation: 7,
+            operation_id: operation("describe-topics-by-id"),
+            topic: "topic-z".to_owned(),
+            topic_id: [1; 16],
+            partitions: vec![0, 1],
+        },
+    ));
     assert_eq!(command().topics, topic_names());
 }
 
@@ -30,6 +40,17 @@ fn checked_in_plural_topic_description_scenario_is_valid() {
     scenario()
         .validate()
         .unwrap_or_else(|error| panic!("validate plural topic description: {error}"));
+}
+
+#[test]
+fn checked_in_topic_id_scenario_is_valid() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-topic-ids.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse topic-ID scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate topic-ID scenario: {error}"));
 }
 
 #[test]
@@ -116,6 +137,25 @@ fn validation_rejects_invalid_partitions_and_error_codes() {
     );
 }
 
+#[test]
+fn topic_id_selection_rejects_a_missing_lookup_name() {
+    let mut action = action();
+    action.selection = TopicSelection::TopicId;
+    let mut problems = Vec::new();
+    crate::admin_action_validation::validate(
+        &ScenarioAction::DescribeTopics(action),
+        &BTreeMap::from([(client(), false)]),
+        &mut BTreeSet::new(),
+        &mut problems,
+    );
+    assert!(
+        problems
+            .iter()
+            .any(|problem| problem.contains("topic-ID lookup") && problem.contains("must exist")),
+        "{problems:?}"
+    );
+}
+
 fn assert_invalid(label: &str, topics: Vec<DescribeTopicExpectation>, expected: &str) {
     let mut action = action();
     action.operation_id = operation(label);
@@ -137,6 +177,7 @@ fn action() -> DescribeTopicsAction {
     DescribeTopicsAction {
         client_id: client(),
         operation_id: operation("describe-topics"),
+        selection: TopicSelection::Name,
         topics: vec![
             success("topic-z", vec![0, 1]),
             failure("topic-missing"),
@@ -150,6 +191,7 @@ fn command() -> DescribeTopicsCommand {
     DescribeTopicsCommand {
         client_id: client(),
         operation_id: operation("describe-topics"),
+        selection: TopicSelection::Name,
         topics: topic_names(),
         timeout_ms: 1_000,
     }
@@ -162,6 +204,7 @@ fn completion() -> AdminTopicsDescription {
             described("topic-z", vec![0, 1], 1),
             AdminTopicDescriptionOutcome {
                 topic: "topic-missing".to_owned(),
+                topic_id: None,
                 description: None,
                 error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
             },
@@ -173,6 +216,7 @@ fn completion() -> AdminTopicsDescription {
 fn described(topic: &str, partitions: Vec<i32>, topic_id: u8) -> AdminTopicDescriptionOutcome {
     AdminTopicDescriptionOutcome {
         topic: topic.to_owned(),
+        topic_id: None,
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some([topic_id; 16]),
             internal: false,

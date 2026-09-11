@@ -1,6 +1,8 @@
 //! Plural topic descriptions join detailed caller-ordered outcomes to broker metadata.
 
-use testlab_schema::{DescribeTopicExpectation, DescribeTopicsAction, ScenarioAction, Violation};
+use testlab_schema::{
+    DescribeTopicExpectation, DescribeTopicsAction, ScenarioAction, TopicSelection, Violation,
+};
 
 use crate::admin::{immediate_after_public, public_after_command};
 use crate::index::{HistoryIndex, IndexedAdminTopicsDescription};
@@ -36,38 +38,66 @@ fn verify(
                 .outcomes
                 .iter()
                 .zip(&action.topics)
-                .all(|(actual, expected)| outcome_matches(actual, expected))
+                .all(|(actual, expected)| outcome_matches(actual, expected, action.selection))
     });
-    let independent_matches = public.is_some_and(|public| {
-        independent.is_some_and(|values| {
-            values.len() == action.topics.len()
-                && contiguous(values.iter().map(|value| value.observation))
-                && contiguous(values.iter().map(|value| value.history_sequence))
-                && values.iter().zip(&action.topics).all(|(actual, expected)| {
-                    actual.topic == expected.topic
-                        && state_matches(actual.exists, &actual.partitions, expected)
-                        && immediate_after_public(
-                            window,
-                            public.history_sequence,
-                            actual.history_sequence,
-                        )
-                })
-        })
-    });
+    let identities = index.topic_identities_observed.get(&action.operation_id);
+    let independent_matches = match action.selection {
+        TopicSelection::Name => public.is_some_and(|public| {
+            independent.is_some_and(|values| {
+                values.len() == action.topics.len()
+                    && contiguous(values.iter().map(|value| value.observation))
+                    && contiguous(values.iter().map(|value| value.history_sequence))
+                    && values.iter().zip(&action.topics).all(|(actual, expected)| {
+                        actual.topic == expected.topic
+                            && state_matches(actual.exists, &actual.partitions, expected)
+                            && immediate_after_public(
+                                window,
+                                public.history_sequence,
+                                actual.history_sequence,
+                            )
+                    })
+            })
+        }),
+        TopicSelection::TopicId => public.is_some_and(|public| {
+            identities.is_some_and(|values| {
+                values.len() == action.topics.len()
+                    && contiguous(values.iter().map(|value| value.observation))
+                    && contiguous(values.iter().map(|value| value.history_sequence))
+                    && values
+                        .iter()
+                        .zip(&action.topics)
+                        .zip(&public.value.outcomes)
+                        .all(|((actual, expected), outcome)| {
+                            actual.topic == expected.topic
+                                && actual.partitions.as_slice()
+                                    == expected.expected_partitions.as_deref().unwrap_or_default()
+                                && outcome.topic_id == Some(actual.topic_id)
+                                && immediate_after_public(
+                                    window,
+                                    public.history_sequence,
+                                    actual.history_sequence,
+                                )
+                        })
+            })
+        }),
+    };
     if public_matches && independent_matches {
         return;
     }
     violations.push(violation(
-        "ADMIN-044",
+        contract(action.selection),
         format!(
-            "admin operation {} expected caller-ordered detailed topic outcomes and immediate independent metadata for every requested topic",
-            action.operation_id
+            "admin operation {} expected caller-ordered detailed {:?} topic outcomes and immediate independent broker identity for every requested topic",
+            action.operation_id, action.selection
         ),
         Some(action.operation_id.clone()),
         public
             .map(|value| format!("history:{}", value.history_sequence))
             .into_iter()
             .chain(independent.into_iter().flatten().map(|value| {
+                format!("broker-state-observation:{}", value.observation)
+            }))
+            .chain(identities.into_iter().flatten().map(|value| {
                 format!("broker-state-observation:{}", value.observation)
             }))
             .collect(),
@@ -77,8 +107,16 @@ fn verify(
 fn outcome_matches(
     actual: &testlab_schema::AdminTopicDescriptionOutcome,
     expected: &DescribeTopicExpectation,
+    selection: TopicSelection,
 ) -> bool {
     if actual.topic != expected.topic {
+        return false;
+    }
+    let request_identity_matches = match selection {
+        TopicSelection::Name => actual.topic_id.is_none(),
+        TopicSelection::TopicId => actual.topic_id.is_some_and(|id| id != [0; 16]),
+    };
+    if !request_identity_matches {
         return false;
     }
     match (
@@ -89,6 +127,9 @@ fn outcome_matches(
             actual.error_code.is_none()
                 && actual.description.as_ref().is_some_and(|description| {
                     description.topic_id.is_some_and(|id| id != [0; 16])
+                        && actual
+                            .topic_id
+                            .is_none_or(|topic_id| description.topic_id == Some(topic_id))
                         && !description.internal
                         && description.partitions.len() == partitions.len()
                         && description.partitions.iter().zip(partitions).all(
@@ -102,6 +143,13 @@ fn outcome_matches(
             actual.description.is_none() && actual.error_code.as_deref() == Some(error)
         }
         _ => false,
+    }
+}
+
+const fn contract(selection: TopicSelection) -> &'static str {
+    match selection {
+        TopicSelection::Name => "ADMIN-044",
+        TopicSelection::TopicId => "ADMIN-061",
     }
 }
 

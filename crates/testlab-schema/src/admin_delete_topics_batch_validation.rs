@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::admin_action_validation::{validate_identity, validate_timeout};
-use crate::{ClientId, OperationId, ScenarioAction};
+use crate::{ClientId, OperationId, ScenarioAction, TopicSelection};
 
 pub(crate) fn validate(
     action: &ScenarioAction,
@@ -45,6 +45,12 @@ pub(crate) fn validate(
                 action.operation_id,
                 topic.topic,
                 crate::UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE
+            ));
+        }
+        if action.selection == TopicSelection::TopicId && topic.expected_error_code.is_some() {
+            problems.push(format!(
+                "admin operation {} topic-ID deletion topic {} must exist",
+                action.operation_id, topic.topic
             ));
         }
     }

@@ -141,6 +141,15 @@ pub(crate) struct IndexedTopicObservation {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedTopicIdentityObservation {
+    pub(crate) history_sequence: u64,
+    pub(crate) observation: u64,
+    pub(crate) topic: String,
+    pub(crate) topic_id: [u8; 16],
+    pub(crate) partitions: Vec<i32>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedClusterObservation {
     pub(crate) history_sequence: u64,
     pub(crate) observation: u64,

@@ -111,6 +111,8 @@ mod candidate_provenance_test;
 #[cfg(test)]
 mod candidate_test;
 #[cfg(test)]
+mod catalog_admin_discovery_test;
+#[cfg(test)]
 mod catalog_assigned_consumer_controls_test;
 #[cfg(test)]
 mod catalog_client_metrics_test;

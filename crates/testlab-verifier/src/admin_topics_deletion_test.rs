@@ -5,7 +5,7 @@ use testlab_schema::{
     AdminTopicDescriptionValue, AdminTopicPartitionDescriptionOutcome, AdminTopicsDeletion,
     AdminTopicsDescription, BrokerStateObservation, BrokerTopicState, ClientId,
     DeleteTopicsCommand, DescribeTopicsCommand, HistoryEntry, HistoryPayload, OperationId,
-    Scenario, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    Scenario, TopicSelection, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 use crate::admin::verify_admin;
@@ -85,6 +85,7 @@ fn description_command() -> DescribeTopicsCommand {
     DescribeTopicsCommand {
         client_id: client(),
         operation_id: description_operation(),
+        selection: TopicSelection::Name,
         topics: names(),
         timeout_ms: 20_000,
     }
@@ -94,6 +95,7 @@ fn deletion_command() -> DeleteTopicsCommand {
     DeleteTopicsCommand {
         client_id: client(),
         operation_id: deletion_operation(),
+        selection: TopicSelection::Name,
         topics: names(),
         timeout_ms: 30_000,
     }
@@ -106,6 +108,7 @@ fn description() -> AdminTopicsDescription {
             described(zulu(), vec![0, 1], 1),
             AdminTopicDescriptionOutcome {
                 topic: missing().to_owned(),
+                topic_id: None,
                 description: None,
                 error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
             },
@@ -117,6 +120,7 @@ fn description() -> AdminTopicsDescription {
 fn described(topic: &str, partitions: Vec<i32>, id: u8) -> AdminTopicDescriptionOutcome {
     AdminTopicDescriptionOutcome {
         topic: topic.to_owned(),
+        topic_id: None,
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some([id; 16]),
             internal: false,
@@ -146,6 +150,7 @@ fn deletion_value() -> AdminTopicsDeletion {
 fn deleted(topic: &str, error: Option<&str>) -> AdminTopicDeletionOutcome {
     AdminTopicDeletionOutcome {
         topic: topic.to_owned(),
+        topic_id: None,
         error_code: error.map(str::to_owned),
     }
 }

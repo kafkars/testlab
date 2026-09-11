@@ -20,6 +20,22 @@ pub struct BrokerTopicState {
     pub partitions: Vec<i32>,
 }
 
+/// Topic identity and topology read independently through Kafka's pinned CLI.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrokerTopicIdentityState {
+    /// Monotonic observation identity within the run.
+    pub observation: u64,
+    /// Admin operation whose result triggered this observation.
+    pub operation_id: OperationId,
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact nonzero Kafka topic UUID bytes.
+    pub topic_id: [u8; 16],
+    /// Sorted broker-visible partition identifiers.
+    pub partitions: Vec<i32>,
+}
+
 /// Cluster identity and broker set read independently from Kafka metadata.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

@@ -184,6 +184,16 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
         ScenarioAction::DescribeTopic(_) => "ADMIN-003",
+        ScenarioAction::DescribeTopics(value)
+            if value.selection == testlab_schema::TopicSelection::TopicId =>
+        {
+            "ADMIN-061"
+        }
+        ScenarioAction::DeleteTopics(value)
+            if value.selection == testlab_schema::TopicSelection::TopicId =>
+        {
+            "ADMIN-062"
+        }
         ScenarioAction::DescribeTopics(_) => "ADMIN-044",
         ScenarioAction::DeleteTopics(_) => "ADMIN-045",
         ScenarioAction::DeleteConsumerGroups(_) => "ADMIN-046",
