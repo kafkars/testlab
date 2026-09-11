@@ -76,7 +76,9 @@ fn public_queries(
     })
 }
 
-fn outcomes(results: Vec<PartitionResult<Option<i64>>>) -> Vec<AdminOffsetListingOutcome> {
+pub(crate) fn outcomes(
+    results: Vec<PartitionResult<Option<i64>>>,
+) -> Vec<AdminOffsetListingOutcome> {
     results
         .into_iter()
         .map(|result| match result.result {
@@ -94,30 +96,4 @@ fn outcomes(results: Vec<PartitionResult<Option<i64>>>) -> Vec<AdminOffsetListin
             },
         })
         .collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn outcome_normalization_preserves_success_and_resource_failure_order() {
-        let outcomes = outcomes(vec![
-            PartitionResult {
-                topic: "records".to_owned(),
-                partition: 2,
-                result: ResourceResult::Success(Some(5)),
-            },
-            PartitionResult {
-                topic: "records".to_owned(),
-                partition: 0,
-                result: ResourceResult::Failure("broker:broker_3".to_owned()),
-            },
-        ]);
-
-        assert_eq!(outcomes[0].offset, Some(5));
-        assert_eq!(outcomes[0].error_code, None);
-        assert_eq!(outcomes[1].offset, None);
-        assert_eq!(outcomes[1].error_code.as_deref(), Some("broker:broker_3"));
-    }
 }

@@ -97,6 +97,8 @@ mod protocol_admin_group_offset_test;
 #[cfg(test)]
 mod protocol_admin_group_test;
 #[cfg(test)]
+mod protocol_admin_list_offsets_batch_test;
+#[cfg(test)]
 mod protocol_admin_offset_test;
 #[cfg(test)]
 mod protocol_admin_plural_result_test;
