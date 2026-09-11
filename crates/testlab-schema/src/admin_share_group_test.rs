@@ -12,10 +12,10 @@ use super::{
 };
 
 #[test]
-fn share_group_offset_mutation_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 43);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 46);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 32);
+fn share_group_offset_deletion_cut_advances_all_versioned_boundaries() {
+    assert_eq!(PROTOCOL_VERSION, 44);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 47);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 33);
 }
 
 #[test]

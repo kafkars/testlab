@@ -1,8 +1,8 @@
 //! Share-group Admin actions translate without leaking verifier expectations.
 
 use testlab_schema::{
-    AdapterCommand, AlterShareGroupOffsetsCommand, DescribeShareGroupCommand,
-    ListShareGroupOffsetsCommand, ScenarioAction,
+    AdapterCommand, AlterShareGroupOffsetsCommand, DeleteShareGroupOffsetsCommand,
+    DescribeShareGroupCommand, ListShareGroupOffsetsCommand, ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -52,6 +52,20 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 group_id: value.group_id.clone(),
                 topic: value.topic.clone(),
                 partition: value.partition,
+            },
+        ),
+        ScenarioAction::DeleteShareGroupOffsets(value) => (
+            AdapterCommand::DeleteShareGroupOffsets(DeleteShareGroupOffsetsCommand {
+                client_id: value.client_id.clone(),
+                operation_id: value.operation_id.clone(),
+                group_id: value.group_id.clone(),
+                topic: value.topic.clone(),
+                timeout_ms: value.timeout_ms,
+            }),
+            ExpectedEvent::ShareGroupOffsetsDeleted {
+                operation_id: value.operation_id.clone(),
+                group_id: value.group_id.clone(),
+                topic: value.topic.clone(),
             },
         ),
         _ => return None,

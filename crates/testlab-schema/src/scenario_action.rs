@@ -224,6 +224,7 @@ pub enum ScenarioAction {
     DescribeShareGroup(crate::DescribeShareGroupAction),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsAction),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsAction),
+    DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsAction),
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsAction),
     ListConsumerGroupOffsetsBatch(crate::ListConsumerGroupOffsetsBatchAction),
     ListConsumerGroupsOffsets(crate::ListConsumerGroupsOffsetsAction),
@@ -265,7 +266,6 @@ pub enum ScenarioAction {
         /// Complete transaction bound.
         timeout_ms: u64,
     },
-    /// Atomically transforms one group-consumer batch and checkpoint.
     ExecuteTransactionalTransform(crate::TransactionalTransformAction),
     /// Stages one record, initializes a replacement owner, and observes the old commit result.
     FenceTransaction {

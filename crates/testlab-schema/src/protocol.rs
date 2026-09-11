@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{AdapterCommand, AdapterEvent, CommandId};
 
 /// Current adapter control protocol version.
-pub const PROTOCOL_VERSION: u16 = 43;
+pub const PROTOCOL_VERSION: u16 = 44;
 
 /// One correlated command sent from testctl to an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -20,7 +20,7 @@ pub struct CommandEnvelope {
 }
 
 impl CommandEnvelope {
-    /// Creates one protocol-v43 command envelope.
+    /// Creates one protocol-v44 command envelope.
     pub fn new(command_id: CommandId, command: AdapterCommand) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,
@@ -43,7 +43,7 @@ pub struct AdapterEventEnvelope {
 }
 
 impl AdapterEventEnvelope {
-    /// Creates one protocol-v43 event envelope.
+    /// Creates one protocol-v44 event envelope.
     pub fn new(command_id: CommandId, event: AdapterEvent) -> Self {
         Self {
             protocol_version: PROTOCOL_VERSION,

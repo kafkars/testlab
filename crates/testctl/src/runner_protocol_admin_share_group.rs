@@ -46,6 +46,18 @@ pub(super) fn classify(
                 && topic == &actual.topic
                 && partition == &actual.partition
         }
+        (
+            ExpectedEvent::ShareGroupOffsetsDeleted {
+                operation_id,
+                group_id,
+                topic,
+            },
+            AdapterEvent::ShareGroupOffsetsDeleted(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && group_id == &actual.group_id
+                && topic == &actual.topic
+        }
         _ => return None,
     };
     Some(identity_result(matches, event, expected))
@@ -63,6 +75,9 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
         ) | (
             ExpectedEvent::ShareGroupOffsetsAltered { .. },
             AdapterEvent::ShareGroupOffsetsAltered(_)
+        ) | (
+            ExpectedEvent::ShareGroupOffsetsDeleted { .. },
+            AdapterEvent::ShareGroupOffsetsDeleted(_)
         )
     )
 }

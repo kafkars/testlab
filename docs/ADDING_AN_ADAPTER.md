@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v43. It is not a
+An adapter translates one packaged client surface to protocol v44. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -21,6 +21,8 @@ runner and not a verifier.
   and partition-scoped errors without receiving scenario expectations.
 - Preserve Share-group offset-alteration partition identity, nonzero topic ID,
   and partition-scoped errors; resulting lag remains verifier-owned.
+- Preserve Share-group topic-offset deletion identity, nonzero topic ID, and
+  topic-scoped errors; the independently checked partition remains verifier-owned.
 - Preserve caller order and one exact public outcome per resource in admin batch
   completions; do not collapse a mixed-result batch into `command_failed`.
 - Keep scenario-only expected per-resource errors out of adapter commands.

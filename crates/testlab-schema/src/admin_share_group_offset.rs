@@ -86,6 +86,40 @@ pub struct AlterShareGroupOffsetsCommand {
     pub timeout_ms: u64,
 }
 
+/// Scenario intent for deleting one topic's Share-group offsets.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteShareGroupOffsetsAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic whose complete Share-group offset state is deleted.
+    pub topic: String,
+    /// Exact nonnegative partition used for the independent absence check.
+    pub partition: i32,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Wire payload for deleting one topic's Share-group offsets.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteShareGroupOffsetsCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic whose complete Share-group offset state is deleted.
+    pub topic: String,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
 /// Public result for one selected Share-group partition offset.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -125,5 +159,21 @@ pub struct AdminShareGroupOffsetAlteration {
     /// Broker-issued nonzero topic identity on success.
     pub topic_id: [u8; 16],
     /// Stable normalized per-partition error code.
+    pub error_code: Option<String>,
+}
+
+/// Public result for deleting one topic's Share-group offsets.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminShareGroupOffsetDeletion {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic whose complete Share-group offset state was deleted.
+    pub topic: String,
+    /// Broker-issued nonzero topic identity on success.
+    pub topic_id: [u8; 16],
+    /// Stable normalized per-topic error code.
     pub error_code: Option<String>,
 }

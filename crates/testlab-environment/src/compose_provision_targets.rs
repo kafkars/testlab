@@ -173,6 +173,12 @@ fn admin_targets(
             &action.topic,
             action.partition.saturating_add(1),
         ),
+        ScenarioAction::DeleteShareGroupOffsets(action) => require_topic(
+            topics,
+            subject_created,
+            &action.topic,
+            action.partition.saturating_add(1),
+        ),
         ScenarioAction::AlterConsumerGroupOffset(action) => require_topic(
             topics,
             subject_created,

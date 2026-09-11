@@ -150,6 +150,8 @@ mod observer_admin_offset_batch_target_test;
 #[cfg(test)]
 mod observer_admin_plural_group_target_test;
 #[cfg(test)]
+mod observer_admin_share_group_offset_deletion_test;
+#[cfg(test)]
 mod observer_admin_share_group_offset_mutation_test;
 #[cfg(test)]
 mod observer_admin_share_group_test;

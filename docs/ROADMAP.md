@@ -24,7 +24,7 @@
   producer and consumer quota replacement, description, and removal and
   SCRAM-SHA-256/512 credential upsert, description, and deletion, plus active
   Share-group state and assignment description plus selected partition offset
-  listing and empty-group alteration, against
+  list/alter/delete, against
   independent Kafka CLI state; transactions, fencing, broker restart, rolling restart, and independently targeted
   partition-leader, controller, classic and KIP-848 group-coordinator, and
   transaction-coordinator recovery.

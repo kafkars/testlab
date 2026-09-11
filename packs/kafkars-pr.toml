@@ -51,6 +51,7 @@ scenarios = [
   "scenarios/kafka/admin-describe-share-group.toml",
   "scenarios/kafka/admin-list-share-group-offsets.toml",
   "scenarios/kafka/admin-alter-share-group-offsets.toml",
+  "scenarios/kafka/admin-delete-share-group-offsets.toml",
   "scenarios/kafka/admin-create-topic.toml",
   "scenarios/kafka/admin-create-topic-validate-only.toml",
   "scenarios/kafka/admin-create-topic-duplicate.toml",

@@ -1,0 +1,121 @@
+schema_version = 47
+id = "kafka.admin-delete-share-group-offsets"
+title = "packaged admin deletes independently observed Share-group offsets"
+description = "After the only modeled Share member closes, the packaged client's public topic-wide Share-group offset deletion removes one independently listed partition state, and an immediate Kafka CLI query confirms that no start offset or lag remains."
+timeout_ms = 180000
+requires = ["producer", "share_consumer", "share_consumer_configuration", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-accepted-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-delete-accepted"
+record = { topic = "testlab-kafkars-admin-share-group-delete", partition = 0, sequence = 1, value = { encoding = "utf8", data = "accepted" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-delete-accepted" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "send-pending-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-delete-pending"
+record = { topic = "testlab-kafkars-admin-share-group-delete", partition = 0, sequence = 2, value = { encoding = "utf8", data = "pending" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-delete-pending" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-markers"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-admin-share-group-delete"
+topic = "testlab-kafkars-admin-share-group-delete"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+configuration = { max_records = 1, batch_size = 1 }
+
+[[steps]]
+id = "receive-accepted-marker"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-share-delete-accepted"
+expected_operation_ids = ["op-share-delete-accepted"]
+minimum_delivery_count = 1
+expected_acquisition_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-accepted-marker"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-share-delete-accepted"
+acknowledgement_id = "ack-share-delete-accepted"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "list-share-group-offset-before-delete"
+kind = "list_share_group_offsets"
+client_id = "client-1"
+operation_id = "admin-list-share-group-offset-before-delete"
+group_id = "testlab-admin-share-group-delete"
+topic = "testlab-kafkars-admin-share-group-delete"
+partition = 0
+expected_start_offset = 1
+expected_lag = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-share-group-offsets"
+kind = "delete_share_group_offsets"
+client_id = "client-1"
+operation_id = "admin-delete-share-group-offsets-1"
+group_id = "testlab-admin-share-group-delete"
+topic = "testlab-kafkars-admin-share-group-delete"
+partition = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-share-delete-accepted"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-share-delete-pending"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

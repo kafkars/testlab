@@ -152,6 +152,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeShareGroup(_) => "ADMIN-037",
         ScenarioAction::ListShareGroupOffsets(_) => "ADMIN-038",
         ScenarioAction::AlterShareGroupOffsets(_) => "ADMIN-039",
+        ScenarioAction::DeleteShareGroupOffsets(_) => "ADMIN-040",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -208,6 +209,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DescribeShareGroup(value) => &value.operation_id,
         ScenarioAction::ListShareGroupOffsets(value) => &value.operation_id,
         ScenarioAction::AlterShareGroupOffsets(value) => &value.operation_id,
+        ScenarioAction::DeleteShareGroupOffsets(value) => &value.operation_id,
         _ => return None,
     })
 }

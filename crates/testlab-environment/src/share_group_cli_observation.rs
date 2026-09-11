@@ -86,31 +86,38 @@ fn normalize_offset(
     {
         return Err(invalid("unexpected offset header"));
     }
-    let row = lines
-        .next()
-        .ok_or_else(|| invalid("offset output omitted its row"))?;
-    if lines.next().is_some() {
-        return Err(invalid("offset output contained extra rows"));
+    let mut matched = None;
+    for row in lines {
+        let fields = row.split_whitespace().collect::<Vec<_>>();
+        let [group_id, topic, partition, start_offset, lag] = fields.as_slice() else {
+            return Err(invalid("unexpected offset row shape"));
+        };
+        let partition = partition
+            .parse::<i32>()
+            .map_err(|_| invalid("invalid offset partition"))?;
+        if *group_id != target.group_id {
+            return Err(invalid("non-authoritative offset group"));
+        }
+        let state = (
+            optional_nonnegative(start_offset, "start offset")?,
+            optional_nonnegative(lag, "lag")?,
+        );
+        if *topic == target.topic && partition == target.partition {
+            if matched.replace(state).is_some() {
+                return Err(invalid("offset output contained a duplicate selected row"));
+            }
+        }
     }
-    let fields = row.split_whitespace().collect::<Vec<_>>();
-    let [group_id, topic, partition, start_offset, lag] = fields.as_slice() else {
-        return Err(invalid("unexpected offset row shape"));
-    };
-    let partition = partition
-        .parse::<i32>()
-        .map_err(|_| invalid("invalid offset partition"))?;
-    if *group_id != target.group_id || *topic != target.topic || partition != target.partition {
-        return Err(invalid("non-authoritative offset row"));
-    }
+    let (start_offset, lag) = matched.unwrap_or((None, None));
     Ok(BrokerStateObservation::ShareGroupOffset(
         BrokerShareGroupOffset {
             observation,
             operation_id: target.operation_id.clone(),
             group_id: target.group_id.clone(),
             topic: target.topic.clone(),
-            partition,
-            start_offset: optional_nonnegative(start_offset, "start offset")?,
-            lag: optional_nonnegative(lag, "lag")?,
+            partition: target.partition,
+            start_offset,
+            lag,
         },
     ))
 }

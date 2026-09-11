@@ -28,6 +28,11 @@ pub(crate) fn verify_share_group_action(
                 scenario, action, value, index, violations,
             );
         }
+        ScenarioAction::DeleteShareGroupOffsets(value) => {
+            crate::admin_share_group_offset_deletion::verify(
+                scenario, action, value, index, violations,
+            );
+        }
         _ => return false,
     }
     true

@@ -215,6 +215,8 @@ mod admin_query_protocol_test;
 #[cfg(test)]
 mod admin_query_validation_test;
 #[cfg(test)]
+mod admin_share_group_offset_deletion_test;
+#[cfg(test)]
 mod admin_share_group_offset_mutation_test;
 #[cfg(test)]
 mod admin_share_group_test;

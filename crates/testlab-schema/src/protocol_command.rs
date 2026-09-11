@@ -207,6 +207,7 @@ pub enum AdapterCommand {
     DescribeShareGroup(crate::DescribeShareGroupCommand),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsCommand),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsCommand),
+    DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsCommand),
     /// Lists one committed consumer-group offset through the public admin surface.
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsCommand),
     /// Lists selected offsets from one consumer group through one public call.
@@ -290,7 +291,6 @@ pub enum AdapterCommand {
     CloseProducer {
         producer_id: ProducerId,
     },
-    /// Shuts down one client.
     ShutdownClient {
         /// Client to shut down.
         client_id: ClientId,

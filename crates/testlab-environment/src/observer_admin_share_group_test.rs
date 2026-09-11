@@ -95,9 +95,9 @@ fn offset_cli_normalization_rejects_wrong_or_ambiguous_output() {
     for output in [
         "",
         "GROUP TOPIC PARTITION OFFSET LAG\nshare-group-1 share-topic 0 1 1\n",
-        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 other-topic 0 1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET LAG\nother-group share-topic 0 1 1\n",
         "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 -1 1\n",
-        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 1 1\nshare-group-1 share-topic 1 1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 1 1\nshare-group-1 share-topic 0 1 1\n",
     ] {
         assert!(
             crate::share_group_cli_observation::normalize(8, &offset_target(), output.as_bytes())

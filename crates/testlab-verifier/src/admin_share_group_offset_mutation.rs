@@ -45,8 +45,17 @@ pub(crate) fn verify(
         }
         _ => false,
     };
-    let baseline_matches = has_prior_baseline(scenario, action, index);
-    let empty_group_matches = modeled_group_closed(scenario, action, index, window);
+    let baseline_matches = has_prior_baseline(
+        scenario,
+        scenario_action,
+        &action.group_id,
+        &action.topic,
+        action.partition,
+        Some(action.start_offset),
+        index,
+    );
+    let empty_group_matches =
+        modeled_group_closed(scenario, scenario_action, &action.group_id, index, window);
     if public_matches && independent_matches && baseline_matches && empty_group_matches {
         return;
     }
@@ -80,57 +89,62 @@ fn observation_matches(
         && actual.lag == Some(expected.expected_lag)
 }
 
-fn has_prior_baseline(
+#[allow(
+    clippy::too_many_arguments,
+    reason = "Share-group baselines keep exact scenario and resource identities explicit"
+)]
+pub(crate) fn has_prior_baseline(
     scenario: &Scenario,
-    mutation: &AlterShareGroupOffsetsAction,
+    scenario_action: &ScenarioAction,
+    group_id: &str,
+    topic: &str,
+    partition: i32,
+    changed_to: Option<i64>,
     index: &HistoryIndex,
 ) -> bool {
-    let Some(mutation_index) = scenario.steps.iter().position(|step| {
-        matches!(
-            &step.action,
-            ScenarioAction::AlterShareGroupOffsets(action)
-                if action.operation_id == mutation.operation_id
-        )
-    }) else {
+    let Some(mutation_index) = scenario
+        .steps
+        .iter()
+        .position(|step| &step.action == scenario_action)
+    else {
         return false;
     };
     scenario.steps[..mutation_index].iter().any(|step| {
         let ScenarioAction::ListShareGroupOffsets(baseline) = &step.action else {
             return false;
         };
-        baseline.group_id == mutation.group_id
-            && baseline.topic == mutation.topic
-            && baseline.partition == mutation.partition
-            && baseline.expected_start_offset != mutation.start_offset
+        baseline.group_id == group_id
+            && baseline.topic == topic
+            && baseline.partition == partition
+            && changed_to.is_none_or(|changed_to| baseline.expected_start_offset != changed_to)
             && crate::admin_share_group::exact_offset_evidence(&step.action, baseline, index)
     })
 }
 
-fn modeled_group_closed(
+pub(crate) fn modeled_group_closed(
     scenario: &Scenario,
-    mutation: &AlterShareGroupOffsetsAction,
+    scenario_action: &ScenarioAction,
+    group_id: &str,
     index: &HistoryIndex,
     window: Option<crate::admin::AdminCommandWindow>,
 ) -> bool {
     let Some((command_sequence, _)) = window else {
         return false;
     };
-    let Some(mutation_index) = scenario.steps.iter().position(|step| {
-        matches!(
-            &step.action,
-            ScenarioAction::AlterShareGroupOffsets(action)
-                if action.operation_id == mutation.operation_id
-        )
-    }) else {
+    let Some(mutation_index) = scenario
+        .steps
+        .iter()
+        .position(|step| &step.action == scenario_action)
+    else {
         return false;
     };
     let prior = &scenario.steps[..mutation_index];
     let members = prior.iter().filter_map(|step| match &step.action {
         ScenarioAction::CreateShareConsumer {
             consumer_id,
-            group_id,
+            group_id: modeled_group_id,
             ..
-        } if group_id == &mutation.group_id => Some(consumer_id),
+        } if modeled_group_id == group_id => Some(consumer_id),
         _ => None,
     });
     let mut count = 0;

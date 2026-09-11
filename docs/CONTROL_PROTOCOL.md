@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v43 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v46 and evidence schema v32.
+Protocol v44 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v47 and evidence schema v33.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -85,6 +85,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_share_group`
 - `list_share_group_offsets`
 - `alter_share_group_offsets`
+- `delete_share_group_offsets`
 - `list_consumer_group_offsets`
 - `list_consumer_group_offsets_batch`
 - `list_consumer_groups_offsets`
@@ -226,6 +227,8 @@ timeouts invalidate evidence.
 - `consumer_group_described`
 - `share_group_described`
 - `share_group_offsets_listed`
+- `share_group_offsets_altered`
+- `share_group_offsets_deleted`
 - `consumer_group_offset_listed`
 - `consumer_group_offsets_listed`
 - `consumer_groups_offsets_listed`
@@ -572,6 +575,15 @@ Kafka's nonzero topic ID, and any partition-scoped failure. An immediate pinned
 offset and expected lag; a later public listing can independently exercise the
 same post-state without serving as the mutation result.
 
+Share-group offset deletion carries one exact group and topic; its selected
+partition remains scenario-only because Kafka deletes the topic's complete
+Share-group offset state. Scenario validation requires a prior independently
+corroborated listing and successful closure of every modeled member. The public
+completion preserves exact topic identity, Kafka's nonzero topic ID, and any
+topic-scoped failure. An immediate pinned
+`kafka-share-groups.sh --describe --offsets` query must report no start offset
+or lag for the selected partition.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -653,6 +665,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v43 is an exact semantic contract. New capabilities may be declared
+Protocol v44 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

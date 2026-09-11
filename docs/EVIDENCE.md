@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v32 records the exact environment identity in `manifest.json`,
-retains protocol-v43 direct and hosted-group consumer controls and shutdown,
+Evidence schema v33 records the exact environment identity in `manifest.json`,
+retains protocol-v44 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -176,7 +176,8 @@ replica topology, or untested offset selectors.
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
 consumer-group existence and member count, active Share-group state and member
-count, one selected Share-group partition start offset and lag, one consumer-group committed offset,
+count, one selected Share-group partition start offset and lag or explicit
+absence, one consumer-group committed offset,
 exact partition low and high watermarks, exact literal wildcard-host ACL
 presence, exact named-user byte-rate quota state, and exact non-secret named-user
 SCRAM mechanism and iteration state or absence. Each query runs
@@ -192,7 +193,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in scenario schema v46. Plural offset
+retain the same broker-state fact shapes in scenario schema v47. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -274,6 +275,12 @@ every modeled member before the alteration command, one exact successful public
 partition outcome with a nonzero topic ID, and an immediate independent Kafka
 CLI post-state at the requested start offset and scenario-owned resulting lag.
 The requested offset crosses the adapter boundary; the expected lag does not.
+
+ADMIN-040 requires a distinct ADMIN-038 baseline, successful public closure of
+every modeled member before the deletion command, one exact successful public
+topic outcome with a nonzero topic ID, and an immediate independent Kafka CLI
+observation with no start offset or lag for the scenario-selected partition.
+The selected partition stays out of the topic-wide public deletion command.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

@@ -30,7 +30,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 );
             }
             ScenarioAction::AlterShareGroupOffsets(action) => {
-                validate_empty_group(action, &consumers, problems);
+                validate_empty_group(&action.operation_id, &action.group_id, &consumers, problems);
                 let key = key(&action.group_id, &action.topic, action.partition);
                 match offsets.get(&key) {
                     Some(previous) if *previous != action.start_offset => {
@@ -46,29 +46,44 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     )),
                 }
             }
+            ScenarioAction::DeleteShareGroupOffsets(action) => {
+                validate_empty_group(&action.operation_id, &action.group_id, &consumers, problems);
+                let selected = key(&action.group_id, &action.topic, action.partition);
+                if offsets.contains_key(&selected) {
+                    offsets.retain(|(group_id, topic, _), _| {
+                        group_id != &action.group_id || topic != &action.topic
+                    });
+                } else {
+                    problems.push(format!(
+                        "admin operation {} requires a prior Share-group offset listing for {}:{}:{}",
+                        action.operation_id, action.group_id, action.topic, action.partition
+                    ));
+                }
+            }
             _ => {}
         }
     }
 }
 
 fn validate_empty_group(
-    action: &crate::AlterShareGroupOffsetsAction,
+    operation_id: &crate::OperationId,
+    group_id: &str,
     consumers: &BTreeMap<ConsumerId, (String, bool)>,
     problems: &mut Vec<String>,
 ) {
     let matching = consumers
         .values()
-        .filter(|(group_id, _)| group_id == &action.group_id)
+        .filter(|(modeled_group, _)| modeled_group == group_id)
         .collect::<Vec<_>>();
     if matching.is_empty() {
         problems.push(format!(
             "admin operation {} requires a prior modeled Share-group member",
-            action.operation_id
+            operation_id
         ));
     } else if matching.iter().any(|(_, closed)| !closed) {
         problems.push(format!(
             "admin operation {} requires every modeled Share-group member to be closed",
-            action.operation_id
+            operation_id
         ));
     }
 }

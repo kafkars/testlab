@@ -89,6 +89,19 @@ pub(crate) fn validate(
             );
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
+        ScenarioAction::DeleteShareGroupOffsets(action) => {
+            offset_common(
+                &action.client_id,
+                &action.operation_id,
+                &action.group_id,
+                &action.topic,
+                action.partition,
+                clients,
+                operation_ids,
+                problems,
+            );
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
         _ => return false,
     }
     true

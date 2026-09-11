@@ -295,6 +295,12 @@ statement = "One selected public Share-group offset alteration follows successfu
 category = "admin"
 
 [[contract]]
+id = "ADMIN-040"
+title = "Share-group offset deletion removes a listed empty-group baseline"
+statement = "One public topic-wide Share-group offset deletion follows successful closure of every modeled member, returns the exact successful topic and nonzero topic identity, removes a prior independently corroborated selected partition state, and an immediate independent Kafka CLI query confirms that its start offset and lag are absent."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
