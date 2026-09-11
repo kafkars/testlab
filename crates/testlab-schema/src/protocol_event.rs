@@ -204,8 +204,8 @@ pub enum AdapterEvent {
     OffsetListed(crate::AdminOffsetListing),
     /// One public admin batch offset listing returned ordered outcomes.
     OffsetsListed(crate::AdminOffsetsListing),
-    /// One public admin prefix deletion completed successfully.
     RecordsDeleted(crate::AdminRecordsDeleted),
+    RecordsBatchDeleted(crate::AdminRecordsBatchDeleted),
     /// One selected public topic configuration was described.
     TopicConfigDescribed(crate::AdminTopicConfigDescription),
     /// One selected public topic configuration was replaced.

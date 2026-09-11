@@ -29,6 +29,7 @@ mod compose_observe;
 mod compose_observe_admin;
 mod compose_ports;
 mod compose_provision;
+mod compose_provision_delete_records;
 mod compose_provision_targets;
 mod compose_provision_topic_descriptions;
 mod compose_readiness;
@@ -151,6 +152,8 @@ mod observer_admin_client_quota_test;
 mod observer_admin_config_test;
 #[cfg(test)]
 mod observer_admin_consumer_groups_deletion_test;
+#[cfg(test)]
+mod observer_admin_delete_records_batch_target_test;
 #[cfg(test)]
 mod observer_admin_group_target_test;
 #[cfg(test)]

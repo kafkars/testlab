@@ -1,4 +1,4 @@
-schema_version = 53
+schema_version = 54
 id = "kafka.transaction-successive-boundaries"
 title = "successive transactions preserve exact disposition boundaries"
 description = "One public transactional producer commits a two-partition set, aborts another, then commits a final set; every declared operation must stage inside its own non-overlapping public disposition window and read-committed truth must expose only both committed sets."

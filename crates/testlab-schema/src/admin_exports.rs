@@ -20,7 +20,10 @@ pub use crate::admin_create_topics_batch::{
     CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,
 };
 pub use crate::admin_delete_records::{
-    AdminRecordsDeleted, DeleteRecordsAction, DeleteRecordsCommand,
+    AdminRecordsBatchDeleted, AdminRecordsDeleted, AdminRecordsDeletionOutcome,
+    DeleteRecordsAction, DeleteRecordsBatchAction, DeleteRecordsBatchCommand,
+    DeleteRecordsBatchExpectation, DeleteRecordsBatchSelection, DeleteRecordsBoundary,
+    DeleteRecordsCommand,
 };
 pub use crate::admin_delete_topics_batch::{
     AdminTopicDeletionOutcome, AdminTopicsDeletion, DeleteTopicExpectation, DeleteTopicsAction,

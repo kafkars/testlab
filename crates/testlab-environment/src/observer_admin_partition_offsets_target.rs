@@ -1,10 +1,13 @@
 //! Offset-admin actions produce exact independent watermark targets.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, DeleteRecordsCommand, ListOffsetsCommand, ScenarioAction,
+    AdapterCommand, AdminOffsetPosition, DeleteRecordsBatchCommand, DeleteRecordsBatchSelection,
+    DeleteRecordsCommand, ListOffsetsCommand, ScenarioAction,
 };
 
-use crate::observer_admin_target::{AdminTarget, PartitionOffsetsTarget, TargetMatch};
+use crate::observer_admin_target::{
+    AdminTarget, PartitionOffsetsBatchTarget, PartitionOffsetsTarget, TargetMatch,
+};
 
 pub(super) fn match_action(action: &ScenarioAction) -> Option<TargetMatch> {
     Some(match action {
@@ -46,6 +49,41 @@ pub(super) fn match_action(action: &ScenarioAction) -> Option<TargetMatch> {
                 expected_low: Some(action.before_offset),
                 expected_high: Some(action.expected_high_watermark),
                 poll_expected: true,
+            }),
+        ),
+        ScenarioAction::DeleteRecordsBatch(action) => (
+            AdapterCommand::DeleteRecordsBatch(DeleteRecordsBatchCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                targets: action
+                    .targets
+                    .iter()
+                    .map(|target| DeleteRecordsBatchSelection {
+                        topic: target.topic.clone(),
+                        partition: target.partition,
+                        boundary: target.boundary,
+                    })
+                    .collect(),
+                timeout_ms: action.timeout_ms,
+            }),
+            AdminTarget::PartitionOffsetsBatch(PartitionOffsetsBatchTarget {
+                operation_id: action.operation_id.clone(),
+                offsets: action
+                    .targets
+                    .iter()
+                    .map(|target| PartitionOffsetsTarget {
+                        operation_id: action.operation_id.clone(),
+                        topic: target.topic.clone(),
+                        partition: target.partition,
+                        expected_low: Some(
+                            target
+                                .boundary
+                                .expected_low_watermark(target.expected_high_watermark),
+                        ),
+                        expected_high: Some(target.expected_high_watermark),
+                        poll_expected: true,
+                    })
+                    .collect(),
             }),
         ),
         _ => return None,

@@ -193,8 +193,8 @@ pub enum AdapterCommand {
     ListOffsets(crate::ListOffsetsCommand),
     /// Lists ordered offset positions through one public admin call.
     ListOffsetsBatch(crate::ListOffsetsBatchCommand),
-    /// Deletes records before one exact partition offset.
     DeleteRecords(crate::DeleteRecordsCommand),
+    DeleteRecordsBatch(crate::DeleteRecordsBatchCommand),
     /// Describes one selected topic configuration through the public admin surface.
     DescribeTopicConfig(crate::DescribeTopicConfigCommand),
     /// Replaces one selected topic configuration through the public admin surface.

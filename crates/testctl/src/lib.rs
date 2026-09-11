@@ -65,6 +65,8 @@ mod admin_client_quota_protocol_test;
 #[cfg(test)]
 mod admin_consumer_groups_deletion_protocol_test;
 #[cfg(test)]
+mod admin_delete_records_batch_protocol_test;
+#[cfg(test)]
 mod admin_share_group_lifecycle_protocol_test;
 #[cfg(test)]
 mod admin_share_group_offset_deletion_protocol_test;

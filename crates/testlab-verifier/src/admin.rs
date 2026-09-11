@@ -13,6 +13,7 @@ use crate::admin_group::verify_group_action;
 use crate::admin_group_batch::verify_group_batch_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
 use crate::admin_records::verify_records_action;
+use crate::admin_records_batch::verify_records_batch_action;
 use crate::admin_share_group::verify_share_group_action;
 use crate::admin_topic::verify_topic_action;
 use crate::admin_topics_deletion::verify_topics_deletion_action;
@@ -95,6 +96,7 @@ pub(crate) fn verify_admin(
             || verify_cluster_action(&step.action, index, violations)
             || verify_group_action(&step.action, index, violations)
             || verify_records_action(&step.action, index, violations)
+            || verify_records_batch_action(&step.action, index, violations)
         {
             continue;
         }
@@ -170,6 +172,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::ListTopics(_) => "ADMIN-004",
         ScenarioAction::ListOffsets(_) => "ADMIN-005",
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
+        ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",
         ScenarioAction::DescribeTopicConfig(_) => "ADMIN-015",
         ScenarioAction::AlterTopicConfig(_) => "ADMIN-016",
         ScenarioAction::ListConsumerGroupOffsets(_) => "ADMIN-006",
@@ -197,6 +200,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::ListOffsets(value) => &value.operation_id,
         ScenarioAction::ListOffsetsBatch(value) => &value.operation_id,
         ScenarioAction::DeleteRecords(value) => &value.operation_id,
+        ScenarioAction::DeleteRecordsBatch(value) => &value.operation_id,
         ScenarioAction::DescribeTopicConfig(value) => &value.operation_id,
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeCluster(value) => &value.operation_id,

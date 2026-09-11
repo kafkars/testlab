@@ -1,0 +1,84 @@
+schema_version = 54
+id = "kafka.admin-delete-records-batch"
+title = "packaged admin deletes caller-ordered record ranges"
+description = "Two independently seeded partitions establish exact zero-based watermarks before one public DeleteRecords batch; the deliberately non-sorted targets exercise both an explicit cutoff and the high-watermark sentinel, and immediate independent queries prove each final range in caller order."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "list-batch-baseline-earliest"
+kind = "list_offsets_batch"
+client_id = "client-1"
+operation_id = "admin-delete-records-batch-baseline-earliest"
+timeout_ms = 20000
+
+[[steps.queries]]
+topic = "testlab-kafkars-admin-delete-records-batch"
+partition = 1
+position = "earliest"
+expected_offset = 0
+
+[[steps.queries]]
+topic = "testlab-kafkars-admin-delete-records-batch"
+partition = 0
+position = "earliest"
+expected_offset = 0
+
+[[steps]]
+id = "list-batch-baseline-latest"
+kind = "list_offsets_batch"
+client_id = "client-1"
+operation_id = "admin-delete-records-batch-baseline-latest"
+timeout_ms = 20000
+
+[[steps.queries]]
+topic = "testlab-kafkars-admin-delete-records-batch"
+partition = 1
+position = "latest"
+expected_offset = 3
+
+[[steps.queries]]
+topic = "testlab-kafkars-admin-delete-records-batch"
+partition = 0
+position = "latest"
+expected_offset = 2
+
+[[steps]]
+id = "delete-records-batch"
+kind = "delete_records_batch"
+client_id = "client-1"
+operation_id = "admin-delete-records-batch"
+timeout_ms = 30000
+
+[[steps.targets]]
+topic = "testlab-kafkars-admin-delete-records-batch"
+partition = 1
+expected_high_watermark = 3
+
+[steps.targets.boundary]
+kind = "offset"
+offset = 2
+
+[[steps.targets]]
+topic = "testlab-kafkars-admin-delete-records-batch"
+partition = 0
+expected_high_watermark = 2
+
+[steps.targets.boundary]
+kind = "high_watermark"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

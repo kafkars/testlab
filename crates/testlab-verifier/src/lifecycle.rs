@@ -173,6 +173,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::ListOffsets(_)
             | ScenarioAction::ListOffsetsBatch(_)
             | ScenarioAction::DeleteRecords(_)
+            | ScenarioAction::DeleteRecordsBatch(_)
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::ListConsumerGroups(_)
             | ScenarioAction::DescribeConsumerGroup(_)

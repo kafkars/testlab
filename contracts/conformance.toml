@@ -337,6 +337,12 @@ statement = "One public deletion of multiple empty consumer groups follows an in
 category = "admin"
 
 [[contract]]
+id = "ADMIN-047"
+title = "Plural record deletion preserves boundaries, caller order, and broker ranges"
+statement = "One public record deletion over multiple distinct topic-partitions preserves caller order, an explicit offset boundary, the high-watermark sentinel, and every successful low watermark, while prior and immediate independent observations prove each exact before-and-after broker range."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

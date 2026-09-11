@@ -33,6 +33,7 @@ mod protocol_admin_cluster;
 mod protocol_admin_config;
 mod protocol_admin_consumer_group_deletion_batch;
 mod protocol_admin_create_topics_batch;
+mod protocol_admin_delete_records_batch;
 mod protocol_admin_group;
 mod protocol_admin_group_offset_batch;
 mod protocol_admin_group_offset_batch_mutation;
@@ -105,6 +106,8 @@ mod protocol_admin_config_test;
 mod protocol_admin_consumer_group_deletion_batch_test;
 #[cfg(test)]
 mod protocol_admin_create_topics_batch_test;
+#[cfg(test)]
+mod protocol_admin_delete_records_batch_test;
 #[cfg(test)]
 mod protocol_admin_delete_records_test;
 #[cfg(test)]

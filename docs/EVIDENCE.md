@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v39 records the exact environment identity in `manifest.json`,
-retains protocol-v50 direct and hosted-group consumer controls and shutdown,
+Evidence schema v40 records the exact environment identity in `manifest.json`,
+retains protocol-v51 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -160,11 +160,12 @@ state. CLI failure, unknown query output, a state mismatch, missing cleanup, or
 an unpaired transition invalidates execution rather than becoming a packaged
 client result.
 
-Earliest- and latest-offset Admin claims use an immediate independent
-librdkafka watermark query for one exact partition. Record deletion retains
-ordered pre- and post-operation low and high watermarks, proving that the
-declared prefix became unavailable without accepting an adapter echo as broker
-truth. Topic creation, expansion, description, and listing use immediate
+Earliest- and latest-offset Admin claims use immediate independent librdkafka
+watermark queries. Singleton and caller-ordered plural record deletion retain
+exact pre- and post-operation low and high watermarks for every partition,
+proving that each explicit prefix or high-watermark selection became unavailable
+without accepting an adapter echo as broker truth. Topic creation, expansion,
+description, and listing use immediate
 metadata facts. An ordered batch creation retains one command and one completion
 with one caller-ordered public outcome per requested topic, followed by immediate
 independent metadata observations for those topics. Expected per-resource error
@@ -322,6 +323,13 @@ public consumer-group batch deletion must then return one successful outcome per
 group in that order. Immediate independent group polling must settle with every
 selected group absent; the final facts retain consecutive history and
 observation order before the next command.
+
+ADMIN-047 requires caller-ordered earliest and latest baselines for every fresh
+record-deletion target. One public batch must preserve the exact target order,
+explicit offset or high-watermark selection, and successful low watermark.
+Immediate independent polling must retain consecutive facts in that same order,
+with each low watermark at the selected boundary and each high watermark
+unchanged before the next command.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

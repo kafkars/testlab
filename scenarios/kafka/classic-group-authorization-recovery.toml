@@ -1,4 +1,4 @@
-schema_version = 53
+schema_version = 54
 id = "kafka.classic-group-authorization-recovery"
 title = "packaged classic group reports denial and recovers after permission restoration"
 description = "An independently observed group READ deny ACL forces the exact public group error, then its observed removal permits a new member of the same group to receive and commit the seeded record."

@@ -70,7 +70,8 @@ pub(crate) struct IndexedRecordsDeleted {
     pub(crate) history_sequence: u64,
     pub(crate) topic: String,
     pub(crate) partition: i32,
-    pub(crate) low_watermark: i64,
+    pub(crate) low_watermark: Option<i64>,
+    pub(crate) error_code: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

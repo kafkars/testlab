@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v50. It is not a
+An adapter translates one packaged client surface to protocol v51. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -37,6 +37,9 @@ runner and not a verifier.
 - Preserve caller order, exact group identity, and per-group errors for plural
   consumer-group deletion; never replace public outcomes with later group
   absence.
+- Preserve caller order, explicit and high-watermark record-deletion selectors,
+  exact topic-partition identities, successful low watermarks, and per-target
+  errors without receiving scenario-owned baseline watermarks.
 - Preserve caller order and one exact public outcome per resource in admin batch
   completions; do not collapse a mixed-result batch into `command_failed`.
 - Keep scenario-only expected per-resource errors out of adapter commands.

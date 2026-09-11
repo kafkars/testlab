@@ -68,6 +68,7 @@ scenarios = [
   "scenarios/kafka/admin-list-offsets-batch.toml",
   "scenarios/kafka/admin-list-offsets-invalid-partition.toml",
   "scenarios/kafka/admin-delete-records.toml",
+  "scenarios/kafka/admin-delete-records-batch.toml",
   "scenarios/kafka/admin-topic-config-lifecycle.toml",
   "scenarios/kafka/admin-topic-config-validate-only.toml",
   "scenarios/kafka/admin-topic-config-restore.toml",

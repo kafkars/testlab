@@ -133,6 +133,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ListOffsets(_)
         | AdapterCommand::ListOffsetsBatch(_)
         | AdapterCommand::DeleteRecords(_)
+        | AdapterCommand::DeleteRecordsBatch(_)
         | AdapterCommand::DescribeTopicConfig(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)

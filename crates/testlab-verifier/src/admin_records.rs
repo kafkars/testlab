@@ -22,7 +22,8 @@ pub(crate) fn verify_records_action(
     let public_matches = public.is_some_and(|value| {
         value.topic == action.topic
             && value.partition == action.partition
-            && value.low_watermark == action.before_offset
+            && value.low_watermark == Some(action.before_offset)
+            && value.error_code.is_none()
             && public_after_command(command_window, value.history_sequence)
     });
     let post_matches = post.is_some_and(|value| {
@@ -73,7 +74,7 @@ fn one<T>(values: Option<&Vec<T>>) -> Option<&T> {
     values.filter(|values| values.len() == 1)?.first()
 }
 
-fn prior_offsets<'a>(
+pub(crate) fn prior_offsets<'a>(
     index: &'a HistoryIndex,
     topic: &str,
     partition: i32,
@@ -91,7 +92,7 @@ fn prior_offsets<'a>(
         .max_by_key(|value| value.history_sequence)
 }
 
-fn offsets_match(
+pub(crate) fn offsets_match(
     value: &IndexedPartitionOffsetsObservation,
     topic: &str,
     partition: i32,

@@ -119,6 +119,22 @@ pub(super) fn classify_admin(
                 && partition == &actual.partition
         }
         (
+            ExpectedEvent::RecordsBatchDeleted {
+                operation_id,
+                targets,
+            },
+            AdapterEvent::RecordsBatchDeleted(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| (outcome.topic.as_str(), outcome.partition))
+                    .eq(targets
+                        .iter()
+                        .map(|(topic, partition)| (topic.as_str(), *partition)))
+        }
+        (
             ExpectedEvent::ClusterDescribed { operation_id },
             AdapterEvent::ClusterDescribed(actual),
         ) => operation_id == &actual.operation_id,
@@ -237,6 +253,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::OffsetListed { .. }
             | ExpectedEvent::OffsetsListed { .. }
             | ExpectedEvent::RecordsDeleted { .. }
+            | ExpectedEvent::RecordsBatchDeleted { .. }
             | ExpectedEvent::ClusterDescribed { .. }
             | ExpectedEvent::ConsumerGroupsListed { .. }
             | ExpectedEvent::ConsumerGroupDescribed { .. }
@@ -263,6 +280,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::OffsetListed(_)
             | AdapterEvent::OffsetsListed(_)
             | AdapterEvent::RecordsDeleted(_)
+            | AdapterEvent::RecordsBatchDeleted(_)
             | AdapterEvent::ClusterDescribed(_)
             | AdapterEvent::ConsumerGroupsListed(_)
             | AdapterEvent::ConsumerGroupDescribed(_)

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v50 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v53 and evidence schema v39.
+Protocol v51 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v54 and evidence schema v40.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -79,6 +79,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `list_offsets`
 - `list_offsets_batch`
 - `delete_records`
+- `delete_records_batch`
 - `describe_topic_config`
 - `alter_topic_config`
 - `describe_cluster`
@@ -228,6 +229,7 @@ timeouts invalidate evidence.
 - `offset_listed`
 - `offsets_listed`
 - `records_deleted`
+- `records_batch_deleted`
 - `topic_config_described`
 - `topic_config_altered`
 - `cluster_described`
@@ -489,12 +491,21 @@ same order; an unexpected resource error cannot disappear into a successful
 batch claim. Immediate independent watermark queries run in the declared order
 and must select every expected earliest or latest offset exactly.
 
-Record deletion selects one explicit positive cutoff on a fresh independently
-seeded partition. Ordered earliest and latest queries establish the precondition.
-The packaged public result reports its low watermark, then a polling independent
-query requires the low watermark to reach the cutoff while the high watermark
-remains unchanged. Multiple targets and the high-watermark sentinel are outside
-this first slice.
+Singleton record deletion selects one explicit positive cutoff on a fresh
+independently seeded partition. Ordered earliest and latest queries establish
+the precondition. The packaged public result reports its low watermark, then a
+polling independent query requires the low watermark to reach the cutoff while
+the high watermark remains unchanged.
+
+`delete_records_batch` carries two through 32 distinct topic-partitions in
+caller order and invokes one public Admin operation. Each target selects either
+an explicit positive cutoff or Kafka's high-watermark sentinel; scenario-only
+baseline watermarks do not cross the adapter boundary. Its single
+`records_batch_deleted` completion preserves every identity, successful low
+watermark, or normalized per-target error in caller order. Ordered prior
+earliest/latest queries and immediate polling watermark observations prove each
+partition's independent before-and-after range without accepting adapter output
+as broker truth.
 
 Topic-configuration description selects one exact key. Its wire command omits
 the scenario's expected value, and the public nullable value must match an
@@ -729,6 +740,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v50 is an exact semantic contract. New capabilities may be declared
+Protocol v51 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

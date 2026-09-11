@@ -57,7 +57,6 @@ pub enum ScenarioAction {
         /// Complete restoration bound.
         timeout_ms: u64,
     },
-    /// Establishes or removes one independently observed broker policy.
     AlterBrokerPolicy(crate::BrokerPolicyAction),
     /// Offers one record.
     Send {
@@ -214,6 +213,7 @@ pub enum ScenarioAction {
     ListOffsets(crate::ListOffsetsAction),
     ListOffsetsBatch(crate::ListOffsetsBatchAction),
     DeleteRecords(crate::DeleteRecordsAction),
+    DeleteRecordsBatch(crate::DeleteRecordsBatchAction),
     DescribeTopicConfig(crate::DescribeTopicConfigAction),
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),

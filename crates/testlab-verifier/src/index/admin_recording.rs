@@ -6,8 +6,7 @@ use super::{
     IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion,
     IndexedAdminTopicsDescription, IndexedClusterDescription, IndexedConsumerGroupDescription,
     IndexedConsumerGroupOffset, IndexedConsumerGroupsList, IndexedOffsetList,
-    IndexedRecordsDeleted, IndexedTopicConfigDescription, IndexedTopicDescription,
-    IndexedTopicsList,
+    IndexedTopicConfigDescription, IndexedTopicDescription, IndexedTopicsList,
     admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
 
@@ -36,6 +35,9 @@ impl HistoryIndex {
             return true;
         }
         if self.admin_group_batches.record_event(event, sequence) {
+            return true;
+        }
+        if super::admin_records::record(self, event, sequence) {
             return true;
         }
         match event {
@@ -104,16 +106,6 @@ impl HistoryIndex {
                     topic: value.topic.clone(),
                     partition: value.partition,
                     offset: value.offset,
-                }),
-            AdapterEvent::RecordsDeleted(value) => self
-                .records_deleted
-                .entry(value.operation_id.clone())
-                .or_default()
-                .push(IndexedRecordsDeleted {
-                    history_sequence: sequence,
-                    topic: value.topic.clone(),
-                    partition: value.partition,
-                    low_watermark: value.low_watermark,
                 }),
             AdapterEvent::TopicConfigDescribed(value) => self
                 .topic_configs_described

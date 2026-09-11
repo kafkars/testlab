@@ -18,6 +18,7 @@ mod admin_delete_records_command_match;
 pub(crate) mod admin_group_batch;
 pub(crate) mod admin_offset_batch;
 mod admin_recording;
+mod admin_records;
 pub(crate) mod admin_share_group;
 mod admin_share_group_command_match;
 mod admin_state_recording;
@@ -284,7 +285,6 @@ pub(crate) struct HistoryIndex {
     pub(crate) network_proxy_observations: Vec<(u64, testlab_schema::NetworkProxyObservation)>,
     pub(crate) environment_operations: Vec<(u64, EnvironmentOperation)>,
 }
-
 impl HistoryIndex {
     pub(crate) fn build(history: &[HistoryEntry]) -> Self {
         let mut index = Self::default();

@@ -47,14 +47,7 @@ pub(super) fn seed_targets(scenario: &Scenario) -> BTreeSet<SeedTarget> {
     scenario
         .steps
         .iter()
-        .filter_map(|step| match &step.action {
-            ScenarioAction::DeleteRecords(action) => Some(SeedTarget {
-                topic: action.topic.clone(),
-                partition: action.partition,
-                record_count: action.expected_high_watermark,
-            }),
-            _ => None,
-        })
+        .flat_map(|step| crate::compose_provision_delete_records::seed_targets(&step.action))
         .collect()
 }
 
@@ -96,6 +89,9 @@ fn admin_targets(
     action: &ScenarioAction,
 ) {
     crate::compose_provision_topic_descriptions::record(topics, subject_created, action);
+    if crate::compose_provision_delete_records::record_topics(topics, subject_created, action) {
+        return;
+    }
     if plural_admin_targets(topics, subject_created, action) {
         return;
     }
@@ -144,12 +140,6 @@ fn admin_targets(
             };
             require_topic(topics, subject_created, &action.topic, partitions);
         }
-        ScenarioAction::DeleteRecords(action) => require_topic(
-            topics,
-            subject_created,
-            &action.topic,
-            action.partition.saturating_add(1),
-        ),
         ScenarioAction::DescribeTopicConfig(action) => {
             require_topic(topics, subject_created, &action.topic, 1);
         }

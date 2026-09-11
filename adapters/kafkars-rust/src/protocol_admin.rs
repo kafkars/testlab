@@ -54,6 +54,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::ListOffsetsBatch(command) => {
             protocol_admin_list_offsets_batch::list(state, writer, command_id, command)
         }
+        AdapterCommand::DeleteRecordsBatch(command) => {
+            crate::protocol_admin_delete_records_batch::delete(state, writer, command_id, command)
+        }
         command @ (AdapterCommand::ListConsumerGroupOffsetsBatch(_)
         | AdapterCommand::ListConsumerGroupsOffsets(_)) => {
             protocol_admin_group_offset_batch::dispatch(state, writer, command_id, command)
