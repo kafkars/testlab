@@ -9,7 +9,7 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v39 over stdin/stdout;
+2. implements protocol v40 over stdin/stdout;
 3. preserves admission rejection separately from accepted delivery;
 4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
@@ -23,9 +23,10 @@ It:
    descriptions, caller-ordered topic-partition and consumer-group offset
    batches, consumer-only and generic all-group listings, plural offset
    mutations, dedicated classic-group descriptions, literal ACL
-   create/describe/delete operations, and named-user client-quota
-   set/describe/remove operations as one bounded public call with exact
-   outcomes;
+   create/describe/delete operations, named-user client-quota
+   set/describe/remove operations, and named-user SCRAM-SHA-256/512
+   upsert/describe/delete operations as one bounded public call with exact
+   non-secret outcomes;
 9. explicitly settles flush, close, client shutdown, and clone-shared hosted
    group shutdown through public event-stream termination;
 10. exposes the exact packaged version in its descriptor and subject metadata.

@@ -8,7 +8,8 @@ pub(crate) use kafkars::admin::{
     CreateAclResult, DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult,
     DeleteRecordsTarget, DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery,
     ListConsumerGroupOffsetsResult, ListOffsetsQuery, NewPartitions, NewTopic, OffsetSpec,
-    ResourcePattern, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
+    ResourcePattern, ScramCredentialInfo, ScramMechanism, TopicConfigAlterations, TopicConfigQuery,
+    TopicDescription, UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

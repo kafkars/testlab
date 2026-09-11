@@ -265,6 +265,18 @@ statement = "One exact named-user byte-rate set or removal returns the requested
 category = "admin"
 
 [[contract]]
+id = "ADMIN-035"
+title = "User SCRAM descriptions preserve exact public and broker metadata"
+statement = "One exact named-user SCRAM description returns the requested mechanism and iteration count or exact resource-not-found absence, and an immediate independent Kafka CLI query confirms the same state."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-036"
+title = "User SCRAM alterations preserve exact resulting state"
+statement = "One exact named-user SCRAM upsert or deletion returns the requested public user and mechanism, and an immediate independent Kafka CLI query confirms the exact iterations or absence."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

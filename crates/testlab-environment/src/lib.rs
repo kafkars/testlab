@@ -37,6 +37,7 @@ mod compose_startup;
 mod compose_support;
 mod compose_topic_readiness;
 mod compose_types;
+mod compose_user_scram_observe;
 mod group_cli_observation;
 mod kafka_role_wire;
 mod network_proxy_output;
@@ -63,6 +64,7 @@ mod observer_admin_partition_offsets_target;
 mod observer_admin_plural_group_target;
 mod observer_admin_target;
 mod observer_admin_topic_target;
+mod observer_admin_user_scram_target;
 mod observer_error;
 mod observer_group_offset;
 mod observer_group_offsets;
@@ -72,6 +74,7 @@ mod observer_watermarks;
 mod security;
 mod terminal;
 mod terminal_capture;
+mod user_scram_cli_observation;
 
 pub use adversary_process_types::{AdversaryProcessRequest, RunningAdversary};
 pub use adversary_worker::run_adversary_worker;
@@ -145,6 +148,8 @@ mod observer_admin_offset_batch_target_test;
 mod observer_admin_plural_group_target_test;
 #[cfg(test)]
 mod observer_admin_target_test;
+#[cfg(test)]
+mod observer_admin_user_scram_test;
 #[cfg(test)]
 mod observer_admin_validate_only_test;
 #[cfg(test)]

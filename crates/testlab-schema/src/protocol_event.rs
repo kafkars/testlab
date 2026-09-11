@@ -5,7 +5,6 @@ use crate::{
     ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus, TransactionDisposition,
 };
 use serde::{Deserialize, Serialize};
-
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterEvent {
@@ -242,7 +241,8 @@ pub enum AdapterEvent {
     AclsDeleted(crate::AdminAclsDeletion),
     ClientQuotaAltered(crate::AdminClientQuotaAlteration),
     ClientQuotaDescribed(crate::AdminClientQuotaDescription),
-    /// Public transactional producer initialization completed.
+    UserScramCredentialAltered(crate::AdminUserScramCredentialAlteration),
+    UserScramCredentialDescribed(crate::AdminUserScramCredentialDescription),
     TransactionalProducerCreated {
         /// Created transactional producer.
         producer_id: ProducerId,

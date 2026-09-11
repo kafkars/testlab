@@ -39,6 +39,9 @@ pub(super) fn capture(
         AdminTarget::ClientQuota(_) => Err(ObserverError::InvalidTarget(
             "client-quota target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::UserScramCredential(_) => Err(ObserverError::InvalidTarget(
+            "user SCRAM target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Topic(target) => Ok(vec![observer_admin_metadata::capture_topic(
             request, target,
         )?]),

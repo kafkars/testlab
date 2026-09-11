@@ -188,6 +188,8 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DeleteAcls(_)
             | ScenarioAction::AlterClientQuota(_)
             | ScenarioAction::DescribeClientQuota(_)
+            | ScenarioAction::AlterUserScramCredential(_)
+            | ScenarioAction::DescribeUserScramCredential(_)
             | ScenarioAction::DescribeTopicConfig(_)
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::ExecuteTransaction { .. }

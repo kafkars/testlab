@@ -236,7 +236,8 @@ pub enum ScenarioAction {
     DeleteAcls(crate::DeleteAclsAction),
     AlterClientQuota(crate::AlterClientQuotaAction),
     DescribeClientQuota(crate::DescribeClientQuotaAction),
-    /// Initializes one uniquely controlled public transactional producer.
+    AlterUserScramCredential(crate::AlterUserScramCredentialAction),
+    DescribeUserScramCredential(crate::DescribeUserScramCredentialAction),
     CreateTransactionalProducer {
         /// Owning client.
         client_id: ClientId,
@@ -250,7 +251,6 @@ pub enum ScenarioAction {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         expected_error_code: Option<String>,
     },
-    /// Runs one linear transaction through send and commit or abort.
     ExecuteTransaction {
         /// Existing transactional producer.
         producer_id: ProducerId,

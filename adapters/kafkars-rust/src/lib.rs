@@ -41,6 +41,7 @@ mod protocol_admin_plural_result;
 mod protocol_admin_read;
 mod protocol_admin_result;
 mod protocol_admin_topic_description;
+mod protocol_admin_user_scram;
 mod protocol_admin_validation_event;
 mod protocol_admin_write;
 mod protocol_cancel;
@@ -112,6 +113,8 @@ mod protocol_admin_offset_test;
 mod protocol_admin_plural_result_test;
 #[cfg(test)]
 mod protocol_admin_test;
+#[cfg(test)]
+mod protocol_admin_user_scram_test;
 #[cfg(test)]
 mod protocol_admin_validation_event_test;
 #[cfg(test)]

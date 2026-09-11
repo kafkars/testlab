@@ -34,6 +34,8 @@ mod admin_scenario_action;
 mod admin_topic;
 mod admin_topic_action_validation;
 mod admin_transition_validation;
+mod admin_user_scram;
+mod admin_user_scram_validation;
 mod admin_validate_only_validation;
 mod assigned_consumer_control;
 mod assigned_consumer_control_validation;
@@ -213,6 +215,8 @@ mod admin_query_validation_test;
 mod admin_topic_failure_validation_test;
 #[cfg(test)]
 mod admin_transition_validation_test;
+#[cfg(test)]
+mod admin_user_scram_test;
 #[cfg(test)]
 mod admin_v17_validation_test;
 #[cfg(test)]

@@ -1,4 +1,4 @@
-schema_version = 42
+schema_version = 43
 id = "kafka.admin-topic-authorization-recovery"
 title = "packaged admin reports topic denial and recovers after permission restoration"
 description = "An independently observed topic CREATE deny ACL forces the exact public admin error while metadata confirms absence, then its observed removal permits creation of that same topic."

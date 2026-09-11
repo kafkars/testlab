@@ -27,6 +27,10 @@ pub(crate) fn dispatch<W: Write>(
         @ (AdapterCommand::AlterClientQuota(_) | AdapterCommand::DescribeClientQuota(_)) => {
             crate::protocol_admin_client_quota::dispatch(state, writer, command_id, command)
         }
+        command @ (AdapterCommand::AlterUserScramCredential(_)
+        | AdapterCommand::DescribeUserScramCredential(_)) => {
+            crate::protocol_admin_user_scram::dispatch(state, writer, command_id, command)
+        }
         command @ (AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)
         | AdapterCommand::DeleteAcls(_)) => {

@@ -52,7 +52,9 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DescribeAcls(_)
         | AdapterCommand::DeleteAcls(_)
         | AdapterCommand::AlterClientQuota(_)
-        | AdapterCommand::DescribeClientQuota(_) => "admin capability required",
+        | AdapterCommand::DescribeClientQuota(_)
+        | AdapterCommand::AlterUserScramCredential(_)
+        | AdapterCommand::DescribeUserScramCredential(_) => "admin capability required",
         AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::ExecuteTransactionalTransform(_)

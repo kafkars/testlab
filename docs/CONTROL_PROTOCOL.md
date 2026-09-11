@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v39 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v42 and evidence schema v28.
+Protocol v40 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v43 and evidence schema v29.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -96,6 +96,8 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `delete_acls`
 - `alter_client_quota`
 - `describe_client_quota`
+- `alter_user_scram_credential`
+- `describe_user_scram_credential`
 - `create_transactional_producer`
 - `execute_transaction`
 - `execute_transactional_transform`
@@ -233,6 +235,8 @@ timeouts invalidate evidence.
 - `acls_deleted`
 - `client_quota_altered`
 - `client_quota_described`
+- `user_scram_credential_altered`
+- `user_scram_credential_described`
 - `transactional_producer_created`
 - `transaction_completed`
 - `transactional_transform_completed`
@@ -526,6 +530,18 @@ is retained. The verifier requires the public entity or value and independent
 resulting broker state to agree exactly; unknown keys, fractional values,
 ambiguous entities, or malformed CLI output invalidate the claim.
 
+User SCRAM administration is bounded to one exact non-default user and one
+SCRAM-SHA-256 or SCRAM-SHA-512 mechanism. Iteration counts are 4096 through
+16384. An alteration either upserts one credential using password bytes read
+only inside the adapter process from `TESTLAB_KAFKA_SASL_PASSWORD`, or deletes
+that mechanism; protocol commands, events, history, and diagnostics never carry
+the password. Description selects the exact user and mechanism and retains
+either its iteration count or Kafka's exact resource-not-found broker code 91.
+Every successful public terminal is immediately followed by a pinned Kafka CLI
+query whose raw output is retained. The verifier requires public and independent
+non-secret state to agree; extra users, mechanisms, rows, quota values, or
+malformed CLI output invalidate the claim.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -607,6 +623,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v39 is an exact semantic contract. New capabilities may be declared
+Protocol v40 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

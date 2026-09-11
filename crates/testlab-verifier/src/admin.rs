@@ -14,6 +14,7 @@ use crate::admin_group_batch::verify_group_batch_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
 use crate::admin_records::verify_records_action;
 use crate::admin_topic::verify_topic_action;
+use crate::admin_user_scram::verify_user_scram_action;
 use crate::admin_validate_only::verify_validate_only_action;
 use crate::index::HistoryIndex;
 use crate::support::violation;
@@ -78,6 +79,7 @@ pub(crate) fn verify_admin(
             || verify_expected_failure(&step.action, index, violations)
             || verify_acl_action(&step.action, index, violations)
             || verify_client_quota_action(&step.action, index, violations)
+            || verify_user_scram_action(&step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
@@ -143,6 +145,8 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteAcls(_) => "ADMIN-032",
         ScenarioAction::DescribeClientQuota(_) => "ADMIN-033",
         ScenarioAction::AlterClientQuota(_) => "ADMIN-034",
+        ScenarioAction::DescribeUserScramCredential(_) => "ADMIN-035",
+        ScenarioAction::AlterUserScramCredential(_) => "ADMIN-036",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -194,6 +198,8 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DeleteAcls(value) => &value.operation_id,
         ScenarioAction::AlterClientQuota(value) => &value.operation_id,
         ScenarioAction::DescribeClientQuota(value) => &value.operation_id,
+        ScenarioAction::AlterUserScramCredential(value) => &value.operation_id,
+        ScenarioAction::DescribeUserScramCredential(value) => &value.operation_id,
         _ => return None,
     })
 }

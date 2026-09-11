@@ -18,6 +18,7 @@ mod admin_group_mutation;
 mod admin_offset_batch;
 mod admin_records;
 mod admin_topic;
+mod admin_user_scram;
 mod admin_validate_only;
 mod admin_validate_only_evidence;
 mod adversary;
@@ -103,6 +104,8 @@ mod admin_test;
 mod admin_topic_cluster_test;
 #[cfg(test)]
 mod admin_topic_failure_test;
+#[cfg(test)]
+mod admin_user_scram_test;
 #[cfg(test)]
 mod admin_validate_only_test;
 #[cfg(test)]

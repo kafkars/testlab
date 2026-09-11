@@ -228,7 +228,8 @@ pub enum AdapterCommand {
     DeleteAcls(crate::DeleteAclsCommand),
     AlterClientQuota(crate::AlterClientQuotaCommand),
     DescribeClientQuota(crate::DescribeClientQuotaCommand),
-    /// Initializes one public transactional producer.
+    AlterUserScramCredential(crate::AlterUserScramCredentialCommand),
+    DescribeUserScramCredential(crate::DescribeUserScramCredentialCommand),
     CreateTransactionalProducer {
         /// Owning client.
         client_id: ClientId,
@@ -275,7 +276,6 @@ pub enum AdapterCommand {
         /// Complete stage, replacement, and old-commit bound.
         timeout_ms: u64,
     },
-    /// Closes one idle transactional producer.
     CloseTransactionalProducer {
         /// Transactional producer to close.
         producer_id: ProducerId,

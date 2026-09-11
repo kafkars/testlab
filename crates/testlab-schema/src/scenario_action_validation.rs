@@ -144,7 +144,9 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeAcls(_)
         | ScenarioAction::DeleteAcls(_)
         | ScenarioAction::AlterClientQuota(_)
-        | ScenarioAction::DescribeClientQuota(_)) => {
+        | ScenarioAction::DescribeClientQuota(_)
+        | ScenarioAction::AlterUserScramCredential(_)
+        | ScenarioAction::DescribeUserScramCredential(_)) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,

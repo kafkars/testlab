@@ -13,6 +13,7 @@ use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
 use crate::observer_admin_plural_group_target;
 use crate::observer_admin_topic_target;
+use crate::observer_admin_user_scram_target;
 use crate::observer_error::ObserverError;
 
 pub(super) type TargetMatch = (AdapterCommand, AdminTarget);
@@ -21,6 +22,7 @@ pub(super) type TargetMatch = (AdapterCommand, AdminTarget);
 pub(super) enum AdminTarget {
     Acls(AclsTarget),
     ClientQuota(ClientQuotaTarget),
+    UserScramCredential(UserScramCredentialTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
     Cluster(OperationId),
@@ -46,6 +48,13 @@ pub(super) struct ClientQuotaTarget {
     pub(super) operation_id: OperationId,
     pub(super) user: String,
     pub(super) direction: testlab_schema::BrokerQuotaDirection,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct UserScramCredentialTarget {
+    pub(super) operation_id: OperationId,
+    pub(super) user: String,
+    pub(super) mechanism: testlab_schema::ScramCredentialMechanism,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -145,7 +154,8 @@ impl AdminTarget {
         action: &ScenarioAction,
         command: &AdapterCommand,
     ) -> Result<Option<Self>, ObserverError> {
-        let matched = match observer_admin_client_quota_target::match_action(action)?
+        let matched = match observer_admin_user_scram_target::match_action(action)?
+            .or(observer_admin_client_quota_target::match_action(action)?)
             .or(observer_admin_acl_target::match_action(action)?)
             .or(observer_admin_offset_batch_target::match_action(action)?)
             .or(observer_admin_batch_topic_target::match_action(action)?)
@@ -173,6 +183,7 @@ impl AdminTarget {
         match self {
             Self::Acls(target) => &target.operation_id,
             Self::ClientQuota(target) => &target.operation_id,
+            Self::UserScramCredential(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
             Self::Topics(target) | Self::ConsumerGroups(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
@@ -191,6 +202,7 @@ impl AdminTarget {
         match self {
             Self::Acls(target) => target.bindings.len(),
             Self::ClientQuota(_) => 1,
+            Self::UserScramCredential(_) => 1,
             Self::Topics(target) | Self::ConsumerGroups(target) => target.names.len(),
             Self::ConsumerGroupOffsets(target) => target.offsets.len(),
             Self::ConsumerGroupsOffsets(target) => {

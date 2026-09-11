@@ -1,14 +1,11 @@
 //! History indexing separates event collection from semantic verification.
-
 use std::collections::{BTreeMap, BTreeSet};
-
 use testlab_schema::{
     AdapterDescriptor, ClientId, CommandId, ConsumedRecord, ConsumerId, EnvironmentOperation,
     GroupAssignmentsObservation, GroupMembershipEpoch, GroupReceiveSetCompletion, HistoryEntry,
     OperationId, ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus,
     TransactionDisposition, TransactionalTransformCompletion,
 };
-
 pub(crate) mod admin_acl;
 mod admin_acl_command_match;
 mod admin_batch_command_match;
@@ -23,6 +20,8 @@ pub(crate) mod admin_offset_batch;
 mod admin_recording;
 mod admin_state_recording;
 mod admin_types;
+pub(crate) mod admin_user_scram;
+mod admin_user_scram_command_match;
 mod admin_validation;
 mod concurrent;
 mod consumer_command_recording;
@@ -229,6 +228,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
+    pub(crate) admin_user_scram: admin_user_scram::AdminUserScramIndex,
     pub(crate) clusters_described: BTreeMap<OperationId, Vec<IndexedClusterDescription>>,
     pub(crate) consumer_groups_listed: BTreeMap<OperationId, Vec<IndexedConsumerGroupsList>>,
     pub(crate) consumer_groups_described:

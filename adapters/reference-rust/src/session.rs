@@ -150,6 +150,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteAcls(_)
         | AdapterCommand::AlterClientQuota(_)
         | AdapterCommand::DescribeClientQuota(_)
+        | AdapterCommand::AlterUserScramCredential(_)
+        | AdapterCommand::DescribeUserScramCredential(_)
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::ExecuteTransactionalTransform(_)

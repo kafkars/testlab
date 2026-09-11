@@ -28,6 +28,7 @@ mod runner_protocol_admin_acl;
 mod runner_protocol_admin_client_quota;
 mod runner_protocol_admin_config;
 mod runner_protocol_admin_group_batch;
+mod runner_protocol_admin_user_scram;
 mod runner_protocol_cancel;
 mod runner_protocol_concurrent;
 mod runner_protocol_event;
@@ -43,6 +44,7 @@ mod session_command_admin_client_quota;
 mod session_command_admin_config;
 mod session_command_admin_group_batch;
 mod session_command_admin_records;
+mod session_command_admin_user_scram;
 mod session_command_concurrent;
 mod session_command_consumer;
 mod session_environment_control;
@@ -58,6 +60,8 @@ mod action_contract_test;
 mod admin_acl_protocol_test;
 #[cfg(test)]
 mod admin_client_quota_protocol_test;
+#[cfg(test)]
+mod admin_user_scram_protocol_test;
 #[cfg(test)]
 mod candidate_provenance_test;
 #[cfg(test)]
