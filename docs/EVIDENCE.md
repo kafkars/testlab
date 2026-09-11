@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v26 records the exact environment identity in `manifest.json`,
-retains protocol-v37 direct and hosted-group consumer controls and shutdown,
+Evidence schema v27 records the exact environment identity in `manifest.json`,
+retains protocol-v38 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -173,13 +173,13 @@ does not imply exhaustive topic discovery, internal-topic classification,
 replica topology, or untested offset selectors.
 
 `broker-state-observations.jsonl` retains independently queried broker state
-that is not a record snapshot. Schema v17 includes exact topic metadata, one
-selected non-sensitive topic-configuration value, cluster identity and broker
-IDs, consumer-group existence and member count, and one consumer-group
-committed offset, plus exact partition low and high watermarks. Each query runs
-immediately after its exact correlated public admin command while later scenario
-steps are paused. A state query is never emitted for a public command that was
-not actually issued.
+that is not a record snapshot. It includes exact topic metadata, one selected
+non-sensitive topic-configuration value, cluster identity and broker IDs,
+consumer-group existence and member count, one consumer-group committed offset,
+exact partition low and high watermarks, and exact literal wildcard-host ACL
+presence. Each query runs immediately after its exact correlated public admin
+command while later scenario steps are paused. A state query is never emitted
+for a public command that was not actually issued.
 
 After a topic-configuration mutation, the observer waits for the selected value
 on every broker in the environment's exact metadata topology, using broker-targeted
@@ -189,7 +189,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in schema v40. Plural offset
+retain the same broker-state fact shapes in schema v41. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -234,7 +234,13 @@ prior committed receive with a positive classic epoch; broker membership facts
 alone do not establish classicness. ADMIN-028 binds one caller-ordered public
 batch offset result to contiguous immediate watermark observations for every
 unique topic-partition selection and requires each selected earliest or latest
-offset exactly. ADMIN-015 and ADMIN-016 retain selected
+offset exactly. ADMIN-029 applies the generic public group listing to the same
+independent group facts without narrowing the result to consumer groups.
+ADMIN-030 through ADMIN-032 bind caller-ordered public ACL creation, one exact
+public description, and caller-ordered exact deletion matches to contiguous
+Kafka-CLI observations of presence or absence after each terminal. Public and
+independent ACL facts remain separate; neither stream can substitute for the
+other. ADMIN-015 and ADMIN-016 retain selected
 topic-configuration values and require a distinct independent pre-mutation
 baseline. In particular, mutation baselines use distinct preceding list or
 describe operation IDs, so history order preserves precondition and

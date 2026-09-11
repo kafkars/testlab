@@ -10,6 +10,9 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
+    if crate::admin_acl_validation::validate(action, clients, operation_ids, problems) {
+        return;
+    }
     if crate::admin_create_topics_batch_validation::validate(
         action,
         clients,

@@ -1,6 +1,8 @@
 //! Versioned data contracts shared across the testlab trust boundary.
 
 mod adapter;
+mod admin_acl;
+mod admin_acl_validation;
 mod admin_action_validation;
 mod admin_classic_group;
 mod admin_classic_group_transition_validation;
@@ -173,6 +175,8 @@ pub use transaction_offsets::{
     TransactionalTransformAction, TransactionalTransformCommand, TransactionalTransformCompletion,
 };
 pub use verdict::{Verdict, VerdictStatus, Violation};
+#[cfg(test)]
+mod admin_acl_test;
 #[cfg(test)]
 mod admin_action_validation_test;
 #[cfg(test)]

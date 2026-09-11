@@ -139,7 +139,10 @@ pub(crate) fn validate_action(
         | ScenarioAction::DeleteConsumerGroupOffset(_)
         | ScenarioAction::DeleteConsumerGroupOffsets(_)
         | ScenarioAction::DeleteConsumerGroup(_)
-        | ScenarioAction::DescribeClassicGroups(_)) => {
+        | ScenarioAction::DescribeClassicGroups(_)
+        | ScenarioAction::CreateAcls(_)
+        | ScenarioAction::DescribeAcls(_)
+        | ScenarioAction::DeleteAcls(_)) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,

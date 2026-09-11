@@ -1,14 +1,11 @@
 //! Adapter events normalize only facts exposed through a public client surface.
 #![allow(missing_docs, reason = "typed payload variants are self-describing")]
-
-use serde::{Deserialize, Serialize};
-
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
     ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus, TransactionDisposition,
 };
+use serde::{Deserialize, Serialize};
 
-/// Normalized public event emitted by an adapter.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterEvent {
@@ -240,6 +237,9 @@ pub enum AdapterEvent {
     ConsumerGroupDeleted(crate::AdminConsumerGroupCompletion),
     /// One public classic-group batch description returned ordered outcomes.
     ClassicGroupsDescribed(crate::AdminClassicGroupsDescription),
+    AclsCreated(crate::AdminAclsCreation),
+    AclsDescribed(crate::AdminAclsDescription),
+    AclsDeleted(crate::AdminAclsDeletion),
     /// Public transactional producer initialization completed.
     TransactionalProducerCreated {
         /// Created transactional producer.

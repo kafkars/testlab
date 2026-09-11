@@ -1,0 +1,53 @@
+schema_version = 41
+id = "kafka.admin-acl-lifecycle"
+title = "packaged admin creates, describes, and deletes exact ACLs"
+description = "The packaged client's public ACL operations preserve caller order and exact bindings while independent Kafka CLI queries prove the broker state after every terminal."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-acls"
+kind = "create_acls"
+client_id = "client-1"
+operation_id = "admin-create-acls-1"
+timeout_ms = 20000
+bindings = [
+  { resource = { resource_kind = "topic", name = "testlab-kafkars-acl-topic" }, principal = "User:testlab-reader", operation = "read", permission = "allow" },
+  { resource = { resource_kind = "group", name = "testlab-kafkars-acl-group" }, principal = "User:testlab-reader", operation = "read", permission = "allow" },
+  { resource = { resource_kind = "transactional_id", name = "testlab-kafkars-acl-transaction" }, principal = "User:testlab-writer", operation = "write", permission = "deny" },
+]
+
+[[steps]]
+id = "describe-acl"
+kind = "describe_acls"
+client_id = "client-1"
+operation_id = "admin-describe-acls-1"
+timeout_ms = 20000
+binding = { resource = { resource_kind = "topic", name = "testlab-kafkars-acl-topic" }, principal = "User:testlab-reader", operation = "read", permission = "allow" }
+
+[[steps]]
+id = "delete-acls"
+kind = "delete_acls"
+client_id = "client-1"
+operation_id = "admin-delete-acls-1"
+timeout_ms = 20000
+bindings = [
+  { resource = { resource_kind = "topic", name = "testlab-kafkars-acl-topic" }, principal = "User:testlab-reader", operation = "read", permission = "allow" },
+  { resource = { resource_kind = "group", name = "testlab-kafkars-acl-group" }, principal = "User:testlab-reader", operation = "read", permission = "allow" },
+  { resource = { resource_kind = "transactional_id", name = "testlab-kafkars-acl-transaction" }, principal = "User:testlab-writer", operation = "write", permission = "deny" },
+]
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

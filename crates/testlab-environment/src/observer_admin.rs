@@ -33,6 +33,9 @@ pub(super) fn capture(
     target: &AdminTarget,
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     match target {
+        AdminTarget::Acls(_) => Err(ObserverError::InvalidTarget(
+            "ACL target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Topic(target) => Ok(vec![observer_admin_metadata::capture_topic(
             request, target,
         )?]),

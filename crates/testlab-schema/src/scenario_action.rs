@@ -1,7 +1,6 @@
 //! Scenario actions declare bounded public calls and external broker controls.
 #![allow(missing_docs, reason = "admin variants use public payload types")]
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
-/// Scenario action vocabulary for scenario schema v40.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -9,9 +8,7 @@ pub enum ScenarioAction {
         client_id: ClientId,
     },
     CreateConfiguredClient(crate::CreateConfiguredClientAction),
-    /// Waits for one explicit public client readiness probe.
     AwaitClientReady {
-        /// Existing client identity.
         client_id: ClientId,
     },
     ObserveClientMetrics(crate::ObserveClientMetricsAction),
@@ -234,6 +231,9 @@ pub enum ScenarioAction {
     DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsAction),
     DeleteConsumerGroup(crate::DeleteConsumerGroupAction),
     DescribeClassicGroups(crate::DescribeClassicGroupsAction),
+    CreateAcls(crate::CreateAclsAction),
+    DescribeAcls(crate::DescribeAclsAction),
+    DeleteAcls(crate::DeleteAclsAction),
     /// Initializes one uniquely controlled public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.

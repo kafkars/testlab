@@ -4,6 +4,7 @@ use std::collections::BTreeSet;
 
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
+use crate::observer_admin_acl_target;
 use crate::observer_admin_batch_topic_target;
 use crate::observer_admin_config_target;
 use crate::observer_admin_group_target;
@@ -17,6 +18,7 @@ pub(super) type TargetMatch = (AdapterCommand, AdminTarget);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) enum AdminTarget {
+    Acls(AclsTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
     Cluster(OperationId),
@@ -29,6 +31,12 @@ pub(super) enum AdminTarget {
     TopicConfig(ConfigTarget),
     PartitionOffsets(PartitionOffsetsTarget),
     PartitionOffsetsBatch(PartitionOffsetsBatchTarget),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct AclsTarget {
+    pub(super) operation_id: OperationId,
+    pub(super) bindings: Vec<testlab_schema::LiteralAclBinding>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -128,7 +136,8 @@ impl AdminTarget {
         action: &ScenarioAction,
         command: &AdapterCommand,
     ) -> Result<Option<Self>, ObserverError> {
-        let matched = match observer_admin_offset_batch_target::match_action(action)?
+        let matched = match observer_admin_acl_target::match_action(action)?
+            .or(observer_admin_offset_batch_target::match_action(action)?)
             .or(observer_admin_batch_topic_target::match_action(action)?)
             .or(observer_admin_topic_target::match_action(action)?)
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
@@ -152,6 +161,7 @@ impl AdminTarget {
 
     pub(super) fn operation_id(&self) -> &OperationId {
         match self {
+            Self::Acls(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
             Self::Topics(target) | Self::ConsumerGroups(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
@@ -168,6 +178,7 @@ impl AdminTarget {
 
     pub(super) fn observation_count(&self) -> usize {
         match self {
+            Self::Acls(target) => target.bindings.len(),
             Self::Topics(target) | Self::ConsumerGroups(target) => target.names.len(),
             Self::ConsumerGroupOffsets(target) => target.offsets.len(),
             Self::ConsumerGroupsOffsets(target) => {

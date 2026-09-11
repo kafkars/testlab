@@ -1,10 +1,13 @@
 //! Curated imports bind the adapter to Kafkars' public module facades.
 
 pub(crate) use kafkars::admin::{
-    ClusterBroker, ConfigAlteration, ConsumerGroupOffsetAlteration, DeleteRecordsTarget,
-    DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult,
-    ListOffsetsQuery, NewPartitions, NewTopic, OffsetSpec, TopicConfigAlterations,
-    TopicConfigQuery, TopicDescription,
+    AccessControlEntry, AclBinding, AclBindingFilter, AclOperation, AclPatternType,
+    AclPermissionType, AclResourceType, ClusterBroker, ConfigAlteration,
+    ConsumerGroupOffsetAlteration, CreateAclOutcome, CreateAclResult, DeleteAclFilterOutcome,
+    DeleteAclFilterResult, DeleteAclMatchResult, DeleteRecordsTarget, DescribeTopicPartitionsTopic,
+    ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult, ListOffsetsQuery, NewPartitions,
+    NewTopic, OffsetSpec, ResourcePattern, TopicConfigAlterations, TopicConfigQuery,
+    TopicDescription,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

@@ -98,7 +98,10 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DeleteConsumerGroupOffset(_)
         | ScenarioAction::DeleteConsumerGroupOffsets(_)
         | ScenarioAction::DeleteConsumerGroup(_)
-        | ScenarioAction::DescribeClassicGroups(_)) => {
+        | ScenarioAction::DescribeClassicGroups(_)
+        | ScenarioAction::CreateAcls(_)
+        | ScenarioAction::DescribeAcls(_)
+        | ScenarioAction::DeleteAcls(_)) => {
             return crate::session_command_admin::translate(action);
         }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }

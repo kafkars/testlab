@@ -1,5 +1,6 @@
 //! Public Admin protocol types are collected behind one crate-root facade.
 
+pub use crate::admin_acl::*;
 pub use crate::admin_classic_group::*;
 pub use crate::admin_cluster::{
     AdminClusterDescription, DescribeClusterAction, DescribeClusterCommand,

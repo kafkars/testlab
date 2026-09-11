@@ -9,6 +9,8 @@ use testlab_schema::{
     TransactionDisposition, TransactionalTransformCompletion,
 };
 
+pub(crate) mod admin_acl;
+mod admin_acl_command_match;
 mod admin_batch_command_match;
 mod admin_command_match;
 mod admin_config_command_match;
@@ -221,6 +223,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
+    pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) clusters_described: BTreeMap<OperationId, Vec<IndexedClusterDescription>>,
     pub(crate) consumer_groups_listed: BTreeMap<OperationId, Vec<IndexedConsumerGroupsList>>,
     pub(crate) consumer_groups_described:

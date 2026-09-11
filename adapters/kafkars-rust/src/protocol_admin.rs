@@ -23,6 +23,11 @@ pub(crate) fn dispatch<W: Write>(
     command: AdapterCommand,
 ) -> Result<(), AdapterError> {
     match command {
+        command @ (AdapterCommand::CreateAcls(_)
+        | AdapterCommand::DescribeAcls(_)
+        | AdapterCommand::DeleteAcls(_)) => {
+            crate::protocol_admin_acl::dispatch(state, writer, command_id, command)
+        }
         command @ (AdapterCommand::CreateTopic(_)
         | AdapterCommand::CreateTopicsBatch(_)
         | AdapterCommand::CreatePartitions(_)

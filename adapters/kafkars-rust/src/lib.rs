@@ -24,6 +24,9 @@ mod normalize;
 mod producer_configuration;
 mod protocol;
 mod protocol_admin;
+mod protocol_admin_acl;
+mod protocol_admin_acl_mapping;
+mod protocol_admin_acl_result;
 mod protocol_admin_classic_group;
 mod protocol_admin_cluster;
 mod protocol_admin_config;
@@ -82,6 +85,8 @@ mod connection_security_test;
 mod normalize_test;
 #[cfg(test)]
 mod producer_configuration_test;
+#[cfg(test)]
+mod protocol_admin_acl_test;
 #[cfg(test)]
 mod protocol_admin_config_test;
 #[cfg(test)]

@@ -24,6 +24,7 @@ mod runner_adversary;
 mod runner_environment;
 mod runner_protocol;
 mod runner_protocol_admin;
+mod runner_protocol_admin_acl;
 mod runner_protocol_admin_config;
 mod runner_protocol_admin_group_batch;
 mod runner_protocol_cancel;
@@ -35,6 +36,7 @@ mod runner_protocol_share;
 mod session;
 mod session_command;
 mod session_command_admin;
+mod session_command_admin_acl;
 mod session_command_admin_batch;
 mod session_command_admin_config;
 mod session_command_admin_group_batch;
@@ -50,6 +52,8 @@ pub use run_error::AppError;
 
 #[cfg(test)]
 mod action_contract_test;
+#[cfg(test)]
+mod admin_acl_protocol_test;
 #[cfg(test)]
 mod candidate_provenance_test;
 #[cfg(test)]

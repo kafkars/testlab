@@ -1,5 +1,4 @@
 //! Admin history recording keeps each public operation and result shape distinct.
-
 use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
 
 use super::{
@@ -16,6 +15,9 @@ impl HistoryIndex {
         reason = "the exhaustive event recorder keeps every public admin result visibly indexed"
     )]
     pub(super) fn record_admin_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
+        if self.admin_acls.record_event(event, sequence) {
+            return true;
+        }
         if self.admin_offset_batches.record_event(event, sequence) {
             return true;
         }
@@ -252,7 +254,8 @@ impl HistoryIndex {
 }
 
 fn action_operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId> {
-    super::admin_batch_command_match::action_operation_id(action)
+    super::admin_acl_command_match::action_operation_id(action)
+        .or_else(|| super::admin_batch_command_match::action_operation_id(action))
         .or_else(|| super::admin_group_batch::action_operation_id(action))
         .or_else(|| super::admin_delete_records_command_match::action_operation_id(action))
         .or_else(|| super::admin_command_match::action_operation_id(action))
@@ -260,7 +263,8 @@ fn action_operation_id(action: &ScenarioAction) -> Option<&testlab_schema::Opera
 }
 
 fn command_operation_id(command: &AdapterCommand) -> Option<&testlab_schema::OperationId> {
-    super::admin_batch_command_match::command_operation_id(command)
+    super::admin_acl_command_match::command_operation_id(command)
+        .or_else(|| super::admin_batch_command_match::command_operation_id(command))
         .or_else(|| super::admin_group_batch::command_operation_id(command))
         .or_else(|| super::admin_delete_records_command_match::command_operation_id(command))
         .or_else(|| super::admin_command_match::command_operation_id(command))
@@ -268,7 +272,8 @@ fn command_operation_id(command: &AdapterCommand) -> Option<&testlab_schema::Ope
 }
 
 fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
-    super::admin_batch_command_match::matches(action, command)
+    super::admin_acl_command_match::matches(action, command)
+        .or_else(|| super::admin_batch_command_match::matches(action, command))
         .or_else(|| super::admin_group_batch::matches(action, command))
         .or_else(|| super::admin_delete_records_command_match::matches(action, command))
         .or_else(|| super::admin_config_command_match::matches(action, command))

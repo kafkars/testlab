@@ -1,17 +1,12 @@
-//! Expected event shapes constrain each sequential protocol-v37 command.
-
-use std::collections::BTreeSet;
-
-use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
-
+//! Expected event shapes constrain each sequential protocol-v38 command.
 use crate::run_error::RunFailure;
 use crate::runner_protocol_admin::classify_admin;
 use crate::runner_protocol_admin_config::classify as classify_admin_config;
 use crate::runner_protocol_admin_group_batch::classify as classify_admin_group_batch;
-use crate::runner_protocol_family::{classify_group, classify_transaction, same_event_family};
-
 pub(crate) use crate::runner_protocol_event::EventDisposition;
-
+use crate::runner_protocol_family::{classify_group, classify_transaction, same_event_family};
+use std::collections::BTreeSet;
+use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug)]
 pub(crate) enum ExpectedEvent {
     Ready,
@@ -149,6 +144,9 @@ pub(crate) enum ExpectedEvent {
     ClassicGroupsDescribed {
         operation_id: OperationId,
     },
+    AclsCreated(OperationId),
+    AclsDescribed(OperationId),
+    AclsDeleted(OperationId),
     TransactionalProducerCreated(ProducerId),
     TransactionCompleted {
         transaction_id: OperationId,
@@ -166,7 +164,6 @@ pub(crate) enum ExpectedEvent {
     Finished,
     Aborted,
 }
-
 impl ExpectedEvent {
     pub(crate) fn classify(&self, event: &AdapterEvent) -> Result<EventDisposition, RunFailure> {
         if matches!(event, AdapterEvent::CommandFailed { .. }) {
@@ -185,6 +182,9 @@ impl ExpectedEvent {
             return disposition;
         }
         if let Some(disposition) = classify_admin_group_batch(self, event) {
+            return disposition;
+        }
+        if let Some(disposition) = crate::runner_protocol_admin_acl::classify(self, event) {
             return disposition;
         }
         if let Some(disposition) = classify_admin(self, event) {

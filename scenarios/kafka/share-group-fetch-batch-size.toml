@@ -1,4 +1,4 @@
-schema_version = 40
+schema_version = 41
 id = "kafka.share-group-fetch-batch-size"
 title = "configured Share fetches preserve one-record acquisition ranges"
 description = "Three separately flushed Kafka record batches enter one configured Share fetch, whose public batch returns all three independently observed records in three one-record acquisition ranges."

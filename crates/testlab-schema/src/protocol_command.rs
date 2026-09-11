@@ -1,9 +1,6 @@
 //! Adapter commands are the public operations testctl may request.
 #![allow(missing_docs, reason = "typed payload variants are self-describing")]
-
 use crate::{BatchRecord, ClientId, ConsumerId, OperationId, ProducerId};
-
-/// Public operation requested from an adapter.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum AdapterCommand {
@@ -226,6 +223,9 @@ pub enum AdapterCommand {
     DeleteConsumerGroup(crate::DeleteConsumerGroupCommand),
     /// Describes multiple classic consumer groups through one public admin call.
     DescribeClassicGroups(crate::DescribeClassicGroupsCommand),
+    CreateAcls(crate::CreateAclsCommand),
+    DescribeAcls(crate::DescribeAclsCommand),
+    DeleteAcls(crate::DeleteAclsCommand),
     /// Initializes one public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.

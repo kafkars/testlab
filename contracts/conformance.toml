@@ -235,6 +235,24 @@ statement = "Each requested public unfiltered all-group listing emits exactly on
 category = "admin"
 
 [[contract]]
+id = "ADMIN-030"
+title = "ACL creation preserves caller order and broker state"
+statement = "One public ACL creation call returns exactly one successful outcome per literal wildcard-host binding in caller order, and immediate independent Kafka CLI queries confirm every exact binding is present."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-031"
+title = "ACL description returns the exact public binding"
+statement = "One public exact ACL description returns only the requested literal wildcard-host binding, and an immediate independent Kafka CLI query confirms the same binding is present."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-032"
+title = "ACL deletion preserves filters, matches, and absence"
+statement = "One public ACL deletion call returns exactly one successful exact match per caller-ordered filter, and immediate independent Kafka CLI queries confirm every deleted binding is absent."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

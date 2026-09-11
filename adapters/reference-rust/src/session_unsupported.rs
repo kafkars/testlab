@@ -47,7 +47,10 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DeleteConsumerGroupOffset(_)
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DeleteConsumerGroup(_)
-        | AdapterCommand::DescribeClassicGroups(_) => "admin capability required",
+        | AdapterCommand::DescribeClassicGroups(_)
+        | AdapterCommand::CreateAcls(_)
+        | AdapterCommand::DescribeAcls(_)
+        | AdapterCommand::DeleteAcls(_) => "admin capability required",
         AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::ExecuteTransactionalTransform(_)

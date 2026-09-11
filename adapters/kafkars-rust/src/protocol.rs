@@ -187,7 +187,10 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteConsumerGroupOffset(_)
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DescribeClassicGroups(_)
-        | AdapterCommand::DeleteConsumerGroup(_)) => {
+        | AdapterCommand::DeleteConsumerGroup(_)
+        | AdapterCommand::CreateAcls(_)
+        | AdapterCommand::DescribeAcls(_)
+        | AdapterCommand::DeleteAcls(_)) => {
             protocol_admin::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateTransactionalProducer { .. }

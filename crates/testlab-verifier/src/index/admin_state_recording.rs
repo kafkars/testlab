@@ -10,6 +10,9 @@ use super::{
 
 impl HistoryIndex {
     pub(super) fn record_state(&mut self, observation: &BrokerStateObservation, sequence: u64) {
+        if self.admin_acls.record_state(observation, sequence) {
+            return;
+        }
         match observation {
             BrokerStateObservation::Topic(value) => self
                 .topics_observed
@@ -78,6 +81,9 @@ impl HistoryIndex {
                     low_watermark: value.low_watermark,
                     high_watermark: value.high_watermark,
                 }),
+            BrokerStateObservation::Acl(_) => {
+                unreachable!("ACL observations are indexed before generic admin state")
+            }
         }
     }
 }

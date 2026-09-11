@@ -84,7 +84,10 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::DeleteConsumerGroupOffset(_)
         | ScenarioAction::DeleteConsumerGroupOffsets(_)
         | ScenarioAction::DeleteConsumerGroup(_)
-        | ScenarioAction::DescribeClassicGroups(_) => Some(Capability::Admin),
+        | ScenarioAction::DescribeClassicGroups(_)
+        | ScenarioAction::CreateAcls(_)
+        | ScenarioAction::DescribeAcls(_)
+        | ScenarioAction::DeleteAcls(_) => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::ExecuteTransactionalTransform(_)

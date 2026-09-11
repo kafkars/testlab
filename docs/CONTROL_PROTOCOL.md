@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v37 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v40 and evidence schema v26.
+Protocol v38 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v41 and evidence schema v27.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -91,6 +91,9 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `delete_consumer_group_offsets`
 - `delete_consumer_group`
 - `describe_classic_groups`
+- `create_acls`
+- `describe_acls`
+- `delete_acls`
 - `create_transactional_producer`
 - `execute_transaction`
 - `execute_transactional_transform`
@@ -223,6 +226,9 @@ timeouts invalidate evidence.
 - `consumer_group_offsets_deleted`
 - `consumer_group_deleted`
 - `classic_groups_described`
+- `acls_created`
+- `acls_described`
+- `acls_deleted`
 - `transactional_producer_created`
 - `transaction_completed`
 - `transactional_transform_completed`
@@ -495,6 +501,18 @@ inferred from that broker fact: every counted live member must be an explicitly
 declared classic consumer with a prior successful committed `group_receive` and
 a positive classic group epoch.
 
+ACL administration is bounded to one through 32 caller-ordered concrete
+bindings over literal topic, group, or transactional-ID resources, exact
+`User:` principals, wildcard host `*`, the read, write, or create operation,
+and allow or deny permission. Creation and deletion preserve one public outcome
+per caller position, including exact nested deletion matches and normalized
+broker errors. Description uses one exact public filter. After every successful
+public terminal, the environment independently invokes the pinned Kafka ACL CLI
+for each binding in caller order. Creation and description require exact
+presence; deletion requires exact absence. Unsupported public result shapes,
+CLI output, reordering, partial success, or an observation outside the command
+window invalidates the corresponding claim.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -576,6 +594,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v37 is an exact semantic contract. New capabilities may be declared
+Protocol v38 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -145,6 +145,9 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DeleteConsumerGroup(_)
         | AdapterCommand::DescribeClassicGroups(_)
+        | AdapterCommand::CreateAcls(_)
+        | AdapterCommand::DescribeAcls(_)
+        | AdapterCommand::DeleteAcls(_)
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::ExecuteTransactionalTransform(_)

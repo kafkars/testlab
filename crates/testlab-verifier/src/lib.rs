@@ -1,6 +1,7 @@
 //! Pure deterministic verification maps public history and observations to contracts.
 
 mod admin;
+mod admin_acl;
 mod admin_batch;
 mod admin_classic_groups;
 mod admin_cluster;
@@ -61,6 +62,8 @@ mod verify_index;
 pub use contracts::known_contract_ids;
 pub use verify::verify;
 
+#[cfg(test)]
+mod admin_acl_test;
 #[cfg(test)]
 mod admin_batch_test;
 #[cfg(test)]

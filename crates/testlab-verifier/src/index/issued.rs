@@ -114,7 +114,10 @@ impl HistoryIndex {
             | ScenarioAction::ListConsumerGroupsOffsets(_)
             | ScenarioAction::AlterConsumerGroupOffsets(_)
             | ScenarioAction::DeleteConsumerGroupOffsets(_)
-            | ScenarioAction::DescribeClassicGroups(_) => {
+            | ScenarioAction::DescribeClassicGroups(_)
+            | ScenarioAction::CreateAcls(_)
+            | ScenarioAction::DescribeAcls(_)
+            | ScenarioAction::DeleteAcls(_) => {
                 unreachable!("admin actions are indexed before generic actions")
             }
             ScenarioAction::CreateTransactionalProducer { .. }

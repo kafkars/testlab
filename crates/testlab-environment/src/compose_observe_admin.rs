@@ -27,6 +27,9 @@ impl DockerComposeEnvironment {
             Ok(None) => return ComposeObservation::default(),
             Err(error) => Err(error),
         };
+        if let Ok(target @ AdminTarget::Acls(_)) = &target {
+            return self.observe_acls_with_cli(target, timeout);
+        }
         if self.cluster_size > 1
             && let Ok(target) = &target
             && crate::group_cli_observation::supports(target)
