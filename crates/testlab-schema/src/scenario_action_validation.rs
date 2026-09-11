@@ -133,6 +133,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeFeatures(_)
         | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::DescribeLogDirs(_)
+        | ScenarioAction::DescribeReplicaLogDirs(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::ListConsumerGroups(_)
@@ -244,7 +245,6 @@ fn require_live_client(client_id: &ClientId, clients: &ClientStates, problems: &
         None => problems.push(format!("missing client {client_id} was used")),
     }
 }
-
 fn create_producer(
     client_id: &ClientId,
     producer_id: &ProducerId,

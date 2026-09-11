@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v57 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v60 and evidence schema v46.
+Protocol v58 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v61 and evidence schema v47.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -88,6 +88,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_features`
 - `describe_producers`
 - `describe_log_dirs`
+- `describe_replica_log_dirs`
 - `list_transactions`
 - `describe_transactions`
 - `list_consumer_groups`
@@ -716,6 +717,14 @@ capacity and cordon fields, and exact replica size, lag, and future markers. An
 immediate independent `kafka-log-dirs.sh --describe --topic-list` JSON snapshot
 retains every shared field in canonical broker order.
 
+Replica log-directory description carries the same exact topic-partition and
+complete deadline while its expected current-placement count stays outside the
+wire command. The adapter discovers every broker, queries the corresponding
+replica identities in descending broker order through
+`describe_replica_log_dirs`, and preserves current, absent, and future paths
+with exact signed lags. The immediate pinned `kafka-log-dirs.sh` snapshot
+provides the independently canonicalized placement state.
+
 Transaction listing carries no fixture expectations or filters across the
 wire. Its public completion retains every transactional ID, producer ID, and
 Kafka-owned state in canonical transactional-ID order. Caller-ordered
@@ -801,6 +810,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v57 is an exact semantic contract. New capabilities may be declared
+Protocol v58 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

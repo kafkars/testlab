@@ -34,7 +34,6 @@ pub enum ScenarioAction {
     StartBroker {
         /// One-based declared broker ordinal.
         broker_ordinal: u16,
-        /// Complete start and readiness bound.
         timeout_ms: u64,
     },
     /// Stops the independently observed owner of one exact Kafka role.
@@ -216,6 +215,7 @@ pub enum ScenarioAction {
     DescribeFeatures(crate::DescribeFeaturesAction),
     DescribeProducers(crate::DescribeProducersAction),
     DescribeLogDirs(crate::DescribeLogDirsAction),
+    DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsAction),
     ListTransactions(crate::ListTransactionsAction),
     DescribeTransactions(crate::DescribeTransactionsAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),

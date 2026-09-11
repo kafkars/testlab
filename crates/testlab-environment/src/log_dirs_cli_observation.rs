@@ -107,7 +107,10 @@ fn normalize_directory(
         .partitions
         .into_iter()
         .map(|replica| normalize_replica(replica, target))
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>();
     replicas.sort_unstable();
     if replicas.windows(2).any(|pair| pair[0] == pair[1]) {
         return Err(invalid("log-directory JSON repeated a replica"));
@@ -121,26 +124,33 @@ fn normalize_directory(
 fn normalize_replica(
     replica: CliReplica,
     target: &LogDirsTarget,
-) -> Result<LogDirReplicaState, ObserverError> {
+) -> Result<Option<LogDirReplicaState>, ObserverError> {
     let prefix = format!("{}-", target.topic);
     let partition = replica
         .partition
         .strip_prefix(&prefix)
         .and_then(|value| value.parse::<i32>().ok())
-        .filter(|partition| *partition == target.partition)
-        .ok_or_else(|| invalid("log-directory JSON contained a foreign partition"))?;
+        .ok_or_else(|| invalid("log-directory JSON contained a malformed partition identity"))?;
+    if partition < 0 {
+        return Err(invalid(
+            "log-directory JSON contained a negative partition identity",
+        ));
+    }
     if replica.size < 0 {
         return Err(invalid(
             "log-directory JSON contained a negative replica size",
         ));
     }
-    Ok(LogDirReplicaState {
+    if partition != target.partition {
+        return Ok(None);
+    }
+    Ok(Some(LogDirReplicaState {
         topic: target.topic.clone(),
         partition,
         size_bytes: replica.size,
         offset_lag: replica.offset_lag,
         is_future: replica.is_future,
-    })
+    }))
 }
 
 fn parse_broker_list(value: &str) -> Result<Vec<i32>, ObserverError> {

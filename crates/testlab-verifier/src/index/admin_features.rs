@@ -4,9 +4,10 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminFeaturesDescription, AdminLogDirsDescription,
-    AdminProducersDescription, AdminTransactionsDescription, AdminTransactionsListing,
-    BrokerFeaturesState, BrokerLogDirsState, BrokerProducersState, BrokerStateObservation,
-    BrokerTransactionState, BrokerTransactionsState, OperationId, ScenarioAction,
+    AdminProducersDescription, AdminReplicaLogDirsDescription, AdminTransactionsDescription,
+    AdminTransactionsListing, BrokerFeaturesState, BrokerLogDirsState, BrokerProducersState,
+    BrokerStateObservation, BrokerTransactionState, BrokerTransactionsState, OperationId,
+    ScenarioAction,
 };
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
@@ -14,6 +15,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
         ScenarioAction::DescribeFeatures(value) => Some(&value.operation_id),
         ScenarioAction::DescribeProducers(value) => Some(&value.operation_id),
         ScenarioAction::DescribeLogDirs(value) => Some(&value.operation_id),
+        ScenarioAction::DescribeReplicaLogDirs(value) => Some(&value.operation_id),
         ScenarioAction::ListTransactions(value) => Some(&value.operation_id),
         ScenarioAction::DescribeTransactions(value) => Some(&value.operation_id),
         _ => None,
@@ -25,6 +27,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
         AdapterCommand::DescribeFeatures(value) => Some(&value.operation_id),
         AdapterCommand::DescribeProducers(value) => Some(&value.operation_id),
         AdapterCommand::DescribeLogDirs(value) => Some(&value.operation_id),
+        AdapterCommand::DescribeReplicaLogDirs(value) => Some(&value.operation_id),
         AdapterCommand::ListTransactions(value) => Some(&value.operation_id),
         AdapterCommand::DescribeTransactions(value) => Some(&value.operation_id),
         _ => None,
@@ -46,6 +49,16 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.timeout_ms == command.timeout_ms
         }
         (ScenarioAction::DescribeLogDirs(action), AdapterCommand::DescribeLogDirs(command)) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.topic == command.topic
+                && action.partition == command.partition
+                && action.timeout_ms == command.timeout_ms
+        }
+        (
+            ScenarioAction::DescribeReplicaLogDirs(action),
+            AdapterCommand::DescribeReplicaLogDirs(command),
+        ) => {
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
                 && action.topic == command.topic
@@ -77,6 +90,8 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
             false
         }
         (ScenarioAction::DescribeLogDirs(_), _) | (_, AdapterCommand::DescribeLogDirs(_)) => false,
+        (ScenarioAction::DescribeReplicaLogDirs(_), _)
+        | (_, AdapterCommand::DescribeReplicaLogDirs(_)) => false,
         (ScenarioAction::ListTransactions(_), _) | (_, AdapterCommand::ListTransactions(_)) => {
             false
         }
@@ -100,6 +115,8 @@ pub(crate) struct AdminFeaturesIndex {
     pub(crate) producers_observed: BTreeMap<OperationId, Vec<Indexed<BrokerProducersState>>>,
     pub(crate) log_dirs_described: BTreeMap<OperationId, Vec<Indexed<AdminLogDirsDescription>>>,
     pub(crate) log_dirs_observed: BTreeMap<OperationId, Vec<Indexed<BrokerLogDirsState>>>,
+    pub(crate) replica_log_dirs_described:
+        BTreeMap<OperationId, Vec<Indexed<AdminReplicaLogDirsDescription>>>,
     pub(crate) transactions_listed: BTreeMap<OperationId, Vec<Indexed<AdminTransactionsListing>>>,
     pub(crate) transactions_observed: BTreeMap<OperationId, Vec<Indexed<BrokerTransactionsState>>>,
     pub(crate) transactions_described:
@@ -125,6 +142,12 @@ impl AdminFeaturesIndex {
             ),
             AdapterEvent::LogDirsDescribed(value) => push(
                 &mut self.log_dirs_described,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            AdapterEvent::ReplicaLogDirsDescribed(value) => push(
+                &mut self.replica_log_dirs_described,
                 value.operation_id.clone(),
                 value.clone(),
                 sequence,

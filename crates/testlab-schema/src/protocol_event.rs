@@ -213,9 +213,9 @@ pub enum AdapterEvent {
     FeaturesDescribed(crate::AdminFeaturesDescription),
     ProducersDescribed(crate::AdminProducersDescription),
     LogDirsDescribed(crate::AdminLogDirsDescription),
+    ReplicaLogDirsDescribed(crate::AdminReplicaLogDirsDescription),
     TransactionsListed(crate::AdminTransactionsListing),
     TransactionsDescribed(crate::AdminTransactionsDescription),
-    /// One public admin consumer-group listing completed successfully.
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),

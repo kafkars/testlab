@@ -200,9 +200,9 @@ pub enum AdapterCommand {
     DescribeFeatures(crate::DescribeFeaturesCommand),
     DescribeProducers(crate::DescribeProducersCommand),
     DescribeLogDirs(crate::DescribeLogDirsCommand),
+    DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsCommand),
     ListTransactions(crate::ListTransactionsCommand),
     DescribeTransactions(crate::DescribeTransactionsCommand),
-    /// Lists consumer groups visible through the public admin surface.
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),

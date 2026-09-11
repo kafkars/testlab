@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v57. It is not a
+An adapter translates one packaged client surface to protocol v58. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -20,6 +20,8 @@ runner and not a verifier.
 - Preserve selected-partition log-directory broker order, canonical paths,
   optional capacity metadata, and exact replica sizes, lags, and future markers
   without receiving the expected replica count.
+- Preserve selected-replica caller order and every current, absent, or future
+  path and signed lag without receiving the expected current-placement count.
 - Preserve caller order, exact topic keys, topic IDs, internal markers, ordered
   partitions, and per-topic or per-partition errors for plural topic
   descriptions.

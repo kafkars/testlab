@@ -16,7 +16,6 @@ use std::io::{self, BufRead, Read, Write};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
-
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
 const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
 
@@ -178,6 +177,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
+        | AdapterCommand::DescribeReplicaLogDirs(_)
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::ListConsumerGroups(_)

@@ -11,7 +11,7 @@ pub(crate) use kafkars::admin::{
     ListShareGroupOffsetsResult, NewPartitions, NewTopic, OffsetSpec, ResourcePattern,
     ScramCredentialInfo, ScramMechanism, ShareGroupDescription, ShareGroupOffset,
     ShareGroupOffsetAlteration, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
-    UserScramCredentialAlteration,
+    TopicPartitionReplica, UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

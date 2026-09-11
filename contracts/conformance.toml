@@ -385,6 +385,12 @@ statement = "One selected-partition public log-directory description discovers e
 category = "admin"
 
 [[contract]]
+id = "ADMIN-055"
+title = "Replica log-directory descriptions preserve caller order and exact placements"
+statement = "One selected-replica public log-directory description discovers every broker, queries the same topic-partition on each in descending caller order, and preserves every current, absent, or future placement and exact signed lag while one immediate pinned Kafka CLI snapshot matches the canonical broker state and the stable fixture has no future placement."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

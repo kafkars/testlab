@@ -75,6 +75,8 @@ mod admin_log_dirs_protocol_test;
 #[cfg(test)]
 mod admin_producers_protocol_test;
 #[cfg(test)]
+mod admin_replica_log_dirs_protocol_test;
+#[cfg(test)]
 mod admin_share_group_lifecycle_protocol_test;
 #[cfg(test)]
 mod admin_share_group_offset_deletion_protocol_test;

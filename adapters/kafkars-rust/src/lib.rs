@@ -45,6 +45,7 @@ mod protocol_admin_log_dirs;
 mod protocol_admin_plural_result;
 mod protocol_admin_producers;
 mod protocol_admin_read;
+mod protocol_admin_replica_log_dirs;
 mod protocol_admin_result;
 mod protocol_admin_share_group;
 mod protocol_admin_share_group_deletion;

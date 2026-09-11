@@ -19,7 +19,7 @@ fn json_is_parsed_exactly_and_canonicalized() {
 }
 
 #[test]
-fn bad_status_version_errors_and_foreign_partitions_fail_closed() {
+fn bad_status_version_and_malformed_partition_identities_fail_closed() {
     assert!(normalize(1, &target(), b"{}\n").is_err());
     assert!(
         normalize(
@@ -43,10 +43,21 @@ fn bad_status_version_errors_and_foreign_partitions_fail_closed() {
         normalize(
             1,
             &target(),
-            OUTPUT.replace("orders-0", "orders-1").as_bytes()
+            OUTPUT.replace("orders-0", "foreign-0").as_bytes()
         )
         .is_err()
     );
+}
+
+#[test]
+fn unselected_partitions_are_filtered_from_the_topic_level_cli_snapshot() {
+    let output = OUTPUT.replace("orders-0", "orders-1");
+    let observed = normalize(1, &target(), output.as_bytes())
+        .unwrap_or_else(|error| panic!("normalize unselected partition: {error}"));
+    let BrokerStateObservation::LogDirs(observed) = observed else {
+        panic!("log-directory observation kind");
+    };
+    assert!(observed.brokers[0].log_dirs[0].replicas.is_empty());
 }
 
 fn target() -> LogDirsTarget {

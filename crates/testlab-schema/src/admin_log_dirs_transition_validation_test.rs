@@ -1,6 +1,6 @@
 use crate::{
-    ClientId, CreateTopicAction, DescribeLogDirsAction, OperationId, SCENARIO_SCHEMA_VERSION,
-    Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
+    ClientId, CreateTopicAction, DescribeLogDirsAction, DescribeReplicaLogDirsAction, OperationId,
+    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
 
 #[test]
@@ -21,6 +21,27 @@ fn log_directory_target_matches_a_prior_created_replica_fixture() {
             .iter()
             .any(|problem| problem.contains("must equal the prior topic replication factor"))
     );
+}
+
+#[test]
+fn replica_log_directory_target_uses_the_same_created_fixture_contract() {
+    let mut scenario = fixture();
+    scenario.steps[2].action =
+        ScenarioAction::DescribeReplicaLogDirs(DescribeReplicaLogDirsAction {
+            client_id: client(),
+            operation_id: operation("describe-replica-log-dirs"),
+            topic: "orders".to_owned(),
+            partition: 0,
+            expected_replica_count: 1,
+            timeout_ms: 1_000,
+        });
+    assert!(scenario.validate().is_ok());
+
+    let ScenarioAction::DescribeReplicaLogDirs(action) = &mut scenario.steps[2].action else {
+        panic!("replica log-directory action");
+    };
+    action.expected_replica_count = 2;
+    assert!(scenario.validate().is_err());
 }
 
 fn fixture() -> Scenario {

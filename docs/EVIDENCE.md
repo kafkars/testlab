@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v46 records the exact environment identity in `manifest.json`,
-retains protocol-v57 direct and hosted-group consumer controls and shutdown,
+Evidence schema v47 records the exact environment identity in `manifest.json`,
+retains protocol-v58 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -385,6 +385,15 @@ volume capacity or cordon fields remain explicit and must be internally valid.
 Scenario validation ties the selected partition and expected current-replica
 count to a prior successful topic creation, and the closed-producer fixture makes
 the compared replica log stable between snapshots.
+
+ADMIN-055 binds one caller-ordered public selected-replica log-directory
+description to one immediate pinned `kafka-log-dirs.sh --describe` JSON
+snapshot. The adapter queries the same topic-partition identity on every
+publicly discovered broker in descending broker order, including brokers where
+that replica is absent. The verifier requires the public order, current or
+absent path, and exact signed lag to match canonical CLI state for every broker;
+the scenario-owned closed-producer fixture requires its declared current
+replica count and rejects any transient future placement.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

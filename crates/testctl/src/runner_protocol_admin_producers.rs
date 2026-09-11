@@ -9,6 +9,9 @@ pub(super) fn classify(
     expected: &ExpectedEvent,
     event: &AdapterEvent,
 ) -> Option<Result<EventDisposition, RunFailure>> {
+    if let Some(result) = classify_replica_log_dirs(expected, event) {
+        return Some(result);
+    }
     if let Some(result) = classify_log_dirs(expected, event) {
         return Some(result);
     }
@@ -29,6 +32,30 @@ pub(super) fn classify(
         return None;
     };
     if operation_id == actual_operation && topic == actual_topic && partition == actual_partition {
+        Some(Ok(EventDisposition::Complete))
+    } else {
+        Some(Err(RunFailure::protocol(
+            "event_identity_mismatch",
+            format!("event {event:?} does not match expected {expected:?}"),
+        )))
+    }
+}
+
+fn classify_replica_log_dirs(
+    expected: &ExpectedEvent,
+    event: &AdapterEvent,
+) -> Option<Result<EventDisposition, RunFailure>> {
+    let (
+        ExpectedEvent::ReplicaLogDirsDescribed(operation_id, topic, partition),
+        AdapterEvent::ReplicaLogDirsDescribed(actual),
+    ) = (expected, event)
+    else {
+        return None;
+    };
+    if operation_id == &actual.operation_id
+        && topic == &actual.topic
+        && partition == &actual.partition
+    {
         Some(Ok(EventDisposition::Complete))
     } else {
         Some(Err(RunFailure::protocol(

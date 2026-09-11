@@ -1,4 +1,4 @@
-schema_version = 60
+schema_version = 61
 id = "kafka.admin-describe-topic-configs"
 title = "packaged admin describes caller-ordered topic configurations"
 description = "One public plural topic-configuration description preserves caller order and exact selected values while contiguous independent configuration reads confirm both topics."

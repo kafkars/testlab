@@ -17,12 +17,16 @@ impl DockerComposeEnvironment {
         timeout: Duration,
     ) -> ComposeObservation {
         let mut observed = ComposeObservation::default();
-        let AdminTarget::LogDirs(target) = target else {
-            observed.phase.fail(
-                "environment_observation_failed",
-                "non-log-directory target reached log-directory observer",
-            );
-            return observed;
+        let observation_target = target;
+        let target = match target {
+            AdminTarget::LogDirs(target) | AdminTarget::ReplicaLogDirs(target) => target,
+            _ => {
+                observed.phase.fail(
+                    "environment_observation_failed",
+                    "non-log-directory target reached log-directory observer",
+                );
+                return observed;
+            }
         };
         let Some(deadline) = Instant::now().checked_add(timeout) else {
             observed.phase.fail(
@@ -31,8 +35,7 @@ impl DockerComposeEnvironment {
             );
             return observed;
         };
-        let observation = match self.begin_admin_observation(&AdminTarget::LogDirs(target.clone()))
-        {
+        let observation = match self.begin_admin_observation(observation_target) {
             Ok(value) => value,
             Err(error) => {
                 observed

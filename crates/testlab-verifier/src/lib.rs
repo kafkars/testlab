@@ -23,6 +23,7 @@ mod admin_offset_batch;
 mod admin_producers;
 mod admin_records;
 mod admin_records_batch;
+mod admin_replica_log_dirs;
 mod admin_share_group;
 mod admin_share_group_offset_deletion;
 mod admin_share_group_offset_mutation;
@@ -127,6 +128,8 @@ mod admin_producers_test;
 mod admin_records_batch_test;
 #[cfg(test)]
 mod admin_records_test;
+#[cfg(test)]
+mod admin_replica_log_dirs_test;
 #[cfg(test)]
 mod admin_share_group_offset_deletion_test;
 #[cfg(test)]

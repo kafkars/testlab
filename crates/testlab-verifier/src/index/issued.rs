@@ -112,6 +112,7 @@ impl HistoryIndex {
             | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::DescribeProducers(_)
             | ScenarioAction::DescribeLogDirs(_)
+            | ScenarioAction::DescribeReplicaLogDirs(_)
             | ScenarioAction::ListTransactions(_)
             | ScenarioAction::DescribeTransactions(_)
             | ScenarioAction::ListConsumerGroups(_)

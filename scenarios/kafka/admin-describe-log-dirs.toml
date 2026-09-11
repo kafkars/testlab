@@ -1,4 +1,4 @@
-schema_version = 60
+schema_version = 61
 id = "kafka.admin-describe-log-dirs"
 title = "packaged admin describes independently observed replica log directories"
 description = "After creating a one-replica topic and writing one exact record, the packaged client's selected-partition log-directory result must preserve descending caller broker order, canonical paths, stable replica fields, and valid public capacity metadata while matching Kafka's pinned log-directory CLI."

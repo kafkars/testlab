@@ -64,6 +64,9 @@ pub(super) fn capture(
         AdminTarget::LogDirs(_) => Err(ObserverError::InvalidTarget(
             "log-directory target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::ReplicaLogDirs(_) => Err(ObserverError::InvalidTarget(
+            "replica log-directory target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Transactions(_) => Err(ObserverError::InvalidTarget(
             "transaction target requires the pinned Kafka CLI observer".to_owned(),
         )),

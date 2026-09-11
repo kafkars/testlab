@@ -72,6 +72,7 @@ scenarios = [
   "scenarios/kafka/admin-describe-features.toml",
   "scenarios/kafka/admin-describe-producers.toml",
   "scenarios/kafka/admin-describe-log-dirs.toml",
+  "scenarios/kafka/admin-describe-replica-log-dirs.toml",
   "scenarios/kafka/admin-transaction-discovery.toml",
   "scenarios/kafka/admin-list-consumer-groups.toml",
   "scenarios/kafka/admin-list-groups.toml",
