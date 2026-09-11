@@ -73,6 +73,8 @@
 - Dedicated client-metrics resource discovery retains its exact public
   throttle and canonical names against a separately provisioned and immediately
   listed pinned Kafka CLI state.
+- Kafka 4.3.1 finalized-feature updates cover the public validation-only path,
+  caller-ordered outcomes, and exact unchanged CLI state and epoch.
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
   incremental add/remove with survivor cursors, and read-committed isolation

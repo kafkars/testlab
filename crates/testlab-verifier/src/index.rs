@@ -3,7 +3,6 @@ use testlab_schema::{
     AdapterDescriptor, ClientId, CommandId, ConsumedRecord, ConsumerId, EnvironmentOperation,
     GroupAssignmentsObservation, GroupMembershipEpoch, GroupReceiveSetCompletion, HistoryEntry,
     OperationId, ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus,
-    TransactionDisposition, TransactionalTransformCompletion,
 };
 pub(crate) mod admin_acl;
 mod admin_acl_command_match;
@@ -15,6 +14,7 @@ mod admin_command_router;
 mod admin_config_command_match;
 pub(crate) mod admin_config_resources;
 mod admin_delete_records_command_match;
+mod admin_feature_update_command_match;
 pub(crate) mod admin_features;
 pub(crate) mod admin_group_batch;
 pub(crate) mod admin_leader_election;
@@ -109,12 +109,12 @@ pub(crate) struct IndexedGroupReceiveSet {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionCompletion {
     pub(crate) history_sequence: u64,
-    pub(crate) disposition: TransactionDisposition,
+    pub(crate) disposition: testlab_schema::TransactionDisposition,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionalTransform {
     pub(crate) history_sequence: u64,
-    pub(crate) completion: TransactionalTransformCompletion,
+    pub(crate) completion: testlab_schema::TransactionalTransformCompletion,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionFence {

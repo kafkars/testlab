@@ -15,6 +15,9 @@ pub(crate) fn verify_features_action(
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
 ) -> bool {
+    if matches!(action, ScenarioAction::ValidateFeatureUpdates(_)) {
+        return crate::admin_feature_updates::verify(action, index, violations);
+    }
     let command_window = index.admin_command_window(action);
     let ScenarioAction::DescribeFeatures(action) = action else {
         return false;

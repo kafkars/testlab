@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v71. It is not a
+An adapter translates one packaged client surface to protocol v72. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -18,6 +18,8 @@ runner and not a verifier.
 - Preserve the selected generic-topic or dedicated client-metrics resource
   listing surface, its throttle, and canonical type-tagged identities without
   receiving the scenario-required resource names.
+- Preserve validation-only finalized-feature update order, throttle, and every
+  per-feature outcome; never substitute the independently compared CLI state.
 - Preserve canonical unfiltered transaction listings, caller-ordered exact
   transaction descriptions, and caller-ordered producer-fencing identities
   without receiving expected states or fields.

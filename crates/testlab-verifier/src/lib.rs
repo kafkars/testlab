@@ -14,6 +14,7 @@ mod admin_consumer_groups_deletion;
 mod admin_consumer_groups_description;
 mod admin_discovery;
 mod admin_failure;
+mod admin_feature_updates;
 mod admin_features;
 mod admin_group;
 mod admin_group_baseline;
@@ -115,6 +116,8 @@ mod admin_discovery_test;
 mod admin_earliest_offset_test;
 #[cfg(test)]
 mod admin_failure_test;
+#[cfg(test)]
+mod admin_feature_updates_test;
 #[cfg(test)]
 mod admin_features_test;
 #[cfg(test)]

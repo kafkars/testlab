@@ -124,6 +124,8 @@ mod catalog_assigned_consumer_controls_test;
 #[cfg(test)]
 mod catalog_client_metrics_test;
 #[cfg(test)]
+mod catalog_feature_updates_test;
+#[cfg(test)]
 mod catalog_group_configuration_test;
 #[cfg(test)]
 mod catalog_group_controls_test;

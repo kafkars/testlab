@@ -487,6 +487,12 @@ statement = "One dedicated public client-metrics resource listing returns the ex
 category = "admin"
 
 [[contract]]
+id = "ADMIN-072"
+title = "Validation-only feature updates preserve finalized Kafka state"
+statement = "One public validation-only finalized-feature update returns successful per-feature outcomes in caller order, and exact pinned Kafka CLI snapshots before and immediately after the public completion prove that neither feature levels nor the finalized-feature epoch changed."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

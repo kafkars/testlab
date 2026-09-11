@@ -34,7 +34,6 @@ pub enum ScenarioAction {
         broker_ordinal: u16,
         timeout_ms: u64,
     },
-    /// Stops the independently observed owner of one exact Kafka role.
     StopBrokerRole {
         /// Exact role target discovered outside the packaged adapter.
         target: crate::BrokerRoleTarget,
@@ -207,6 +206,7 @@ pub enum ScenarioAction {
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),
     DescribeFeatures(crate::DescribeFeaturesAction),
+    ValidateFeatureUpdates(crate::ValidateFeatureUpdatesAction),
     DescribeProducers(crate::DescribeProducersAction),
     DescribeLogDirs(crate::DescribeLogDirsAction),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsAction),

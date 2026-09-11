@@ -25,6 +25,7 @@ mod admin_delete_topics_batch_transition_validation;
 mod admin_delete_topics_batch_validation;
 mod admin_expected_error;
 mod admin_exports;
+mod admin_feature_transition_validation;
 mod admin_group;
 mod admin_group_action_validation;
 mod admin_group_offset;
@@ -174,8 +175,6 @@ pub use protocol_adversary::{
     ADVERSARY_PROTOCOL_VERSION, AdversaryControlEnvelope, AdversaryEvent, AdversaryOutcome,
     DisconnectPoint, KafkaApi, ProtocolAdversaryObservation, ProtocolFault, ProtocolFaultAction,
 };
-pub use protocol_command::AdapterCommand;
-pub use protocol_event::AdapterEvent;
 pub use protocol_group::*;
 pub use protocol_security::{
     AdapterSaslMechanism, AdapterSecurity, SASL_PASSWORD_ENVIRONMENT, SASL_USERNAME_ENVIRONMENT,
@@ -202,6 +201,7 @@ pub use transaction_offsets::{
     TransactionalTransformAction, TransactionalTransformCommand, TransactionalTransformCompletion,
 };
 pub use verdict::{Verdict, VerdictStatus, Violation};
+pub use {protocol_command::AdapterCommand, protocol_event::AdapterEvent};
 #[cfg(test)]
 mod admin_acl_test;
 #[cfg(test)]

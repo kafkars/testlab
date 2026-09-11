@@ -9,7 +9,7 @@ pub(crate) use kafkars::admin::{
     ConsumerGroupDescriptionDetails, ConsumerGroupMember, ConsumerGroupMemberDetails,
     ConsumerGroupMemberRemoval, ConsumerGroupOffsetAlteration, CreateAclOutcome, CreateAclResult,
     DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult, DeleteRecordsTarget,
-    DescribeTopicPartitionsTopic, LeaderElectionTarget, LeaderElectionType,
+    DescribeTopicPartitionsTopic, FeatureUpdate, LeaderElectionTarget, LeaderElectionType,
     LegacyConfigResourceReplacement, LegacyTopicConfigEntry, LegacyTopicConfigReplacement,
     ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult, ListOffsetsQuery,
     ListShareGroupOffsetsQuery, ListShareGroupOffsetsResult, MetadataQuorumListener,

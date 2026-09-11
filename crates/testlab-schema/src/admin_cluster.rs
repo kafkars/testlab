@@ -127,6 +127,82 @@ pub struct BrokerFeaturesState {
     pub finalized_features_epoch: Option<i64>,
 }
 
+/// Explicit direction for one finalized-feature validation request.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FeatureUpdateKind {
+    /// Raise a finalized feature level.
+    Upgrade,
+    /// Lower or delete a feature only when Kafka considers it lossless.
+    SafeDowngrade,
+    /// Lower or delete a feature while explicitly allowing data loss.
+    UnsafeDowngrade,
+}
+
+/// One caller-ordered finalized-feature update validated by Kafka.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FeatureUpdateSpec {
+    /// Exact finalized-feature name.
+    pub name: String,
+    /// Requested finalized maximum version level.
+    pub max_version_level: i16,
+    /// Explicit upgrade or downgrade policy.
+    pub kind: FeatureUpdateKind,
+}
+
+/// Scenario intent for one validation-only finalized-feature update.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ValidateFeatureUpdatesAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable identity for the validation-only public call.
+    pub operation_id: OperationId,
+    /// Prior feature-description operation supplying independent before-state.
+    pub baseline_operation_id: OperationId,
+    /// Caller-ordered update requests.
+    pub updates: Vec<FeatureUpdateSpec>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Wire payload for one validation-only finalized-feature update.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ValidateFeatureUpdatesCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable identity for the validation-only public call.
+    pub operation_id: OperationId,
+    /// Caller-ordered update requests.
+    pub updates: Vec<FeatureUpdateSpec>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// One caller-ordered public feature-update outcome.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminFeatureUpdateOutcome {
+    /// Exact feature name returned by the public result.
+    pub name: String,
+    /// Stable normalized per-feature failure, or none on success.
+    pub error_code: Option<String>,
+}
+
+/// Public completion of one validation-only finalized-feature request.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminFeatureUpdatesValidation {
+    /// Stable identity for the public call.
+    pub operation_id: OperationId,
+    /// Nonnegative Kafka throttle observation.
+    pub throttle_time_ms: u64,
+    /// Exact caller-ordered per-feature outcomes.
+    pub outcomes: Vec<AdminFeatureUpdateOutcome>,
+}
+
 /// Scenario intent for one bounded active-producer description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

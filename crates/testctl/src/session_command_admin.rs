@@ -6,7 +6,7 @@ use testlab_schema::{
     DescribeClusterCommand, DescribeConsumerGroupCommand, DescribeFeaturesCommand,
     DescribeLogDirsCommand, DescribeMetadataQuorumCommand, DescribeProducersCommand,
     DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
-    ListOffsetsCommand, ListTopicsCommand, ScenarioAction,
+    ListOffsetsCommand, ListTopicsCommand, ScenarioAction, ValidateFeatureUpdatesCommand,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -121,6 +121,15 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::FeaturesDescribed(action.operation_id.clone()),
+        ),
+        ScenarioAction::ValidateFeatureUpdates(action) => (
+            AdapterCommand::ValidateFeatureUpdates(ValidateFeatureUpdatesCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                updates: action.updates.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::FeatureUpdatesValidated(action.operation_id.clone()),
         ),
         ScenarioAction::DescribeMetadataQuorum(action) => (
             AdapterCommand::DescribeMetadataQuorum(DescribeMetadataQuorumCommand {

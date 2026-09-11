@@ -23,7 +23,6 @@ pub enum AdapterCommand {
     AwaitClientReady {
         client_id: ClientId,
     },
-    /// Observes one bounded public client metrics snapshot.
     ObserveClientMetrics(crate::ObserveClientMetricsCommand),
     /// Creates one public producer handle.
     CreateProducer {
@@ -192,6 +191,7 @@ pub enum AdapterCommand {
     AlterTopicConfig(crate::AlterTopicConfigCommand),
     DescribeCluster(crate::DescribeClusterCommand),
     DescribeFeatures(crate::DescribeFeaturesCommand),
+    ValidateFeatureUpdates(crate::ValidateFeatureUpdatesCommand),
     DescribeProducers(crate::DescribeProducersCommand),
     DescribeLogDirs(crate::DescribeLogDirsCommand),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsCommand),

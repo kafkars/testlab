@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v71 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v74 and evidence schema v60.
+Protocol v72 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v75 and evidence schema v61.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -85,6 +85,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_topic`
 - `describe_topics`
 - `list_topics`
+- `list_config_resources`
 - `list_offsets`
 - `list_offsets_batch`
 - `delete_records`
@@ -95,6 +96,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `alter_topic_config`
 - `describe_cluster`
 - `describe_features`
+- `validate_feature_updates`
 - `describe_producers`
 - `describe_log_dirs`
 - `describe_replica_log_dirs`
@@ -251,6 +253,7 @@ timeouts invalidate evidence.
 - `topic_described`
 - `topics_described`
 - `topics_listed`
+- `config_resources_listed`
 - `offset_listed`
 - `offsets_listed`
 - `records_deleted`
@@ -261,6 +264,7 @@ timeouts invalidate evidence.
 - `topic_config_altered`
 - `cluster_described`
 - `features_described`
+- `feature_updates_validated`
 - `producers_described`
 - `transactions_listed`
 - `transactions_described`
@@ -772,6 +776,14 @@ flag stays outside the wire command. An immediate independent
 symbolic `metadata.version` labels are resolved through Testlab's exact pinned
 Apache Kafka stable-level map.
 
+`validate_feature_updates` carries one through 32 unique caller-ordered feature
+updates and always invokes the public builder with `validate_only(true)`. The
+scenario-only baseline operation stays off the wire. Its completion retains
+the nonnegative throttle and every per-feature public outcome in caller order;
+exact pinned CLI snapshots before and immediately after must retain identical
+feature rows and finalized epoch. The checked-in scenario is limited to Kafka
+4.3.1 and validates the stable `metadata.version=30` level.
+
 Active-producer description carries one exact topic-partition and complete
 deadline. The scenario-owned expected count stays outside the wire command.
 Its public completion retains producer ID, producer epoch, last sequence, last
@@ -933,6 +945,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v71 is an exact semantic contract. New capabilities may be declared
+Protocol v72 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -51,6 +51,7 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     crate::scenario_record_correlation_validation::validate(scenario, problems);
     crate::scenario_broker_policy_validation::validate(scenario, problems);
     validate_role_targets(scenario, problems);
+    crate::admin_feature_transition_validation::validate(scenario, problems);
     crate::admin_transition_validation::validate(scenario, problems);
     crate::scenario_assertion_validation::validate(
         scenario,

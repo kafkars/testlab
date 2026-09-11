@@ -5,10 +5,12 @@ pub use crate::admin_classic_group::*;
 pub use crate::admin_client_quota::*;
 pub use crate::admin_cluster::metadata_quorum::*;
 pub use crate::admin_cluster::{
-    AdminClusterDescription, AdminFeaturesDescription, AdminProducersDescription,
-    BrokerFeatureState, BrokerFeaturesState, BrokerProducersState, DescribeClusterAction,
-    DescribeClusterCommand, DescribeFeaturesAction, DescribeFeaturesCommand,
-    DescribeProducersAction, DescribeProducersCommand, FeatureVersionRange, ProducerStateSnapshot,
+    AdminClusterDescription, AdminFeatureUpdateOutcome, AdminFeatureUpdatesValidation,
+    AdminFeaturesDescription, AdminProducersDescription, BrokerFeatureState, BrokerFeaturesState,
+    BrokerProducersState, DescribeClusterAction, DescribeClusterCommand, DescribeFeaturesAction,
+    DescribeFeaturesCommand, DescribeProducersAction, DescribeProducersCommand, FeatureUpdateKind,
+    FeatureUpdateSpec, FeatureVersionRange, ProducerStateSnapshot, ValidateFeatureUpdatesAction,
+    ValidateFeatureUpdatesCommand,
 };
 pub use crate::admin_config::{
     AdminTopicConfigCompletion, AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome,

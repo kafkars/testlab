@@ -115,6 +115,7 @@ impl HistoryIndex {
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::DescribeFeatures(_)
+            | ScenarioAction::ValidateFeatureUpdates(_)
             | ScenarioAction::DescribeProducers(_)
             | ScenarioAction::DescribeLogDirs(_)
             | ScenarioAction::DescribeReplicaLogDirs(_)

@@ -1,10 +1,9 @@
-use crate::run_error::RunFailure;
-use crate::runner_protocol_admin::classify_admin;
 use crate::runner_protocol_admin_config::classify as classify_admin_config;
 use crate::runner_protocol_admin_group_batch::classify as classify_admin_group_batch;
 pub(crate) use crate::runner_protocol_event::EventDisposition;
 use crate::runner_protocol_event::classify_core;
 use crate::runner_protocol_family::{classify_group, classify_transaction};
+use crate::{run_error::RunFailure, runner_protocol_admin::classify_admin};
 use std::collections::BTreeSet;
 use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug)]
@@ -123,6 +122,7 @@ pub(crate) enum ExpectedEvent {
         operation_id: OperationId,
     },
     FeaturesDescribed(OperationId),
+    FeatureUpdatesValidated(OperationId),
     MetadataQuorumDescribed(OperationId),
     ProducerStatesDescribed {
         operation_id: OperationId,

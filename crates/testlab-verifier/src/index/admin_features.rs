@@ -3,12 +3,12 @@
 use std::collections::BTreeMap;
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminFeaturesDescription, AdminLogDirsDescription,
-    AdminMetadataQuorumDescription, AdminProducersDescription, AdminProducersFenced,
-    AdminReplicaLogDirsDescription, AdminTransactionsDescription, AdminTransactionsListing,
-    BrokerFeaturesState, BrokerLogDirsState, BrokerMetadataQuorumState, BrokerProducersState,
-    BrokerStateObservation, BrokerTransactionState, BrokerTransactionsState, OperationId,
-    ScenarioAction,
+    AdapterCommand, AdapterEvent, AdminFeatureUpdatesValidation, AdminFeaturesDescription,
+    AdminLogDirsDescription, AdminMetadataQuorumDescription, AdminProducersDescription,
+    AdminProducersFenced, AdminReplicaLogDirsDescription, AdminTransactionsDescription,
+    AdminTransactionsListing, BrokerFeaturesState, BrokerLogDirsState, BrokerMetadataQuorumState,
+    BrokerProducersState, BrokerStateObservation, BrokerTransactionState, BrokerTransactionsState,
+    OperationId, ScenarioAction,
 };
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
@@ -136,6 +136,7 @@ pub(crate) struct Indexed<T> {
 #[derive(Debug, Default)]
 pub(crate) struct AdminFeaturesIndex {
     pub(crate) described: BTreeMap<OperationId, Vec<Indexed<AdminFeaturesDescription>>>,
+    pub(crate) validations: BTreeMap<OperationId, Vec<Indexed<AdminFeatureUpdatesValidation>>>,
     pub(crate) observed: BTreeMap<OperationId, Vec<Indexed<BrokerFeaturesState>>>,
     pub(crate) producers_described: BTreeMap<OperationId, Vec<Indexed<AdminProducersDescription>>>,
     pub(crate) producers_observed: BTreeMap<OperationId, Vec<Indexed<BrokerProducersState>>>,
@@ -161,6 +162,12 @@ impl AdminFeaturesIndex {
         match event {
             AdapterEvent::FeaturesDescribed(value) => push(
                 &mut self.described,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            AdapterEvent::FeatureUpdatesValidated(value) => push(
+                &mut self.validations,
                 value.operation_id.clone(),
                 value.clone(),
                 sequence,

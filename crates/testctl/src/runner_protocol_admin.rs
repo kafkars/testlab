@@ -155,6 +155,10 @@ pub(super) fn classify_admin(
             AdapterEvent::FeaturesDescribed(actual),
         ) => operation_id == &actual.operation_id,
         (
+            ExpectedEvent::FeatureUpdatesValidated(operation_id),
+            AdapterEvent::FeatureUpdatesValidated(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::MetadataQuorumDescribed(operation_id),
             AdapterEvent::MetadataQuorumDescribed(actual),
         ) => operation_id == &actual.operation_id,

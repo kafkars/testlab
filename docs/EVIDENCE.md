@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v60 records the exact environment identity in `manifest.json`,
-retains protocol-v71 direct and hosted-group consumer controls, abandonment,
+Evidence schema v61 records the exact environment identity in `manifest.json`,
+retains protocol-v72 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
@@ -537,6 +537,13 @@ Testlab provisions two distinct named configurations before adapter startup;
 the public result and CLI state must both equal that exact set as type-16
 resources in strict UTF-8 byte order. Scenario-required names never cross the
 adapter wire, and later CLI state cannot replace the public completion.
+
+ADMIN-072 binds one public finalized-feature update to its exact caller-ordered
+request and requires the validation-only builder selection. Every per-feature
+outcome must succeed in caller order and the throttle must fit the operation
+deadline. Exact pinned Kafka CLI feature rows and the finalized epoch must be
+unchanged from the prior ADMIN-050 baseline to the immediate post-completion
+snapshot. This contract is configured only for Kafka 4.3.1 cells.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

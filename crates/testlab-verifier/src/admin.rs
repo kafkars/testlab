@@ -1,4 +1,3 @@
-//! Admin verification joins exact commands, public completions, and independent broker facts.
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
 use crate::admin_client_quota::verify_client_quota_action;
@@ -211,6 +210,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             testlab_schema::TopicConfigMutationApi::LegacyResource => "ADMIN-067",
         },
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
+        ScenarioAction::ValidateFeatureUpdates(_) => "ADMIN-072",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",
         ScenarioAction::ListTransactions(_) => "ADMIN-052",
         ScenarioAction::DescribeTransactions(_) => "ADMIN-053",
@@ -255,6 +255,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeCluster(value) => &value.operation_id,
         ScenarioAction::DescribeFeatures(value) => &value.operation_id,
+        ScenarioAction::ValidateFeatureUpdates(value) => &value.operation_id,
         ScenarioAction::DescribeProducers(value) => &value.operation_id,
         ScenarioAction::ListTransactions(value) => &value.operation_id,
         ScenarioAction::DescribeTransactions(value) => &value.operation_id,

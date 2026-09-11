@@ -5,6 +5,7 @@ use testlab_schema::{
     DeleteConsumerGroupOffsetCommand, DescribeClusterCommand, DescribeConsumerGroupCommand,
     DescribeFeaturesCommand, DescribeMetadataQuorumCommand, ListConsumerGroupOffsetsCommand,
     ListConsumerGroupsCommand, RemoveConsumerGroupMembersCommand, ScenarioAction,
+    ValidateFeatureUpdatesCommand,
 };
 
 use crate::observer_admin_target::{
@@ -30,6 +31,15 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             AdapterCommand::DescribeFeatures(DescribeFeaturesCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            AdminTarget::Features(action.operation_id.clone()),
+        ),
+        ScenarioAction::ValidateFeatureUpdates(action) => (
+            AdapterCommand::ValidateFeatureUpdates(ValidateFeatureUpdatesCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                updates: action.updates.clone(),
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::Features(action.operation_id.clone()),

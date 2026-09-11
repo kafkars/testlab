@@ -19,7 +19,6 @@ pub enum AdapterEvent {
     ClientReady {
         client_id: ClientId,
     },
-    /// One complete public client metrics snapshot was observed.
     ClientMetricsObserved(Box<crate::ClientMetricsObservation>),
     /// Public producer construction completed.
     ProducerCreated {
@@ -205,6 +204,7 @@ pub enum AdapterEvent {
     TopicConfigAlterationValidated(crate::AdminTopicConfigCompletion),
     ClusterDescribed(crate::AdminClusterDescription),
     FeaturesDescribed(crate::AdminFeaturesDescription),
+    FeatureUpdatesValidated(crate::AdminFeatureUpdatesValidation),
     ProducersDescribed(crate::AdminProducersDescription),
     LogDirsDescribed(crate::AdminLogDirsDescription),
     ReplicaLogDirsDescribed(crate::AdminReplicaLogDirsDescription),

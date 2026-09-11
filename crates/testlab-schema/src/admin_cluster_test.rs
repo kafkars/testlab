@@ -10,9 +10,9 @@ use crate::{
 
 #[test]
 fn producer_state_cut_advances_every_versioned_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 71);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 74);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 60);
+    assert_eq!(PROTOCOL_VERSION, 72);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 75);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 61);
 }
 
 #[test]
@@ -54,6 +54,43 @@ fn feature_expectation_stays_off_wire_and_results_round_trip() {
         }],
         finalized_features_epoch: Some(7),
     }));
+}
+
+#[test]
+fn feature_update_baseline_stays_off_wire_and_results_round_trip() {
+    let update = FeatureUpdateSpec {
+        name: "metadata.version".to_owned(),
+        max_version_level: 30,
+        kind: FeatureUpdateKind::Upgrade,
+    };
+    let action = ScenarioAction::ValidateFeatureUpdates(ValidateFeatureUpdatesAction {
+        client_id: client(),
+        operation_id: feature_update_operation(),
+        baseline_operation_id: feature_operation(),
+        updates: vec![update.clone()],
+        timeout_ms: 1_000,
+    });
+    let command = AdapterCommand::ValidateFeatureUpdates(ValidateFeatureUpdatesCommand {
+        client_id: client(),
+        operation_id: feature_update_operation(),
+        updates: vec![update],
+        timeout_ms: 1_000,
+    });
+    round_trip(&action);
+    round_trip(&command);
+    let encoded = serde_json::to_string(&command)
+        .unwrap_or_else(|error| panic!("encode update command: {error}"));
+    assert!(!encoded.contains("baseline_operation_id"));
+    round_trip(&AdapterEvent::FeatureUpdatesValidated(
+        AdminFeatureUpdatesValidation {
+            operation_id: feature_update_operation(),
+            throttle_time_ms: 0,
+            outcomes: vec![AdminFeatureUpdateOutcome {
+                name: "metadata.version".to_owned(),
+                error_code: None,
+            }],
+        },
+    ));
 }
 
 #[test]
@@ -196,4 +233,9 @@ fn feature_operation() -> OperationId {
 
 fn producer_operation() -> OperationId {
     OperationId::new("admin-producers").unwrap_or_else(|error| panic!("operation id: {error}"))
+}
+
+fn feature_update_operation() -> OperationId {
+    OperationId::new("admin-validate-feature-updates")
+        .unwrap_or_else(|error| panic!("operation id: {error}"))
 }

@@ -92,6 +92,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::AlterTopicConfig(_)
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::DescribeFeatures(_)
+        | ScenarioAction::ValidateFeatureUpdates(_)
         | ScenarioAction::DescribeMetadataQuorum(_)
         | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::DescribeLogDirs(_)
