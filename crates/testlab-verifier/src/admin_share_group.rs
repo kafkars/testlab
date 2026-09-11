@@ -1,6 +1,9 @@
 //! Share-group verification joins detailed public results to immediate Kafka CLI state.
 
-use testlab_schema::{AdminShareGroupDescription, ScenarioAction, Violation};
+use testlab_schema::{
+    AdminShareGroupDescription, AdminShareGroupOffsetListing, BrokerShareGroupOffset,
+    ScenarioAction, Violation,
+};
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::HistoryIndex;
@@ -12,10 +15,24 @@ pub(crate) fn verify_share_group_action(
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
 ) -> bool {
-    let scenario_action = action;
-    let ScenarioAction::DescribeShareGroup(action) = scenario_action else {
-        return false;
-    };
+    match action {
+        ScenarioAction::DescribeShareGroup(value) => {
+            verify_description_action(action, value, index, violations)
+        }
+        ScenarioAction::ListShareGroupOffsets(value) => {
+            verify_offset_action(action, value, index, violations)
+        }
+        _ => return false,
+    }
+    true
+}
+
+fn verify_description_action(
+    scenario_action: &ScenarioAction,
+    action: &testlab_schema::DescribeShareGroupAction,
+    index: &HistoryIndex,
+    violations: &mut Vec<Violation>,
+) {
     let window = index.admin_command_window(scenario_action);
     let public = index.admin_share_groups.described.get(&action.operation_id);
     let independent = index.admin_share_groups.observed.get(&action.operation_id);
@@ -49,7 +66,6 @@ pub(crate) fn verify_share_group_action(
             evidence,
         ));
     }
-    true
 }
 
 fn description_matches(
@@ -133,6 +149,83 @@ fn observation_matches(
         && actual.value.state.as_deref() == Some(expected.expected_state.as_str())
         && actual.value.member_count == Some(expected.expected_member_count)
         && immediate_after_public(window, public_sequence, actual.history_sequence)
+}
+
+fn verify_offset_action(
+    scenario_action: &ScenarioAction,
+    action: &testlab_schema::ListShareGroupOffsetsAction,
+    index: &HistoryIndex,
+    violations: &mut Vec<Violation>,
+) {
+    let window = index.admin_command_window(scenario_action);
+    let public = one(index
+        .admin_share_groups
+        .offsets_listed
+        .get(&action.operation_id));
+    let independent = one(index
+        .admin_share_groups
+        .offsets_observed
+        .get(&action.operation_id));
+    let public_matches = public.is_some_and(|value| {
+        public_after_command(window, value.history_sequence) && offset_matches(&value.value, action)
+    });
+    let independent_matches = match (public, independent) {
+        (Some(public), Some(independent)) => {
+            offset_observation_matches(&independent.value, action)
+                && immediate_after_public(
+                    window,
+                    public.history_sequence,
+                    independent.history_sequence,
+                )
+        }
+        _ => false,
+    };
+    if !public_matches || !independent_matches {
+        let evidence = public
+            .map(|value| format!("history:{}", value.history_sequence))
+            .into_iter()
+            .chain(
+                independent
+                    .map(|value| format!("broker-state-observation:{}", value.value.observation)),
+            )
+            .collect();
+        violations.push(violation(
+            "ADMIN-038",
+            format!(
+                "admin operation {} expected exact public and independent Share-group offset state",
+                action.operation_id
+            ),
+            Some(action.operation_id.clone()),
+            evidence,
+        ));
+    }
+}
+
+fn offset_matches(
+    actual: &AdminShareGroupOffsetListing,
+    expected: &testlab_schema::ListShareGroupOffsetsAction,
+) -> bool {
+    actual.operation_id == expected.operation_id
+        && actual.group_id == expected.group_id
+        && actual.topic == expected.topic
+        && actual.partition == expected.partition
+        && actual.topic_id != [0; 16]
+        && actual.start_offset == Some(expected.expected_start_offset)
+        && actual.leader_epoch.is_some_and(|epoch| epoch >= 0)
+        && actual.lag == Some(expected.expected_lag)
+        && actual.error_code.is_none()
+}
+
+fn offset_observation_matches(
+    actual: &BrokerShareGroupOffset,
+    expected: &testlab_schema::ListShareGroupOffsetsAction,
+) -> bool {
+    actual.operation_id == expected.operation_id
+        && actual.group_id == expected.group_id
+        && actual.topic == expected.topic
+        && actual.partition == expected.partition
+        && actual.start_offset == Some(expected.expected_start_offset)
+        && actual.lag == Some(expected.expected_lag)
 }
 
 fn one<T>(values: Option<&Vec<Indexed<T>>>) -> Option<&Indexed<T>> {

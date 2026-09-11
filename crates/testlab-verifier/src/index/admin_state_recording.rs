@@ -102,6 +102,11 @@ impl HistoryIndex {
             BrokerStateObservation::ShareGroup(_) => {
                 unreachable!("Share-group observations are indexed before generic admin state")
             }
+            BrokerStateObservation::ShareGroupOffset(_) => {
+                unreachable!(
+                    "Share-group offset observations are indexed before generic admin state"
+                )
+            }
         }
     }
 }

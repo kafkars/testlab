@@ -68,6 +68,26 @@ pub struct BrokerShareGroupState {
     pub member_count: Option<u32>,
 }
 
+/// One Share-group partition offset independently read through Kafka's CLI.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrokerShareGroupOffset {
+    /// Monotonic observation identity within the run.
+    pub observation: u64,
+    /// Admin operation whose result triggered this observation.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact nonnegative partition.
+    pub partition: i32,
+    /// Independently observed start offset, or no reported value.
+    pub start_offset: Option<i64>,
+    /// Independently observed lag, or no reported value.
+    pub lag: Option<i64>,
+}
+
 /// One committed consumer-group offset independently read from Kafka.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

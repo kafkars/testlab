@@ -100,6 +100,8 @@ mod admin_offset_batch_test;
 #[cfg(test)]
 mod admin_records_test;
 #[cfg(test)]
+mod admin_share_group_offset_test;
+#[cfg(test)]
 mod admin_share_group_test;
 #[cfg(test)]
 mod admin_test;

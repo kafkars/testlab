@@ -122,6 +122,31 @@ fn validate_single_offset(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) -> bool {
+    if let ScenarioAction::ListShareGroupOffsets(action) = action {
+        offset_common(
+            &action.client_id,
+            &action.operation_id,
+            &action.group_id,
+            &action.topic,
+            action.partition,
+            clients,
+            operation_ids,
+            problems,
+        );
+        for (field, value) in [
+            ("expected_start_offset", action.expected_start_offset),
+            ("expected_lag", action.expected_lag),
+        ] {
+            if value < 0 {
+                problems.push(format!(
+                    "admin operation {} {field} must be nonnegative",
+                    action.operation_id
+                ));
+            }
+        }
+        validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        return true;
+    }
     let (client_id, operation_id, group_id, topic, partition, offset, timeout_ms) = match action {
         ScenarioAction::ListConsumerGroupOffsets(action) => (
             &action.client_id,

@@ -91,6 +91,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
+        | ScenarioAction::ListShareGroupOffsets(_)
         | ScenarioAction::ListConsumerGroupOffsets(_)
         | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
         | ScenarioAction::ListConsumerGroupsOffsets(_)

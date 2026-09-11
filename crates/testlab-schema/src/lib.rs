@@ -31,6 +31,7 @@ mod admin_list_offsets_batch;
 mod admin_list_offsets_batch_validation;
 mod admin_offset_position;
 mod admin_scenario_action;
+mod admin_share_group_offset;
 mod admin_topic;
 mod admin_topic_action_validation;
 mod admin_transition_validation;
@@ -111,7 +112,7 @@ pub use broker_policy::{
 pub use broker_role::BrokerRoleTarget;
 pub use broker_state::{
     BrokerClusterState, BrokerConsumerGroupOffset, BrokerConsumerGroupState,
-    BrokerPartitionOffsets, BrokerShareGroupState, BrokerTopicState,
+    BrokerPartitionOffsets, BrokerShareGroupOffset, BrokerShareGroupState, BrokerTopicState,
 };
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use client_metrics::*;

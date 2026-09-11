@@ -80,6 +80,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeShareGroup(command) => {
             crate::protocol_admin_share_group::describe(state, writer, command_id, command)
         }
+        AdapterCommand::ListShareGroupOffsets(command) => {
+            crate::protocol_admin_share_group::list_offsets(state, writer, command_id, command)
+        }
         _ => Err(AdapterError::AdminResult(
             "non-admin command reached admin dispatcher".to_owned(),
         )),

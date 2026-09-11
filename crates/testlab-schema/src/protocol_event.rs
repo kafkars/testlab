@@ -218,6 +218,7 @@ pub enum AdapterEvent {
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),
+    ShareGroupOffsetsListed(crate::AdminShareGroupOffsetListing),
     /// One public admin consumer-group offset listing completed successfully.
     ConsumerGroupOffsetListed(crate::AdminConsumerGroupOffsetListing),
     /// One public single-group offset batch listing returned ordered outcomes.
@@ -268,7 +269,6 @@ pub enum AdapterEvent {
     },
     /// Producer flush completed.
     FlushCompleted {
-        /// Flushed producer.
         producer_id: ProducerId,
     },
     /// Producer close completed.

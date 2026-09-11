@@ -150,6 +150,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeUserScramCredential(_) => "ADMIN-035",
         ScenarioAction::AlterUserScramCredential(_) => "ADMIN-036",
         ScenarioAction::DescribeShareGroup(_) => "ADMIN-037",
+        ScenarioAction::ListShareGroupOffsets(_) => "ADMIN-038",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -204,6 +205,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::AlterUserScramCredential(value) => &value.operation_id,
         ScenarioAction::DescribeUserScramCredential(value) => &value.operation_id,
         ScenarioAction::DescribeShareGroup(value) => &value.operation_id,
+        ScenarioAction::ListShareGroupOffsets(value) => &value.operation_id,
         _ => return None,
     })
 }

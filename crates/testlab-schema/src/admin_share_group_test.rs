@@ -4,16 +4,18 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     AdapterCommand, AdapterEvent, AdminShareGroupDescription, AdminShareGroupMember,
-    AdminShareGroupTopicAssignment, BrokerShareGroupState, BrokerStateObservation, ClientId,
-    DescribeShareGroupAction, DescribeShareGroupCommand, EVIDENCE_SCHEMA_VERSION, OperationId,
-    PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction,
+    AdminShareGroupOffsetListing, AdminShareGroupTopicAssignment, BrokerShareGroupOffset,
+    BrokerShareGroupState, BrokerStateObservation, ClientId, DescribeShareGroupAction,
+    DescribeShareGroupCommand, EVIDENCE_SCHEMA_VERSION, ListShareGroupOffsetsAction,
+    ListShareGroupOffsetsCommand, OperationId, PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION, Scenario,
+    ScenarioAction,
 };
 
 #[test]
-fn share_group_description_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 41);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 44);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 30);
+fn share_group_offset_cut_advances_all_versioned_boundaries() {
+    assert_eq!(PROTOCOL_VERSION, 42);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 45);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 31);
 }
 
 #[test]
@@ -29,6 +31,20 @@ fn action_command_public_result_and_broker_fact_round_trip() {
         state: Some("Stable".to_owned()),
         member_count: Some(1),
     }));
+    round_trip(&ScenarioAction::ListShareGroupOffsets(offset_action()));
+    round_trip(&AdapterCommand::ListShareGroupOffsets(offset_command()));
+    round_trip(&AdapterEvent::ShareGroupOffsetsListed(offset_listing()));
+    round_trip(&BrokerStateObservation::ShareGroupOffset(
+        BrokerShareGroupOffset {
+            observation: 8,
+            operation_id: offset_operation(),
+            group_id: "share-group-1".to_owned(),
+            topic: "share-topic".to_owned(),
+            partition: 0,
+            start_offset: Some(1),
+            lag: Some(1),
+        },
+    ));
 }
 
 #[test]
@@ -40,6 +56,17 @@ fn checked_in_share_group_description_scenario_is_valid() {
     scenario
         .validate()
         .unwrap_or_else(|error| panic!("validate Share-group scenario: {error}"));
+}
+
+#[test]
+fn checked_in_share_group_offset_scenario_is_valid() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-list-share-group-offsets.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse Share-group offset scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate Share-group offset scenario: {error}"));
 }
 
 #[test]
@@ -62,6 +89,30 @@ fn validation_rejects_nonstable_or_unbounded_expectations() {
         "expected_member_count must be between",
         "invalid expected_topic",
         "expected_partition must be nonnegative",
+    ] {
+        assert!(
+            problems.iter().any(|problem| problem.contains(expected)),
+            "missing {expected:?} in {problems:?}"
+        );
+    }
+}
+
+#[test]
+fn validation_rejects_negative_share_group_offset_expectations() {
+    let clients = BTreeMap::from([(client(), false)]);
+    let mut invalid = offset_action();
+    invalid.expected_start_offset = -1;
+    invalid.expected_lag = -1;
+    let mut problems = Vec::new();
+    crate::admin_action_validation::validate(
+        &ScenarioAction::ListShareGroupOffsets(invalid),
+        &clients,
+        &mut BTreeSet::new(),
+        &mut problems,
+    );
+    for expected in [
+        "expected_start_offset must be nonnegative",
+        "expected_lag must be nonnegative",
     ] {
         assert!(
             problems.iter().any(|problem| problem.contains(expected)),
@@ -114,6 +165,44 @@ fn description() -> AdminShareGroupDescription {
     }
 }
 
+fn offset_action() -> ListShareGroupOffsetsAction {
+    ListShareGroupOffsetsAction {
+        client_id: client(),
+        operation_id: offset_operation(),
+        group_id: "share-group-1".to_owned(),
+        topic: "share-topic".to_owned(),
+        partition: 0,
+        expected_start_offset: 1,
+        expected_lag: 1,
+        timeout_ms: 1_000,
+    }
+}
+
+fn offset_command() -> ListShareGroupOffsetsCommand {
+    ListShareGroupOffsetsCommand {
+        client_id: client(),
+        operation_id: offset_operation(),
+        group_id: "share-group-1".to_owned(),
+        topic: "share-topic".to_owned(),
+        partition: 0,
+        timeout_ms: 1_000,
+    }
+}
+
+fn offset_listing() -> AdminShareGroupOffsetListing {
+    AdminShareGroupOffsetListing {
+        operation_id: offset_operation(),
+        group_id: "share-group-1".to_owned(),
+        topic: "share-topic".to_owned(),
+        partition: 0,
+        topic_id: [2; 16],
+        start_offset: Some(1),
+        leader_epoch: Some(0),
+        lag: Some(1),
+        error_code: None,
+    }
+}
+
 fn round_trip<T>(value: &T)
 where
     T: serde::Serialize + serde::de::DeserializeOwned + std::fmt::Debug + PartialEq,
@@ -131,4 +220,9 @@ fn client() -> ClientId {
 
 fn operation() -> OperationId {
     OperationId::new("describe-share-group").unwrap_or_else(|error| panic!("operation: {error}"))
+}
+
+fn offset_operation() -> OperationId {
+    OperationId::new("list-share-group-offsets")
+        .unwrap_or_else(|error| panic!("operation: {error}"))
 }

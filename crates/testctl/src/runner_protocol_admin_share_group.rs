@@ -1,4 +1,4 @@
-//! Share-group description terminals require exact operation and group identities.
+//! Share-group read terminals require exact operation and resource identities.
 
 use testlab_schema::AdapterEvent;
 
@@ -10,24 +10,42 @@ pub(super) fn classify(
     expected: &ExpectedEvent,
     event: &AdapterEvent,
 ) -> Option<Result<EventDisposition, RunFailure>> {
-    let (
-        ExpectedEvent::ShareGroupDescribed {
-            operation_id,
-            group_id,
-        },
-        AdapterEvent::ShareGroupDescribed(actual),
-    ) = (expected, event)
-    else {
-        return None;
+    let matches = match (expected, event) {
+        (
+            ExpectedEvent::ShareGroupDescribed {
+                operation_id,
+                group_id,
+            },
+            AdapterEvent::ShareGroupDescribed(actual),
+        ) => operation_id == &actual.operation_id && group_id == &actual.group_id,
+        (
+            ExpectedEvent::ShareGroupOffsetsListed {
+                operation_id,
+                group_id,
+                topic,
+                partition,
+            },
+            AdapterEvent::ShareGroupOffsetsListed(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && group_id == &actual.group_id
+                && topic == &actual.topic
+                && partition == &actual.partition
+        }
+        _ => return None,
     };
-    Some(identity_result(
-        operation_id == &actual.operation_id && group_id == &actual.group_id,
-        event,
-        expected,
-    ))
+    Some(identity_result(matches, event, expected))
 }
 
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
-    matches!(expected, ExpectedEvent::ShareGroupDescribed { .. })
-        && matches!(event, AdapterEvent::ShareGroupDescribed(_))
+    matches!(
+        (expected, event),
+        (
+            ExpectedEvent::ShareGroupDescribed { .. },
+            AdapterEvent::ShareGroupDescribed(_)
+        ) | (
+            ExpectedEvent::ShareGroupOffsetsListed { .. },
+            AdapterEvent::ShareGroupOffsetsListed(_)
+        )
+    )
 }

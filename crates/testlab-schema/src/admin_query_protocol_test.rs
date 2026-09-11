@@ -10,8 +10,8 @@ use super::{
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 41);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 44);
+    assert_eq!(PROTOCOL_VERSION, 42);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 45);
 }
 
 #[test]

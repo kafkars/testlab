@@ -205,6 +205,7 @@ pub enum AdapterCommand {
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),
+    ListShareGroupOffsets(crate::ListShareGroupOffsetsCommand),
     /// Lists one committed consumer-group offset through the public admin surface.
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsCommand),
     /// Lists selected offsets from one consumer group through one public call.
@@ -282,7 +283,6 @@ pub enum AdapterCommand {
     },
     /// Flushes one producer.
     Flush {
-        /// Producer to flush.
         producer_id: ProducerId,
     },
     /// Closes one producer.

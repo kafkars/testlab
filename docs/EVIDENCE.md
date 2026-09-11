@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v30 records the exact environment identity in `manifest.json`,
-retains protocol-v41 direct and hosted-group consumer controls and shutdown,
+Evidence schema v31 records the exact environment identity in `manifest.json`,
+retains protocol-v42 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -176,7 +176,7 @@ replica topology, or untested offset selectors.
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
 consumer-group existence and member count, active Share-group state and member
-count, one consumer-group committed offset,
+count, one selected Share-group partition start offset and lag, one consumer-group committed offset,
 exact partition low and high watermarks, exact literal wildcard-host ACL
 presence, exact named-user byte-rate quota state, and exact non-secret named-user
 SCRAM mechanism and iteration state or absence. Each query runs
@@ -192,7 +192,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in schema v44. Plural offset
+retain the same broker-state fact shapes in schema v45. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -263,6 +263,11 @@ partition assignment. A separate immediate Kafka CLI state query must agree on
 the group, stable state, and member count. The coarse independent snapshot
 cannot manufacture the detailed public assignment, and the public completion
 cannot manufacture broker-visible membership.
+
+ADMIN-038 binds one selected public Share-group offset outcome to its exact
+group, topic, partition, nonzero topic identity, start offset, leader epoch,
+and lag. A separate immediate Kafka CLI offsets query must agree on the group,
+topic-partition, start offset, and lag; neither side substitutes for the other.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

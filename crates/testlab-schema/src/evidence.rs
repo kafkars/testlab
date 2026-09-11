@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 30;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 31;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -40,6 +40,8 @@ pub enum BrokerStateObservation {
     ConsumerGroup(crate::BrokerConsumerGroupState),
     /// One Share-group state independently read through Kafka's CLI.
     ShareGroup(crate::BrokerShareGroupState),
+    /// One Share-group partition offset independently read through Kafka's CLI.
+    ShareGroupOffset(crate::BrokerShareGroupOffset),
     /// One committed consumer-group offset independently read from Kafka.
     ConsumerGroupOffset(crate::BrokerConsumerGroupOffset),
     /// One selected non-sensitive topic configuration independently read from Kafka.

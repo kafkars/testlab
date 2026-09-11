@@ -2,10 +2,11 @@
 
 use testlab_schema::{
     AdapterCommand, BrokerStateObservation, ClientId, DescribeShareGroupAction,
-    DescribeShareGroupCommand, OperationId, ScenarioAction,
+    DescribeShareGroupCommand, ListShareGroupOffsetsAction, ListShareGroupOffsetsCommand,
+    OperationId, ScenarioAction,
 };
 
-use crate::observer_admin_target::{AdminTarget, ShareGroupTarget};
+use crate::observer_admin_target::{AdminTarget, ShareGroupOffsetTarget, ShareGroupTarget};
 
 #[test]
 fn action_and_wire_command_map_to_one_exact_share_group_target() {
@@ -66,6 +67,47 @@ fn cli_normalization_rejects_wrong_ambiguous_or_impossible_output() {
 }
 
 #[test]
+fn offset_action_command_and_cli_row_preserve_exact_partition_state() {
+    let action = ScenarioAction::ListShareGroupOffsets(offset_action());
+    let command = AdapterCommand::ListShareGroupOffsets(offset_command());
+    let target = AdminTarget::from_exact(&action, &command)
+        .unwrap_or_else(|error| panic!("Share-group offset target: {error}"))
+        .unwrap_or_else(|| panic!("missing Share-group offset target"));
+    assert_eq!(target, offset_target());
+
+    let output = "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 1 1\n";
+    let observation = crate::share_group_cli_observation::normalize(8, &target, output.as_bytes())
+        .unwrap_or_else(|error| panic!("Share-group offset observation: {error}"));
+    let BrokerStateObservation::ShareGroupOffset(value) = observation else {
+        panic!("Share-group offset observation kind");
+    };
+    assert_eq!(value.observation, 8);
+    assert_eq!(value.operation_id, offset_operation());
+    assert_eq!(value.group_id, "share-group-1");
+    assert_eq!(value.topic, "share-topic");
+    assert_eq!(value.partition, 0);
+    assert_eq!(value.start_offset, Some(1));
+    assert_eq!(value.lag, Some(1));
+}
+
+#[test]
+fn offset_cli_normalization_rejects_wrong_or_ambiguous_output() {
+    for output in [
+        "",
+        "GROUP TOPIC PARTITION OFFSET LAG\nshare-group-1 share-topic 0 1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 other-topic 0 1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 -1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 1 1\nshare-group-1 share-topic 1 1 1\n",
+    ] {
+        assert!(
+            crate::share_group_cli_observation::normalize(8, &offset_target(), output.as_bytes())
+                .is_err(),
+            "{output:?}"
+        );
+    }
+}
+
+#[test]
 fn cli_query_terminal_remains_exact_and_raw() {
     let target = target();
     let fixture = crate::compose_test_fixture::Fixture::new(false);
@@ -90,6 +132,32 @@ fn cli_query_terminal_remains_exact_and_raw() {
     assert!(duplicate.phase.operations.is_empty());
 }
 
+#[test]
+fn offset_cli_query_uses_pinned_offsets_mode_and_retains_raw_output() {
+    let target = offset_target();
+    let fixture = crate::compose_test_fixture::Fixture::new(false);
+    let mut environment = fixture.environment();
+    environment.program = "/bin/sh".into();
+    environment.prefix = vec![
+        "-c".to_owned(),
+        "printf '%s\\n' 'GROUP TOPIC PARTITION START-OFFSET LAG' 'share-group-1 share-topic 0 1 1'"
+            .to_owned(),
+    ];
+
+    let observed =
+        environment.observe_share_group_with_cli(&target, std::time::Duration::from_secs(2));
+    assert!(observed.phase.succeeded(), "{:?}", observed.phase.failure);
+    assert_eq!(observed.phase.operations.len(), 1);
+    assert!(
+        observed.phase.operations[0]
+            .args
+            .iter()
+            .any(|argument| argument == "--offsets")
+    );
+    assert_eq!(observed.phase.artifacts.len(), 2);
+    assert_eq!(observed.state_observations.len(), 1);
+}
+
 fn normalize(output: &str) -> BrokerStateObservation {
     crate::share_group_cli_observation::normalize(7, &target(), output.as_bytes())
         .unwrap_or_else(|error| panic!("Share-group observation: {error}"))
@@ -99,6 +167,15 @@ fn target() -> AdminTarget {
     AdminTarget::ShareGroup(ShareGroupTarget {
         operation_id: operation(),
         group_id: "share-group-1".to_owned(),
+    })
+}
+
+fn offset_target() -> AdminTarget {
+    AdminTarget::ShareGroupOffset(ShareGroupOffsetTarget {
+        operation_id: offset_operation(),
+        group_id: "share-group-1".to_owned(),
+        topic: "share-topic".to_owned(),
+        partition: 0,
     })
 }
 
@@ -124,10 +201,39 @@ fn command() -> DescribeShareGroupCommand {
     }
 }
 
+fn offset_action() -> ListShareGroupOffsetsAction {
+    ListShareGroupOffsetsAction {
+        client_id: client(),
+        operation_id: offset_operation(),
+        group_id: "share-group-1".to_owned(),
+        topic: "share-topic".to_owned(),
+        partition: 0,
+        expected_start_offset: 1,
+        expected_lag: 1,
+        timeout_ms: 1_000,
+    }
+}
+
+fn offset_command() -> ListShareGroupOffsetsCommand {
+    ListShareGroupOffsetsCommand {
+        client_id: client(),
+        operation_id: offset_operation(),
+        group_id: "share-group-1".to_owned(),
+        topic: "share-topic".to_owned(),
+        partition: 0,
+        timeout_ms: 1_000,
+    }
+}
+
 fn client() -> ClientId {
     ClientId::new("client-1").unwrap_or_else(|error| panic!("client: {error}"))
 }
 
 fn operation() -> OperationId {
     OperationId::new("describe-share-group").unwrap_or_else(|error| panic!("operation: {error}"))
+}
+
+fn offset_operation() -> OperationId {
+    OperationId::new("list-share-group-offsets")
+        .unwrap_or_else(|error| panic!("operation: {error}"))
 }

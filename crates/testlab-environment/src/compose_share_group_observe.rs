@@ -17,12 +17,16 @@ impl DockerComposeEnvironment {
         timeout: Duration,
     ) -> ComposeObservation {
         let mut observed = ComposeObservation::default();
-        let AdminTarget::ShareGroup(target_value) = target else {
-            observed.phase.fail(
-                "environment_observation_failed",
-                "non-Share-group target reached Share-group observer",
-            );
-            return observed;
+        let (group_id, detail, artifact) = match target {
+            AdminTarget::ShareGroup(target) => (&target.group_id, "--state", "state"),
+            AdminTarget::ShareGroupOffset(target) => (&target.group_id, "--offsets", "offsets"),
+            _ => {
+                observed.phase.fail(
+                    "environment_observation_failed",
+                    "non-Share-group target reached Share-group observer",
+                );
+                return observed;
+            }
         };
         let Some(deadline) = Instant::now().checked_add(timeout) else {
             observed.phase.fail(
@@ -61,12 +65,12 @@ impl DockerComposeEnvironment {
                 "--timeout".to_owned(),
                 remaining(deadline).as_millis().to_string(),
                 "--describe".to_owned(),
-                "--state".to_owned(),
+                detail.to_owned(),
                 "--group".to_owned(),
-                target_value.group_id.clone(),
+                group_id.clone(),
             ],
-            format!("share-group-state-{operation:05}.txt"),
-            format!("share-group-state-{operation:05}.stderr.txt"),
+            format!("share-group-{artifact}-{operation:05}.txt"),
+            format!("share-group-{artifact}-{operation:05}.stderr.txt"),
         );
         let output = match self.execute(spec, remaining(deadline)) {
             Ok(output) => output,

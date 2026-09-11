@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v41 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v44 and evidence schema v30.
+Protocol v42 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v45 and evidence schema v31.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -83,6 +83,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `list_consumer_groups`
 - `describe_consumer_group`
 - `describe_share_group`
+- `list_share_group_offsets`
 - `list_consumer_group_offsets`
 - `list_consumer_group_offsets_batch`
 - `list_consumer_groups_offsets`
@@ -223,6 +224,7 @@ timeouts invalidate evidence.
 - `consumer_groups_listed`
 - `consumer_group_described`
 - `share_group_described`
+- `share_group_offsets_listed`
 - `consumer_group_offset_listed`
 - `consumer_group_offsets_listed`
 - `consumer_groups_offsets_listed`
@@ -553,6 +555,13 @@ pinned `kafka-share-groups.sh --describe --state` query independently confirms
 the stable state and member count; that CLI snapshot cannot substitute for the
 detailed public assignment.
 
+Share-group offset listing selects one exact topic-partition from one group.
+Scenario-owned start-offset and lag expectations stay in `testctl`. The public
+completion preserves the selected identity, nonzero topic ID, optional start
+offset, optional leader epoch, optional lag, and any partition-scoped failure.
+An immediate pinned `kafka-share-groups.sh --describe --offsets` query
+independently confirms the exact start offset and lag.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -634,6 +643,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v41 is an exact semantic contract. New capabilities may be declared
+Protocol v42 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

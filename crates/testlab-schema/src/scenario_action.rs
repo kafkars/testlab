@@ -222,6 +222,7 @@ pub enum ScenarioAction {
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
+    ListShareGroupOffsets(crate::ListShareGroupOffsetsAction),
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsAction),
     ListConsumerGroupOffsetsBatch(crate::ListConsumerGroupOffsetsBatchAction),
     ListConsumerGroupsOffsets(crate::ListConsumerGroupsOffsetsAction),
@@ -273,7 +274,6 @@ pub enum ScenarioAction {
         transaction_id: OperationId,
         /// Operation staged before fencing.
         operation: crate::BatchRecord,
-        /// Owning client for the replacement.
         replacement_client_id: ClientId,
         /// Replacement producer identity.
         replacement_producer_id: ProducerId,

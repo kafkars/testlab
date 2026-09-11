@@ -36,7 +36,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::UserScramCredential(_)) = &target {
             return self.observe_user_scram_with_cli(target, timeout);
         }
-        if let Ok(target @ AdminTarget::ShareGroup(_)) = &target {
+        if let Ok(target @ (AdminTarget::ShareGroup(_) | AdminTarget::ShareGroupOffset(_))) =
+            &target
+        {
             return self.observe_share_group_with_cli(target, timeout);
         }
         if self.cluster_size > 1

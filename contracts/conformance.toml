@@ -283,6 +283,12 @@ statement = "One active Share-group description returns the exact public state a
 category = "admin"
 
 [[contract]]
+id = "ADMIN-038"
+title = "Share-group offset listings preserve exact public and broker state"
+statement = "One selected Share-group partition listing returns its exact public topic identity, start offset, leader epoch, and lag, and an immediate independent Kafka CLI query confirms the same start offset and lag."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
