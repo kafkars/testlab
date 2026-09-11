@@ -731,7 +731,8 @@ and one complete deadline. Its public completion retains leader identity,
 epoch, high watermark, canonical voters and observers, optional directory IDs,
 log-end offsets, optional timestamps, and optional v2 node listeners. Immediate
 `kafka-metadata-quorum.sh describe --status` and `--replication` snapshots are
-joined outside the adapter. The verifier requires stable membership, leader,
+joined outside the adapter across both legacy ID-only and directory-aware CLI
+layouts. The verifier requires stable membership, leader, represented
 directory, and endpoint agreement while allowing only nonregressing offsets,
 watermark, and timestamps between the public call and those sequential views.
 

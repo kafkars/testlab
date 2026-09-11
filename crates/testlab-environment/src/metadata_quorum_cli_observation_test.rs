@@ -18,6 +18,22 @@ NodeId DirectoryId LogEndOffset Lag LastFetchTimestamp LastCaughtUpTimestamp Sta
 1 AQEBAQEBAQEBAQEBAQEBAQ 40 2 100 101 Follower\n\
 3 AAAAAAAAAAAAAAAAAAAAAA 39 3 102 103 Observer\n";
 
+const LEGACY_STATUS: &str = r#"ClusterId: legacyClusterId012345w
+LeaderId: 2
+LeaderEpoch: 7
+HighWatermark: 40
+MaxFollowerLag: 2
+MaxFollowerLagTimeMs: 9
+CurrentVoters: [2,1]
+CurrentObservers: [3]
+"#;
+
+const LEGACY_REPLICATION: &str = "\
+NodeId LogEndOffset Lag LastFetchTimestamp LastCaughtUpTimestamp Status\n\
+2 42 0 -1 -1 Leader\n\
+1 40 2 100 101 Follower\n\
+3 39 3 102 103 Observer\n";
+
 #[test]
 fn status_and_replication_views_join_into_canonical_state() {
     let observed = normalize(5, &operation(), STATUS.as_bytes(), REPLICATION.as_bytes())
@@ -31,6 +47,24 @@ fn status_and_replication_views_join_into_canonical_state() {
     assert_eq!(observed.voters[1].replica_id, 2);
     assert_eq!(observed.observers[0].replica_directory_id, None);
     assert_eq!(observed.nodes[0].listeners[0].host, "broker-1");
+}
+
+#[test]
+fn legacy_id_and_replication_views_normalize_absent_v2_fields() {
+    let observed = normalize(
+        6,
+        &operation(),
+        LEGACY_STATUS.as_bytes(),
+        LEGACY_REPLICATION.as_bytes(),
+    )
+    .unwrap_or_else(|error| panic!("normalize legacy quorum: {error}"));
+    let BrokerStateObservation::MetadataQuorum(observed) = observed else {
+        panic!("quorum observation kind");
+    };
+    assert_eq!(observed.voters[0].replica_id, 1);
+    assert_eq!(observed.voters[0].replica_directory_id, None);
+    assert_eq!(observed.observers[0].replica_id, 3);
+    assert!(observed.nodes.is_empty());
 }
 
 #[test]

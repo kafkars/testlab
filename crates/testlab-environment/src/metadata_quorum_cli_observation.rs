@@ -11,10 +11,20 @@ use crate::observer_error::ObserverError;
 
 #[path = "metadata_quorum_cli_join.rs"]
 mod join;
+#[path = "metadata_quorum_cli_membership.rs"]
+mod membership;
 
-const REPLICATION_HEADERS: [&str; 7] = [
+const DIRECTORY_REPLICATION_HEADERS: [&str; 7] = [
     "NodeId",
     "DirectoryId",
+    "LogEndOffset",
+    "Lag",
+    "LastFetchTimestamp",
+    "LastCaughtUpTimestamp",
+    "Status",
+];
+const LEGACY_REPLICATION_HEADERS: [&str; 6] = [
+    "NodeId",
     "LogEndOffset",
     "Lag",
     "LastFetchTimestamp",
@@ -111,10 +121,10 @@ fn parse_status(stdout: &[u8]) -> Result<StatusSnapshot, ObserverError> {
         field(lag_time, "MaxFollowerLagTimeMs:")?,
         "maximum lag time",
     )?;
-    let mut voters = status_replicas(field(voters, "CurrentVoters:")?, "voters")?;
-    let mut observers = status_replicas(field(observers, "CurrentObservers:")?, "observers")?;
-    canonicalize_status(&mut voters, "voters")?;
-    canonicalize_status(&mut observers, "observers")?;
+    let mut voters = membership::parse(field(voters, "CurrentVoters:")?, "voters")?;
+    let mut observers = membership::parse(field(observers, "CurrentObservers:")?, "observers")?;
+    membership::canonicalize(&mut voters, "voters")?;
+    membership::canonicalize(&mut observers, "observers")?;
     if voters.is_empty()
         || voters
             .iter()
@@ -141,37 +151,23 @@ fn field<'a>(line: &'a str, label: &str) -> Result<&'a str, ObserverError> {
         .ok_or_else(|| invalid(format!("status view omitted {label}")))
 }
 
-fn status_replicas(value: &str, kind: &str) -> Result<Vec<StatusReplica>, ObserverError> {
-    serde_json::from_str(value).map_err(|error| invalid(format!("invalid {kind} JSON: {error}")))
-}
-
-fn canonicalize_status(replicas: &mut [StatusReplica], kind: &str) -> Result<(), ObserverError> {
-    for replica in replicas.iter_mut() {
-        if replica.id < 0 {
-            return Err(invalid(format!("{kind} contained a negative node ID")));
-        }
-        replica.directory_id = directory_id(replica.directory_id.take())?;
-    }
-    replicas.sort_unstable_by_key(|replica| replica.id);
-    if replicas.windows(2).any(|pair| pair[0].id == pair[1].id) {
-        return Err(invalid(format!("{kind} repeated a node ID")));
-    }
-    Ok(())
-}
-
 fn parse_replication(stdout: &[u8]) -> Result<Vec<ReplicationRow>, ObserverError> {
     let text = str::from_utf8(stdout).map_err(|_| invalid("replication view was not UTF-8"))?;
     let mut lines = text.lines().filter(|line| !line.trim().is_empty());
     let Some(header) = lines.next() else {
         return Err(invalid("replication view omitted its header"));
     };
-    if !header
-        .split_whitespace()
-        .eq(REPLICATION_HEADERS.iter().copied())
-    {
+    let columns = header.split_whitespace().collect::<Vec<_>>();
+    let has_directory_id = if columns.as_slice() == DIRECTORY_REPLICATION_HEADERS.as_slice() {
+        true
+    } else if columns.as_slice() == LEGACY_REPLICATION_HEADERS.as_slice() {
+        false
+    } else {
         return Err(invalid("replication view had unexpected columns"));
-    }
-    let mut rows = lines.map(replication_row).collect::<Result<Vec<_>, _>>()?;
+    };
+    let mut rows = lines
+        .map(|line| replication_row(line, has_directory_id))
+        .collect::<Result<Vec<_>, _>>()?;
     if rows.is_empty() {
         return Err(invalid("replication view returned no replicas"));
     }
@@ -185,21 +181,39 @@ fn parse_replication(stdout: &[u8]) -> Result<Vec<ReplicationRow>, ObserverError
     Ok(rows)
 }
 
-fn replication_row(line: &str) -> Result<ReplicationRow, ObserverError> {
+fn replication_row(line: &str, has_directory_id: bool) -> Result<ReplicationRow, ObserverError> {
     let columns = line.split_whitespace().collect::<Vec<_>>();
-    let [id, directory, offset, lag, fetched, caught_up, role] = columns.as_slice() else {
-        return Err(invalid("replication row did not contain seven columns"));
+    let (id, directory, offset, lag, fetched, caught_up, role) = if has_directory_id {
+        let [id, directory, offset, lag, fetched, caught_up, role] = columns.as_slice() else {
+            return Err(invalid("replication row did not contain seven columns"));
+        };
+        (
+            *id,
+            Some(*directory),
+            *offset,
+            *lag,
+            *fetched,
+            *caught_up,
+            *role,
+        )
+    } else {
+        let [id, offset, lag, fetched, caught_up, role] = columns.as_slice() else {
+            return Err(invalid(
+                "legacy replication row did not contain six columns",
+            ));
+        };
+        (*id, None, *offset, *lag, *fetched, *caught_up, *role)
     };
     Ok(ReplicationRow {
         replica: MetadataQuorumReplicaState {
             replica_id: nonnegative_i32(id, "replica ID")?,
-            replica_directory_id: directory_id(Some((*directory).to_owned()))?,
+            replica_directory_id: directory_id(directory.map(str::to_owned))?,
             log_end_offset: optional_i64(offset, "log-end offset")?,
             last_fetch_timestamp_ms: optional_i64(fetched, "last-fetch timestamp")?,
             last_caught_up_timestamp_ms: optional_i64(caught_up, "last-caught-up timestamp")?,
         },
         lag: nonnegative_i64(lag, "replica lag")?,
-        role: match *role {
+        role: match role {
             "Leader" => Role::Leader,
             "Follower" => Role::Follower,
             "Observer" => Role::Observer,
