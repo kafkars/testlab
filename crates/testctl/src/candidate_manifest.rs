@@ -86,6 +86,11 @@ pub(crate) fn adapter_manifest(
     root: &Path,
     artifacts: &[PackageArtifact],
 ) -> Result<String, AppError> {
+    let candidate_version = artifacts
+        .iter()
+        .find(|artifact| artifact.name == "kafkars")
+        .map(|artifact| toml::Value::String(artifact.version.clone()).to_string())
+        .ok_or_else(|| AppError::Candidate("missing packaged source kafkars".to_owned()))?;
     let source = |name: &str| -> Result<String, AppError> {
         artifacts
             .iter()
@@ -103,6 +108,7 @@ pub(crate) fn adapter_manifest(
         include_str!("candidate_adapter.toml"),
         adapter_lib = toml_path(&root.join("adapters/kafkars-rust/src/lib.rs"))?,
         adapter_bin = toml_path(&root.join("adapters/kafkars-rust/src/main.rs"))?,
+        candidate_version = candidate_version,
         schema = toml_path(&root.join("crates/testlab-schema"))?,
         core = source("kafka-client-core")?,
         engine = source("kafka-client-engine")?,

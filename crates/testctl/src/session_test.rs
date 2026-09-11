@@ -1,12 +1,15 @@
-//! Session tests preserve failed-scenario cleanup as an explicit abort.
+//! Session tests preserve cleanup and packaged adapter identity.
+
+use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::{
-    AdapterCommand, ClientId, CreatePartitionsAction, CreateTopicAction, OperationId,
-    ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    AdapterCommand, AdapterDescriptor, AdapterId, ClientId, CreatePartitionsAction,
+    CreateTopicAction, OperationId, ScenarioAction, SubjectArtifact, SubjectId, SubjectManifest,
+    TOPIC_ALREADY_EXISTS_ERROR_CODE, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 use super::runner_protocol::ExpectedEvent;
-use super::session::{expects_admin_failure, scenario_failure_settlement};
+use super::session::{expects_admin_failure, scenario_failure_settlement, verify_subject_version};
 
 #[test]
 fn scenario_failure_aborts_instead_of_claiming_clean_finish() {
@@ -49,4 +52,62 @@ fn only_declared_admin_errors_observe_after_public_failure() {
             timeout_ms: 1_000,
         }
     )));
+}
+
+#[test]
+fn packaged_kafkars_version_must_match_the_adapter_descriptor() {
+    let subject = subject_with_versions(&["0.0.2-rc.2"]);
+    let mut descriptor = descriptor("0.0.2-rc.1");
+
+    let error = verify_subject_version(&subject, &descriptor)
+        .err()
+        .unwrap_or_else(|| panic!("version mismatch should fail"));
+    assert!(error.to_string().contains("0.0.2-rc.1"));
+    assert!(error.to_string().contains("0.0.2-rc.2"));
+
+    descriptor.version = "0.0.2-rc.2".to_owned();
+    assert!(verify_subject_version(&subject, &descriptor).is_ok());
+    assert!(verify_subject_version(&subject_with_versions(&[]), &descriptor).is_ok());
+}
+
+#[test]
+fn multiple_packaged_kafkars_versions_are_ambiguous() {
+    let subject = subject_with_versions(&["0.0.2-rc.1", "0.0.2-rc.2"]);
+
+    let error = verify_subject_version(&subject, &descriptor("0.0.2-rc.2"))
+        .err()
+        .unwrap_or_else(|| panic!("ambiguous versions should fail"));
+
+    assert!(error.to_string().contains("more than one"));
+}
+
+fn subject_with_versions(versions: &[&str]) -> SubjectManifest {
+    SubjectManifest {
+        schema_version: 2,
+        id: SubjectId::new("candidate").unwrap_or_else(|error| panic!("subject id: {error}")),
+        display_name: "candidate".to_owned(),
+        artifacts: versions
+            .iter()
+            .map(|version| SubjectArtifact {
+                name: "kafkars".to_owned(),
+                version: (*version).to_owned(),
+                sha256: "a".repeat(64),
+            })
+            .collect(),
+        command: "adapter".to_owned(),
+        args: Vec::new(),
+        environment: BTreeMap::new(),
+        pass_environment: Vec::new(),
+        working_directory: Some(".".to_owned()),
+    }
+}
+
+fn descriptor(version: &str) -> AdapterDescriptor {
+    AdapterDescriptor {
+        id: AdapterId::new("kafkars-rust").unwrap_or_else(|error| panic!("adapter id: {error}")),
+        implementation: "packaged kafkars Rust client".to_owned(),
+        version: version.to_owned(),
+        protocol_version: testlab_schema::PROTOCOL_VERSION,
+        capabilities: BTreeSet::new(),
+    }
 }

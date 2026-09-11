@@ -69,6 +69,7 @@ pub(crate) fn run_adapter_session(
         &ExpectedEvent::Ready,
     )?;
     let descriptor = descriptor_from(ready)?;
+    verify_subject_version(subject, &descriptor)?;
     verify_capabilities(scenario, &descriptor)?;
     *adapter = Some(descriptor);
     for step in &scenario.steps {
@@ -251,6 +252,33 @@ fn descriptor_from(event: AdapterEventEnvelope) -> Result<AdapterDescriptor, Run
         other => Err(RunFailure::protocol(
             "handshake_event_invalid",
             format!("expected ready event, received {other:?}"),
+        )),
+    }
+}
+
+pub(super) fn verify_subject_version(
+    subject: &SubjectManifest,
+    descriptor: &AdapterDescriptor,
+) -> Result<(), RunFailure> {
+    let versions = subject
+        .artifacts
+        .iter()
+        .filter(|artifact| artifact.name == "kafkars")
+        .map(|artifact| artifact.version.as_str())
+        .collect::<Vec<_>>();
+    match versions.as_slice() {
+        [] => Ok(()),
+        [version] if *version == descriptor.version => Ok(()),
+        [version] => Err(RunFailure::protocol(
+            "descriptor_subject_version_mismatch",
+            format!(
+                "adapter descriptor reported version {}, but the packaged kafkars artifact is {version}",
+                descriptor.version
+            ),
+        )),
+        _ => Err(RunFailure::protocol(
+            "descriptor_subject_version_ambiguous",
+            "subject declared more than one packaged kafkars artifact version",
         )),
     }
 }

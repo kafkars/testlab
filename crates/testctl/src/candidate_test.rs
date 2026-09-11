@@ -75,7 +75,12 @@ fn ambiguous_package_archives_are_rejected() {
 
 #[test]
 fn adapter_manifest_uses_every_extracted_package() {
-    let artifacts = artifacts();
+    let mut artifacts = artifacts();
+    let candidate = artifacts
+        .iter_mut()
+        .find(|artifact| artifact.name == "kafkars")
+        .unwrap_or_else(|| panic!("candidate fixture should contain kafkars"));
+    candidate.version = "0.2.0-rc.3".to_owned();
 
     let manifest = must(
         adapter_manifest(Path::new("/testlab root"), &artifacts),
@@ -92,6 +97,7 @@ fn adapter_manifest_uses_every_extracted_package() {
     assert!(manifest.contains("/sources/kafka-wire-core"));
     assert!(manifest.contains("/sources/kafka-wire-records"));
     assert!(manifest.contains("/testlab root/adapters/kafkars-rust/src/lib.rs"));
+    assert!(manifest.contains("version = \"0.2.0-rc.3\""));
 }
 
 #[test]

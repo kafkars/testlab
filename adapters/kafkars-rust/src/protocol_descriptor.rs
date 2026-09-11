@@ -33,10 +33,14 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         capabilities.insert(Capability::ShareConsumerConfiguration);
         capabilities
     };
+    #[cfg(kafkars_share_candidate)]
+    let version = env!("CARGO_PKG_VERSION");
+    #[cfg(not(kafkars_share_candidate))]
+    let version = "0.0.2-rc.1";
     Ok(AdapterDescriptor {
         id: AdapterId::new("kafkars-rust")?,
         implementation: "packaged kafkars Rust client".to_owned(),
-        version: "0.0.2-rc.1".to_owned(),
+        version: version.to_owned(),
         protocol_version: PROTOCOL_VERSION,
         capabilities,
     })

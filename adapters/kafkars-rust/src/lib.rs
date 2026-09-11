@@ -107,6 +107,8 @@ mod protocol_cancel_test;
 #[cfg(test)]
 mod protocol_concurrent_test;
 #[cfg(test)]
+mod protocol_descriptor_test;
+#[cfg(test)]
 mod protocol_test;
 #[cfg(test)]
 mod state_test;
