@@ -65,8 +65,9 @@
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.
-- Configured Share consumers cover public record ceilings while every delivered
-  record remains joined to independent broker observations.
+- Configured Share consumers cover public record ceilings and exact
+  acquisition-range sizing while every delivered record remains joined to
+  independent broker observations.
 - Lifecycle scenarios cover repeated client readiness and producer flush plus
   independent client progress after another client shuts down.
 - Multi-record transactions span topics and partitions with the same field and
@@ -82,8 +83,8 @@
 
 ## Now — complete the stable boundary
 
-1. Requalify the excluded invalid-partition offset and configured Share
-   acquisition-range scenarios before adding them to Kafkars packs.
+1. Replace the excluded invalid-partition offset contract with a
+   source-preserving route failure before adding it to Kafkars packs.
 2. Add explicit independent producer and directly assigned consumer ownership
    in Kafkars before enabling the corresponding multi-handle scenarios.
 3. Extend black-box coverage across high-use public group configuration and

@@ -5,4 +5,5 @@ scenarios = [
   "scenarios/kafka/share-group-mixed-release.toml",
   "scenarios/kafka/share-group-mixed-reject.toml",
   "scenarios/kafka/share-group-batch-drop.toml",
+  "scenarios/kafka/share-group-fetch-batch-size.toml",
 ]

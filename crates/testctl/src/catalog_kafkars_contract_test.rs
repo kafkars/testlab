@@ -4,7 +4,7 @@ use std::{collections::BTreeSet, fs, path::Path, path::PathBuf};
 
 use crate::catalog::Repository;
 
-const UNQUALIFIED_KAFKA_SCENARIOS: [(&str, &str); 5] = [
+const UNQUALIFIED_KAFKA_SCENARIOS: [(&str, &str); 4] = [
     (
         "producer-sibling-close-isolation.toml",
         "producer handles from one client share one owner and close fence",
@@ -20,10 +20,6 @@ const UNQUALIFIED_KAFKA_SCENARIOS: [(&str, &str); 5] = [
     (
         "admin-list-offsets-invalid-partition.toml",
         "the exact per-partition failure lacks passing qualification evidence",
-    ),
-    (
-        "share-group-fetch-batch-size.toml",
-        "the batch-size acquisition range lacks passing qualification evidence",
     ),
 ];
 

@@ -124,7 +124,7 @@ fn pull_request_pack_excludes_release_disruptions() {
         Err(error) => panic!("load pull-request pack: {error}"),
     };
 
-    assert_eq!(pack.scenarios.len(), 90);
+    assert_eq!(pack.scenarios.len(), 91);
     assert!(
         !pack
             .scenarios

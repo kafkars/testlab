@@ -96,15 +96,15 @@ alone never establishes complete release qualification.
 | Kafka | Apache Kafka 3.7.2 through 4.3.1 |
 | Topology | Single broker and three-broker clusters |
 | Security | Plaintext, TLS, SASL/PLAIN, and SCRAM-SHA-256/512 |
-| Behavior | Produce across all public compression codecs with explicit limits/retry policy, stage-aware cancellation, complete public client metrics snapshots, assigned/group/share consume, configured Share record limits, mixed Share batch decisions and redelivery, repeated readiness and flush plus independent-client shutdown isolation, direct beginning/end/exact-offset positioning, assigned and classic/KIP-848 group seek, pause/resume, clone-shared shutdown, latest offset reset, read-committed isolation, incremental assignment with survivor-cursor retention, exact null/empty/tombstone/header fidelity, same-partition ordering, deterministic concurrent actors, admin, multi-record and consume-transform-produce transactions, fencing, restart, rolling recovery, broker-role failover, authorization recovery, and quotas |
+| Behavior | Produce across all public compression codecs with explicit limits/retry policy, stage-aware cancellation, complete public client metrics snapshots, assigned/group/share consume, configured Share record and acquisition-range limits, mixed Share batch decisions and redelivery, repeated readiness and flush plus independent-client shutdown isolation, direct beginning/end/exact-offset positioning, assigned and classic/KIP-848 group seek, pause/resume, clone-shared shutdown, latest offset reset, read-committed isolation, incremental assignment with survivor-cursor retention, exact null/empty/tombstone/header fidelity, same-partition ordering, deterministic concurrent actors, admin, multi-record and consume-transform-produce transactions, fencing, restart, rolling recovery, broker-role failover, authorization recovery, and quotas |
 | Truth | Producer, consumer, and committed transaction records and coordinates checked against independent librdkafka observation; committed group checkpoints independently queried and aborted checkpoint transfers proved unchanged by exact redelivery |
 
 Kafka images are pinned by digest. Scenario topics must have leaders and full
 in-sync replicas before a client starts.
 
 Checked-in scenarios for sibling and replacement producers, two independent
-direct consumers on one client, invalid-partition offset errors, and configured
-Share acquisition-range size are deliberately excluded from Kafkars packs.
+direct consumers on one client, and invalid-partition offset errors are
+deliberately excluded from Kafkars packs.
 Their presence in the catalog is not qualification evidence or a support claim.
 
 ## Evidence
