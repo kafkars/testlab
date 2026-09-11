@@ -2,8 +2,8 @@
 
 use testlab_schema::{
     AdapterCommand, AlterShareGroupOffsetsCommand, DeleteShareGroupOffsetsCommand,
-    DeleteShareGroupsCommand, DescribeShareGroupCommand, ListShareGroupOffsetsCommand,
-    ScenarioAction,
+    DeleteShareGroupsCommand, DescribeShareGroupCommand, DescribeShareGroupsCommand,
+    ListShareGroupOffsetsCommand, ScenarioAction,
 };
 
 use crate::observer_admin_target::{
@@ -25,6 +25,26 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 group_id: action.group_id.clone(),
             }),
         ),
+        ScenarioAction::DescribeShareGroups(action) => {
+            let group_ids = action
+                .groups
+                .iter()
+                .map(|group| group.group_id.clone())
+                .collect::<Vec<_>>();
+            unique(&group_ids, &action.operation_id, "Share-group identity")?;
+            (
+                AdapterCommand::DescribeShareGroups(DescribeShareGroupsCommand {
+                    client_id: action.client_id.clone(),
+                    operation_id: action.operation_id.clone(),
+                    group_ids: group_ids.clone(),
+                    timeout_ms: action.timeout_ms,
+                }),
+                AdminTarget::ShareGroupDescriptions(ShareGroupsTarget {
+                    operation_id: action.operation_id.clone(),
+                    group_ids,
+                }),
+            )
+        }
         ScenarioAction::ListShareGroupOffsets(action) => (
             AdapterCommand::ListShareGroupOffsets(ListShareGroupOffsetsCommand {
                 client_id: action.client_id.clone(),

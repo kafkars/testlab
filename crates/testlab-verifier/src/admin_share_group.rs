@@ -20,6 +20,11 @@ pub(crate) fn verify_share_group_action(
         ScenarioAction::DescribeShareGroup(value) => {
             verify_description_action(action, value, index, violations)
         }
+        ScenarioAction::DescribeShareGroups(value) => {
+            crate::admin_share_groups_description::verify(
+                scenario, action, value, index, violations,
+            );
+        }
         ScenarioAction::ListShareGroupOffsets(value) => {
             verify_offset_action(action, value, index, violations)
         }
@@ -82,7 +87,7 @@ fn verify_description_action(
     }
 }
 
-fn description_matches(
+pub(crate) fn description_matches(
     actual: &AdminShareGroupDescription,
     expected: &testlab_schema::DescribeShareGroupAction,
 ) -> bool {

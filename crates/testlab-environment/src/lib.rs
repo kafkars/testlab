@@ -34,6 +34,7 @@ mod compose_readiness;
 mod compose_security;
 mod compose_seed;
 mod compose_share_group_observe;
+mod compose_share_groups_description_observe;
 mod compose_startup;
 mod compose_support;
 mod compose_topic_readiness;
@@ -157,6 +158,8 @@ mod observer_admin_share_group_offset_deletion_test;
 mod observer_admin_share_group_offset_mutation_test;
 #[cfg(test)]
 mod observer_admin_share_group_test;
+#[cfg(test)]
+mod observer_admin_share_groups_description_test;
 #[cfg(test)]
 mod observer_admin_target_test;
 #[cfg(test)]

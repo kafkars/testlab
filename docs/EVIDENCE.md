@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v34 records the exact environment identity in `manifest.json`,
-retains protocol-v45 direct and hosted-group consumer controls and shutdown,
+Evidence schema v35 records the exact environment identity in `manifest.json`,
+retains protocol-v46 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -193,7 +193,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in scenario schema v48. Plural offset
+retain the same broker-state fact shapes in scenario schema v49. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -287,6 +287,13 @@ selected Share group, one exact public deletion outcome per group in caller
 order, and one immediate read-only Kafka CLI list snapshot. The normalized
 independent observations retain consecutive ordinals in caller order and must
 report every selected group absent; unrelated listed groups remain irrelevant.
+
+ADMIN-042 binds one caller-ordered public batch to a complete detailed
+description for every selected active Share group. Each modeled member must
+retain an exact acquired public batch with positive member and assignment
+fences before the admin command. Separate immediate read-only Kafka CLI state
+queries retain consecutive history and observation order and must agree on
+every group, stable state, and member count.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

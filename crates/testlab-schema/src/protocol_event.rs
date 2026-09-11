@@ -26,7 +26,6 @@ pub enum AdapterEvent {
     ClientMetricsObserved(Box<crate::ClientMetricsObservation>),
     /// Public producer construction completed.
     ProducerCreated {
-        /// Created producer.
         producer_id: ProducerId,
     },
     /// The public producer accepted ownership of one operation.
@@ -217,6 +216,7 @@ pub enum AdapterEvent {
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),
+    ShareGroupsDescribed(crate::AdminShareGroupsDescription),
     ShareGroupOffsetsListed(crate::AdminShareGroupOffsetListing),
     ShareGroupOffsetsAltered(crate::AdminShareGroupOffsetAlteration),
     ShareGroupOffsetsDeleted(crate::AdminShareGroupOffsetDeletion),

@@ -1,4 +1,4 @@
-schema_version = 48
+schema_version = 49
 id = "kafka.consumer-protocol-group-offset-resume"
 title = "a replacement KIP-848 member resumes from the committed offset"
 description = "A first KIP-848 member commits offset 1, independent broker evidence confirms it, and a new client and broker member in the same group receives only the next exact record before independently confirmed offset 2."

@@ -1,4 +1,4 @@
-schema_version = 48
+schema_version = 49
 id = "kafka.transactional-offset-classic"
 title = "classic group checkpoints move atomically with transformed output"
 description = "A public classic member transfers one assignment-fenced checkpoint in a committed transaction and independently proves offset 1; a later aborted transfer hides its output and a replacement member receives the exact source record again."

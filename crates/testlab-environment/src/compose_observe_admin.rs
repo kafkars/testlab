@@ -36,6 +36,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::UserScramCredential(_)) = &target {
             return self.observe_user_scram_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::ShareGroupDescriptions(_)) = &target {
+            return self.observe_share_group_descriptions_with_cli(target, timeout);
+        }
         if let Ok(
             target @ (AdminTarget::ShareGroup(_)
             | AdminTarget::ShareGroups(_)

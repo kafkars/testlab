@@ -29,7 +29,6 @@ pub enum AdapterCommand {
     ObserveClientMetrics(crate::ObserveClientMetricsCommand),
     /// Creates one public producer handle.
     CreateProducer {
-        /// Owning client.
         client_id: ClientId,
         /// Scenario-local producer identity.
         producer_id: ProducerId,
@@ -204,6 +203,7 @@ pub enum AdapterCommand {
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),
+    DescribeShareGroups(crate::DescribeShareGroupsCommand),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsCommand),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsCommand),
     DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsCommand),

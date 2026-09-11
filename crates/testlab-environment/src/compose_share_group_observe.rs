@@ -4,10 +4,11 @@ use std::time::{Duration, Instant};
 
 use testlab_schema::EnvironmentOperationKind;
 
+use crate::TerminalOutput;
 use crate::compose::DockerComposeEnvironment;
 use crate::compose_command::compose_owned;
 use crate::compose_support::remaining;
-use crate::compose_types::ComposeObservation;
+use crate::compose_types::{ComposeFailure, ComposeObservation};
 use crate::observer_admin_target::AdminTarget;
 
 impl DockerComposeEnvironment {
@@ -61,33 +62,7 @@ impl DockerComposeEnvironment {
                 return observed;
             }
         };
-        let Some(service) = self.broker_services.first().cloned() else {
-            observed.phase.fail(
-                "environment_observation_failed",
-                "no broker service for Share-group query",
-            );
-            return observed;
-        };
-        let operation = self.next_operation;
-        let mut args = vec![
-            "exec".to_owned(),
-            "--no-TTY".to_owned(),
-            service,
-            "/opt/kafka/bin/kafka-share-groups.sh".to_owned(),
-            "--bootstrap-server".to_owned(),
-            format!("localhost:{}", self.client_port),
-            "--timeout".to_owned(),
-            remaining(deadline).as_millis().to_string(),
-        ];
-        args.extend(selection);
-        let spec = compose_owned(
-            EnvironmentOperationKind::BrokerObserve,
-            &self.prefix,
-            args,
-            format!("share-group-{artifact}-{operation:05}.txt"),
-            format!("share-group-{artifact}-{operation:05}.stderr.txt"),
-        );
-        let output = match self.execute(spec, remaining(deadline)) {
+        let output = match self.execute_share_group_cli(selection, artifact, deadline) {
             Ok(output) => output,
             Err(error) => {
                 observed.phase.fail(error.code, error.diagnostic);
@@ -115,5 +90,41 @@ impl DockerComposeEnvironment {
             );
         }
         observed
+    }
+
+    pub(super) fn execute_share_group_cli(
+        &mut self,
+        selection: Vec<String>,
+        artifact: &str,
+        deadline: Instant,
+    ) -> Result<TerminalOutput, ComposeFailure> {
+        let service = self.broker_services.first().cloned().ok_or_else(|| {
+            ComposeFailure::new(
+                "environment_observation_failed",
+                "no broker service for Share-group query",
+            )
+        })?;
+        let operation = self.next_operation;
+        let mut args = vec![
+            "exec".to_owned(),
+            "--no-TTY".to_owned(),
+            service,
+            "/opt/kafka/bin/kafka-share-groups.sh".to_owned(),
+            "--bootstrap-server".to_owned(),
+            format!("localhost:{}", self.client_port),
+            "--timeout".to_owned(),
+            remaining(deadline).as_millis().to_string(),
+        ];
+        args.extend(selection);
+        self.execute(
+            compose_owned(
+                EnvironmentOperationKind::BrokerObserve,
+                &self.prefix,
+                args,
+                format!("share-group-{artifact}-{operation:05}.txt"),
+                format!("share-group-{artifact}-{operation:05}.stderr.txt"),
+            ),
+            remaining(deadline),
+        )
     }
 }

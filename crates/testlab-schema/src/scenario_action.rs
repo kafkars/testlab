@@ -14,7 +14,6 @@ pub enum ScenarioAction {
     ObserveClientMetrics(crate::ObserveClientMetricsAction),
     CreateProducer {
         client_id: ClientId,
-        /// New producer identity.
         producer_id: ProducerId,
     },
     SetBrokerBehavior {
@@ -221,6 +220,7 @@ pub enum ScenarioAction {
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
+    DescribeShareGroups(crate::DescribeShareGroupsAction),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsAction),
     AlterShareGroupOffsets(crate::AlterShareGroupOffsetsAction),
     DeleteShareGroupOffsets(crate::DeleteShareGroupOffsetsAction),

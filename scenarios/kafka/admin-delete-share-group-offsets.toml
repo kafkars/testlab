@@ -1,4 +1,4 @@
-schema_version = 48
+schema_version = 49
 id = "kafka.admin-delete-share-group-offsets"
 title = "packaged admin deletes independently observed Share-group offsets"
 description = "After the only modeled Share member closes, the packaged client's public topic-wide Share-group offset deletion removes one independently listed partition state, and an immediate Kafka CLI query confirms that no start offset or lag remains."

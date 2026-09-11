@@ -132,6 +132,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
+        | ScenarioAction::DescribeShareGroups(_)
         | ScenarioAction::ListShareGroupOffsets(_)
         | ScenarioAction::AlterShareGroupOffsets(_)
         | ScenarioAction::DeleteShareGroupOffsets(_)

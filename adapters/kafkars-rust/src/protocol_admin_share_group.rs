@@ -41,7 +41,7 @@ pub(crate) fn describe<W: Write>(
         retry_safe,
     )
     .map_err(AdapterError::Client)?;
-    let description = public_description(command, result.into_description());
+    let description = public_description(command.operation_id, result.into_description());
     emit(
         writer,
         &AdapterEventEnvelope::new(command_id, AdapterEvent::ShareGroupDescribed(description)),
@@ -167,8 +167,8 @@ pub(crate) fn alter_offsets<W: Write>(
     )
 }
 
-fn public_description(
-    command: DescribeShareGroupCommand,
+pub(crate) fn public_description(
+    operation_id: testlab_schema::OperationId,
     description: ShareGroupDescription,
 ) -> AdminShareGroupDescription {
     let members = description
@@ -192,7 +192,7 @@ fn public_description(
         })
         .collect();
     AdminShareGroupDescription {
-        operation_id: command.operation_id,
+        operation_id,
         group_id: description.group_id().to_owned(),
         state: description.state().to_owned(),
         group_epoch: description.group_epoch(),
@@ -202,13 +202,13 @@ fn public_description(
     }
 }
 
-fn deadline_after(timeout_ms: u64) -> Instant {
+pub(crate) fn deadline_after(timeout_ms: u64) -> Instant {
     let started = Instant::now();
     started
         .checked_add(Duration::from_millis(timeout_ms))
         .unwrap_or(started)
 }
 
-fn retry_safe(error: &KafkaError) -> bool {
+pub(crate) fn retry_safe(error: &KafkaError) -> bool {
     error.retry_advice() == RetryAdvice::RetrySafe
 }

@@ -51,6 +51,10 @@ pub use crate::admin_scenario_action::{
     CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
     TopicDescriptionApi,
 };
+pub use crate::admin_share_group_description_batch::{
+    AdminShareGroupDescriptionOutcome, AdminShareGroupsDescription, DescribeShareGroupsAction,
+    DescribeShareGroupsCommand, ShareGroupDescriptionExpectation,
+};
 pub use crate::admin_share_group_lifecycle::{
     AdminShareGroupDeletionOutcome, AdminShareGroupsDeletion, DeleteShareGroupsAction,
     DeleteShareGroupsCommand,

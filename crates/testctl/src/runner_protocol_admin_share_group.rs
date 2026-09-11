@@ -19,6 +19,20 @@ pub(super) fn classify(
             AdapterEvent::ShareGroupDescribed(actual),
         ) => operation_id == &actual.operation_id && group_id == &actual.group_id,
         (
+            ExpectedEvent::ShareGroupsDescribed {
+                operation_id,
+                group_ids,
+            },
+            AdapterEvent::ShareGroupsDescribed(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| outcome.group_id.as_str())
+                    .eq(group_ids.iter().map(String::as_str))
+        }
+        (
             ExpectedEvent::ShareGroupOffsetsListed {
                 operation_id,
                 group_id,
@@ -83,6 +97,9 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
         (
             ExpectedEvent::ShareGroupDescribed { .. },
             AdapterEvent::ShareGroupDescribed(_)
+        ) | (
+            ExpectedEvent::ShareGroupsDescribed { .. },
+            AdapterEvent::ShareGroupsDescribed(_)
         ) | (
             ExpectedEvent::ShareGroupOffsetsListed { .. },
             AdapterEvent::ShareGroupOffsetsListed(_)

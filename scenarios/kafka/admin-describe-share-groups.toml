@@ -1,0 +1,177 @@
+schema_version = 49
+id = "kafka.admin-describe-share-groups"
+title = "packaged admin describes two independently observed active Share groups"
+description = "Two Share groups retain distinct acquired records while one caller-ordered public batch preserves each detailed state and assignment; separate read-only Kafka CLI state queries confirm both group states and member counts."
+timeout_ms = 240000
+requires = ["producer", "share_consumer", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-client-2"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "await-client-2-ready"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-alpha-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-description-alpha"
+
+[steps.record]
+topic = "testlab-kafkars-admin-share-description-alpha"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "share-alpha" }
+value = { encoding = "utf8", data = "active-member" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-description-alpha" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-zulu-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-description-zulu"
+
+[steps.record]
+topic = "testlab-kafkars-admin-share-description-zulu"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "share-zulu" }
+value = { encoding = "utf8", data = "active-member" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-description-zulu" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-markers"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-alpha-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-alpha"
+group_id = "testlab-admin-share-description-alpha"
+topic = "testlab-kafkars-admin-share-description-alpha"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "retain-alpha-batch"
+kind = "share_receive"
+consumer_id = "share-alpha"
+receive_id = "receive-share-description-alpha"
+expected_operation_ids = ["op-share-description-alpha"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "create-zulu-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-2"
+consumer_id = "share-zulu"
+group_id = "testlab-admin-share-description-zulu"
+topic = "testlab-kafkars-admin-share-description-zulu"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "retain-zulu-batch"
+kind = "share_receive"
+consumer_id = "share-zulu"
+receive_id = "receive-share-description-zulu"
+expected_operation_ids = ["op-share-description-zulu"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "describe-share-groups"
+kind = "describe_share_groups"
+client_id = "client-1"
+operation_id = "admin-describe-share-groups"
+groups = [
+  { group_id = "testlab-admin-share-description-zulu", expected_state = "Stable", expected_member_count = 1, expected_topic = "testlab-kafkars-admin-share-description-zulu", expected_partition = 0 },
+  { group_id = "testlab-admin-share-description-alpha", expected_state = "Stable", expected_member_count = 1, expected_topic = "testlab-kafkars-admin-share-description-alpha", expected_partition = 0 },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "acknowledge-zulu-marker"
+kind = "share_acknowledge"
+consumer_id = "share-zulu"
+receive_id = "receive-share-description-zulu"
+acknowledgement_id = "ack-share-description-zulu"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-alpha-marker"
+kind = "share_acknowledge"
+consumer_id = "share-alpha"
+receive_id = "receive-share-description-alpha"
+acknowledgement_id = "ack-share-description-alpha"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-zulu-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-zulu"
+expect_success = true
+
+[[steps]]
+id = "close-alpha-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-alpha"
+expect_success = true
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[steps]]
+id = "shutdown-client-2"
+kind = "shutdown_client"
+client_id = "client-2"
+
+[[assertions]]
+operation_id = "op-share-description-alpha"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-share-description-zulu"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

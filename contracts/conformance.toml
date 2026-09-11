@@ -307,6 +307,12 @@ statement = "One caller-ordered public deletion of multiple Share groups follows
 category = "admin"
 
 [[contract]]
+id = "ADMIN-042"
+title = "Plural Share-group descriptions preserve caller order and live truth"
+statement = "One public description of multiple active Share groups preserves detailed successful outcomes in caller order, each backed by a live retained public batch with positive membership fences and a separate immediate read-only Kafka CLI state query."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

@@ -21,29 +21,49 @@ pub(crate) fn validate(
                 operation_ids,
                 problems,
             );
-            if action.expected_state != "Stable" {
+            description_expectation(
+                &action.operation_id,
+                &action.expected_state,
+                action.expected_member_count,
+                &action.expected_topic,
+                action.expected_partition,
+                problems,
+            );
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
+        ScenarioAction::DescribeShareGroups(action) => {
+            validate_identity(
+                &action.client_id,
+                &action.operation_id,
+                clients,
+                operation_ids,
+                problems,
+            );
+            if !(2..=32).contains(&action.groups.len()) {
                 problems.push(format!(
-                    "admin operation {} expected_state must be Stable",
+                    "admin operation {} groups must contain between 2 and 32 entries",
                     action.operation_id
                 ));
             }
-            if action.expected_member_count == 0 || action.expected_member_count > 32 {
-                problems.push(format!(
-                    "admin operation {} expected_member_count must be between 1 and 32",
-                    action.operation_id
-                ));
-            }
-            if action.expected_topic.is_empty() || action.expected_topic.len() > 249 {
-                problems.push(format!(
-                    "admin operation {} has invalid expected_topic",
-                    action.operation_id
-                ));
-            }
-            if action.expected_partition < 0 {
-                problems.push(format!(
-                    "admin operation {} expected_partition must be nonnegative",
-                    action.operation_id
-                ));
+            let mut groups = BTreeSet::new();
+            for group in &action.groups {
+                if group.group_id.is_empty()
+                    || group.group_id.len() > 255
+                    || !groups.insert(&group.group_id)
+                {
+                    problems.push(format!(
+                        "admin operation {} groups must contain unique valid group ids",
+                        action.operation_id
+                    ));
+                }
+                description_expectation(
+                    &action.operation_id,
+                    &group.expected_state,
+                    group.expected_member_count,
+                    &group.expected_topic,
+                    group.expected_partition,
+                    problems,
+                );
             }
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
@@ -201,5 +221,35 @@ fn validate_nonnegative(
                 "admin operation {operation_id} {field} must be nonnegative"
             ));
         }
+    }
+}
+
+fn description_expectation(
+    operation_id: &OperationId,
+    state: &str,
+    member_count: u32,
+    topic: &str,
+    partition: i32,
+    problems: &mut Vec<String>,
+) {
+    if state != "Stable" {
+        problems.push(format!(
+            "admin operation {operation_id} expected_state must be Stable"
+        ));
+    }
+    if member_count == 0 || member_count > 32 {
+        problems.push(format!(
+            "admin operation {operation_id} expected_member_count must be between 1 and 32"
+        ));
+    }
+    if topic.is_empty() || topic.len() > 249 {
+        problems.push(format!(
+            "admin operation {operation_id} has invalid expected_topic"
+        ));
+    }
+    if partition < 0 {
+        problems.push(format!(
+            "admin operation {operation_id} expected_partition must be nonnegative"
+        ));
     }
 }

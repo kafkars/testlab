@@ -5,6 +5,7 @@ use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
     match action {
         ScenarioAction::DescribeShareGroup(value) => Some(&value.operation_id),
+        ScenarioAction::DescribeShareGroups(value) => Some(&value.operation_id),
         ScenarioAction::ListShareGroupOffsets(value) => Some(&value.operation_id),
         ScenarioAction::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         ScenarioAction::DeleteShareGroupOffsets(value) => Some(&value.operation_id),
@@ -16,6 +17,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
 pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&OperationId> {
     match command {
         AdapterCommand::DescribeShareGroup(value) => Some(&value.operation_id),
+        AdapterCommand::DescribeShareGroups(value) => Some(&value.operation_id),
         AdapterCommand::ListShareGroupOffsets(value) => Some(&value.operation_id),
         AdapterCommand::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         AdapterCommand::DeleteShareGroupOffsets(value) => Some(&value.operation_id),
@@ -38,6 +40,21 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         (ScenarioAction::DescribeShareGroup(_), _) | (_, AdapterCommand::DescribeShareGroup(_)) => {
             false
         }
+        (
+            ScenarioAction::DescribeShareGroups(action),
+            AdapterCommand::DescribeShareGroups(command),
+        ) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action
+                    .groups
+                    .iter()
+                    .map(|group| group.group_id.as_str())
+                    .eq(command.group_ids.iter().map(String::as_str))
+                && action.timeout_ms == command.timeout_ms
+        }
+        (ScenarioAction::DescribeShareGroups(_), _)
+        | (_, AdapterCommand::DescribeShareGroups(_)) => false,
         (
             ScenarioAction::ListShareGroupOffsets(action),
             AdapterCommand::ListShareGroupOffsets(command),

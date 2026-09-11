@@ -26,6 +26,12 @@ fn share_packs_retain_public_and_independent_group_admin_proofs() {
         assert!(
             pack.scenarios
                 .iter()
+                .any(|scenario| scenario.ends_with("admin-describe-share-groups.toml")),
+            "{path} omitted caller-ordered plural Share-group descriptions"
+        );
+        assert!(
+            pack.scenarios
+                .iter()
                 .any(|scenario| scenario.ends_with("admin-list-share-group-offsets.toml")),
             "{path} omitted Share-group offsets"
         );

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v45 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v48 and evidence schema v34.
+Protocol v46 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v49 and evidence schema v35.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -83,6 +83,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `list_consumer_groups`
 - `describe_consumer_group`
 - `describe_share_group`
+- `describe_share_groups`
 - `list_share_group_offsets`
 - `alter_share_group_offsets`
 - `delete_share_group_offsets`
@@ -227,6 +228,7 @@ timeouts invalidate evidence.
 - `consumer_groups_listed`
 - `consumer_group_described`
 - `share_group_described`
+- `share_groups_described`
 - `share_group_offsets_listed`
 - `share_group_offsets_altered`
 - `share_group_offsets_deleted`
@@ -561,6 +563,15 @@ pinned `kafka-share-groups.sh --describe --state` query independently confirms
 the stable state and member count; that CLI snapshot cannot substitute for the
 detailed public assignment.
 
+Plural Share-group description carries two through 32 distinct group
+identities in caller order while each modeled member retains an acquired
+batch. Scenario-owned state, member-count, topic, and partition expectations
+stay in `testctl`. One public call preserves an exact success or failure per
+group in caller order; every success retains the same complete detailed public
+description as the singleton operation. Separate immediate pinned
+`kafka-share-groups.sh --describe --state` queries preserve that order and
+independently confirm each stable state and member count.
+
 Share-group offset listing selects one exact topic-partition from one group.
 Scenario-owned start-offset and lag expectations stay in `testctl`. The public
 completion preserves the selected identity, nonzero topic ID, optional start
@@ -675,6 +686,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v45 is an exact semantic contract. New capabilities may be declared
+Protocol v46 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

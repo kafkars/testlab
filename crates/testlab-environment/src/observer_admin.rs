@@ -45,6 +45,9 @@ pub(super) fn capture(
         AdminTarget::ShareGroup(_) => Err(ObserverError::InvalidTarget(
             "Share-group target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::ShareGroupDescriptions(_) => Err(ObserverError::InvalidTarget(
+            "Share-group descriptions require the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::ShareGroups(_) => Err(ObserverError::InvalidTarget(
             "Share-groups target requires the pinned Kafka CLI observer".to_owned(),
         )),

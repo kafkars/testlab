@@ -11,6 +11,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     crate::admin_delete_records_transition_validation::validate(scenario, problems);
     crate::admin_group_offset_transition_validation::validate(scenario, problems);
     crate::admin_share_group_offset_transition_validation::validate(scenario, problems);
+    crate::admin_share_group_description_transition_validation::validate(scenario, problems);
     crate::admin_classic_group_transition_validation::validate(scenario, problems);
     validate_describe_errors(scenario, problems);
     let mut state = TransitionState::default();
