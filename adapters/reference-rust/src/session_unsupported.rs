@@ -6,6 +6,9 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
     match command {
         AdapterCommand::CancelProducerSend(_) => "producer_cancellation capability required",
         AdapterCommand::CreateConfiguredClient(_) => "producer_configuration capability required",
+        AdapterCommand::CreateAssignedConsumerClient(_) => {
+            "assigned_consumer_configuration capability required"
+        }
         AdapterCommand::ObserveClientMetrics(_) => "client_metrics capability required",
         AdapterCommand::CreateAssignedConsumer { .. }
         | AdapterCommand::AssignBeginning { .. }

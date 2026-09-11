@@ -7,6 +7,7 @@ pub enum ScenarioAction {
         client_id: ClientId,
     },
     CreateConfiguredClient(crate::CreateConfiguredClientAction),
+    CreateAssignedConsumerClient(crate::CreateAssignedConsumerClientAction),
     AwaitClientReady {
         client_id: ClientId,
     },
@@ -63,7 +64,6 @@ pub enum ScenarioAction {
     },
     StartConcurrentActors(crate::StartConcurrentActorsAction),
     JoinConcurrentActors(crate::JoinConcurrentActorsAction),
-    /// Claims one directly assigned public consumer.
     CreateAssignedConsumer {
         /// Owning client.
         client_id: ClientId,

@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ConsumerId, OperationId, TopicPartitionIdentity};
 
+#[cfg(test)]
+#[path = "assigned_consumer_control_test.rs"]
+mod tests;
+
 /// One explicit public direct-consumer start position.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]

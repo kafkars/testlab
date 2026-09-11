@@ -2,6 +2,9 @@
 
 mod adapter_error;
 mod admission_retry;
+mod assigned_consumer_configuration;
+#[cfg(test)]
+mod assigned_consumer_configuration_test;
 mod assigned_consumer_positions;
 #[cfg(test)]
 mod assigned_consumer_positions_test;
@@ -71,6 +74,7 @@ mod protocol_client;
 mod protocol_concurrent;
 mod protocol_consumer;
 mod protocol_descriptor;
+mod protocol_failure;
 mod protocol_group;
 mod protocol_lifecycle;
 mod protocol_send;

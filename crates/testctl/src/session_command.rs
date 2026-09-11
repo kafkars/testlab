@@ -1,12 +1,15 @@
 use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{AdapterCommand, ScenarioAction};
+#[path = "session_command_creation.rs"]
+mod creation;
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
         action @ (ScenarioAction::CreateClient { .. }
         | ScenarioAction::CreateConfiguredClient(_)
+        | ScenarioAction::CreateAssignedConsumerClient(_)
         | ScenarioAction::AwaitClientReady { .. }
-        | ScenarioAction::CreateProducer { .. }) => return creation(action),
+        | ScenarioAction::CreateProducer { .. }) => return creation::translate(action),
         ScenarioAction::ObserveClientMetrics(action) => (
             AdapterCommand::ObserveClientMetrics(testlab_schema::ObserveClientMetricsCommand {
                 client_id: action.client_id.clone(),
@@ -166,37 +169,6 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::AlterBrokerPolicy(_) => {
             return None;
         }
-    })
-}
-fn creation(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    Some(match action {
-        ScenarioAction::CreateClient { client_id } => (
-            AdapterCommand::CreateClient {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientCreated(client_id.clone()),
-        ),
-        ScenarioAction::CreateConfiguredClient(action) => (
-            AdapterCommand::CreateConfiguredClient(action.clone()),
-            ExpectedEvent::ClientCreated(action.client_id.clone()),
-        ),
-        ScenarioAction::AwaitClientReady { client_id } => (
-            AdapterCommand::AwaitClientReady {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientReady(client_id.clone()),
-        ),
-        ScenarioAction::CreateProducer {
-            client_id,
-            producer_id,
-        } => (
-            AdapterCommand::CreateProducer {
-                client_id: client_id.clone(),
-                producer_id: producer_id.clone(),
-            },
-            ExpectedEvent::ProducerCreated(producer_id.clone()),
-        ),
-        _ => return None,
     })
 }
 fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {

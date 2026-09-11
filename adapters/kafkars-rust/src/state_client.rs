@@ -1,6 +1,6 @@
 //! Client state construction applies public policy before starting the shared host.
 
-use testlab_schema::{ClientId, ProducerConfiguration};
+use testlab_schema::{AssignedConsumerConfiguration, ClientId, ProducerConfiguration};
 
 use crate::admission_retry::retry_safe;
 use crate::kafkars_api::Client;
@@ -8,7 +8,7 @@ use crate::state::{AdapterState, StateError};
 
 impl AdapterState {
     pub(crate) fn create_client(&mut self, client_id: ClientId) -> Result<(), StateError> {
-        self.create_client_with_configuration(client_id, None)
+        self.create_client_with_configuration(client_id, None, None)
     }
 
     pub(crate) fn create_configured_client(
@@ -16,13 +16,22 @@ impl AdapterState {
         client_id: ClientId,
         configuration: ProducerConfiguration,
     ) -> Result<(), StateError> {
-        self.create_client_with_configuration(client_id, Some(configuration))
+        self.create_client_with_configuration(client_id, Some(configuration), None)
+    }
+
+    pub(crate) fn create_assigned_consumer_client(
+        &mut self,
+        client_id: ClientId,
+        configuration: AssignedConsumerConfiguration,
+    ) -> Result<(), StateError> {
+        self.create_client_with_configuration(client_id, None, Some(configuration))
     }
 
     fn create_client_with_configuration(
         &mut self,
         client_id: ClientId,
-        configuration: Option<ProducerConfiguration>,
+        producer_configuration: Option<ProducerConfiguration>,
+        assigned_consumer_configuration: Option<AssignedConsumerConfiguration>,
     ) -> Result<(), StateError> {
         let endpoints = self
             .broker_endpoints
@@ -36,8 +45,14 @@ impl AdapterState {
             .bootstrap_servers(endpoints.iter().map(String::as_str))
             .client_id(client_id.as_str())
             .security(security);
-        let builder = match configuration {
+        let builder = match producer_configuration {
             Some(configuration) => crate::producer_configuration::apply(builder, configuration)?,
+            None => builder,
+        };
+        let builder = match assigned_consumer_configuration {
+            Some(configuration) => {
+                crate::assigned_consumer_configuration::apply(builder, configuration)
+            }
             None => builder,
         };
         let client = builder.build().map_err(StateError::Client)?;

@@ -15,6 +15,7 @@ impl HistoryIndex {
         match command {
             AdapterCommand::CreateClient { .. }
             | AdapterCommand::CreateConfiguredClient(_)
+            | AdapterCommand::CreateAssignedConsumerClient(_)
             | AdapterCommand::AwaitClientReady { .. }
             | AdapterCommand::ObserveClientMetrics(_)
             | AdapterCommand::CreateProducer { .. } => {
@@ -97,6 +98,9 @@ impl HistoryIndex {
                 self.clients_create_issued.insert(client_id.clone());
             }
             AdapterCommand::CreateConfiguredClient(action) => {
+                self.clients_create_issued.insert(action.client_id.clone());
+            }
+            AdapterCommand::CreateAssignedConsumerClient(action) => {
                 self.clients_create_issued.insert(action.client_id.clone());
             }
             AdapterCommand::AwaitClientReady { client_id } => {

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v66. It is not a
+An adapter translates one packaged client surface to protocol v69. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -67,6 +67,9 @@ runner and not a verifier.
 - Advertise assigned-consumer controls only when replacement, incremental
   add/remove, seek, pause, and resume use public calls with explicit positions,
   bounded admission, and exact operation-identified completions.
+- Advertise assigned-consumer configuration only when read isolation is fixed
+  through the public builder before the client host starts; never receive the
+  expected record used to prove that selection.
 - Advertise group-consumer controls only when pause, resume, and seek use public
   hosted-consumer calls and retain exact operation, consumer, partition, and
   position identity without receiving later record expectations.

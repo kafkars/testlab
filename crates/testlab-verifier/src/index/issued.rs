@@ -35,6 +35,9 @@ impl HistoryIndex {
             ScenarioAction::CreateConfiguredClient(action) => {
                 Some(self.clients_create_issued.contains(&action.client_id))
             }
+            ScenarioAction::CreateAssignedConsumerClient(action) => {
+                Some(self.clients_create_issued.contains(&action.client_id))
+            }
             ScenarioAction::AwaitClientReady { client_id } => {
                 Some(self.clients_ready_issued.contains(client_id))
             }
@@ -70,6 +73,7 @@ impl HistoryIndex {
         match action {
             ScenarioAction::CreateClient { .. }
             | ScenarioAction::CreateConfiguredClient(_)
+            | ScenarioAction::CreateAssignedConsumerClient(_)
             | ScenarioAction::AwaitClientReady { .. }
             | ScenarioAction::ObserveClientMetrics(_) => {
                 unreachable!("client actions are indexed before generic actions")

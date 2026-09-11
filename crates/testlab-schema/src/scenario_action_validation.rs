@@ -22,6 +22,9 @@ pub(crate) fn validate_action(
             crate::producer_configuration_validation::validate(&action.configuration, problems);
             create_client(&action.client_id, &mut state.clients, problems);
         }
+        ScenarioAction::CreateAssignedConsumerClient(action) => {
+            create_client(&action.client_id, &mut state.clients, problems);
+        }
         ScenarioAction::AwaitClientReady { client_id } => {
             require_live_client(client_id, &state.clients, problems);
         }
@@ -185,7 +188,11 @@ pub(crate) fn validate_action(
             require_open_producer(producer_id, &state.producers, problems);
         }
         ScenarioAction::CloseProducer { producer_id } => {
-            close_producer(producer_id, &mut state.producers, problems);
+            crate::scenario_action_state::close_producer(
+                producer_id,
+                &mut state.producers,
+                problems,
+            );
         }
         ScenarioAction::ShutdownClient { client_id } => {
             crate::scenario_action_lifecycle_validation::shutdown_client(
@@ -285,16 +292,5 @@ pub(crate) fn require_open_producer(
             problems.push(format!("producer {producer_id} was used after close"));
         }
         None => problems.push(format!("missing producer {producer_id} was used")),
-    }
-}
-fn close_producer(
-    producer_id: &ProducerId,
-    producers: &mut ProducerStates,
-    problems: &mut Vec<String>,
-) {
-    match producers.get_mut(producer_id) {
-        Some((_, closed)) if !*closed => *closed = true,
-        Some(_) => problems.push(format!("producer {producer_id} closed more than once")),
-        None => problems.push(format!("missing producer {producer_id} was closed")),
     }
 }

@@ -30,6 +30,8 @@ pub enum Capability {
     ModelBroker,
     /// Assigned-partition consumer operations.
     AssignedConsumer,
+    /// Client-wide immutable assigned-consumer configuration.
+    AssignedConsumerConfiguration,
     /// Positioning and mutation controls for assigned-partition consumers.
     AssignedConsumerControls,
     /// Consumer group operations.

@@ -1,6 +1,8 @@
+use crate::AdapterError;
 use crate::protocol_client;
 use crate::protocol_consumer;
 use crate::protocol_descriptor;
+pub(super) use crate::protocol_failure::emit_client_failure;
 use crate::protocol_group;
 use crate::protocol_lifecycle;
 use crate::protocol_send;
@@ -9,7 +11,6 @@ use crate::protocol_share;
 use crate::state::AdapterState;
 use crate::transaction_execute;
 use crate::transaction_fence;
-use crate::{AdapterError, normalize};
 use std::io::{self, BufRead, Read, Write};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
@@ -88,6 +89,7 @@ fn dispatch<W: Write>(
         } => dispatch_hello(state, writer, command_id, broker_endpoints, security)?,
         command @ (AdapterCommand::CreateClient { .. }
         | AdapterCommand::CreateConfiguredClient(_)
+        | AdapterCommand::CreateAssignedConsumerClient(_)
         | AdapterCommand::AwaitClientReady { .. }
         | AdapterCommand::ObserveClientMetrics(_)
         | AdapterCommand::CreateProducer { .. }) => {
@@ -273,28 +275,4 @@ fn emit_fatal<W: Write>(
     );
     let _ = emit(writer, &event);
     Err(error)
-}
-
-pub(super) fn emit_client_failure<W: Write>(
-    writer: &mut W,
-    envelope: CommandEnvelope,
-    error: AdapterError,
-) -> Result<(), AdapterError> {
-    let Some(client_error) = error.client_failure() else {
-        return Err(error);
-    };
-    eprintln!(
-        "Kafkars command {} failed: {client_error}",
-        envelope.command_id
-    );
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(
-            envelope.command_id,
-            AdapterEvent::CommandFailed {
-                code: normalize::error_code(client_error),
-                diagnostic: client_error.to_string(),
-            },
-        ),
-    )
 }

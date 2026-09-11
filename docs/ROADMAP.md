@@ -69,9 +69,10 @@
   work, with exact command ownership and deterministic cross-field invariants.
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
-  and incremental add/remove with survivor cursors. Repeated lifecycle
-  operations and public controls settle against exact command identities rather
-  than aggregate resource counts.
+  incremental add/remove with survivor cursors, and read-committed isolation
+  after an independently verified aborted transaction. Repeated lifecycle
+  operations and public controls settle against exact command identities
+  rather than aggregate resource counts.
 - Classic and KIP-848 group consumers cover public pause/resume partition
   isolation and assignment-fenced seek replay, with committed public outcomes
   joined to positive protocol epochs and independent broker coordinates.

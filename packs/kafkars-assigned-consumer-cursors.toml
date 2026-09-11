@@ -3,6 +3,7 @@ id = "kafkars-assigned-consumer-cursors"
 title = "packaged Kafkars directly assigned consumer cursor coverage"
 scenarios = [
   "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/assigned-consumer-read-committed.toml",
   "scenarios/kafka/assigned-consumer-end-position.toml",
   "scenarios/kafka/assigned-consumer-exact-offset.toml",
   "scenarios/kafka/assigned-consumer-seek-replay.toml",

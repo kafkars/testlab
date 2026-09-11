@@ -25,6 +25,13 @@ pub(crate) fn dispatch<W: Write>(
                 client_id: action.client_id,
             }
         }
+        AdapterCommand::CreateAssignedConsumerClient(action) => {
+            state
+                .create_assigned_consumer_client(action.client_id.clone(), action.configuration)?;
+            AdapterEvent::ClientCreated {
+                client_id: action.client_id,
+            }
+        }
         AdapterCommand::AwaitClientReady { client_id } => {
             state.await_client_ready(&client_id)?;
             AdapterEvent::ClientReady { client_id }

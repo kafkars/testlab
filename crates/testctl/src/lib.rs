@@ -117,6 +117,8 @@ mod candidate_test;
 #[cfg(test)]
 mod catalog_admin_discovery_test;
 #[cfg(test)]
+mod catalog_assigned_consumer_configuration_test;
+#[cfg(test)]
 mod catalog_assigned_consumer_controls_test;
 #[cfg(test)]
 mod catalog_client_metrics_test;
@@ -186,6 +188,8 @@ mod session_command_admin_group_listing_test;
 mod session_command_admin_test;
 #[cfg(test)]
 mod session_command_admin_validate_test;
+#[cfg(test)]
+mod session_command_assigned_consumer_configuration_test;
 #[cfg(test)]
 mod session_command_client_metrics_test;
 #[cfg(test)]

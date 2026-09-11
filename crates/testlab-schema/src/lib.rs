@@ -59,6 +59,7 @@ mod admin_transition_validation;
 mod admin_user_scram;
 mod admin_user_scram_validation;
 mod admin_validate_only_validation;
+mod assigned_consumer_configuration;
 mod assigned_consumer_control;
 mod assigned_consumer_control_validation;
 mod broker_policy;
@@ -123,6 +124,7 @@ mod verdict;
 pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_expected_error::expected_admin_error;
 pub use admin_exports::*;
+pub use assigned_consumer_configuration::*;
 pub use assigned_consumer_control::*;
 pub use broker_policy::{
     ADMIN_TOPIC_AUTHORIZATION_ERROR_CODE, BrokerAclOperation, BrokerAclResource, BrokerPolicy,
@@ -258,8 +260,6 @@ mod admin_v17_validation_test;
 mod admin_v18_protocol_test;
 #[cfg(test)]
 mod admin_validate_only_validation_test;
-#[cfg(test)]
-mod assigned_consumer_control_test;
 #[cfg(test)]
 mod broker_policy_test;
 #[cfg(test)]

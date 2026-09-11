@@ -28,3 +28,15 @@ pub(crate) struct ActionStates {
     pub(crate) broker_policies: BTreeSet<crate::BrokerPolicy>,
     pub(crate) network_faults: BTreeMap<u16, crate::NetworkFault>,
 }
+
+pub(crate) fn close_producer(
+    producer_id: &ProducerId,
+    producers: &mut ProducerStates,
+    problems: &mut Vec<String>,
+) {
+    match producers.get_mut(producer_id) {
+        Some((_, closed)) if !*closed => *closed = true,
+        Some(_) => problems.push(format!("producer {producer_id} closed more than once")),
+        None => problems.push(format!("missing producer {producer_id} was closed")),
+    }
+}

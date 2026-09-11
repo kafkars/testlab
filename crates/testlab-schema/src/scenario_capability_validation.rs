@@ -29,6 +29,9 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         ScenarioAction::AwaitClientReady { .. } => Some(Capability::ClientReadiness),
         ScenarioAction::ObserveClientMetrics(_) => Some(Capability::ClientMetrics),
         ScenarioAction::CreateConfiguredClient(_) => Some(Capability::ProducerConfiguration),
+        ScenarioAction::CreateAssignedConsumerClient(_) => {
+            Some(Capability::AssignedConsumerConfiguration)
+        }
         ScenarioAction::CancelProducerSend(_) => Some(Capability::ProducerCancellation),
         ScenarioAction::ControlAssignedConsumer(_) => Some(Capability::AssignedConsumerControls),
         ScenarioAction::ControlGroupConsumer(_) => Some(Capability::GroupConsumerControls),
@@ -184,6 +187,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
     (
         Capability::AssignedConsumer,
         "assigned-consumer steps require the assigned_consumer capability",
+    ),
+    (
+        Capability::AssignedConsumerConfiguration,
+        "configured assigned-consumer clients require the assigned_consumer_configuration capability",
     ),
     (
         Capability::AssignedConsumerControls,

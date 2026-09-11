@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v66 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v69 and evidence schema v55.
+Protocol v69 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v72 and evidence schema v58.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -22,6 +22,13 @@ and linger limits. These values are fixed before the public client host starts.
 Durability cannot be downgraded: idempotence and `acks=all` remain client-owned
 invariants outside the protocol vocabulary. Each codec has an independent
 real-Kafka scenario checked by ordinary terminal and broker-observation rules.
+
+Configured assigned-consumer client creation carries one immutable read
+isolation selection: uncommitted or committed. It is fixed through the public
+builder before the client host starts. The adapter receives no expected record;
+read-committed behavior is proved by a direct assignment from the beginning
+returning only a nontransactional sentinel after an independently verified
+aborted transaction.
 
 Client metrics observation carries only stable client and operation identities
 to the adapter. Scenario-only record floors and required idle, accepting, or
@@ -42,6 +49,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `hello`
 - `create_client`
 - `create_configured_client`
+- `create_assigned_consumer_client`
 - `await_client_ready`
 - `observe_client_metrics`
 - `create_producer`
@@ -914,6 +922,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v66 is an exact semantic contract. New capabilities may be declared
+Protocol v69 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

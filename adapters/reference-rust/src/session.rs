@@ -103,6 +103,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::JoinConcurrentActors { .. }
         | AdapterCommand::CancelProducerSend(_)
         | AdapterCommand::CreateConfiguredClient(_)
+        | AdapterCommand::CreateAssignedConsumerClient(_)
         | AdapterCommand::ObserveClientMetrics(_)
         | AdapterCommand::CreateAssignedConsumer { .. }
         | AdapterCommand::AssignBeginning { .. }

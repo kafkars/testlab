@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v55 records the exact environment identity in `manifest.json`,
-retains protocol-v66 direct and hosted-group consumer controls, abandonment,
+Evidence schema v58 records the exact environment identity in `manifest.json`,
+retains protocol-v69 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
@@ -80,6 +80,16 @@ Kafka records after broker decoding; it does not inspect Produce request frames
 and therefore does not independently claim which compression codec was used on
 the wire. Public builder-selection tests establish the adapter mapping without
 turning that adapter fact into broker truth.
+
+Configured assigned-consumer history retains the requested read isolation and
+its correlated client creation. The read-committed scenario assigns at the
+beginning after an aborted transaction and requires the public receive to
+contain only the nontransactional sentinel. CONS-002 enforces that exact
+receive, CONS-012 binds it to independent broker coordinates and bytes, and
+TXN-002 independently requires the aborted operation to remain absent. The
+public builder-selection test establishes the adapter mapping without treating
+that adapter fact as broker truth.
+
 PROD-012 retains two ordered public cancellation outcomes and the same
 delivery's authoritative terminal. It enforces stage monotonicity, requires
 `cancelled_not_sent` to agree with definitely-not-sent `cancelled` truth, and

@@ -25,21 +25,16 @@ pub(crate) fn verify_lifecycle(
             continue;
         }
         match &step.action {
-            ScenarioAction::CreateClient { client_id } => check(
+            ScenarioAction::CreateClient { client_id }
+            | ScenarioAction::CreateConfiguredClient(
+                testlab_schema::CreateConfiguredClientAction { client_id, .. },
+            )
+            | ScenarioAction::CreateAssignedConsumerClient(
+                testlab_schema::CreateAssignedConsumerClientAction { client_id, .. },
+            ) => check(
                 "LIFE-001",
                 "client creation",
                 references(index.clients_created.get(client_id).map(Vec::as_slice)),
-                violations,
-            ),
-            ScenarioAction::CreateConfiguredClient(action) => check(
-                "LIFE-001",
-                "configured client creation",
-                references(
-                    index
-                        .clients_created
-                        .get(&action.client_id)
-                        .map(Vec::as_slice),
-                ),
                 violations,
             ),
             ScenarioAction::AwaitClientReady { client_id } => check(

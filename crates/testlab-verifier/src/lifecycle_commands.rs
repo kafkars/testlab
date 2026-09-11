@@ -106,6 +106,9 @@ impl<'a> ExpectedLifecycle<'a> {
             AdapterCommand::CreateClient { client_id }
             | AdapterCommand::CreateConfiguredClient(
                 testlab_schema::CreateConfiguredClientAction { client_id, .. },
+            )
+            | AdapterCommand::CreateAssignedConsumerClient(
+                testlab_schema::CreateAssignedConsumerClientAction { client_id, .. },
             ) => Self::client(
                 "LIFE-001",
                 "client creation",

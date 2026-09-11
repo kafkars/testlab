@@ -18,6 +18,7 @@ pub enum AdapterCommand {
         client_id: ClientId,
     },
     CreateConfiguredClient(crate::CreateConfiguredClientAction),
+    CreateAssignedConsumerClient(crate::CreateAssignedConsumerClientAction),
     /// Waits for one public client readiness probe.
     AwaitClientReady {
         client_id: ClientId,
@@ -57,7 +58,6 @@ pub enum AdapterCommand {
         /// Complete join bound.
         timeout_ms: u64,
     },
-    /// Claims one directly assigned consumer handle.
     CreateAssignedConsumer {
         /// Owning client.
         client_id: ClientId,
