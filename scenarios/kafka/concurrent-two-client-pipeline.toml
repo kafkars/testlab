@@ -1,4 +1,4 @@
-schema_version = 50
+schema_version = 51
 id = "kafka.concurrent-two-client-pipeline"
 title = "two packaged clients produce and consume across two partitions"
 description = "Two clients release two producer sends and two directly assigned receives through one four-actor barrier; every actor joins in caller order while independent observation proves both records."

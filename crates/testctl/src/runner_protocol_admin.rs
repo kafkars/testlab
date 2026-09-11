@@ -60,6 +60,20 @@ pub(super) fn classify_admin(
             },
             AdapterEvent::TopicDescribed(actual),
         ) => operation_id == &actual.operation_id && topic == &actual.topic,
+        (
+            ExpectedEvent::TopicsDescribed {
+                operation_id,
+                topics,
+            },
+            AdapterEvent::TopicsDescribed(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| outcome.topic.as_str())
+                    .eq(topics.iter().map(String::as_str))
+        }
         (ExpectedEvent::TopicsListed { operation_id }, AdapterEvent::TopicsListed(actual)) => {
             operation_id == &actual.operation_id
         }
@@ -203,6 +217,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::TopicPartitionIncreaseValidated { .. }
             | ExpectedEvent::TopicDeleted { .. }
             | ExpectedEvent::TopicDescribed { .. }
+            | ExpectedEvent::TopicsDescribed { .. }
             | ExpectedEvent::TopicsListed { .. }
             | ExpectedEvent::OffsetListed { .. }
             | ExpectedEvent::OffsetsListed { .. }
@@ -227,6 +242,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::TopicPartitionIncreaseValidated(_)
             | AdapterEvent::TopicDeleted(_)
             | AdapterEvent::TopicDescribed(_)
+            | AdapterEvent::TopicsDescribed(_)
             | AdapterEvent::TopicsListed(_)
             | AdapterEvent::OffsetListed(_)
             | AdapterEvent::OffsetsListed(_)

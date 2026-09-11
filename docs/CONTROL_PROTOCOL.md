@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v47 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v50 and evidence schema v36.
+Protocol v48 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v51 and evidence schema v37.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -73,6 +73,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_partitions`
 - `delete_topic`
 - `describe_topic`
+- `describe_topics`
 - `list_topics`
 - `list_offsets`
 - `list_offsets_batch`
@@ -219,6 +220,7 @@ timeouts invalidate evidence.
 - `topic_partitions_created`
 - `topic_deleted`
 - `topic_described`
+- `topics_described`
 - `topics_listed`
 - `offset_listed`
 - `offsets_listed`
@@ -446,8 +448,18 @@ confirms. The page path fails closed if its 10,000-partition response limit
 returns a continuation cursor; hidden pagination is forbidden. An all-topic
 listing preserves the public byte-sorted unique order and must contain the
 declared required topics, whose existence is likewise established by
-independent metadata observations. These checks do not claim exhaustive topic
-listing, internal-topic filtering, topic IDs, or replica topology.
+independent metadata observations. These singleton and listing checks do not
+claim exhaustive topic listing, internal-topic filtering, topic IDs, or replica
+topology.
+
+`describe_topics` carries two through 32 unique topic names in caller order and
+invokes one public Admin operation. Scenario-only partitions and expected
+errors stay in Testlab. Its single `topics_described` completion preserves the
+same outer order, exact topic keys, complete successful partition results,
+nonzero topic IDs, internal-topic flags, and per-topic or per-partition errors.
+Immediate independent metadata snapshots run in that same order and must prove
+each expected topology or missing-topic absence without replacing the public
+result.
 
 Offset listing selects `earliest` or `latest` for one isolated partition after
 two acknowledged records or deterministic environment seeding. An immediate
@@ -696,6 +708,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v47 is an exact semantic contract. New capabilities may be declared
+Protocol v48 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

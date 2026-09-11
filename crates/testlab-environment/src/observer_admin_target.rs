@@ -16,6 +16,7 @@ pub(super) use crate::observer_admin_share_group_offset_batch_target::{
     ShareGroupOffsetSelectionTarget, ShareGroupOffsetsSelectionTarget, ShareGroupsOffsetsTarget,
 };
 use crate::observer_admin_share_group_target;
+use crate::observer_admin_topic_description_batch_target;
 use crate::observer_admin_topic_target;
 use crate::observer_admin_user_scram_target;
 use crate::observer_error::ObserverError;
@@ -189,6 +190,9 @@ impl AdminTarget {
             .or(observer_admin_acl_target::match_action(action)?)
             .or(observer_admin_offset_batch_target::match_action(action)?)
             .or(observer_admin_batch_topic_target::match_action(action)?)
+            .or(observer_admin_topic_description_batch_target::match_action(
+                action,
+            )?)
             .or(observer_admin_topic_target::match_action(action)?)
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)

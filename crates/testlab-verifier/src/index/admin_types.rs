@@ -19,6 +19,12 @@ pub(crate) struct IndexedAdminTopicsCreationBatch {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedAdminTopicsDescription {
+    pub(crate) history_sequence: u64,
+    pub(crate) value: testlab_schema::AdminTopicsDescription,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedAdminGroupCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) group_id: String,

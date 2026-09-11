@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v36 records the exact environment identity in `manifest.json`,
-retains protocol-v47 direct and hosted-group consumer controls and shutdown,
+Evidence schema v37 records the exact environment identity in `manifest.json`,
+retains protocol-v48 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -301,6 +301,13 @@ leader epoch, lag, and absence of group-level or partition-level errors.
 Separate immediate read-only Kafka CLI offset queries run once per group; their
 normalized facts retain consecutive history and observation order and must
 agree on every selected start offset and lag.
+
+ADMIN-044 binds one caller-ordered public topic-description batch to each full
+successful description or exact missing-topic error. Successful descriptions
+retain a nonzero topic identity, the internal marker, and every ordered
+partition without hidden errors. Immediate metadata facts retain consecutive
+history and observation order and must prove each exact partition topology or
+topic absence before the next command.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

@@ -3,10 +3,10 @@ use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
 
 use super::{
     HistoryIndex, IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion,
-    IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedClusterDescription,
-    IndexedConsumerGroupDescription, IndexedConsumerGroupOffset, IndexedConsumerGroupsList,
-    IndexedOffsetList, IndexedRecordsDeleted, IndexedTopicConfigDescription,
-    IndexedTopicDescription, IndexedTopicsList,
+    IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDescription,
+    IndexedClusterDescription, IndexedConsumerGroupDescription, IndexedConsumerGroupOffset,
+    IndexedConsumerGroupsList, IndexedOffsetList, IndexedRecordsDeleted,
+    IndexedTopicConfigDescription, IndexedTopicDescription, IndexedTopicsList,
     admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
 
@@ -69,6 +69,14 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     topic: value.topic.clone(),
                     partitions: value.partitions.clone(),
+                }),
+            AdapterEvent::TopicsDescribed(value) => self
+                .topics_batch_described
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(IndexedAdminTopicsDescription {
+                    history_sequence: sequence,
+                    value: value.clone(),
                 }),
             AdapterEvent::TopicsListed(value) => self
                 .topics_listed

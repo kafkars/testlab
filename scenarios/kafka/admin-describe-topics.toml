@@ -1,0 +1,34 @@
+schema_version = 51
+id = "kafka.admin-describe-topics"
+title = "packaged admin describes caller-ordered topics with mixed outcomes"
+description = "One public plural topic description preserves caller order, detailed partitions, and an exact missing-topic error while immediate independent metadata confirms every success and absence."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-topics"
+kind = "describe_topics"
+client_id = "client-1"
+operation_id = "admin-describe-topics"
+topics = [
+  { topic = "testlab-kafkars-admin-describe-topics-zulu", expected_partitions = [0, 1] },
+  { topic = "testlab-kafkars-admin-describe-topics-missing", expected_error_code = "broker:broker_3" },
+  { topic = "testlab-kafkars-admin-describe-topics-alpha", expected_partitions = [0] },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

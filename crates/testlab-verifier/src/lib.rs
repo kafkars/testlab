@@ -24,6 +24,7 @@ mod admin_share_groups_deletion;
 mod admin_share_groups_description;
 mod admin_share_groups_offsets;
 mod admin_topic;
+mod admin_topics_description;
 mod admin_user_scram;
 mod admin_validate_only;
 mod admin_validate_only_evidence;
@@ -124,6 +125,8 @@ mod admin_test;
 mod admin_topic_cluster_test;
 #[cfg(test)]
 mod admin_topic_failure_test;
+#[cfg(test)]
+mod admin_topics_description_test;
 #[cfg(test)]
 mod admin_user_scram_test;
 #[cfg(test)]

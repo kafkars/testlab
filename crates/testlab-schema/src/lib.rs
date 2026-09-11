@@ -41,6 +41,8 @@ mod admin_share_group_offset_batch_validation;
 mod admin_share_group_offset_transition_validation;
 mod admin_topic;
 mod admin_topic_action_validation;
+mod admin_topic_description_batch;
+mod admin_topic_description_batch_validation;
 mod admin_transition_validation;
 mod admin_user_scram;
 mod admin_user_scram_validation;
@@ -231,6 +233,8 @@ mod admin_share_group_offset_deletion_test;
 mod admin_share_group_offset_mutation_test;
 #[cfg(test)]
 mod admin_share_group_test;
+#[cfg(test)]
+mod admin_topic_description_batch_test;
 #[cfg(test)]
 mod admin_topic_failure_validation_test;
 #[cfg(test)]

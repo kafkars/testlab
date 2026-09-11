@@ -196,6 +196,7 @@ pub enum AdapterEvent {
     TopicDeleted(crate::AdminTopicCompletion),
     /// One public admin topic description completed successfully.
     TopicDescribed(crate::AdminTopicDescription),
+    TopicsDescribed(crate::AdminTopicsDescription),
     /// One public admin topic listing completed successfully.
     TopicsListed(crate::AdminTopicsListing),
     /// One public admin offset listing completed successfully.
@@ -270,7 +271,6 @@ pub enum AdapterEvent {
         /// Closed transactional producer.
         producer_id: ProducerId,
     },
-    /// Producer flush completed.
     FlushCompleted {
         producer_id: ProducerId,
     },

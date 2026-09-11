@@ -209,6 +209,7 @@ pub enum ScenarioAction {
     CreatePartitions(crate::CreatePartitionsAction),
     DeleteTopic(crate::DeleteTopicAction),
     DescribeTopic(crate::DescribeTopicAction),
+    DescribeTopics(crate::DescribeTopicsAction),
     ListTopics(crate::ListTopicsAction),
     ListOffsets(crate::ListOffsetsAction),
     ListOffsetsBatch(crate::ListOffsetsBatchAction),
@@ -242,7 +243,6 @@ pub enum ScenarioAction {
     AlterUserScramCredential(crate::AlterUserScramCredentialAction),
     DescribeUserScramCredential(crate::DescribeUserScramCredentialAction),
     CreateTransactionalProducer {
-        /// Owning client.
         client_id: ClientId,
         /// New producer identity.
         producer_id: ProducerId,

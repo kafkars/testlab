@@ -75,4 +75,9 @@ pub use crate::admin_topic::{
     DeleteTopicCommand, DescribeTopicCommand, ListOffsetsCommand, ListTopicsCommand,
     ROUTING_ERROR_CODE, TOPIC_ALREADY_EXISTS_ERROR_CODE, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
+pub use crate::admin_topic_description_batch::{
+    AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
+    AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, DescribeTopicExpectation,
+    DescribeTopicsAction, DescribeTopicsCommand,
+};
 pub use crate::admin_user_scram::*;

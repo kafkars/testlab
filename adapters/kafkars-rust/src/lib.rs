@@ -46,6 +46,7 @@ mod protocol_admin_share_group_description_batch;
 mod protocol_admin_share_group_offset_batch;
 mod protocol_admin_share_group_offset_deletion;
 mod protocol_admin_topic_description;
+mod protocol_admin_topic_description_batch;
 mod protocol_admin_user_scram;
 mod protocol_admin_validation_event;
 mod protocol_admin_write;

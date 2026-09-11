@@ -80,6 +80,9 @@ impl TransitionState {
                 self.validate_create_partitions(action, problems);
             }
             ScenarioAction::DescribeTopic(action) => self.validate_describe_topic(action, problems),
+            ScenarioAction::DescribeTopics(action) => {
+                self.validate_describe_topics(action, problems)
+            }
             ScenarioAction::DeleteTopic(action) => self.validate_delete_topic(action, problems),
             ScenarioAction::ListOffsets(action) if action.expected_error_code.is_some() => {
                 self.validate_missing_partition(action, problems);
@@ -168,6 +171,25 @@ impl TransitionState {
             );
         } else {
             self.topics_described.insert(action.topic.clone());
+        }
+    }
+
+    fn validate_describe_topics(
+        &mut self,
+        action: &crate::DescribeTopicsAction,
+        problems: &mut Vec<String>,
+    ) {
+        for topic in &action.topics {
+            if topic.expected_error_code.is_some() {
+                crate::admin_expected_error::require_untracked_topic(
+                    &action.operation_id,
+                    &topic.topic,
+                    &self.created_topics,
+                    problems,
+                );
+            } else {
+                self.topics_described.insert(topic.topic.clone());
+            }
         }
     }
 

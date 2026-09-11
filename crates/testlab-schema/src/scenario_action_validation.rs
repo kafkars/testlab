@@ -122,6 +122,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::CreatePartitions(_)
         | ScenarioAction::DeleteTopic(_)
         | ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::DescribeTopics(_)
         | ScenarioAction::ListTopics(_)
         | ScenarioAction::ListOffsets(_)
         | ScenarioAction::ListOffsetsBatch(_)

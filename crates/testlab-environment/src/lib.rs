@@ -30,6 +30,7 @@ mod compose_observe_admin;
 mod compose_ports;
 mod compose_provision;
 mod compose_provision_targets;
+mod compose_provision_topic_descriptions;
 mod compose_readiness;
 mod compose_security;
 mod compose_seed;
@@ -68,6 +69,7 @@ mod observer_admin_plural_group_target;
 mod observer_admin_share_group_offset_batch_target;
 mod observer_admin_share_group_target;
 mod observer_admin_target;
+mod observer_admin_topic_description_batch_target;
 mod observer_admin_topic_target;
 mod observer_admin_user_scram_target;
 mod observer_error;
@@ -166,6 +168,8 @@ mod observer_admin_share_groups_description_test;
 mod observer_admin_share_groups_offsets_test;
 #[cfg(test)]
 mod observer_admin_target_test;
+#[cfg(test)]
+mod observer_admin_topics_description_test;
 #[cfg(test)]
 mod observer_admin_user_scram_test;
 #[cfg(test)]

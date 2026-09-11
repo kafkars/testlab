@@ -44,6 +44,7 @@ pub(crate) fn dispatch<W: Write>(
             protocol_admin_write::dispatch(state, writer, command_id, command)
         }
         command @ (AdapterCommand::DescribeTopic(_)
+        | AdapterCommand::DescribeTopics(_)
         | AdapterCommand::ListTopics(_)
         | AdapterCommand::ListOffsets(_)
         | AdapterCommand::ListConsumerGroupOffsets(_)) => {

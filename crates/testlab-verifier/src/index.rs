@@ -35,12 +35,13 @@ mod share;
 pub(super) use admin_types::push;
 pub(crate) use admin_types::{
     IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion, IndexedAdminTopicCompletion,
-    IndexedAdminTopicConfigCompletion, IndexedAdminTopicsCreationBatch, IndexedClusterDescription,
-    IndexedClusterObservation, IndexedConsumerGroupDescription, IndexedConsumerGroupObservation,
-    IndexedConsumerGroupOffset, IndexedConsumerGroupOffsetObservation, IndexedConsumerGroupsList,
-    IndexedOffsetList, IndexedPartitionOffsetsObservation, IndexedRecordsDeleted,
-    IndexedTopicConfigDescription, IndexedTopicConfigObservation, IndexedTopicDescription,
-    IndexedTopicObservation, IndexedTopicsList,
+    IndexedAdminTopicConfigCompletion, IndexedAdminTopicsCreationBatch,
+    IndexedAdminTopicsDescription, IndexedClusterDescription, IndexedClusterObservation,
+    IndexedConsumerGroupDescription, IndexedConsumerGroupObservation, IndexedConsumerGroupOffset,
+    IndexedConsumerGroupOffsetObservation, IndexedConsumerGroupsList, IndexedOffsetList,
+    IndexedPartitionOffsetsObservation, IndexedRecordsDeleted, IndexedTopicConfigDescription,
+    IndexedTopicConfigObservation, IndexedTopicDescription, IndexedTopicObservation,
+    IndexedTopicsList,
 };
 pub(crate) use concurrent::{
     ConcurrentPublicEventKind, IndexedConcurrentActorCompletion, IndexedConcurrentBoundary,
@@ -58,13 +59,11 @@ pub(crate) struct IndexedOperationError {
     pub(crate) history_sequence: u64,
     pub(crate) code: String,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedProducerCancellation {
     pub(crate) history_sequence: u64,
     pub(crate) outcomes: Vec<testlab_schema::ProducerCancellationOutcome>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedClientMetrics {
     pub(crate) history_sequence: u64,
@@ -214,6 +213,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) topics_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
     pub(crate) topics_creation_completed:
         BTreeMap<OperationId, Vec<IndexedAdminTopicsCreationBatch>>,
+    pub(crate) topics_batch_described: BTreeMap<OperationId, Vec<IndexedAdminTopicsDescription>>,
     pub(crate) topic_partitions_created: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
     pub(crate) topics_deleted: BTreeMap<OperationId, Vec<IndexedAdminTopicCompletion>>,
     pub(crate) topics_described: BTreeMap<OperationId, Vec<IndexedTopicDescription>>,

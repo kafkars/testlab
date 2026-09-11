@@ -185,6 +185,7 @@ pub enum AdapterCommand {
     DeleteTopic(crate::DeleteTopicCommand),
     /// Describes one Kafka topic through the public admin surface.
     DescribeTopic(crate::DescribeTopicCommand),
+    DescribeTopics(crate::DescribeTopicsCommand),
     /// Lists Kafka topics visible through the public admin surface.
     ListTopics(crate::ListTopicsCommand),
     /// Lists one offset position through the public admin surface.
@@ -287,7 +288,6 @@ pub enum AdapterCommand {
     Flush {
         producer_id: ProducerId,
     },
-    /// Closes one producer.
     CloseProducer {
         producer_id: ProducerId,
     },

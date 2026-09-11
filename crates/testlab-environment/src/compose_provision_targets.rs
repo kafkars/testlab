@@ -95,6 +95,7 @@ fn admin_targets(
     subject_created: &BTreeSet<String>,
     action: &ScenarioAction,
 ) {
+    crate::compose_provision_topic_descriptions::record(topics, subject_created, action);
     if plural_admin_targets(topics, subject_created, action) {
         return;
     }
@@ -271,7 +272,7 @@ fn record_topic(
     );
 }
 
-fn require_topic(
+pub(super) fn require_topic(
     topics: &mut BTreeMap<String, i32>,
     subject_created: &BTreeSet<String>,
     topic: &str,

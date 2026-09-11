@@ -67,6 +67,7 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::CreatePartitions(_)
         | ScenarioAction::DeleteTopic(_)
         | ScenarioAction::DescribeTopic(_)
+        | ScenarioAction::DescribeTopics(_)
         | ScenarioAction::ListTopics(_)
         | ScenarioAction::ListOffsets(_)
         | ScenarioAction::ListOffsetsBatch(_)

@@ -319,6 +319,12 @@ statement = "One public selected-offset listing for multiple Share groups preser
 category = "admin"
 
 [[contract]]
+id = "ADMIN-044"
+title = "Plural topic descriptions preserve caller order and broker truth"
+statement = "One public description of multiple topics preserves each detailed success or exact per-topic error in caller order, while immediate independent metadata confirms every requested topic's partition topology or absence in the same order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

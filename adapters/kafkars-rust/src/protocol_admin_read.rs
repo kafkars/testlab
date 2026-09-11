@@ -28,6 +28,11 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeTopic(command) => {
             crate::protocol_admin_topic_description::dispatch(state, writer, command_id, command)
         }
+        AdapterCommand::DescribeTopics(command) => {
+            crate::protocol_admin_topic_description_batch::describe(
+                state, writer, command_id, command,
+            )
+        }
         AdapterCommand::ListTopics(command) => list_topics(state, writer, command_id, command),
         AdapterCommand::ListOffsets(command) => list_offset(state, writer, command_id, command),
         AdapterCommand::ListConsumerGroupOffsets(command) => {
