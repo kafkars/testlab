@@ -52,6 +52,7 @@ mod observer_admin_config_target;
 mod observer_admin_group;
 mod observer_admin_group_target;
 mod observer_admin_metadata;
+mod observer_admin_offset_batch_target;
 mod observer_admin_partition_offsets_target;
 mod observer_admin_plural_group_target;
 mod observer_admin_target;
@@ -128,6 +129,8 @@ mod observer_admin_config_test;
 mod observer_admin_group_target_test;
 #[cfg(test)]
 mod observer_admin_group_test;
+#[cfg(test)]
+mod observer_admin_offset_batch_target_test;
 #[cfg(test)]
 mod observer_admin_plural_group_target_test;
 #[cfg(test)]

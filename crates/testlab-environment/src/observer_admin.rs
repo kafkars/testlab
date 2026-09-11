@@ -67,6 +67,9 @@ pub(super) fn capture(
         AdminTarget::PartitionOffsets(target) => {
             Ok(vec![observer_partition_offsets::capture(request, target)?])
         }
+        AdminTarget::PartitionOffsetsBatch(target) => {
+            observer_partition_offsets::capture_batch(request, target)
+        }
     }
 }
 

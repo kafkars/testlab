@@ -18,6 +18,14 @@ pub(crate) fn validate(
     ) {
         return;
     }
+    if crate::admin_list_offsets_batch_validation::validate(
+        action,
+        clients,
+        operation_ids,
+        problems,
+    ) {
+        return;
+    }
     if crate::admin_delete_records_action_validation::validate(
         action,
         clients,

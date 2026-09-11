@@ -75,6 +75,9 @@ pub(super) fn classify_admin(
                 && topic == &actual.topic
                 && partition == &actual.partition
         }
+        (ExpectedEvent::OffsetsListed { operation_id }, AdapterEvent::OffsetsListed(actual)) => {
+            operation_id == &actual.operation_id
+        }
         (
             ExpectedEvent::RecordsDeleted {
                 operation_id,
@@ -202,6 +205,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::TopicDescribed { .. }
             | ExpectedEvent::TopicsListed { .. }
             | ExpectedEvent::OffsetListed { .. }
+            | ExpectedEvent::OffsetsListed { .. }
             | ExpectedEvent::RecordsDeleted { .. }
             | ExpectedEvent::ClusterDescribed { .. }
             | ExpectedEvent::ConsumerGroupsListed { .. }
@@ -225,6 +229,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::TopicDescribed(_)
             | AdapterEvent::TopicsListed(_)
             | AdapterEvent::OffsetListed(_)
+            | AdapterEvent::OffsetsListed(_)
             | AdapterEvent::RecordsDeleted(_)
             | AdapterEvent::ClusterDescribed(_)
             | AdapterEvent::ConsumerGroupsListed(_)

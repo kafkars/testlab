@@ -9,6 +9,7 @@ use crate::admin_discovery::verify_discovery_action;
 use crate::admin_failure::verify_expected_failure;
 use crate::admin_group::verify_group_action;
 use crate::admin_group_batch::verify_group_batch_action;
+use crate::admin_offset_batch::verify_offset_batch_action;
 use crate::admin_records::verify_records_action;
 use crate::admin_topic::verify_topic_action;
 use crate::admin_validate_only::verify_validate_only_action;
@@ -74,6 +75,7 @@ pub(crate) fn verify_admin(
         if crate::adversary::verify_admin_failure(scenario, &step.action, index, violations)
             || verify_expected_failure(&step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
+            || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
             || verify_group_batch_action(scenario, &step.action, index, violations)
             || verify_config_action(&step.action, index, violations)
@@ -126,6 +128,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterConsumerGroupOffsets(_) => "ADMIN-025",
         ScenarioAction::DeleteConsumerGroupOffsets(_) => "ADMIN-026",
         ScenarioAction::DescribeClassicGroups(_) => "ADMIN-027",
+        ScenarioAction::ListOffsetsBatch(_) => "ADMIN-028",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -156,6 +159,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DescribeTopic(value) => &value.operation_id,
         ScenarioAction::ListTopics(value) => &value.operation_id,
         ScenarioAction::ListOffsets(value) => &value.operation_id,
+        ScenarioAction::ListOffsetsBatch(value) => &value.operation_id,
         ScenarioAction::DeleteRecords(value) => &value.operation_id,
         ScenarioAction::DescribeTopicConfig(value) => &value.operation_id,
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,

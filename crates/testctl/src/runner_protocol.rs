@@ -1,4 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v35 command.
+//! Expected event shapes constrain each sequential protocol-v36 command.
 
 use std::collections::BTreeSet;
 
@@ -78,6 +78,9 @@ pub(crate) enum ExpectedEvent {
         operation_id: OperationId,
         topic: String,
         partition: i32,
+    },
+    OffsetsListed {
+        operation_id: OperationId,
     },
     RecordsDeleted {
         operation_id: OperationId,

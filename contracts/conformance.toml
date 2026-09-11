@@ -223,6 +223,12 @@ statement = "One dedicated public classic-group description returns exactly one 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-028"
+title = "Batch offset listings preserve caller order"
+statement = "One public multi-partition offset query returns exactly one caller-ordered successful outcome per requested topic-partition, and immediate independent watermarks confirm every selected earliest or latest offset in that same order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

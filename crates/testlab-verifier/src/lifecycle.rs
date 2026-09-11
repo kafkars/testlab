@@ -169,6 +169,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeTopic(_)
             | ScenarioAction::ListTopics(_)
             | ScenarioAction::ListOffsets(_)
+            | ScenarioAction::ListOffsetsBatch(_)
             | ScenarioAction::DeleteRecords(_)
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::ListConsumerGroups(_)

@@ -169,14 +169,14 @@ fn list_consumer_group_offset<W: Write>(
     )
 }
 
-fn deadline_after(timeout_ms: u64) -> Instant {
+pub(crate) fn deadline_after(timeout_ms: u64) -> Instant {
     let started = Instant::now();
     started
         .checked_add(Duration::from_millis(timeout_ms))
         .unwrap_or(started)
 }
 
-fn retry_safe(error: &KafkaError) -> bool {
+pub(crate) fn retry_safe(error: &KafkaError) -> bool {
     error.retry_advice() == RetryAdvice::RetrySafe
 }
 

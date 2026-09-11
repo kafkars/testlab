@@ -95,7 +95,7 @@ fn admin_targets(
     subject_created: &BTreeSet<String>,
     action: &ScenarioAction,
 ) {
-    if plural_group_admin_targets(topics, subject_created, action) {
+    if plural_admin_targets(topics, subject_created, action) {
         return;
     }
     match action {
@@ -177,12 +177,20 @@ fn admin_targets(
     }
 }
 
-fn plural_group_admin_targets(
+fn plural_admin_targets(
     topics: &mut BTreeMap<String, i32>,
     subject_created: &BTreeSet<String>,
     action: &ScenarioAction,
 ) -> bool {
     match action {
+        ScenarioAction::ListOffsetsBatch(action) => require_offset_topics(
+            topics,
+            subject_created,
+            action
+                .queries
+                .iter()
+                .map(|item| (item.topic.as_str(), item.partition)),
+        ),
         ScenarioAction::ListConsumerGroupOffsetsBatch(action) => require_offset_topics(
             topics,
             subject_created,

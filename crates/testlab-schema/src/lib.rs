@@ -14,6 +14,7 @@ mod admin_delete_records;
 mod admin_delete_records_action_validation;
 mod admin_delete_records_transition_validation;
 mod admin_expected_error;
+mod admin_exports;
 mod admin_group;
 mod admin_group_action_validation;
 mod admin_group_offset;
@@ -22,6 +23,8 @@ mod admin_group_offset_batch_mutation;
 mod admin_group_offset_mutation;
 mod admin_group_offset_transition_validation;
 mod admin_group_plural_action_validation;
+mod admin_list_offsets_batch;
+mod admin_list_offsets_batch_validation;
 mod admin_offset_position;
 mod admin_scenario_action;
 mod admin_topic;
@@ -91,54 +94,8 @@ mod transaction_transform_validation;
 mod verdict;
 
 pub use adapter::{AdapterDescriptor, Capability};
-pub use admin_classic_group::*;
-pub use admin_cluster::{AdminClusterDescription, DescribeClusterAction, DescribeClusterCommand};
-pub use admin_config::{
-    AdminTopicConfigCompletion, AdminTopicConfigDescription, AlterTopicConfigAction,
-    AlterTopicConfigCommand, BrokerTopicConfigState, DescribeTopicConfigAction,
-    DescribeTopicConfigCommand,
-};
-pub use admin_create_topics_batch::{
-    AdminTopicCreationOutcome, AdminTopicsCreationBatch, CreateTopicBatchActionItem,
-    CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,
-};
-pub use admin_delete_records::{AdminRecordsDeleted, DeleteRecordsAction, DeleteRecordsCommand};
 pub use admin_expected_error::expected_admin_error;
-pub use admin_group::*;
-pub use admin_group_offset::{
-    AdminConsumerGroupOffsetListing, ListConsumerGroupOffsetsAction,
-    ListConsumerGroupOffsetsCommand,
-};
-pub use admin_group_offset_batch::{
-    AdminConsumerGroupOffsetOutcome, AdminConsumerGroupOffsetsListing,
-    AdminConsumerGroupOffsetsOutcome, AdminConsumerGroupsOffsetsListing,
-    ConsumerGroupOffsetExpectation, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsExpectation,
-    ConsumerGroupOffsetsSelection, ListConsumerGroupOffsetsBatchAction,
-    ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupsOffsetsAction,
-    ListConsumerGroupsOffsetsCommand,
-};
-pub use admin_group_offset_batch_mutation::{
-    AdminConsumerGroupOffsetMutationOutcome, AdminConsumerGroupOffsetsMutation,
-    AlterConsumerGroupOffsetsAction, AlterConsumerGroupOffsetsCommand,
-    ConsumerGroupOffsetAlteration, DeleteConsumerGroupOffsetsAction,
-    DeleteConsumerGroupOffsetsCommand,
-};
-pub use admin_group_offset_mutation::{
-    AdminConsumerGroupOffsetCompletion, AlterConsumerGroupOffsetAction,
-    AlterConsumerGroupOffsetCommand, DeleteConsumerGroupOffsetAction,
-    DeleteConsumerGroupOffsetCommand,
-};
-pub use admin_offset_position::AdminOffsetPosition;
-pub use admin_scenario_action::{
-    CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
-    TopicDescriptionApi,
-};
-pub use admin_topic::{
-    AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription, AdminTopicsListing,
-    CreatePartitionsCommand, CreateTopicAction, CreateTopicCommand, DeleteTopicAction,
-    DeleteTopicCommand, DescribeTopicCommand, ListOffsetsCommand, ListTopicsCommand,
-    ROUTING_ERROR_CODE, TOPIC_ALREADY_EXISTS_ERROR_CODE, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
-};
+pub use admin_exports::*;
 pub use assigned_consumer_control::*;
 pub use broker_policy::{
     ADMIN_TOPIC_AUTHORIZATION_ERROR_CODE, BrokerAclOperation, BrokerAclResource, BrokerPolicy,
@@ -234,6 +191,8 @@ mod admin_group_plural_protocol_test;
 mod admin_group_plural_transition_test;
 #[cfg(test)]
 mod admin_group_plural_validation_test;
+#[cfg(test)]
+mod admin_list_offsets_batch_test;
 #[cfg(test)]
 mod admin_protocol_test;
 #[cfg(test)]

@@ -83,6 +83,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::ListTopics(_)
         | ScenarioAction::ListOffsets(_)
+        | ScenarioAction::ListOffsetsBatch(_)
         | ScenarioAction::DeleteRecords(_)
         | ScenarioAction::DescribeTopicConfig(_)
         | ScenarioAction::AlterTopicConfig(_)

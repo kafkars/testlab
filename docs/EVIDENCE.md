@@ -21,7 +21,7 @@ digests exist.
 - `digests.json`
 
 Evidence schema v26 records the exact environment identity in `manifest.json`,
-retains protocol-v35 direct and hosted-group consumer controls and shutdown,
+retains protocol-v36 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -188,8 +188,8 @@ later public read from racing a lagging broker's configuration update. The seale
 value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
-Protocol-v22 plural group-offset and classic-group operations retain the same
-broker-state fact shapes in schema v17. Plural offset
+Protocol-v36 plural group-offset, batch offset, and classic-group operations
+retain the same broker-state fact shapes in schema v39. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -231,7 +231,10 @@ independent explicit absence for every deletion. ADMIN-027 joins one ordered
 classic-group public description to immediate independent existence and member
 counts with no group errors, and requires every counted live member to have a
 prior committed receive with a positive classic epoch; broker membership facts
-alone do not establish classicness. ADMIN-015 and ADMIN-016 retain selected
+alone do not establish classicness. ADMIN-028 binds one caller-ordered public
+batch offset result to contiguous immediate watermark observations for every
+unique topic-partition selection and requires each selected earliest or latest
+offset exactly. ADMIN-015 and ADMIN-016 retain selected
 topic-configuration values and require a distinct independent pre-mutation
 baseline. In particular, mutation baselines use distinct preceding list or
 describe operation IDs, so history order preserves precondition and

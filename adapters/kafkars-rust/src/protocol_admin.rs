@@ -11,6 +11,7 @@ use crate::protocol_admin_config;
 use crate::protocol_admin_group;
 use crate::protocol_admin_group_offset_batch;
 use crate::protocol_admin_group_offset_batch_mutation;
+use crate::protocol_admin_list_offsets_batch;
 use crate::protocol_admin_read;
 use crate::protocol_admin_write;
 use crate::state::AdapterState;
@@ -34,6 +35,9 @@ pub(crate) fn dispatch<W: Write>(
         | AdapterCommand::ListOffsets(_)
         | AdapterCommand::ListConsumerGroupOffsets(_)) => {
             protocol_admin_read::dispatch(state, writer, command_id, command)
+        }
+        AdapterCommand::ListOffsetsBatch(command) => {
+            protocol_admin_list_offsets_batch::list(state, writer, command_id, command)
         }
         command @ (AdapterCommand::ListConsumerGroupOffsetsBatch(_)
         | AdapterCommand::ListConsumerGroupsOffsets(_)) => {

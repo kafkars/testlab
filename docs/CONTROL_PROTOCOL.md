@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v35 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v38 and evidence schema v26.
+Protocol v36 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v39 and evidence schema v26.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -75,6 +75,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_topic`
 - `list_topics`
 - `list_offsets`
+- `list_offsets_batch`
 - `delete_records`
 - `describe_topic_config`
 - `alter_topic_config`
@@ -206,6 +207,7 @@ timeouts invalidate evidence.
 - `topic_described`
 - `topics_listed`
 - `offset_listed`
+- `offsets_listed`
 - `records_deleted`
 - `topic_config_described`
 - `topic_config_altered`
@@ -426,6 +428,14 @@ public result, and the selected public offset must equal the corresponding
 watermark without treating an adapter echo as broker truth. Timestamp selectors,
 other broker-relative positions, and leader epochs are outside this slice.
 
+`list_offsets_batch` carries two through 32 unique topic-partition selections
+in caller order and invokes one public Admin operation. Scenario-only expected
+offsets stay in Testlab. Its single `offsets_listed` completion preserves one
+nullable offset and optional normalized error per requested identity in that
+same order; an unexpected resource error cannot disappear into a successful
+batch claim. Immediate independent watermark queries run in the declared order
+and must select every expected earliest or latest offset exactly.
+
 Record deletion selects one explicit positive cutoff on a fresh independently
 seeded partition. Ordered earliest and latest queries establish the precondition.
 The packaged public result reports its low watermark, then a polling independent
@@ -565,6 +575,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v35 is an exact semantic contract. New capabilities may be declared
+Protocol v36 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

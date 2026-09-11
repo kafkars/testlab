@@ -1,4 +1,4 @@
-schema_version = 38
+schema_version = 39
 id = "kafka.consumer-protocol-group-record-fidelity"
 title = "KIP-848 group receive set preserves exact record fidelity"
 description = "One KIP-848 member receives and commits a four-record set across two partitions while preserving tombstones, null and empty fields, duplicate nullable binary headers, and independent Kafka coordinates."

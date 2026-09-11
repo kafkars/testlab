@@ -206,6 +206,8 @@ pub enum AdapterEvent {
     TopicsListed(crate::AdminTopicsListing),
     /// One public admin offset listing completed successfully.
     OffsetListed(crate::AdminOffsetListing),
+    /// One public admin batch offset listing returned ordered outcomes.
+    OffsetsListed(crate::AdminOffsetsListing),
     /// One public admin prefix deletion completed successfully.
     RecordsDeleted(crate::AdminRecordsDeleted),
     /// One selected public topic configuration was described.
@@ -286,9 +288,7 @@ pub enum AdapterEvent {
         /// Bounded public diagnostic retained as evidence.
         diagnostic: String,
     },
-    /// Adapter session settled and may exit.
     Finished,
-    /// Adapter session was abandoned after a scenario failure.
     Aborted,
     /// Adapter cannot continue the session.
     Fatal {

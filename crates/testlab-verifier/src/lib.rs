@@ -13,6 +13,7 @@ mod admin_group_batch;
 mod admin_group_batch_mutation;
 mod admin_group_evidence;
 mod admin_group_mutation;
+mod admin_offset_batch;
 mod admin_records;
 mod admin_topic;
 mod admin_validate_only;
@@ -86,6 +87,8 @@ mod admin_group_mutation_test;
 mod admin_group_test;
 #[cfg(test)]
 mod admin_group_verdict_test;
+#[cfg(test)]
+mod admin_offset_batch_test;
 #[cfg(test)]
 mod admin_records_test;
 #[cfg(test)]

@@ -14,6 +14,7 @@ mod admin_command_match;
 mod admin_config_command_match;
 mod admin_delete_records_command_match;
 pub(crate) mod admin_group_batch;
+pub(crate) mod admin_offset_batch;
 mod admin_recording;
 mod admin_state_recording;
 mod admin_types;
@@ -219,6 +220,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) topic_configs_altered: BTreeMap<OperationId, Vec<IndexedAdminTopicConfigCompletion>>,
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
+    pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
     pub(crate) clusters_described: BTreeMap<OperationId, Vec<IndexedClusterDescription>>,
     pub(crate) consumer_groups_listed: BTreeMap<OperationId, Vec<IndexedConsumerGroupsList>>,
     pub(crate) consumer_groups_described:

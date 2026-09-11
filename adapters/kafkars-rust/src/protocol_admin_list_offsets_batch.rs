@@ -1,0 +1,123 @@
+//! Batched offset reads use one public call and preserve caller-ordered outcomes.
+
+use std::io::Write;
+
+use crate::kafkars_api::{ListOffsetsQuery, ReadIsolation};
+use testlab_schema::{
+    AdapterEvent, AdapterEventEnvelope, AdminOffsetListingOutcome, AdminOffsetsListing, CommandId,
+    ListOffsetsBatchCommand, OffsetListingSelection,
+};
+
+use crate::AdapterError;
+use crate::admission_retry::retry_until_with_remaining;
+use crate::protocol::emit;
+use crate::protocol_admin_plural_result::{
+    PartitionResult, ResourceResult, ordered_partition_results,
+};
+use crate::protocol_admin_read::{deadline_after, offset_spec, retry_safe};
+use crate::state::AdapterState;
+
+pub(crate) fn list<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: ListOffsetsBatchCommand,
+) -> Result<(), AdapterError> {
+    let deadline = deadline_after(command.timeout_ms);
+    let client = state.client(&command.client_id)?;
+    let result = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            client
+                .admin()
+                .list_offsets(public_queries(&command.queries))
+                .read_isolation(ReadIsolation::ReadCommitted)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
+    let entries = result
+        .into_offsets()
+        .into_entries()
+        .into_iter()
+        .map(|(key, result)| (key, result.map(|value| value.offset())))
+        .collect();
+    let requested = command
+        .queries
+        .iter()
+        .map(|query| (query.topic.clone(), query.partition))
+        .collect::<Vec<_>>();
+    let results =
+        ordered_partition_results(entries, &requested, &command.operation_id, "offset listing")?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::OffsetsListed(AdminOffsetsListing {
+                operation_id: command.operation_id,
+                outcomes: outcomes(results),
+            }),
+        ),
+    )
+}
+
+fn public_queries(
+    queries: &[OffsetListingSelection],
+) -> impl Iterator<Item = ListOffsetsQuery> + '_ {
+    queries.iter().map(|query| {
+        ListOffsetsQuery::new(
+            query.topic.clone(),
+            query.partition,
+            offset_spec(query.position),
+        )
+    })
+}
+
+fn outcomes(results: Vec<PartitionResult<Option<i64>>>) -> Vec<AdminOffsetListingOutcome> {
+    results
+        .into_iter()
+        .map(|result| match result.result {
+            ResourceResult::Success(offset) => AdminOffsetListingOutcome {
+                topic: result.topic,
+                partition: result.partition,
+                offset,
+                error_code: None,
+            },
+            ResourceResult::Failure(error_code) => AdminOffsetListingOutcome {
+                topic: result.topic,
+                partition: result.partition,
+                offset: None,
+                error_code: Some(error_code),
+            },
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn outcome_normalization_preserves_success_and_resource_failure_order() {
+        let outcomes = outcomes(vec![
+            PartitionResult {
+                topic: "records".to_owned(),
+                partition: 2,
+                result: ResourceResult::Success(Some(5)),
+            },
+            PartitionResult {
+                topic: "records".to_owned(),
+                partition: 0,
+                result: ResourceResult::Failure("broker:broker_3".to_owned()),
+            },
+        ]);
+
+        assert_eq!(outcomes[0].offset, Some(5));
+        assert_eq!(outcomes[0].error_code, None);
+        assert_eq!(outcomes[1].offset, None);
+        assert_eq!(outcomes[1].error_code.as_deref(), Some("broker:broker_3"));
+    }
+}

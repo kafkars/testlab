@@ -7,6 +7,7 @@ use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 use crate::observer_admin_batch_topic_target;
 use crate::observer_admin_config_target;
 use crate::observer_admin_group_target;
+use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
 use crate::observer_admin_plural_group_target;
 use crate::observer_admin_topic_target;
@@ -27,6 +28,7 @@ pub(super) enum AdminTarget {
     ClassicGroups(ClassicGroupsTarget),
     TopicConfig(ConfigTarget),
     PartitionOffsets(PartitionOffsetsTarget),
+    PartitionOffsetsBatch(PartitionOffsetsBatchTarget),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -115,12 +117,19 @@ pub(super) struct PartitionOffsetsTarget {
     pub(super) poll_expected: bool,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct PartitionOffsetsBatchTarget {
+    pub(super) operation_id: OperationId,
+    pub(super) offsets: Vec<PartitionOffsetsTarget>,
+}
+
 impl AdminTarget {
     pub(super) fn from_exact(
         action: &ScenarioAction,
         command: &AdapterCommand,
     ) -> Result<Option<Self>, ObserverError> {
-        let matched = match observer_admin_batch_topic_target::match_action(action)?
+        let matched = match observer_admin_offset_batch_target::match_action(action)?
+            .or(observer_admin_batch_topic_target::match_action(action)?)
             .or(observer_admin_topic_target::match_action(action)?)
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)
@@ -153,6 +162,7 @@ impl AdminTarget {
             Self::ClassicGroups(target) => &target.operation_id,
             Self::TopicConfig(target) => &target.operation_id,
             Self::PartitionOffsets(target) => &target.operation_id,
+            Self::PartitionOffsetsBatch(target) => &target.operation_id,
         }
     }
 
@@ -164,6 +174,7 @@ impl AdminTarget {
                 target.groups.iter().map(|group| group.offsets.len()).sum()
             }
             Self::ClassicGroups(target) => target.group_ids.len(),
+            Self::PartitionOffsetsBatch(target) => target.offsets.len(),
             _ => 1,
         }
     }

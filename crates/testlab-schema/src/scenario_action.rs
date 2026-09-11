@@ -1,7 +1,7 @@
 //! Scenario actions declare bounded public calls and external broker controls.
 #![allow(missing_docs, reason = "admin variants use public payload types")]
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
-/// Scenario action vocabulary for scenario schema v38.
+/// Scenario action vocabulary for scenario schema v39.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
@@ -218,6 +218,7 @@ pub enum ScenarioAction {
     DescribeTopic(crate::DescribeTopicAction),
     ListTopics(crate::ListTopicsAction),
     ListOffsets(crate::ListOffsetsAction),
+    ListOffsetsBatch(crate::ListOffsetsBatchAction),
     DeleteRecords(crate::DeleteRecordsAction),
     DescribeTopicConfig(crate::DescribeTopicConfigAction),
     AlterTopicConfig(crate::AlterTopicConfigAction),
@@ -287,7 +288,6 @@ pub enum ScenarioAction {
     },
     CloseTransactionalProducer(crate::CloseTransactionalProducerAction),
     Flush {
-        /// Producer to flush.
         producer_id: ProducerId,
     },
     CloseProducer {

@@ -1,9 +1,10 @@
 //! Batch admin translation preserves ordering while omitting scenario-only outcomes.
 
 use testlab_schema::{
-    AdapterCommand, ClientId, CreateTopicBatchActionItem, CreateTopicBatchCommandItem,
-    CreateTopicsBatchAction, CreateTopicsBatchCommand, OperationId, ScenarioAction,
-    TOPIC_ALREADY_EXISTS_ERROR_CODE,
+    AdapterCommand, AdminOffsetPosition, ClientId, CreateTopicBatchActionItem,
+    CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,
+    ListOffsetsBatchAction, ListOffsetsBatchCommand, OffsetListingExpectation,
+    OffsetListingSelection, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -46,6 +47,42 @@ fn batch_translation_is_one_ordered_command_without_expectations() {
     ));
 }
 
+#[test]
+fn offset_batch_translation_preserves_queries_without_expected_offsets() {
+    let client_id = ClientId::new("client-1").unwrap_or_else(|error| panic!("client: {error}"));
+    let operation_id =
+        OperationId::new("batch-offsets").unwrap_or_else(|error| panic!("operation: {error}"));
+    let action = ScenarioAction::ListOffsetsBatch(ListOffsetsBatchAction {
+        client_id: client_id.clone(),
+        operation_id: operation_id.clone(),
+        queries: vec![
+            offset_expectation("records", 2, AdminOffsetPosition::Latest, 7),
+            offset_expectation("records", 0, AdminOffsetPosition::Earliest, 0),
+        ],
+        timeout_ms: 500,
+    });
+
+    let (command, expected) = super::session_command_admin::translate(&action)
+        .unwrap_or_else(|| panic!("missing offset batch translation"));
+
+    assert_eq!(
+        command,
+        AdapterCommand::ListOffsetsBatch(ListOffsetsBatchCommand {
+            client_id,
+            operation_id: operation_id.clone(),
+            queries: vec![
+                offset_selection("records", 2, AdminOffsetPosition::Latest),
+                offset_selection("records", 0, AdminOffsetPosition::Earliest),
+            ],
+            timeout_ms: 500,
+        })
+    );
+    assert!(matches!(
+        expected,
+        ExpectedEvent::OffsetsListed { operation_id: actual } if actual == operation_id
+    ));
+}
+
 fn item(
     topic: &str,
     partitions: i32,
@@ -64,5 +101,31 @@ fn command_item(topic: &str, partitions: i32) -> CreateTopicBatchCommandItem {
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+    }
+}
+
+fn offset_expectation(
+    topic: &str,
+    partition: i32,
+    position: AdminOffsetPosition,
+    expected_offset: i64,
+) -> OffsetListingExpectation {
+    OffsetListingExpectation {
+        topic: topic.to_owned(),
+        partition,
+        position,
+        expected_offset,
+    }
+}
+
+fn offset_selection(
+    topic: &str,
+    partition: i32,
+    position: AdminOffsetPosition,
+) -> OffsetListingSelection {
+    OffsetListingSelection {
+        topic: topic.to_owned(),
+        partition,
+        position,
     }
 }

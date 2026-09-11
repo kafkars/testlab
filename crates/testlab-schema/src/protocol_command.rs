@@ -194,6 +194,8 @@ pub enum AdapterCommand {
     ListTopics(crate::ListTopicsCommand),
     /// Lists one offset position through the public admin surface.
     ListOffsets(crate::ListOffsetsCommand),
+    /// Lists ordered offset positions through one public admin call.
+    ListOffsetsBatch(crate::ListOffsetsBatchCommand),
     /// Deletes records before one exact partition offset.
     DeleteRecords(crate::DeleteRecordsCommand),
     /// Describes one selected topic configuration through the public admin surface.
@@ -293,8 +295,6 @@ pub enum AdapterCommand {
         /// Client to shut down.
         client_id: ClientId,
     },
-    /// Ends the adapter session after lifecycle work settles.
     Finish,
-    /// Abandons the adapter session after testctl has observed a scenario failure.
     Abort,
 }

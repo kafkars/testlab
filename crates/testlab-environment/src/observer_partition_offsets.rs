@@ -6,10 +6,30 @@ use std::time::Duration;
 use testlab_schema::{BrokerPartitionOffsets, BrokerStateObservation};
 
 use crate::observer_admin::{AdminObserverRequest, client};
-use crate::observer_admin_target::PartitionOffsetsTarget;
+use crate::observer_admin_target::{PartitionOffsetsBatchTarget, PartitionOffsetsTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 const POLL_SLICE: Duration = Duration::from_millis(50);
+
+pub(super) fn capture_batch(
+    request: AdminObserverRequest<'_>,
+    target: &PartitionOffsetsBatchTarget,
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
+    target
+        .offsets
+        .iter()
+        .enumerate()
+        .map(|(index, offset)| {
+            capture(
+                AdminObserverRequest {
+                    first_observation: ordinal(request.first_observation, index)?,
+                    ..request
+                },
+                offset,
+            )
+        })
+        .collect()
+}
 
 pub(super) fn capture(
     request: AdminObserverRequest<'_>,

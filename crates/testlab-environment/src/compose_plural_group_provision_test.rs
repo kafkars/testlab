@@ -1,4 +1,4 @@
-//! Plural group-admin provisioning includes every selected topic-partition.
+//! Plural Admin provisioning includes every selected topic-partition.
 
 use std::collections::BTreeMap;
 
@@ -7,10 +7,10 @@ use testlab_schema::Scenario;
 use crate::compose_provision_targets::topics;
 
 #[test]
-fn every_plural_group_offset_selection_contributes_its_partition() {
+fn every_plural_offset_selection_contributes_its_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 38
+schema_version = 39
 id = "admin.plural-group-provisioning"
 title = "plural group provisioning"
 description = "plural group provisioning fixture"
@@ -28,6 +28,17 @@ require_stable = true
 partitions = [
   { topic = "orders", partition = 2, expected_offset = 4 },
   { topic = "audit", partition = 0, expected_offset = 1 },
+]
+timeout_ms = 500
+
+[[steps]]
+id = "list-offset-batch"
+kind = "list_offsets_batch"
+client_id = "client-1"
+operation_id = "list-offset-batch"
+queries = [
+  { topic = "batch-records", partition = 3, position = "latest", expected_offset = 2 },
+  { topic = "orders", partition = 6, position = "earliest", expected_offset = 0 },
 ]
 timeout_ms = 500
 
@@ -77,8 +88,9 @@ timeout_ms = 500
         BTreeMap::from([
             ("archive".to_owned(), 6),
             ("audit".to_owned(), 3),
+            ("batch-records".to_owned(), 4),
             ("metrics".to_owned(), 4),
-            ("orders".to_owned(), 5),
+            ("orders".to_owned(), 7),
         ])
     );
 }
