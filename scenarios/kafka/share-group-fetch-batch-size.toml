@@ -1,9 +1,9 @@
 schema_version = 37
 id = "kafka.share-group-fetch-batch-size"
 title = "configured Share fetches preserve one-record acquisition ranges"
-description = "One configured Share fetch returns three independently observed records together while the public batch proves that Kafka divided them into three one-record acquisition ranges."
+description = "Three separately flushed Kafka record batches enter one configured Share fetch, whose public batch returns all three independently observed records in three one-record acquisition ranges."
 timeout_ms = 180000
-requires = ["producer", "producer_batch", "share_consumer", "share_consumer_configuration", "lifecycle", "client_readiness"]
+requires = ["producer", "share_consumer", "share_consumer_configuration", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -22,21 +22,40 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-share-batch"
-kind = "send_batch"
+id = "send-first"
+kind = "send"
 producer_id = "producer-1"
-
-[[steps.operations]]
 operation_id = "op-first"
 record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 1, value = { encoding = "utf8", data = "first" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-first" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
 
-[[steps.operations]]
+[[steps]]
+id = "flush-first"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-second"
+kind = "send"
+producer_id = "producer-1"
 operation_id = "op-second"
 record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 2, value = { encoding = "utf8", data = "second" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-second" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
 
-[[steps.operations]]
+[[steps]]
+id = "flush-second"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-third"
+kind = "send"
+producer_id = "producer-1"
 operation_id = "op-third"
 record = { topic = "testlab-share-fetch-batch-size", partition = 0, sequence = 3, value = { encoding = "utf8", data = "third" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-third" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }] }
+
+[[steps]]
+id = "flush-third"
+kind = "flush"
+producer_id = "producer-1"
 
 [[steps]]
 id = "create-share-consumer"
@@ -73,11 +92,6 @@ id = "close-share-consumer"
 kind = "close_share_consumer"
 consumer_id = "share-1"
 expect_success = true
-
-[[steps]]
-id = "flush-producer"
-kind = "flush"
-producer_id = "producer-1"
 
 [[steps]]
 id = "close-producer"

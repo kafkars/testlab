@@ -17,6 +17,31 @@ fn checked_in_share_fetch_configuration_is_valid() {
 }
 
 #[test]
+fn batch_size_scenario_flushes_distinct_kafka_record_batches() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/share-group-fetch-batch-size.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse Share batch-size scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate Share batch-size scenario: {error}"));
+
+    let boundaries = scenario
+        .steps
+        .iter()
+        .filter_map(|step| match &step.action {
+            ScenarioAction::Send { .. } => Some("send"),
+            ScenarioAction::Flush { .. } => Some("flush"),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        boundaries,
+        ["send", "flush", "send", "flush", "send", "flush"]
+    );
+}
+
+#[test]
 fn configured_share_consumer_requires_its_exact_capability() {
     let mut scenario = configured_scenario();
     scenario
