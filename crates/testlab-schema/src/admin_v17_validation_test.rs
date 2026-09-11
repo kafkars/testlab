@@ -18,6 +18,7 @@ fn admin_lists_require_unique_valid_resource_names() {
         &ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
             client_id: client(),
             operation_id: operation("admin-groups-list"),
+            api: Default::default(),
             required_group_ids: vec!["group-1".to_owned(), "group-1".to_owned()],
             timeout_ms: 1_000,
         }),

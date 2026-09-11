@@ -7,7 +7,8 @@ use crate::kafkars_api::{KafkaError, RetryAdvice};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminBrokerError,
     AdminConsumerGroupCompletion, AdminConsumerGroupDescription, AdminConsumerGroupsListing,
-    CommandId, DeleteConsumerGroupCommand, DescribeConsumerGroupCommand, ListConsumerGroupsCommand,
+    CommandId, DeleteConsumerGroupCommand, DescribeConsumerGroupCommand, GroupListingApi,
+    ListConsumerGroupsCommand,
 };
 
 use crate::AdapterError;
@@ -51,33 +52,68 @@ fn list<W: Write>(
 ) -> Result<(), AdapterError> {
     let deadline = deadline_after(command.timeout_ms);
     let client = state.client(&command.client_id)?;
-    let result = retry_until_with_remaining(
-        deadline,
-        |remaining| {
-            client
-                .admin()
-                .list_consumer_groups()
-                .deadline_after(remaining)
-                .submit()
-                .wait()
-        },
-        retry_safe,
-    )
-    .map_err(AdapterError::Client)?;
-    let (_, groups, broker_errors) = result.into_parts();
-    let group_ids = groups
-        .into_iter()
-        .map(|group| group.group_id().to_owned())
-        .collect();
+    let (group_ids, broker_errors) = match command.api {
+        GroupListingApi::ConsumerGroups => {
+            let result = retry_until_with_remaining(
+                deadline,
+                |remaining| {
+                    client
+                        .admin()
+                        .list_consumer_groups()
+                        .deadline_after(remaining)
+                        .submit()
+                        .wait()
+                },
+                retry_safe,
+            )
+            .map_err(AdapterError::Client)?;
+            let (_, groups, broker_errors) = result.into_parts();
+            (
+                groups
+                    .into_iter()
+                    .map(|group| group.group_id().to_owned())
+                    .collect(),
+                broker_errors
+                    .into_iter()
+                    .map(|error| AdminBrokerError {
+                        broker_id: error.broker_id(),
+                        code: error.code(),
+                    })
+                    .collect(),
+            )
+        }
+        GroupListingApi::AllGroups => {
+            let result = retry_until_with_remaining(
+                deadline,
+                |remaining| {
+                    client
+                        .admin()
+                        .list_groups()
+                        .deadline_after(remaining)
+                        .submit()
+                        .wait()
+                },
+                retry_safe,
+            )
+            .map_err(AdapterError::Client)?;
+            let (_, groups, broker_errors) = result.into_parts();
+            (
+                groups
+                    .into_iter()
+                    .map(|group| group.group_id().to_owned())
+                    .collect(),
+                broker_errors
+                    .into_iter()
+                    .map(|error| AdminBrokerError {
+                        broker_id: error.broker_id(),
+                        code: error.code(),
+                    })
+                    .collect(),
+            )
+        }
+    };
     let group_ids =
         sorted_unique_strings(group_ids, &command.operation_id, "consumer-group listing")?;
-    let broker_errors = broker_errors
-        .into_iter()
-        .map(|error| AdminBrokerError {
-            broker_id: error.broker_id(),
-            code: error.code(),
-        })
-        .collect();
     let broker_errors = sorted_unique_broker_errors(broker_errors, &command.operation_id)?;
     emit_event(
         writer,

@@ -1,7 +1,7 @@
 schema_version = 40
-id = "kafka.admin-list-live-consumer-group-offset"
-title = "packaged admin lists an independently observed live-group offset without stability fencing"
-description = "A classic group publicly consumes and commits one exact record, then remains open while the packaged admin lists its offset with require_stable disabled and an immediate independent query confirms offset 1."
+id = "kafka.admin-list-groups"
+title = "packaged admin lists a consumer group through the generic group API"
+description = "After a classic group publicly consumes and commits one exact record, the packaged client's public unfiltered all-group listing contains that group and an independent query confirms the same required identity."
 timeout_ms = 120000
 requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
 
@@ -22,19 +22,19 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-offset-marker"
+id = "send-group-marker"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "op-live-group-offset-marker"
+operation_id = "op-list-all-groups-marker"
 
 [steps.record]
-topic = "testlab-kafkars-admin-live-group-offset"
+topic = "testlab-kafkars-admin-all-groups"
 partition = 0
 sequence = 1
-key = { encoding = "utf8", data = "live-group-offset" }
-value = { encoding = "utf8", data = "checkpoint-one" }
+key = { encoding = "utf8", data = "list-all-groups" }
+value = { encoding = "utf8", data = "listed-group" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-live-group-offset-marker" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-list-all-groups-marker" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
@@ -53,28 +53,25 @@ id = "create-group-consumer"
 kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
-group_id = "testlab-admin-live-offset-group"
-topic = "testlab-kafkars-admin-live-group-offset"
+group_id = "testlab-admin-all-groups-listed"
+topic = "testlab-kafkars-admin-all-groups"
 protocol = "classic"
 
 [[steps]]
 id = "receive-and-commit"
 kind = "group_receive"
 consumer_id = "consumer-1"
-receive_id = "receive-live-group-offset"
-expected_operation_id = "op-live-group-offset-marker"
+receive_id = "receive-list-all-groups"
+expected_operation_id = "op-list-all-groups-marker"
 timeout_ms = 30000
 
 [[steps]]
-id = "list-live-group-offset"
-kind = "list_consumer_group_offsets"
+id = "list-all-groups"
+kind = "list_consumer_groups"
 client_id = "client-1"
-operation_id = "admin-live-group-offset-list"
-group_id = "testlab-admin-live-offset-group"
-topic = "testlab-kafkars-admin-live-group-offset"
-partition = 0
-require_stable = false
-expected_offset = 1
+operation_id = "admin-list-all-groups-1"
+api = "all_groups"
+required_group_ids = ["testlab-admin-all-groups-listed"]
 timeout_ms = 20000
 
 [[steps]]
@@ -88,7 +85,7 @@ kind = "shutdown_client"
 client_id = "client-1"
 
 [[assertions]]
-operation_id = "op-live-group-offset-marker"
+operation_id = "op-list-all-groups-marker"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"

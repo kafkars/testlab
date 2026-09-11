@@ -15,8 +15,8 @@
   for an independently proven absent partition, partition
   expansion and deletion, validate-only topic creation, partition expansion,
   and topic-configuration replacement, metadata-backed and explicit
-  `DescribeTopicPartitions` topic description, scoped topic, cluster, and
-  consumer-group discovery, singleton and caller-ordered batch earliest- and
+  `DescribeTopicPartitions` topic description, scoped topic, cluster,
+  consumer-only, and generic all-group discovery, singleton and caller-ordered batch earliest- and
   latest-offset administration, consumer-group offset listing, alteration, and
   deletion, record-prefix deletion, empty-group deletion, and selected
   topic-configuration description, replacement, and restoration; transactions,

@@ -4,9 +4,9 @@ use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminBrokerError, AdminConsumerGroupCompletion,
     AdminConsumerGroupDescription, AdminConsumerGroupsListing, BrokerConsumerGroupState,
     BrokerStateObservation, DeleteConsumerGroupAction, DeleteConsumerGroupCommand,
-    DescribeConsumerGroupAction, DescribeConsumerGroupCommand, HistoryEntry, HistoryPayload,
-    ListConsumerGroupsAction, ListConsumerGroupsCommand, OperationId, ScenarioAction,
-    TerminalStatus, VisibilityExpectation,
+    DescribeConsumerGroupAction, DescribeConsumerGroupCommand, GroupListingApi, HistoryEntry,
+    HistoryPayload, ListConsumerGroupsAction, ListConsumerGroupsCommand, OperationId,
+    ScenarioAction, TerminalStatus, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -15,7 +15,13 @@ use crate::verify_fixture::{command, event, scenario, step};
 
 #[test]
 fn complete_sorted_group_listing_passes() {
-    assert!(violations(list_action(), &list_history(Vec::new())).is_empty());
+    assert!(
+        violations(
+            list_action(),
+            &list_history(GroupListingApi::ConsumerGroups, Vec::new())
+        )
+        .is_empty()
+    );
 }
 
 #[test]
@@ -26,8 +32,27 @@ fn group_listing_rejects_retained_broker_errors() {
     }];
 
     assert_contract(
-        &violations(list_action(), &list_history(errors)),
+        &violations(
+            list_action(),
+            &list_history(GroupListingApi::ConsumerGroups, errors),
+        ),
         "ADMIN-009",
+    );
+}
+
+#[test]
+fn generic_group_listing_uses_its_own_contract() {
+    let errors = vec![AdminBrokerError {
+        broker_id: 1,
+        code: 15,
+    }];
+
+    assert_contract(
+        &violations(
+            all_groups_action(),
+            &list_history(GroupListingApi::AllGroups, errors),
+        ),
+        "ADMIN-029",
     );
 }
 
@@ -59,7 +84,7 @@ fn group_deletion_rejects_duplicate_public_results_or_present_state() {
     }
 }
 
-fn list_history(broker_errors: Vec<AdminBrokerError>) -> Vec<HistoryEntry> {
+fn list_history(api: GroupListingApi, broker_errors: Vec<AdminBrokerError>) -> Vec<HistoryEntry> {
     let operation_id = operation("admin-list-groups-1");
     vec![
         command(
@@ -67,6 +92,7 @@ fn list_history(broker_errors: Vec<AdminBrokerError>) -> Vec<HistoryEntry> {
             AdapterCommand::ListConsumerGroups(ListConsumerGroupsCommand {
                 client_id: client(),
                 operation_id: operation_id.clone(),
+                api,
                 timeout_ms: 1_000,
             }),
         ),
@@ -146,9 +172,18 @@ fn list_action() -> ScenarioAction {
     ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("admin-list-groups-1"),
+        api: Default::default(),
         required_group_ids: vec!["group-a".to_owned(), "group-b".to_owned()],
         timeout_ms: 1_000,
     })
+}
+
+fn all_groups_action() -> ScenarioAction {
+    let ScenarioAction::ListConsumerGroups(mut action) = list_action() else {
+        unreachable!("list action helper always returns a group listing")
+    };
+    action.api = GroupListingApi::AllGroups;
+    ScenarioAction::ListConsumerGroups(action)
 }
 
 fn describe_action() -> ScenarioAction {

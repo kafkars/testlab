@@ -4,6 +4,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+/// Public Kafka group-listing operation selected by a scenario.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupListingApi {
+    /// Uses the consumer-only compatibility view.
+    #[default]
+    ConsumerGroups,
+    /// Uses the generic `ListGroups` view without narrowing group types.
+    AllGroups,
+}
+
 /// Scenario intent for one bounded consumer-group listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -12,6 +23,9 @@ pub struct ListConsumerGroupsAction {
     pub client_id: ClientId,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Public group-listing operation exercised by the adapter.
+    #[serde(default)]
+    pub api: GroupListingApi,
     /// Group identities that must appear in the public result.
     pub required_group_ids: Vec<String>,
     /// Complete public operation bound.
@@ -26,6 +40,9 @@ pub struct ListConsumerGroupsCommand {
     pub client_id: ClientId,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Public group-listing operation exercised by the adapter.
+    #[serde(default)]
+    pub api: GroupListingApi,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

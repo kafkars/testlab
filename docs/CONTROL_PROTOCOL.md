@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v36 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v39 and evidence schema v26.
+Protocol v37 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v40 and evidence schema v26.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -502,10 +502,11 @@ delete completion. Cluster description reports the public cluster identity and
 broker IDs; the environment independently queries the same facts and owns the
 expected broker count through its declared topology.
 
-Consumer-group listing omits required group IDs from the adapter command and
-requires the public result to contain the independently listed live groups
-without broker-local errors. Consumer-group description likewise omits the
-expected member count. Both independent queries run immediately after their
+Group listing carries an exact `api` selector for the consumer-only compatibility
+view or the generic unfiltered `ListGroups` view, while required group IDs remain
+scenario-only. Either public result must contain the independently listed live
+groups without broker-local errors. Consumer-group description likewise omits
+the expected member count. All independent queries run immediately after their
 public results, before a later scenario step can close or otherwise change the
 membership.
 
@@ -575,6 +576,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v36 is an exact semantic contract. New capabilities may be declared
+Protocol v37 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -129,6 +129,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteConsumerGroupOffsets(_) => "ADMIN-026",
         ScenarioAction::DescribeClassicGroups(_) => "ADMIN-027",
         ScenarioAction::ListOffsetsBatch(_) => "ADMIN-028",
+        ScenarioAction::ListConsumerGroups(value)
+            if value.api == testlab_schema::GroupListingApi::AllGroups =>
+        {
+            "ADMIN-029"
+        }
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",

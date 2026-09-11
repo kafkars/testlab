@@ -126,7 +126,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 &c.client_id,
                 &c.operation_id,
                 c.timeout_ms,
-            )
+            ) && a.api == c.api
         }
         (ScenarioAction::DescribeConsumerGroup(a), AdapterCommand::DescribeConsumerGroup(c)) => {
             same_group(

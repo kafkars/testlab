@@ -1,4 +1,4 @@
-schema_version = 39
+schema_version = 40
 id = "adversary.metadata-partial-frame"
 title = "metadata partial frame becomes a bounded public transport failure"
 description = "The external Kafka peer writes only seven bytes of a Metadata response frame and disconnects; the packaged client must return the declared public failure while environment evidence proves the exact partial write."

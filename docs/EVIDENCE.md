@@ -21,7 +21,7 @@ digests exist.
 - `digests.json`
 
 Evidence schema v26 records the exact environment identity in `manifest.json`,
-retains protocol-v36 direct and hosted-group consumer controls and shutdown,
+retains protocol-v37 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -189,7 +189,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in schema v39. Plural offset
+retain the same broker-state fact shapes in schema v40. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per

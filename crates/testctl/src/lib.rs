@@ -117,6 +117,8 @@ mod session_command_admin_config_test;
 #[cfg(test)]
 mod session_command_admin_group_batch_test;
 #[cfg(test)]
+mod session_command_admin_group_listing_test;
+#[cfg(test)]
 mod session_command_admin_test;
 #[cfg(test)]
 mod session_command_admin_validate_test;

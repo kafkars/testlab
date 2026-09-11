@@ -3,7 +3,8 @@
 use testlab_schema::{
     AlterConsumerGroupOffsetAction, ClientId, DeleteConsumerGroupAction,
     DeleteConsumerGroupOffsetAction, DescribeClusterAction, DescribeConsumerGroupAction,
-    ListConsumerGroupOffsetsAction, ListConsumerGroupsAction, OperationId, ScenarioAction,
+    GroupListingApi, ListConsumerGroupOffsetsAction, ListConsumerGroupsAction, OperationId,
+    ScenarioAction,
 };
 
 use crate::observer_admin_target::AdminTarget;
@@ -20,6 +21,7 @@ fn cluster_and_group_discovery_targets_are_exact() {
     let list = ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("list-groups"),
+        api: GroupListingApi::AllGroups,
         required_group_ids: vec!["orders-group".to_owned()],
         timeout_ms: 500,
     });
@@ -100,6 +102,7 @@ fn duplicate_group_listing_targets_are_rejected() {
     let action = ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("list-groups"),
+        api: Default::default(),
         required_group_ids: vec!["orders-group".to_owned(), "orders-group".to_owned()],
         timeout_ms: 500,
     });

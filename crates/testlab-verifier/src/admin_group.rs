@@ -120,6 +120,10 @@ fn verify_list_groups(
     command_window: Option<AdminCommandWindow>,
     violations: &mut Vec<Violation>,
 ) {
+    let contract = match expected.api {
+        testlab_schema::GroupListingApi::ConsumerGroups => "ADMIN-009",
+        testlab_schema::GroupListingApi::AllGroups => "ADMIN-029",
+    };
     let public_value = public
         .filter(|values| values.len() == 1)
         .and_then(|values| values.first());
@@ -153,7 +157,7 @@ fn verify_list_groups(
         return;
     }
     violations.push(violation(
-        "ADMIN-009",
+        contract,
         format!("admin operation {} expected a complete sorted listing containing independently present groups {:?}", expected.operation_id, expected.required_group_ids),
         Some(expected.operation_id.clone()),
         group_list_evidence(public, independent),

@@ -35,6 +35,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 AdapterCommand::ListConsumerGroups(ListConsumerGroupsCommand {
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
+                    api: action.api,
                     timeout_ms: action.timeout_ms,
                 }),
                 AdminTarget::ConsumerGroups(ListTarget {

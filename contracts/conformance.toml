@@ -229,6 +229,12 @@ statement = "One public multi-partition offset query returns exactly one caller-
 category = "admin"
 
 [[contract]]
+id = "ADMIN-029"
+title = "Generic Admin group listings contain required groups"
+statement = "Each requested public unfiltered all-group listing emits exactly one completion without broker-local errors and contains every declared required group confirmed by an immediate independent broker-state query."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

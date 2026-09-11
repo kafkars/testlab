@@ -5,8 +5,8 @@ use super::{
     AlterConsumerGroupOffsetCommand, ClientId, DeleteConsumerGroupCommand,
     DeleteConsumerGroupOffsetCommand, DeleteTopicAction, DeleteTopicCommand,
     DescribeClusterCommand, DescribeConsumerGroupAction, DescribeConsumerGroupCommand,
-    ListConsumerGroupsAction, ListConsumerGroupsCommand, OperationId, ScenarioAction,
-    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    GroupListingApi, ListConsumerGroupsAction, ListConsumerGroupsCommand, OperationId,
+    ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[test]
@@ -14,12 +14,14 @@ fn group_list_expectations_do_not_cross_the_wire_boundary() {
     let action = ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("admin-groups-list"),
+        api: GroupListingApi::AllGroups,
         required_group_ids: vec!["group-1".to_owned()],
         timeout_ms: 1_000,
     });
     let command = AdapterCommand::ListConsumerGroups(ListConsumerGroupsCommand {
         client_id: client(),
         operation_id: operation("admin-groups-list"),
+        api: GroupListingApi::AllGroups,
         timeout_ms: 1_000,
     });
 
@@ -27,6 +29,8 @@ fn group_list_expectations_do_not_cross_the_wire_boundary() {
     let command = encode(&command);
 
     assert!(action.contains("required_group_ids = [\"group-1\"]"));
+    assert!(action.contains("api = \"all_groups\""));
+    assert!(command.contains("api = \"all_groups\""));
     assert!(!command.contains("required_group_ids"));
     assert_round_trip::<AdapterCommand>(&command);
 }
@@ -80,6 +84,7 @@ fn admin_commands_have_exact_v18_kinds() {
             AdapterCommand::ListConsumerGroups(ListConsumerGroupsCommand {
                 client_id: client(),
                 operation_id: operation("admin-groups-list"),
+                api: Default::default(),
                 timeout_ms: 1_000,
             }),
         ),
