@@ -105,6 +105,9 @@ impl HistoryIndex {
             BrokerStateObservation::Producers(_) => {
                 unreachable!("producer observations are indexed before generic admin state")
             }
+            BrokerStateObservation::LogDirs(_) => {
+                unreachable!("log-directory observations are indexed before generic admin state")
+            }
             BrokerStateObservation::Transactions(_) | BrokerStateObservation::Transaction(_) => {
                 unreachable!("transaction observations are indexed before generic admin state")
             }

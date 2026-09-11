@@ -28,6 +28,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::ClusterDescribed { .. }
             | ExpectedEvent::FeaturesDescribed(_)
             | ExpectedEvent::ProducerStatesDescribed { .. }
+            | ExpectedEvent::LogDirsDescribed { .. }
             | ExpectedEvent::TransactionsListed(_)
             | ExpectedEvent::TransactionsDescribed { .. }
             | ExpectedEvent::ConsumerGroupsListed { .. }
@@ -59,6 +60,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::ClusterDescribed(_)
             | AdapterEvent::FeaturesDescribed(_)
             | AdapterEvent::ProducersDescribed(_)
+            | AdapterEvent::LogDirsDescribed(_)
             | AdapterEvent::TransactionsListed(_)
             | AdapterEvent::TransactionsDescribed(_)
             | AdapterEvent::ConsumerGroupsListed(_)

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v56 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v59 and evidence schema v45.
+Protocol v57 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v60 and evidence schema v46.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -87,6 +87,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_cluster`
 - `describe_features`
 - `describe_producers`
+- `describe_log_dirs`
 - `list_transactions`
 - `describe_transactions`
 - `list_consumer_groups`
@@ -706,6 +707,15 @@ timestamp, coordinator epoch, and optional current-transaction start offset in
 canonical producer-ID order. An immediate independent
 `kafka-transactions.sh describe-producers` snapshot retains the same fields.
 
+Log-directory description carries one exact topic-partition and complete
+deadline; the scenario-owned expected replica count stays outside the wire
+command. The adapter discovers the public broker set, reverses it to exercise
+caller-order preservation, and selects the exact partition through
+`describe_log_dirs`. Its completion retains throttle, canonical paths, optional
+capacity and cordon fields, and exact replica size, lag, and future markers. An
+immediate independent `kafka-log-dirs.sh --describe --topic-list` JSON snapshot
+retains every shared field in canonical broker order.
+
 Transaction listing carries no fixture expectations or filters across the
 wire. Its public completion retains every transactional ID, producer ID, and
 Kafka-owned state in canonical transactional-ID order. Caller-ordered
@@ -791,6 +801,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v56 is an exact semantic contract. New capabilities may be declared
+Protocol v57 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

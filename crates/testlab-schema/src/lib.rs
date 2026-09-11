@@ -33,6 +33,7 @@ mod admin_group_offset_transition_validation;
 mod admin_group_plural_action_validation;
 mod admin_list_offsets_batch;
 mod admin_list_offsets_batch_validation;
+mod admin_log_dirs;
 mod admin_offset_position;
 mod admin_scenario_action;
 mod admin_share_group_action_validation;

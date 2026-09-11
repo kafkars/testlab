@@ -29,7 +29,6 @@ pub enum ScenarioAction {
     StopBroker {
         /// One-based declared broker ordinal.
         broker_ordinal: u16,
-        /// Complete stop bound.
         timeout_ms: u64,
     },
     StartBroker {
@@ -216,6 +215,7 @@ pub enum ScenarioAction {
     DescribeCluster(crate::DescribeClusterAction),
     DescribeFeatures(crate::DescribeFeaturesAction),
     DescribeProducers(crate::DescribeProducersAction),
+    DescribeLogDirs(crate::DescribeLogDirsAction),
     ListTransactions(crate::ListTransactionsAction),
     DescribeTransactions(crate::DescribeTransactionsAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),

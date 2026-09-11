@@ -87,6 +87,31 @@ fn validate_singleton(
             }
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
+        ScenarioAction::DescribeLogDirs(action) => {
+            validate_resource(
+                &action.client_id,
+                &action.operation_id,
+                &action.topic,
+                "topic",
+                249,
+                clients,
+                operation_ids,
+                problems,
+            );
+            if action.partition < 0 {
+                problems.push(format!(
+                    "admin operation {} partition must be nonnegative",
+                    action.operation_id
+                ));
+            }
+            if !(1..=100).contains(&action.expected_replica_count) {
+                problems.push(format!(
+                    "admin operation {} expected_replica_count must be between 1 and 100",
+                    action.operation_id
+                ));
+            }
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
         ScenarioAction::ListConsumerGroups(action) => {
             validate_identity(
                 &action.client_id,

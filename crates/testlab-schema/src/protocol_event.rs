@@ -196,7 +196,6 @@ pub enum AdapterEvent {
     /// One public admin topic description completed successfully.
     TopicDescribed(crate::AdminTopicDescription),
     TopicsDescribed(crate::AdminTopicsDescription),
-    /// One public admin topic listing completed successfully.
     TopicsListed(crate::AdminTopicsListing),
     /// One public admin offset listing completed successfully.
     OffsetListed(crate::AdminOffsetListing),
@@ -213,6 +212,7 @@ pub enum AdapterEvent {
     ClusterDescribed(crate::AdminClusterDescription),
     FeaturesDescribed(crate::AdminFeaturesDescription),
     ProducersDescribed(crate::AdminProducersDescription),
+    LogDirsDescribed(crate::AdminLogDirsDescription),
     TransactionsListed(crate::AdminTransactionsListing),
     TransactionsDescribed(crate::AdminTransactionsDescription),
     /// One public admin consumer-group listing completed successfully.

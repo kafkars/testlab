@@ -132,6 +132,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::DescribeFeatures(_)
         | ScenarioAction::DescribeProducers(_)
+        | ScenarioAction::DescribeLogDirs(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::ListConsumerGroups(_)
@@ -218,7 +219,6 @@ fn validate_batch(
         );
     }
 }
-
 pub(crate) fn validate_operation(
     operation_id: &OperationId,
     record: &crate::RecordSpec,

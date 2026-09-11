@@ -71,6 +71,8 @@ mod admin_consumer_groups_deletion_protocol_test;
 #[cfg(test)]
 mod admin_delete_records_batch_protocol_test;
 #[cfg(test)]
+mod admin_log_dirs_protocol_test;
+#[cfg(test)]
 mod admin_producers_protocol_test;
 #[cfg(test)]
 mod admin_share_group_lifecycle_protocol_test;

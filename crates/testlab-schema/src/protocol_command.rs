@@ -185,7 +185,6 @@ pub enum AdapterCommand {
     /// Describes one Kafka topic through the public admin surface.
     DescribeTopic(crate::DescribeTopicCommand),
     DescribeTopics(crate::DescribeTopicsCommand),
-    /// Lists Kafka topics visible through the public admin surface.
     ListTopics(crate::ListTopicsCommand),
     /// Lists one offset position through the public admin surface.
     ListOffsets(crate::ListOffsetsCommand),
@@ -200,6 +199,7 @@ pub enum AdapterCommand {
     DescribeCluster(crate::DescribeClusterCommand),
     DescribeFeatures(crate::DescribeFeaturesCommand),
     DescribeProducers(crate::DescribeProducersCommand),
+    DescribeLogDirs(crate::DescribeLogDirsCommand),
     ListTransactions(crate::ListTransactionsCommand),
     DescribeTransactions(crate::DescribeTransactionsCommand),
     /// Lists consumer groups visible through the public admin surface.

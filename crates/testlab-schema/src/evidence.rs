@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 45;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 46;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -40,6 +40,8 @@ pub enum BrokerStateObservation {
     Features(crate::BrokerFeaturesState),
     /// One partition's active producers independently read through Kafka's pinned CLI.
     Producers(crate::BrokerProducersState),
+    /// Broker log directories independently read through Kafka's pinned CLI.
+    LogDirs(crate::BrokerLogDirsState),
     /// One cluster-wide transaction listing independently read through Kafka's pinned CLI.
     Transactions(crate::BrokerTransactionsState),
     /// One transaction description independently read through Kafka's pinned CLI.

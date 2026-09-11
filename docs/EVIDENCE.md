@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v45 records the exact environment identity in `manifest.json`,
-retains protocol-v56 direct and hosted-group consumer controls and shutdown,
+Evidence schema v46 records the exact environment identity in `manifest.json`,
+retains protocol-v57 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -374,6 +374,17 @@ value, producer identity and epoch, and canonical topic-partition membership.
 CLI observations retain contiguous history and observation order. Every
 selected producer is initialized and closed before the read, keeping the
 compared `Empty` fixture state stable between public and independent snapshots.
+
+ADMIN-054 binds one selected-partition public log-directory description to one
+immediate pinned `kafka-log-dirs.sh --describe` JSON snapshot. The adapter first
+discovers the exact broker set, submits it to the public API in descending order,
+and must receive that order unchanged. Public and independent results must agree
+on every broker, path, replica size, offset lag, and future marker after the
+independent snapshot is canonicalized by broker ID. Public throttle and optional
+volume capacity or cordon fields remain explicit and must be internally valid.
+Scenario validation ties the selected partition and expected current-replica
+count to a prior successful topic creation, and the closed-producer fixture makes
+the compared replica log stable between snapshots.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

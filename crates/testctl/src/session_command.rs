@@ -1,5 +1,4 @@
 //! Scenario actions translate declaratively into correlated adapter expectations.
-
 use testlab_schema::{AdapterCommand, ScenarioAction};
 
 use crate::runner_protocol::ExpectedEvent;
@@ -95,6 +94,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::DescribeFeatures(_)
         | ScenarioAction::DescribeProducers(_)
+        | ScenarioAction::DescribeLogDirs(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::ListConsumerGroups(_)

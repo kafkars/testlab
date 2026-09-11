@@ -379,6 +379,12 @@ statement = "One public transaction-description batch preserves caller order and
 category = "admin"
 
 [[contract]]
+id = "ADMIN-054"
+title = "Log-directory descriptions preserve broker order and match Kafka CLI state"
+statement = "One selected-partition public log-directory description discovers every broker, submits them in descending caller order, preserves canonical paths, valid optional capacity fields, throttle, and every replica size, lag, and future marker, while one immediate pinned Kafka CLI snapshot matches all shared fields in canonical broker order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

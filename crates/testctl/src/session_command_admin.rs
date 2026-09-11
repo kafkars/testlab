@@ -4,8 +4,9 @@ use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
     DeleteConsumerGroupCommand, DeleteConsumerGroupOffsetCommand, DeleteTopicCommand,
     DescribeClusterCommand, DescribeConsumerGroupCommand, DescribeFeaturesCommand,
-    DescribeProducersCommand, DescribeTopicCommand, ListConsumerGroupOffsetsCommand,
-    ListConsumerGroupsCommand, ListOffsetsCommand, ListTopicsCommand, ScenarioAction,
+    DescribeLogDirsCommand, DescribeProducersCommand, DescribeTopicCommand,
+    ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand, ListOffsetsCommand,
+    ListTopicsCommand, ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -127,6 +128,20 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::ProducerStatesDescribed {
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+            },
+        ),
+        ScenarioAction::DescribeLogDirs(action) => (
+            AdapterCommand::DescribeLogDirs(DescribeLogDirsCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::LogDirsDescribed {
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 partition: action.partition,

@@ -7,6 +7,7 @@ use crate::observer_admin_config_target;
 pub(super) use crate::observer_admin_config_types::{ConfigBatchTarget, ConfigTarget};
 use crate::observer_admin_consumer_group_deletion_batch_target;
 use crate::observer_admin_group_target;
+use crate::observer_admin_log_dirs_target;
 use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
 use crate::observer_admin_plural_group_target;
@@ -35,6 +36,7 @@ pub(super) enum AdminTarget {
     Cluster(OperationId),
     Features(OperationId),
     Producers(observer_admin_producer_target::ProducerTarget),
+    LogDirs(observer_admin_log_dirs_target::LogDirsTarget),
     Transactions(observer_admin_transaction_target::TransactionTarget),
     ConsumerGroups(ListTarget),
     ConsumerGroupDeletions(ListTarget),
@@ -191,6 +193,7 @@ impl AdminTarget {
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)
             .or(observer_admin_producer_target::match_action(action)?)
+            .or(observer_admin_log_dirs_target::match_action(action)?)
             .or(observer_admin_transaction_target::match_action(action)?)
             .or(observer_admin_consumer_group_deletion_batch_target::match_action(action)?)
         {
@@ -223,6 +226,7 @@ impl AdminTarget {
             Self::Cluster(operation_id) => operation_id,
             Self::Features(operation_id) => operation_id,
             Self::Producers(target) => &target.operation_id,
+            Self::LogDirs(target) => &target.operation_id,
             Self::Transactions(target) => target.operation_id(),
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,

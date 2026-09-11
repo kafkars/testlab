@@ -1,4 +1,4 @@
-schema_version = 59
+schema_version = 60
 id = "kafka.assigned-consumer-independent-cursors"
 title = "two direct consumers retain independent partition cursors"
 description = "Two packaged directly assigned consumers each read the same two broker records in order without sharing group ownership or cursor state."

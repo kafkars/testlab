@@ -1,5 +1,4 @@
-//! Expected event shapes constrain each sequential protocol-v56 command.
-
+//! Expected event shapes constrain each sequential protocol-v57 command.
 use std::collections::BTreeSet;
 
 use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
@@ -127,6 +126,11 @@ pub(crate) enum ExpectedEvent {
     },
     FeaturesDescribed(OperationId),
     ProducerStatesDescribed {
+        operation_id: OperationId,
+        topic: String,
+        partition: i32,
+    },
+    LogDirsDescribed {
         operation_id: OperationId,
         topic: String,
         partition: i32,
