@@ -2,8 +2,9 @@
 
 pub(crate) use kafkars::admin::{
     ClusterBroker, ConfigAlteration, ConsumerGroupOffsetAlteration, DeleteRecordsTarget,
-    ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult, ListOffsetsQuery, NewPartitions,
-    NewTopic, OffsetSpec, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
+    DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult,
+    ListOffsetsQuery, NewPartitions, NewTopic, OffsetSpec, TopicConfigAlterations,
+    TopicConfigQuery, TopicDescription,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

@@ -4,6 +4,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{AdminOffsetPosition, ClientId, OperationId};
 
+/// Public topic-description operation selected by a scenario.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TopicDescriptionApi {
+    /// Uses the client's complete metadata-backed topic description.
+    #[default]
+    Metadata,
+    /// Uses one explicit `DescribeTopicPartitions` response page.
+    DescribeTopicPartitions,
+}
+
 /// Payload for one declarative partition-count increase action.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CreatePartitionsAction {
@@ -35,6 +46,9 @@ pub struct DescribeTopicAction {
     pub operation_id: OperationId,
     /// Exact Kafka topic name.
     pub topic: String,
+    /// Public topic-description operation exercised by the adapter.
+    #[serde(default)]
+    pub api: TopicDescriptionApi,
     /// Exact partition indices the verifier requires after success.
     pub expected_partitions: Option<Vec<i32>>,
     /// Exact normalized public error expected instead of a completion.

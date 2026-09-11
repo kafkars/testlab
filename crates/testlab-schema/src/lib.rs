@@ -131,6 +131,7 @@ pub use admin_group_offset_mutation::{
 pub use admin_offset_position::AdminOffsetPosition;
 pub use admin_scenario_action::{
     CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
+    TopicDescriptionApi,
 };
 pub use admin_topic::{
     AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription, AdminTopicsListing,

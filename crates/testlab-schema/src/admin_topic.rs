@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AdminOffsetPosition, ClientId, OperationId};
+use crate::{AdminOffsetPosition, ClientId, OperationId, TopicDescriptionApi};
 
 /// Normalized public error required for a duplicate topic creation.
 pub const TOPIC_ALREADY_EXISTS_ERROR_CODE: &str = "broker:broker_36";
@@ -113,6 +113,8 @@ pub struct DescribeTopicCommand {
     pub operation_id: OperationId,
     /// Exact Kafka topic name.
     pub topic: String,
+    /// Public topic-description operation to execute.
+    pub api: TopicDescriptionApi,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

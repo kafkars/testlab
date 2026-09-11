@@ -14,7 +14,8 @@
   rejection, exact unknown-topic rejection, source-preserving routing failure
   for an independently proven absent partition, partition
   expansion and deletion, validate-only topic creation, partition expansion,
-  and topic-configuration replacement, scoped topic, cluster, and
+  and topic-configuration replacement, metadata-backed and explicit
+  `DescribeTopicPartitions` topic description, scoped topic, cluster, and
   consumer-group discovery, earliest- and
   latest-offset administration, consumer-group offset listing, alteration, and
   deletion, record-prefix deletion, empty-group deletion, and selected

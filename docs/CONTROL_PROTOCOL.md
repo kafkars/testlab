@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v34 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v37 and evidence schema v26.
+Protocol v35 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v38 and evidence schema v26.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -408,12 +408,15 @@ topic.
 
 Named topic description, all-topic listing, and offset listing also use the
 packaged public admin handle. Their adapter commands omit the scenario's
-expected partitions, required topics, expected offset, and expected errors. A named description
-must report the exact declared partition indices, which an immediate independent
-metadata query confirms. An all-topic listing preserves the public byte-sorted
-unique order and must contain the declared required topics, whose existence is
-likewise established by independent metadata observations. These checks do not
-claim exhaustive topic
+expected partitions, required topics, expected offset, and expected errors. A
+named description explicitly selects either the complete metadata-backed public
+operation or one complete `DescribeTopicPartitions` page. Both must report the
+exact declared partition indices, which an immediate independent metadata query
+confirms. The page path fails closed if its 10,000-partition response limit
+returns a continuation cursor; hidden pagination is forbidden. An all-topic
+listing preserves the public byte-sorted unique order and must contain the
+declared required topics, whose existence is likewise established by
+independent metadata observations. These checks do not claim exhaustive topic
 listing, internal-topic filtering, topic IDs, or replica topology.
 
 Offset listing selects `earliest` or `latest` for one isolated partition after
@@ -562,6 +565,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v34 is an exact semantic contract. New capabilities may be declared
+Protocol v35 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

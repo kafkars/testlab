@@ -113,6 +113,7 @@ fn describe_topic(topic: &str) -> ScenarioAction {
         client_id: client(),
         operation_id: operation(&format!("describe-topic-{topic}")),
         topic: topic.to_owned(),
+        api: crate::TopicDescriptionApi::Metadata,
         expected_partitions: Some(vec![0]),
         expected_error_code: None,
         timeout_ms: 1_000,

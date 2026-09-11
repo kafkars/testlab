@@ -20,6 +20,7 @@ fn read_only_admin_commands_require_admin_capability() {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
             topic: "orders".to_owned(),
+            api: testlab_schema::TopicDescriptionApi::Metadata,
             timeout_ms: 1_000,
         }),
         AdapterCommand::ListTopics(ListTopicsCommand {

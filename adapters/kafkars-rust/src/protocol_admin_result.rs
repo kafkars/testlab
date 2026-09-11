@@ -1,6 +1,8 @@
 //! Admin result normalization rejects malformed public batch identities.
 
-use crate::kafkars_api::{KafkaError, TopicDescription, TopicPartition};
+use crate::kafkars_api::{
+    DescribeTopicPartitionsTopic, KafkaError, TopicDescription, TopicPartition,
+};
 use testlab_schema::{AdminBrokerError, OperationId};
 
 use crate::AdapterError;
@@ -13,6 +15,19 @@ pub(crate) struct DescribedTopicResult {
 
 impl From<TopicDescription> for DescribedTopicResult {
     fn from(description: TopicDescription) -> Self {
+        Self {
+            name: description.name().to_owned(),
+            partitions: description
+                .partitions()
+                .iter()
+                .map(|partition| (partition.partition_index(), partition.error().cloned()))
+                .collect(),
+        }
+    }
+}
+
+impl From<DescribeTopicPartitionsTopic> for DescribedTopicResult {
+    fn from(description: DescribeTopicPartitionsTopic) -> Self {
         Self {
             name: description.name().to_owned(),
             partitions: description

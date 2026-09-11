@@ -84,6 +84,7 @@ fn describe_translation_keeps_expectations_inside_the_harness() {
         client_id: client_id.clone(),
         operation_id: operation_id.clone(),
         topic: "orders".to_owned(),
+        api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
         expected_partitions: Some(vec![0, 1, 2]),
         expected_error_code: None,
         timeout_ms: 20_000,
@@ -99,6 +100,7 @@ fn describe_translation_keeps_expectations_inside_the_harness() {
             client_id,
             operation_id,
             topic: "orders".to_owned(),
+            api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
             timeout_ms: 20_000,
         })
     );

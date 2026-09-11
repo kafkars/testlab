@@ -75,16 +75,18 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
             &c.topic,
             c.timeout_ms,
         ),
-        (ScenarioAction::DescribeTopic(a), AdapterCommand::DescribeTopic(c)) => same_topic(
-            &a.client_id,
-            &a.operation_id,
-            &a.topic,
-            a.timeout_ms,
-            &c.client_id,
-            &c.operation_id,
-            &c.topic,
-            c.timeout_ms,
-        ),
+        (ScenarioAction::DescribeTopic(a), AdapterCommand::DescribeTopic(c)) => {
+            same_topic(
+                &a.client_id,
+                &a.operation_id,
+                &a.topic,
+                a.timeout_ms,
+                &c.client_id,
+                &c.operation_id,
+                &c.topic,
+                c.timeout_ms,
+            ) && a.api == c.api
+        }
         (ScenarioAction::ListTopics(a), AdapterCommand::ListTopics(c)) => {
             same_base(
                 &a.client_id,
@@ -268,10 +270,7 @@ fn same_group(
     ) && a_group == c_group
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "exact matching keeps both scenario and wire group-offset identities explicit"
-)]
+#[allow(clippy::too_many_arguments, reason = "exact group-offset identity")]
 fn same_group_offset(
     a_client: &testlab_schema::ClientId,
     a_operation: &OperationId,

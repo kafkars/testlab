@@ -4,14 +4,14 @@ use super::{
     AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription,
     AdminTopicsListing, ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction,
     ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION,
-    ROUTING_ERROR_CODE, SCENARIO_SCHEMA_VERSION, ScenarioAction,
+    ROUTING_ERROR_CODE, SCENARIO_SCHEMA_VERSION, ScenarioAction, TopicDescriptionApi,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 34);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 37);
+    assert_eq!(PROTOCOL_VERSION, 35);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 38);
 }
 
 #[test]
@@ -20,6 +20,7 @@ fn describe_topic_command_excludes_expected_partitions() {
         client_id: client(),
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
+        api: TopicDescriptionApi::DescribeTopicPartitions,
         expected_partitions: Some(vec![0, 1]),
         expected_error_code: None,
         timeout_ms: 1_000,
@@ -28,6 +29,7 @@ fn describe_topic_command_excludes_expected_partitions() {
         client_id: client(),
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
+        api: TopicDescriptionApi::DescribeTopicPartitions,
         timeout_ms: 1_000,
     });
 
@@ -35,9 +37,34 @@ fn describe_topic_command_excludes_expected_partitions() {
     let command = encode(&command);
 
     assert!(action.contains("kind = \"describe_topic\""));
+    assert!(action.contains("api = \"describe_topic_partitions\""));
     assert!(action.contains("expected_partitions = [0, 1]"));
     assert!(command.contains("kind = \"describe_topic\""));
+    assert!(command.contains("api = \"describe_topic_partitions\""));
     assert!(!command.contains("expected_partitions"));
+}
+
+#[test]
+fn describe_topic_action_defaults_to_metadata_api() {
+    let action = toml::from_str::<ScenarioAction>(
+        r#"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-default"
+topic = "records"
+expected_partitions = [0]
+timeout_ms = 1000
+"#,
+    )
+    .unwrap_or_else(|error| panic!("deserialize metadata-backed description: {error}"));
+
+    assert!(matches!(
+        action,
+        ScenarioAction::DescribeTopic(DescribeTopicAction {
+            api: TopicDescriptionApi::Metadata,
+            ..
+        })
+    ));
 }
 
 #[test]
@@ -155,6 +182,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         client_id: client(),
         operation_id: operation("admin-describe-missing"),
         topic: "missing".to_owned(),
+        api: TopicDescriptionApi::Metadata,
         expected_partitions: None,
         expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
         timeout_ms: 1_000,
@@ -173,6 +201,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         client_id: client(),
         operation_id: operation("admin-describe-missing"),
         topic: "missing".to_owned(),
+        api: TopicDescriptionApi::Metadata,
         timeout_ms: 1_000,
     });
     let offset_command = AdapterCommand::ListOffsets(ListOffsetsCommand {

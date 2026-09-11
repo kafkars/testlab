@@ -19,6 +19,7 @@ fn exact_description_matches_independent_metadata() {
         client_id: client(),
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
+        api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
         expected_partitions: Some(vec![0, 1, 2]),
         expected_error_code: None,
         timeout_ms: 1_000,
@@ -45,6 +46,7 @@ fn description_missing_independent_partition_fails() {
         client_id: client(),
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
+        api: testlab_schema::TopicDescriptionApi::Metadata,
         expected_partitions: Some(vec![0, 1, 2]),
         expected_error_code: None,
         timeout_ms: 1_000,
@@ -206,6 +208,7 @@ fn admin_command(action: &ScenarioAction) -> AdapterCommand {
                 client_id: value.client_id.clone(),
                 operation_id: value.operation_id.clone(),
                 topic: value.topic.clone(),
+                api: value.api,
                 timeout_ms: value.timeout_ms,
             })
         }

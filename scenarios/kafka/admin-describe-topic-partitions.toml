@@ -1,0 +1,32 @@
+schema_version = 38
+id = "kafka.admin-describe-topic-partitions"
+title = "packaged admin describes a topic through DescribeTopicPartitions"
+description = "The packaged client's explicit DescribeTopicPartitions public path returns the complete partition set for one independently provisioned three-partition topic, and an immediate independent metadata query proves the same topology."
+timeout_ms = 90000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-topic-partitions"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-topic-partitions"
+topic = "testlab-kafkars-admin-describe-topic-partitions"
+api = "describe_topic_partitions"
+expected_partitions = [0, 1, 2]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

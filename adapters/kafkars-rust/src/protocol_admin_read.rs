@@ -8,17 +8,14 @@ use crate::kafkars_api::{
 };
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminConsumerGroupOffsetListing,
-    AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription, AdminTopicsListing, CommandId,
-    DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListOffsetsCommand, ListTopicsCommand,
+    AdminOffsetListing, AdminOffsetPosition, AdminTopicsListing, CommandId,
+    ListConsumerGroupOffsetsCommand, ListOffsetsCommand, ListTopicsCommand,
 };
 
 use crate::AdapterError;
 use crate::admission_retry::retry_until_with_remaining;
 use crate::protocol::emit;
-use crate::protocol_admin_result::{
-    DescribedTopicResult, described_partitions, listed_consumer_group_offset, listed_offset,
-    listed_topics,
-};
+use crate::protocol_admin_result::{listed_consumer_group_offset, listed_offset, listed_topics};
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch<W: Write>(
@@ -29,7 +26,7 @@ pub(crate) fn dispatch<W: Write>(
 ) -> Result<(), AdapterError> {
     match command {
         AdapterCommand::DescribeTopic(command) => {
-            describe_topic(state, writer, command_id, command)
+            crate::protocol_admin_topic_description::dispatch(state, writer, command_id, command)
         }
         AdapterCommand::ListTopics(command) => list_topics(state, writer, command_id, command),
         AdapterCommand::ListOffsets(command) => list_offset(state, writer, command_id, command),
@@ -40,44 +37,6 @@ pub(crate) fn dispatch<W: Write>(
             "non-admin-read command reached admin read dispatcher".to_owned(),
         )),
     }
-}
-
-fn describe_topic<W: Write>(
-    state: &AdapterState,
-    writer: &mut W,
-    command_id: CommandId,
-    command: DescribeTopicCommand,
-) -> Result<(), AdapterError> {
-    let deadline = deadline_after(command.timeout_ms);
-    let client = state.client(&command.client_id)?;
-    let result = retry_until_with_remaining(
-        deadline,
-        |remaining| {
-            client
-                .admin()
-                .describe_topics([command.topic.clone()])
-                .deadline_after(remaining)
-                .submit()
-                .wait()
-        },
-        retry_safe,
-    )
-    .map_err(AdapterError::Client)?;
-    let entries = result
-        .into_entries()
-        .into_iter()
-        .map(|(key, result)| (key, result.map(DescribedTopicResult::from)))
-        .collect();
-    let partitions = described_partitions(entries, &command.operation_id, &command.topic)?;
-    emit_event(
-        writer,
-        command_id,
-        AdapterEvent::TopicDescribed(AdminTopicDescription {
-            operation_id: command.operation_id,
-            topic: command.topic,
-            partitions,
-        }),
-    )
 }
 
 fn list_topics<W: Write>(

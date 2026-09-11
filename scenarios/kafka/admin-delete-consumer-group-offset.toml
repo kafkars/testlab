@@ -1,4 +1,4 @@
-schema_version = 37
+schema_version = 38
 id = "kafka.admin-delete-consumer-group-offset"
 title = "packaged admin deletes an independently observed consumer-group offset"
 description = "After a classic group publicly commits offset 1 and closes, the packaged client's public admin observes that baseline and deletes the exact checkpoint; independent broker-state queries prove the transition from offset 1 to explicit absence."

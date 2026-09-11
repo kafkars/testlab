@@ -199,8 +199,11 @@ mutations poll for the declared offset or explicit absence.
 The state-query consumer never joins the target group, subscribes, assigns, or
 commits. Topic and group absence remain explicit typed facts. Observer errors,
 authorization failures, and timeouts invalidate the run rather than manufacture
-a client result. ADMIN-006 through ADMIN-016 compare public results and temporal
-mutations with these independently observed facts. ADMIN-017 additionally
+a client result. ADMIN-003 accepts only the explicitly selected metadata-backed
+or `DescribeTopicPartitions` public command and joins its exact partition set to
+an immediate independent metadata snapshot. ADMIN-006 through ADMIN-016 compare
+public results and temporal mutations with these independently observed facts.
+ADMIN-017 additionally
 requires a distinct pre-deletion watermark baseline and an unchanged high
 watermark. ADMIN-018 binds each caller-ordered batch result to its independently
 observed topic state, including an exact expected duplicate-topic code without

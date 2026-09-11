@@ -65,6 +65,7 @@ fn failure_actions() -> Vec<ScenarioAction> {
             client_id: client(),
             operation_id: operation("missing-describe"),
             topic: "missing-describe".to_owned(),
+            api: testlab_schema::TopicDescriptionApi::Metadata,
             expected_partitions: None,
             expected_error_code: code(),
             timeout_ms: 1_000,
@@ -124,6 +125,7 @@ fn wire(action: &ScenarioAction) -> AdapterCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
+                api: action.api,
                 timeout_ms: action.timeout_ms,
             })
         }

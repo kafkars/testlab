@@ -35,6 +35,7 @@ mod protocol_admin_group_offset_mutation;
 mod protocol_admin_plural_result;
 mod protocol_admin_read;
 mod protocol_admin_result;
+mod protocol_admin_topic_description;
 mod protocol_admin_validation_event;
 mod protocol_admin_write;
 mod protocol_cancel;

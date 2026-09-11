@@ -1,7 +1,7 @@
 //! Scenario actions declare bounded public calls and external broker controls.
 #![allow(missing_docs, reason = "admin variants use public payload types")]
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
-/// Scenario action vocabulary for scenario schema v37.
+/// Scenario action vocabulary for scenario schema v38.
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
