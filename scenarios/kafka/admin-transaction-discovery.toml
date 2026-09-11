@@ -1,4 +1,4 @@
-schema_version = 61
+schema_version = 62
 id = "kafka.admin-transaction-discovery"
 title = "packaged admin lists and describes independently observed transactions"
 description = "Two initialized and closed transactional producers leave stable Empty transaction state; the packaged client's canonical listing and caller-ordered descriptions must preserve every public field exposed by the pinned Kafka administration CLI."

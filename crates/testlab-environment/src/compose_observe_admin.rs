@@ -39,6 +39,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::Features(_)) = &target {
             return self.observe_features_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::MetadataQuorum(_)) = &target {
+            return self.observe_metadata_quorum_with_cli(target, timeout);
+        }
         if let Ok(target @ AdminTarget::Producers(_)) = &target {
             return self.observe_producers_with_cli(target, timeout);
         }

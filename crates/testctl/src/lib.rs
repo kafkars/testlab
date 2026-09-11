@@ -73,6 +73,8 @@ mod admin_delete_records_batch_protocol_test;
 #[cfg(test)]
 mod admin_log_dirs_protocol_test;
 #[cfg(test)]
+mod admin_metadata_quorum_protocol_test;
+#[cfg(test)]
 mod admin_producers_protocol_test;
 #[cfg(test)]
 mod admin_replica_log_dirs_protocol_test;

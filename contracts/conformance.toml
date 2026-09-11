@@ -391,6 +391,12 @@ statement = "One selected-replica public log-directory description discovers eve
 category = "admin"
 
 [[contract]]
+id = "ADMIN-056"
+title = "Metadata-quorum descriptions match independent Kafka CLI views"
+statement = "One bounded public metadata-quorum description preserves canonical leader, epoch, watermark, voters, observers, directory identities, optional timestamps, and version-two controller listeners while immediate pinned Kafka CLI status and replication views confirm membership and nonregressing Raft state."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

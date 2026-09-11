@@ -179,6 +179,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeProducers(_)
             | ScenarioAction::DescribeLogDirs(_)
             | ScenarioAction::DescribeReplicaLogDirs(_)
+            | ScenarioAction::DescribeMetadataQuorum(_)
             | ScenarioAction::ListTransactions(_)
             | ScenarioAction::DescribeTransactions(_)
             | ScenarioAction::ListConsumerGroups(_)

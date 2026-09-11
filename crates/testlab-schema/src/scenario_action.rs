@@ -1,4 +1,3 @@
-//! Scenario actions declare bounded public calls and external broker controls.
 #![allow(missing_docs, reason = "admin variants use public payload types")]
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
@@ -216,6 +215,7 @@ pub enum ScenarioAction {
     DescribeProducers(crate::DescribeProducersAction),
     DescribeLogDirs(crate::DescribeLogDirsAction),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsAction),
+    DescribeMetadataQuorum(crate::DescribeMetadataQuorumAction),
     ListTransactions(crate::ListTransactionsAction),
     DescribeTransactions(crate::DescribeTransactionsAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),

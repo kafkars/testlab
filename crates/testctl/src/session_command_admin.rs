@@ -4,9 +4,9 @@ use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
     DeleteConsumerGroupCommand, DeleteConsumerGroupOffsetCommand, DeleteTopicCommand,
     DescribeClusterCommand, DescribeConsumerGroupCommand, DescribeFeaturesCommand,
-    DescribeLogDirsCommand, DescribeProducersCommand, DescribeReplicaLogDirsCommand,
-    DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
-    ListOffsetsCommand, ListTopicsCommand, ScenarioAction,
+    DescribeLogDirsCommand, DescribeMetadataQuorumCommand, DescribeProducersCommand,
+    DescribeReplicaLogDirsCommand, DescribeTopicCommand, ListConsumerGroupOffsetsCommand,
+    ListConsumerGroupsCommand, ListOffsetsCommand, ListTopicsCommand, ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -118,6 +118,14 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::FeaturesDescribed(action.operation_id.clone()),
+        ),
+        ScenarioAction::DescribeMetadataQuorum(action) => (
+            AdapterCommand::DescribeMetadataQuorum(DescribeMetadataQuorumCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::MetadataQuorumDescribed(action.operation_id.clone()),
         ),
         ScenarioAction::DescribeProducers(action) => (
             AdapterCommand::DescribeProducers(DescribeProducersCommand {

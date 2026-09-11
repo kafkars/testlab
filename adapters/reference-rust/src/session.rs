@@ -143,6 +143,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
         | AdapterCommand::DescribeReplicaLogDirs(_)
+        | AdapterCommand::DescribeMetadataQuorum(_)
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::ListConsumerGroups(_)

@@ -102,6 +102,9 @@ impl HistoryIndex {
             BrokerStateObservation::Features(_) => {
                 unreachable!("feature observations are indexed before generic admin state")
             }
+            BrokerStateObservation::MetadataQuorum(_) => {
+                unreachable!("quorum observations are indexed before generic admin state")
+            }
             BrokerStateObservation::Producers(_) => {
                 unreachable!("producer observations are indexed before generic admin state")
             }

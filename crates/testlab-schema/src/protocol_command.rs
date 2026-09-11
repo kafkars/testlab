@@ -1,4 +1,3 @@
-//! Adapter commands are the public operations testctl may request.
 #![allow(missing_docs, reason = "typed payload variants are self-describing")]
 use crate::{BatchRecord, ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
@@ -201,6 +200,7 @@ pub enum AdapterCommand {
     DescribeProducers(crate::DescribeProducersCommand),
     DescribeLogDirs(crate::DescribeLogDirsCommand),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsCommand),
+    DescribeMetadataQuorum(crate::DescribeMetadataQuorumCommand),
     ListTransactions(crate::ListTransactionsCommand),
     DescribeTransactions(crate::DescribeTransactionsCommand),
     ListConsumerGroups(crate::ListConsumerGroupsCommand),

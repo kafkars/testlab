@@ -8,10 +8,10 @@ pub(crate) use kafkars::admin::{
     CreateAclResult, DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult,
     DeleteRecordsTarget, DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery,
     ListConsumerGroupOffsetsResult, ListOffsetsQuery, ListShareGroupOffsetsQuery,
-    ListShareGroupOffsetsResult, NewPartitions, NewTopic, OffsetSpec, ResourcePattern,
-    ScramCredentialInfo, ScramMechanism, ShareGroupDescription, ShareGroupOffset,
-    ShareGroupOffsetAlteration, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
-    TopicPartitionReplica, UserScramCredentialAlteration,
+    ListShareGroupOffsetsResult, MetadataQuorumListener, MetadataQuorumNode, MetadataQuorumReplica,
+    NewPartitions, NewTopic, OffsetSpec, ResourcePattern, ScramCredentialInfo, ScramMechanism,
+    ShareGroupDescription, ShareGroupOffset, ShareGroupOffsetAlteration, TopicConfigAlterations,
+    TopicConfigQuery, TopicDescription, TopicPartitionReplica, UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

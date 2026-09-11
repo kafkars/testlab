@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v47 records the exact environment identity in `manifest.json`,
-retains protocol-v58 direct and hosted-group consumer controls and shutdown,
+Evidence schema v48 records the exact environment identity in `manifest.json`,
+retains protocol-v59 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -394,6 +394,15 @@ that replica is absent. The verifier requires the public order, current or
 absent path, and exact signed lag to match canonical CLI state for every broker;
 the scenario-owned closed-producer fixture requires its declared current
 replica count and rejects any transient future placement.
+
+ADMIN-056 binds one public metadata-quorum description to immediate status and
+replication snapshots from Kafka's pinned quorum CLI. Both CLI views must agree
+on canonical voter and observer identities, roles, directory IDs, leader state,
+watermark, offsets, and advertised controller endpoints before one independent
+state observation is sealed. The public result must match membership, leader,
+epoch, directories, and optional v2 listeners exactly. Known offsets,
+watermark, and timestamps may only advance before the CLI snapshot; the later
+snapshot may resolve an earlier unknown value but may not lose one.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

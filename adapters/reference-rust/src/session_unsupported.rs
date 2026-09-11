@@ -46,6 +46,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
         | AdapterCommand::DescribeReplicaLogDirs(_)
+        | AdapterCommand::DescribeMetadataQuorum(_)
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::ListConsumerGroups(_)

@@ -144,6 +144,10 @@ pub(super) fn classify_admin(
             AdapterEvent::FeaturesDescribed(actual),
         ) => operation_id == &actual.operation_id,
         (
+            ExpectedEvent::MetadataQuorumDescribed(operation_id),
+            AdapterEvent::MetadataQuorumDescribed(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::ConsumerGroupsListed { operation_id },
             AdapterEvent::ConsumerGroupsListed(actual),
         ) => operation_id == &actual.operation_id,

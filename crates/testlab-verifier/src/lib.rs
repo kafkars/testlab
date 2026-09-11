@@ -19,6 +19,7 @@ mod admin_group_batch_mutation;
 mod admin_group_evidence;
 mod admin_group_mutation;
 mod admin_log_dirs;
+mod admin_metadata_quorum;
 mod admin_offset_batch;
 mod admin_producers;
 mod admin_records;
@@ -120,6 +121,8 @@ mod admin_group_test;
 mod admin_group_verdict_test;
 #[cfg(test)]
 mod admin_log_dirs_test;
+#[cfg(test)]
+mod admin_metadata_quorum_test;
 #[cfg(test)]
 mod admin_offset_batch_test;
 #[cfg(test)]

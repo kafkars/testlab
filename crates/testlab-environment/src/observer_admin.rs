@@ -58,6 +58,9 @@ pub(super) fn capture(
         AdminTarget::Features(_) => Err(ObserverError::InvalidTarget(
             "feature target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::MetadataQuorum(_) => Err(ObserverError::InvalidTarget(
+            "metadata-quorum target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Producers(_) => Err(ObserverError::InvalidTarget(
             "active-producer target requires the pinned Kafka CLI observer".to_owned(),
         )),

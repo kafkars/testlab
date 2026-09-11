@@ -1,4 +1,3 @@
-//! Action validation owns handle state and producer operation identities.
 pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, ProducerStates};
 use crate::transaction_action_validation::TransactionStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
@@ -134,6 +133,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::DescribeLogDirs(_)
         | ScenarioAction::DescribeReplicaLogDirs(_)
+        | ScenarioAction::DescribeMetadataQuorum(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::ListConsumerGroups(_)

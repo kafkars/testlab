@@ -88,6 +88,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeReplicaLogDirs(command) => {
             crate::protocol_admin_replica_log_dirs::describe(state, writer, command_id, command)
         }
+        AdapterCommand::DescribeMetadataQuorum(command) => {
+            crate::protocol_admin_metadata_quorum::describe(state, writer, command_id, command)
+        }
         command @ (AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)) => {
             crate::protocol_admin_transactions::dispatch(state, writer, command_id, command)

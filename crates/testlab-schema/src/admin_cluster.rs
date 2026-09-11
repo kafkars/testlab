@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+#[path = "admin_metadata_quorum.rs"]
+pub(crate) mod metadata_quorum;
+
 /// Scenario intent for one bounded cluster description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

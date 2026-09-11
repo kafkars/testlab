@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v58 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v61 and evidence schema v47.
+Protocol v59 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v62 and evidence schema v48.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -89,6 +89,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_producers`
 - `describe_log_dirs`
 - `describe_replica_log_dirs`
+- `describe_metadata_quorum`
 - `list_transactions`
 - `describe_transactions`
 - `list_consumer_groups`
@@ -725,6 +726,15 @@ replica identities in descending broker order through
 with exact signed lags. The immediate pinned `kafka-log-dirs.sh` snapshot
 provides the independently canonicalized placement state.
 
+Metadata-quorum description carries only client identity, operation identity,
+and one complete deadline. Its public completion retains leader identity,
+epoch, high watermark, canonical voters and observers, optional directory IDs,
+log-end offsets, optional timestamps, and optional v2 node listeners. Immediate
+`kafka-metadata-quorum.sh describe --status` and `--replication` snapshots are
+joined outside the adapter. The verifier requires stable membership, leader,
+directory, and endpoint agreement while allowing only nonregressing offsets,
+watermark, and timestamps between the public call and those sequential views.
+
 Transaction listing carries no fixture expectations or filters across the
 wire. Its public completion retains every transactional ID, producer ID, and
 Kafka-owned state in canonical transactional-ID order. Caller-ordered
@@ -810,6 +820,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v58 is an exact semantic contract. New capabilities may be declared
+Protocol v59 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

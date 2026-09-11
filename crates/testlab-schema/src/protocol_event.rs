@@ -1,4 +1,3 @@
-//! Adapter events normalize only facts exposed through a public client surface.
 #![allow(missing_docs, reason = "typed payload variants are self-describing")]
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
@@ -214,6 +213,7 @@ pub enum AdapterEvent {
     ProducersDescribed(crate::AdminProducersDescription),
     LogDirsDescribed(crate::AdminLogDirsDescription),
     ReplicaLogDirsDescribed(crate::AdminReplicaLogDirsDescription),
+    MetadataQuorumDescribed(crate::AdminMetadataQuorumDescription),
     TransactionsListed(crate::AdminTransactionsListing),
     TransactionsDescribed(crate::AdminTransactionsDescription),
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),

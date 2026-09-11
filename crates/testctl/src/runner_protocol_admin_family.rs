@@ -27,6 +27,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::RecordsBatchDeleted { .. }
             | ExpectedEvent::ClusterDescribed { .. }
             | ExpectedEvent::FeaturesDescribed(_)
+            | ExpectedEvent::MetadataQuorumDescribed(_)
             | ExpectedEvent::ProducerStatesDescribed { .. }
             | ExpectedEvent::LogDirsDescribed { .. }
             | ExpectedEvent::ReplicaLogDirsDescribed(..)
@@ -60,6 +61,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::RecordsBatchDeleted(_)
             | AdapterEvent::ClusterDescribed(_)
             | AdapterEvent::FeaturesDescribed(_)
+            | AdapterEvent::MetadataQuorumDescribed(_)
             | AdapterEvent::ProducersDescribed(_)
             | AdapterEvent::LogDirsDescribed(_)
             | AdapterEvent::ReplicaLogDirsDescribed(_)

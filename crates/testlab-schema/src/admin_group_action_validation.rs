@@ -5,6 +5,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::admin_action_validation::{validate_identity, validate_resource, validate_timeout};
 use crate::{ClientId, OperationId, ScenarioAction};
 
+#[path = "admin_cluster_action_validation.rs"]
+mod cluster;
+
 const MAX_REQUIRED_GROUPS: usize = 32;
 
 pub(crate) fn validate(
@@ -41,27 +44,10 @@ fn validate_singleton(
     if validate_single_offset(action, clients, operation_ids, problems) {
         return;
     }
+    if cluster::validate(action, clients, operation_ids, problems) {
+        return;
+    }
     match action {
-        ScenarioAction::DescribeCluster(action) => {
-            validate_identity(
-                &action.client_id,
-                &action.operation_id,
-                clients,
-                operation_ids,
-                problems,
-            );
-            validate_timeout(&action.operation_id, action.timeout_ms, problems);
-        }
-        ScenarioAction::DescribeFeatures(action) => {
-            validate_identity(
-                &action.client_id,
-                &action.operation_id,
-                clients,
-                operation_ids,
-                problems,
-            );
-            validate_timeout(&action.operation_id, action.timeout_ms, problems);
-        }
         ScenarioAction::DescribeProducers(action) => {
             validate_resource(
                 &action.client_id,

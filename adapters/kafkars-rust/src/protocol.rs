@@ -1,4 +1,3 @@
-//! Protocol interpreter translates commands into packaged Kafkars public calls.
 use crate::AdapterError;
 use crate::normalize;
 use crate::protocol_client;
@@ -178,6 +177,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
         | AdapterCommand::DescribeReplicaLogDirs(_)
+        | AdapterCommand::DescribeMetadataQuorum(_)
         | AdapterCommand::ListTransactions(_)
         | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::ListConsumerGroups(_)
