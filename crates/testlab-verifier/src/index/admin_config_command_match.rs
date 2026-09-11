@@ -105,6 +105,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         (ScenarioAction::AlterTopicConfigs(action), AdapterCommand::AlterTopicConfigs(command)) => {
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
+                && action.api == command.api
                 && action.timeout_ms == command.timeout_ms
                 && action
                     .topics

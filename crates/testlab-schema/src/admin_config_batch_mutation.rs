@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{ClientId, OperationId};
+use crate::{ClientId, OperationId, TopicConfigApi};
 
 /// One scenario-side topic-configuration transition.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -28,6 +28,9 @@ pub struct AlterTopicConfigsAction {
     pub operation_id: OperationId,
     /// Exact prior plural-description operation used as the baseline.
     pub baseline_operation_id: OperationId,
+    /// Public configuration API exercised by the adapter.
+    #[serde(default, skip_serializing_if = "is_topic_api")]
+    pub api: TopicConfigApi,
     /// Caller-ordered topic-configuration transitions.
     pub topics: Vec<AlterTopicConfigExpectation>,
     /// Complete public operation bound.
@@ -54,6 +57,9 @@ pub struct AlterTopicConfigsCommand {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public configuration API exercised by the adapter.
+    #[serde(default, skip_serializing_if = "is_topic_api")]
+    pub api: TopicConfigApi,
     /// Caller-ordered replacements without baseline expectations.
     pub topics: Vec<TopicConfigAlteration>,
     /// Complete public operation bound.
@@ -85,3 +91,7 @@ pub struct AdminTopicConfigsAlteration {
 #[cfg(test)]
 #[path = "admin_config_batch_mutation_test.rs"]
 mod test;
+
+fn is_topic_api(api: &TopicConfigApi) -> bool {
+    *api == TopicConfigApi::Topic
+}

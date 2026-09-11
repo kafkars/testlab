@@ -14,6 +14,7 @@ mod admin_client_quota_command_match;
 mod admin_command_match;
 mod admin_command_router;
 mod admin_config_command_match;
+pub(crate) mod admin_config_resources;
 mod admin_delete_records_command_match;
 pub(crate) mod admin_features;
 pub(crate) mod admin_group_batch;
@@ -141,7 +142,6 @@ pub(crate) struct IndexedShareAcknowledgement {
     pub(crate) delivery: Option<TerminalStatus>,
     pub(crate) code: Option<String>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedShareClose {
     pub(crate) history_sequence: u64,
@@ -149,7 +149,6 @@ pub(crate) struct IndexedShareClose {
     pub(crate) delivery: Option<TerminalStatus>,
     pub(crate) code: Option<String>,
 }
-
 #[derive(Debug, Default)]
 pub(crate) struct HistoryIndex {
     has_harness_commands: bool,
@@ -222,6 +221,7 @@ pub(crate) struct HistoryIndex {
         BTreeMap<OperationId, Vec<admin_types::IndexedConfigBatch>>,
     pub(crate) topic_configs_altered: BTreeMap<OperationId, Vec<IndexedAdminTopicConfigCompletion>>,
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
+    pub(crate) admin_config_resources: admin_config_resources::AdminConfigResourcesIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
     pub(crate) admin_leader_elections: admin_leader_election::AdminLeaderElectionIndex,
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,

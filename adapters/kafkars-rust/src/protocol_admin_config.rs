@@ -30,8 +30,16 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeTopicConfig(command) => {
             describe(state, writer, command_id, command)
         }
-        AdapterCommand::DescribeTopicConfigs(command) => {
-            describe_batch(state, writer, command_id, command)
+        AdapterCommand::DescribeTopicConfigs(command) => match command.api {
+            testlab_schema::TopicConfigApi::Topic => {
+                describe_batch(state, writer, command_id, command)
+            }
+            testlab_schema::TopicConfigApi::Resource => {
+                crate::protocol_admin_config_resources::describe(state, writer, command_id, command)
+            }
+        },
+        AdapterCommand::ListConfigResources(command) => {
+            crate::protocol_admin_config_resources::list(state, writer, command_id, command)
         }
         AdapterCommand::AlterTopicConfigs(command) => {
             crate::protocol_admin_config_batch_mutation::alter(state, writer, command_id, command)

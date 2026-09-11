@@ -21,6 +21,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::TopicDescribed { .. }
             | ExpectedEvent::TopicsDescribed { .. }
             | ExpectedEvent::TopicsListed { .. }
+            | ExpectedEvent::ConfigResourcesListed(_)
             | ExpectedEvent::OffsetListed { .. }
             | ExpectedEvent::OffsetsListed { .. }
             | ExpectedEvent::RecordsDeleted { .. }
@@ -59,6 +60,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::TopicDescribed(_)
             | AdapterEvent::TopicsDescribed(_)
             | AdapterEvent::TopicsListed(_)
+            | AdapterEvent::ConfigResourcesListed(_)
             | AdapterEvent::OffsetListed(_)
             | AdapterEvent::OffsetsListed(_)
             | AdapterEvent::RecordsDeleted(_)

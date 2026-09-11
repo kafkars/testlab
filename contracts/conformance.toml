@@ -433,6 +433,24 @@ statement = "One public topic-ID deletion follows a caller-ordered topic-ID desc
 category = "admin"
 
 [[contract]]
+id = "ADMIN-063"
+title = "Configuration-resource listings preserve canonical broker identities"
+statement = "One topic-filtered public configuration-resource listing preserves nonnegative throttle and strict type-code then name order, contains every scenario-owned dynamically configured topic as a type-2 resource, and immediate independent metadata confirms every required topic exists."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-064"
+title = "Generic configuration descriptions preserve caller order and broker truth"
+statement = "One resource-generic public selected-configuration description over multiple topic resources preserves every resource name, selected key, and non-sensitive value in caller order, while contiguous immediate independent configuration reads confirm the same values in the same order."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-065"
+title = "Generic configuration replacement preserves caller order and broker transitions"
+statement = "One resource-generic public incremental configuration replacement follows an exact named caller-ordered generic description whose prior values differ from their replacements and have no intervening mutation, preserves every successful resource and selected key in caller order, and contiguous immediate independent polling confirms every replacement."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

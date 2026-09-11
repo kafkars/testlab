@@ -8,6 +8,7 @@ mod admin_client_quota;
 mod admin_cluster;
 mod admin_config;
 mod admin_config_batch;
+mod admin_config_resources;
 mod admin_consumer_groups_deletion;
 mod admin_discovery;
 mod admin_failure;
@@ -96,6 +97,8 @@ mod admin_client_quota_test;
 mod admin_config_batch_mutation_test;
 #[cfg(test)]
 mod admin_config_batch_test;
+#[cfg(test)]
+mod admin_config_resources_test;
 #[cfg(test)]
 mod admin_config_test;
 #[cfg(test)]

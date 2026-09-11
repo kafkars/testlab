@@ -2,13 +2,16 @@
 
 use std::collections::BTreeMap;
 
-use crate::{DescribeTopicConfigExpectation, OperationId, Scenario, ScenarioAction};
+use crate::{
+    DescribeTopicConfigExpectation, OperationId, Scenario, ScenarioAction, TopicConfigApi,
+};
 
 type ConfigKey = (String, String);
 
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut described = BTreeMap::<ConfigKey, String>::new();
-    let mut described_batches = BTreeMap::<OperationId, Vec<DescribeTopicConfigExpectation>>::new();
+    let mut described_batches =
+        BTreeMap::<OperationId, (TopicConfigApi, Vec<DescribeTopicConfigExpectation>)>::new();
     for step in &scenario.steps {
         match &step.action {
             ScenarioAction::DescribeTopicConfig(action) => {
@@ -18,7 +21,10 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 );
             }
             ScenarioAction::DescribeTopicConfigs(action) => {
-                described_batches.insert(action.operation_id.clone(), action.topics.clone());
+                described_batches.insert(
+                    action.operation_id.clone(),
+                    (action.api, action.topics.clone()),
+                );
             }
             ScenarioAction::AlterTopicConfig(action) => {
                 let key = (action.topic.clone(), action.config_name.clone());
@@ -62,17 +68,18 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
 
 fn validate_batch(
     action: &crate::AlterTopicConfigsAction,
-    described: &BTreeMap<OperationId, Vec<DescribeTopicConfigExpectation>>,
+    described: &BTreeMap<OperationId, (TopicConfigApi, Vec<DescribeTopicConfigExpectation>)>,
     problems: &mut Vec<String>,
 ) {
-    let Some(baseline) = described.get(&action.baseline_operation_id) else {
+    let Some((baseline_api, baseline)) = described.get(&action.baseline_operation_id) else {
         problems.push(format!(
             "admin operation {} requires prior plural topic-configuration baseline {}",
             action.operation_id, action.baseline_operation_id
         ));
         return;
     };
-    if baseline.len() != action.topics.len()
+    if *baseline_api != action.api
+        || baseline.len() != action.topics.len()
         || !baseline.iter().zip(&action.topics).all(|(before, after)| {
             before.topic == after.topic
                 && before.config_name == after.config_name
@@ -95,10 +102,10 @@ fn validate_batch(
 }
 
 fn invalidate_batches(
-    described: &mut BTreeMap<OperationId, Vec<DescribeTopicConfigExpectation>>,
+    described: &mut BTreeMap<OperationId, (TopicConfigApi, Vec<DescribeTopicConfigExpectation>)>,
     changed: &[ConfigKey],
 ) {
-    described.retain(|_, batch| {
+    described.retain(|_, (_, batch)| {
         !batch.iter().any(|selected| {
             changed.iter().any(|(topic, config_name)| {
                 selected.topic.as_str() == topic.as_str()

@@ -14,6 +14,10 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) -> bool {
+    if let ScenarioAction::ListConfigResources(action) = action {
+        validate_resource_listing(action, clients, operation_ids, problems);
+        return true;
+    }
     if let ScenarioAction::DescribeTopicConfigs(action) = action {
         validate_description_batch(action, clients, operation_ids, problems);
         return true;
@@ -66,6 +70,39 @@ pub(crate) fn validate(
     }
     validate_timeout(operation_id, timeout_ms, problems);
     true
+}
+
+fn validate_resource_listing(
+    action: &crate::ListConfigResourcesAction,
+    clients: &BTreeMap<ClientId, bool>,
+    operation_ids: &mut BTreeSet<OperationId>,
+    problems: &mut Vec<String>,
+) {
+    validate_identity(
+        &action.client_id,
+        &action.operation_id,
+        clients,
+        operation_ids,
+        problems,
+    );
+    if !(2..=32).contains(&action.required_topics.len()) {
+        problems.push(format!(
+            "admin operation {} required_topics must contain between 2 and 32 entries",
+            action.operation_id
+        ));
+    }
+    let mut topics = BTreeSet::new();
+    if action
+        .required_topics
+        .iter()
+        .any(|topic| topic.is_empty() || topic.len() > 249 || !topics.insert(topic.as_str()))
+    {
+        problems.push(format!(
+            "admin operation {} required_topics must contain unique valid names",
+            action.operation_id
+        ));
+    }
+    validate_timeout(&action.operation_id, action.timeout_ms, problems);
 }
 
 fn validate_description_batch(

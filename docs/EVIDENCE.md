@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v52 records the exact environment identity in `manifest.json`,
-retains protocol-v63 direct and hosted-group consumer controls and shutdown,
+Evidence schema v53 records the exact environment identity in `manifest.json`,
+retains protocol-v64 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -459,6 +459,24 @@ deleted and recreated under the same name cannot satisfy the contract. The
 target public `delete_topics_by_id` call must return those exact UUID keys in
 caller order with no per-topic errors, after which independent metadata polling
 must prove every selected name absent.
+
+ADMIN-063 binds one topic-filtered public `list_config_resources` result to its
+exact command and immediate independent metadata. The result must retain a
+representable nonnegative throttle, contain only type-2 topic identities in
+strict type-code then name order, and include every scenario-required topic.
+The scenario first creates dynamic configurations because Kafka lists resources
+with non-default configuration properties; each required topic must also appear
+as a contiguous independently present metadata fact before the next command.
+
+ADMIN-064 applies the ADMIN-048 caller-order, selected-key, value, timing, and
+independent-read requirements to the resource-generic public description path.
+Its exact wire command must select `resource`, preventing a topic-convenience
+call from satisfying the generic-resource claim.
+
+ADMIN-065 applies the ADMIN-049 named-baseline, distinct-transition,
+caller-order, timing, and independent-polling requirements to the
+resource-generic incremental-alter path. Both the baseline and mutation must
+select `resource`; mixed API paths cannot satisfy the contract.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

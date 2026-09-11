@@ -113,6 +113,7 @@ fn description_command() -> DescribeTopicConfigsCommand {
     DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(BEFORE),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: topics()
             .into_iter()
             .map(|topic| TopicConfigSelection {
@@ -128,6 +129,7 @@ fn alter_command() -> AlterTopicConfigsCommand {
     AlterTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(ALTER),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: topics()
             .into_iter()
             .map(|topic| TopicConfigAlteration {
@@ -276,6 +278,9 @@ fn operation(value: &str) -> OperationId {
 fn config() -> &'static str {
     "cleanup.policy"
 }
+
+#[path = "admin_config_resource_mutation_test.rs"]
+mod resource_test;
 
 fn zulu_topic() -> &'static str {
     "testlab-kafkars-admin-alter-topic-configs-zulu"

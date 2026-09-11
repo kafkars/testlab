@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn plural_topic_config_mutation_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 63);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 66);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 52);
+    assert_eq!(PROTOCOL_VERSION, 64);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 67);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 53);
 }
 
 #[test]
@@ -117,6 +117,15 @@ fn transition_requires_the_named_exact_distinct_unmodified_baseline() {
     crate::admin_config_transition_validation::validate(&mismatched, &mut problems);
     assert_problem(&problems, "does not exactly match");
     assert_problem(&problems, "requires a different prior value");
+
+    let mut mismatched_api = scenario();
+    let ScenarioAction::AlterTopicConfigs(alter) = &mut mismatched_api.steps[3].action else {
+        panic!("alter action kind");
+    };
+    alter.api = crate::TopicConfigApi::Resource;
+    problems.clear();
+    crate::admin_config_transition_validation::validate(&mismatched_api, &mut problems);
+    assert_problem(&problems, "does not exactly match");
 }
 
 fn action() -> AlterTopicConfigsAction {
@@ -124,6 +133,7 @@ fn action() -> AlterTopicConfigsAction {
         client_id: client(),
         operation_id: operation("alter-topic-configs"),
         baseline_operation_id: operation("describe-topic-configs-before"),
+        api: crate::TopicConfigApi::Topic,
         topics: expectations(),
         timeout_ms: 1_000,
     }
@@ -133,6 +143,7 @@ fn command() -> AlterTopicConfigsCommand {
     AlterTopicConfigsCommand {
         client_id: client(),
         operation_id: operation("alter-topic-configs"),
+        api: crate::TopicConfigApi::Topic,
         topics: vec![
             alteration("topic-z", "cleanup.policy", "compact"),
             alteration("topic-a", "cleanup.policy", "compact"),

@@ -2,13 +2,22 @@
 
 use testlab_schema::{
     AdapterCommand, AlterTopicConfigCommand, AlterTopicConfigsCommand, DescribeTopicConfigCommand,
-    DescribeTopicConfigsCommand, ScenarioAction, TopicConfigAlteration, TopicConfigSelection,
+    DescribeTopicConfigsCommand, ListConfigResourcesCommand, ScenarioAction, TopicConfigAlteration,
+    TopicConfigSelection,
 };
 
 use crate::runner_protocol::ExpectedEvent;
 
 pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
+        ScenarioAction::ListConfigResources(action) => (
+            AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::ConfigResourcesListed(action.operation_id.clone()),
+        ),
         ScenarioAction::DescribeTopicConfig(action) => (
             AdapterCommand::DescribeTopicConfig(DescribeTopicConfigCommand {
                 client_id: action.client_id.clone(),
@@ -36,6 +45,7 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 AdapterCommand::DescribeTopicConfigs(DescribeTopicConfigsCommand {
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
+                    api: action.api,
                     topics: topics.clone(),
                     timeout_ms: action.timeout_ms,
                 }),
@@ -62,6 +72,7 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 AdapterCommand::AlterTopicConfigs(AlterTopicConfigsCommand {
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
+                    api: action.api,
                     topics: topics.clone(),
                     timeout_ms: action.timeout_ms,
                 }),

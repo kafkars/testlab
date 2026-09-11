@@ -100,6 +100,7 @@ impl HistoryIndex {
             | ScenarioAction::DescribeTopic(_)
             | ScenarioAction::DescribeTopics(_)
             | ScenarioAction::ListTopics(_)
+            | ScenarioAction::ListConfigResources(_)
             | ScenarioAction::ListOffsets(_)
             | ScenarioAction::ListOffsetsBatch(_)
             | ScenarioAction::DeleteRecords(_)

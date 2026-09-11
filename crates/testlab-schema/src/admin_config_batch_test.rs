@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn plural_topic_config_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 63);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 66);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 52);
+    assert_eq!(PROTOCOL_VERSION, 64);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 67);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 53);
 }
 
 #[test]
@@ -87,6 +87,7 @@ fn action() -> DescribeTopicConfigsAction {
     DescribeTopicConfigsAction {
         client_id: client(),
         operation_id: operation("describe-topic-configs"),
+        api: crate::TopicConfigApi::Topic,
         topics: vec![
             expectation("topic-z", "cleanup.policy", "delete"),
             expectation("topic-a", "retention.ms", "604800000"),
@@ -99,6 +100,7 @@ fn command() -> DescribeTopicConfigsCommand {
     DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation("describe-topic-configs"),
+        api: crate::TopicConfigApi::Topic,
         topics: vec![
             selection("topic-z", "cleanup.policy"),
             selection("topic-a", "retention.ms"),

@@ -5,9 +5,10 @@ use testlab_schema::{
     AlterTopicConfigsCommand, ClientId, ConsumerGroupOffsetAlteration,
     ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection, ConsumerId,
     DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsCommand, DescribeTopicCommand,
-    DescribeTopicConfigCommand, DescribeTopicConfigsCommand, ListConsumerGroupOffsetsBatchCommand,
-    ListConsumerGroupOffsetsCommand, ListConsumerGroupsOffsetsCommand, ListOffsetsCommand,
-    ListTopicsCommand, OperationId, TopicConfigAlteration, TopicConfigSelection,
+    DescribeTopicConfigCommand, DescribeTopicConfigsCommand, ListConfigResourcesCommand,
+    ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupOffsetsCommand,
+    ListConsumerGroupsOffsetsCommand, ListOffsetsCommand, ListTopicsCommand, OperationId,
+    TopicConfigAlteration, TopicConfigSelection,
 };
 
 use crate::session_unsupported::reason;
@@ -124,9 +125,15 @@ fn topic_config_commands_require_admin_capability() {
             config_name: "cleanup.policy".to_owned(),
             timeout_ms: 1_000,
         }),
+        AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
+            client_id: client_id.clone(),
+            operation_id: operation_id.clone(),
+            timeout_ms: 1_000,
+        }),
         AdapterCommand::DescribeTopicConfigs(DescribeTopicConfigsCommand {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
+            api: testlab_schema::TopicConfigApi::Topic,
             topics: vec![TopicConfigSelection {
                 topic: "orders".to_owned(),
                 config_name: "cleanup.policy".to_owned(),
@@ -136,6 +143,7 @@ fn topic_config_commands_require_admin_capability() {
         AdapterCommand::AlterTopicConfigs(AlterTopicConfigsCommand {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
+            api: testlab_schema::TopicConfigApi::Topic,
             topics: vec![TopicConfigAlteration {
                 topic: "orders".to_owned(),
                 config_name: "cleanup.policy".to_owned(),

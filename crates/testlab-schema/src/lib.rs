@@ -11,6 +11,7 @@ mod admin_cluster;
 mod admin_config;
 mod admin_config_action_validation;
 mod admin_config_batch_mutation;
+mod admin_config_resources;
 mod admin_config_transition_validation;
 mod admin_consumer_group_deletion_batch;
 mod admin_create_topics_batch;
@@ -204,8 +205,6 @@ mod admin_acl_test;
 mod admin_action_validation_test;
 #[cfg(test)]
 mod admin_client_quota_test;
-#[cfg(test)]
-mod admin_config_test;
 #[cfg(test)]
 mod admin_create_topics_batch_test;
 #[cfg(test)]

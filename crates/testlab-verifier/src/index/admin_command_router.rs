@@ -4,6 +4,7 @@ use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
     super::admin_leader_election::action_operation_id(action)
+        .or_else(|| super::admin_config_resources::action_operation_id(action))
         .or_else(|| super::admin_partition_reassignments::action_operation_id(action))
         .or_else(|| super::admin_features::action_operation_id(action))
         .or_else(|| super::admin_share_group_command_match::action_operation_id(action))
@@ -19,6 +20,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
 
 pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&OperationId> {
     super::admin_leader_election::command_operation_id(command)
+        .or_else(|| super::admin_config_resources::command_operation_id(command))
         .or_else(|| super::admin_partition_reassignments::command_operation_id(command))
         .or_else(|| super::admin_features::command_operation_id(command))
         .or_else(|| super::admin_share_group_command_match::command_operation_id(command))
@@ -34,6 +36,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
 
 pub(super) fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
     super::admin_leader_election::matches(action, command)
+        .or_else(|| super::admin_config_resources::matches(action, command))
         .or_else(|| super::admin_partition_reassignments::matches(action, command))
         .or_else(|| super::admin_features::matches(action, command))
         .or_else(|| super::admin_share_group_command_match::matches(action, command))

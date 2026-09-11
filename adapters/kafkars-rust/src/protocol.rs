@@ -162,6 +162,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeTopic(_)
         | AdapterCommand::DescribeTopics(_)
         | AdapterCommand::ListTopics(_)
+        | AdapterCommand::ListConfigResources(_)
         | AdapterCommand::ListOffsets(_)
         | AdapterCommand::ListOffsetsBatch(_)
         | AdapterCommand::DescribeTopicConfig(_)
@@ -229,7 +230,6 @@ fn dispatch<W: Write>(
     }
     Ok(false)
 }
-
 fn dispatch_hello<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,

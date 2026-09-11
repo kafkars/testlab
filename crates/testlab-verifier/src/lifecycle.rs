@@ -2,7 +2,6 @@
 use crate::index::HistoryIndex;
 use crate::support::{references, violation};
 use testlab_schema::{Scenario, ScenarioAction, Violation};
-
 pub(crate) fn verify_lifecycle(
     scenario: &Scenario,
     index: &HistoryIndex,
@@ -171,6 +170,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeTopic(_)
             | ScenarioAction::DescribeTopics(_)
             | ScenarioAction::ListTopics(_)
+            | ScenarioAction::ListConfigResources(_)
             | ScenarioAction::ListOffsets(_)
             | ScenarioAction::ListOffsetsBatch(_)
             | ScenarioAction::DeleteRecords(_)

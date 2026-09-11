@@ -1,0 +1,59 @@
+schema_version = 67
+id = "kafka.admin-config-resource-lifecycle"
+title = "packaged admin manages caller-ordered generic configuration resources"
+description = "The resource-generic public describe and incremental-alter surfaces preserve caller order for two topic resources while immediate independent librdkafka reads prove the exact prior values, replacements, and final values."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-resource-configs-before"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-before"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "alter-resource-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-alter"
+baseline_operation_id = "admin-config-resource-before"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-resource-configs-after"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-after"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_value = "compact" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

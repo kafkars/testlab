@@ -175,6 +175,8 @@ mod observer_admin_client_quota_test;
 #[cfg(test)]
 mod observer_admin_config_batch_test;
 #[cfg(test)]
+mod observer_admin_config_resources_test;
+#[cfg(test)]
 mod observer_admin_config_test;
 #[cfg(test)]
 mod observer_admin_consumer_groups_deletion_test;

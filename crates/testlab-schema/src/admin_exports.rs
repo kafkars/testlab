@@ -15,11 +15,15 @@ pub use crate::admin_config::{
     AdminTopicConfigsDescription, AlterTopicConfigAction, AlterTopicConfigCommand,
     BrokerTopicConfigState, DescribeTopicConfigAction, DescribeTopicConfigCommand,
     DescribeTopicConfigExpectation, DescribeTopicConfigsAction, DescribeTopicConfigsCommand,
-    TopicConfigSelection,
+    TopicConfigApi, TopicConfigSelection,
 };
 pub use crate::admin_config_batch_mutation::{
     AdminTopicConfigAlterationOutcome, AdminTopicConfigsAlteration, AlterTopicConfigExpectation,
     AlterTopicConfigsAction, AlterTopicConfigsCommand, TopicConfigAlteration,
+};
+pub use crate::admin_config_resources::{
+    AdminConfigResource, AdminConfigResourcesListing, ListConfigResourcesAction,
+    ListConfigResourcesCommand,
 };
 pub use crate::admin_consumer_group_deletion_batch::{
     AdminConsumerGroupDeletionOutcome, AdminConsumerGroupsDeletion, DeleteConsumerGroupsAction,

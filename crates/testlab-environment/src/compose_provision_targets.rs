@@ -1,9 +1,6 @@
 //! Provisioning targets derive only broker state that the packaged client does not create.
-
 use std::collections::{BTreeMap, BTreeSet};
-
 use testlab_schema::{RecordSpec, Scenario, ScenarioAction};
-
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub(super) struct SeedTarget {
     pub(super) topic: String,
@@ -128,6 +125,11 @@ fn admin_targets(
             require_topic(topics, subject_created, &action.topic, partitions);
         }
         ScenarioAction::ListTopics(action) => {
+            for topic in &action.required_topics {
+                require_topic(topics, subject_created, topic, 1);
+            }
+        }
+        ScenarioAction::ListConfigResources(action) => {
             for topic in &action.required_topics {
                 require_topic(topics, subject_created, topic, 1);
             }

@@ -4,6 +4,23 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+/// Public configuration API selected for a plural topic-resource request.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TopicConfigApi {
+    /// Uses the topic-specific convenience surface.
+    #[default]
+    Topic,
+    /// Uses the resource-generic configuration surface with topic resources.
+    Resource,
+}
+
+impl TopicConfigApi {
+    fn is_topic(&self) -> bool {
+        *self == Self::Topic
+    }
+}
+
 /// Scenario intent for one bounded topic-configuration description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -58,6 +75,9 @@ pub struct DescribeTopicConfigsAction {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public configuration API exercised by the adapter.
+    #[serde(default, skip_serializing_if = "TopicConfigApi::is_topic")]
+    pub api: TopicConfigApi,
     /// Caller-ordered selected topic-configuration expectations.
     pub topics: Vec<DescribeTopicConfigExpectation>,
     /// Complete public operation bound.
@@ -82,6 +102,9 @@ pub struct DescribeTopicConfigsCommand {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Public configuration API exercised by the adapter.
+    #[serde(default, skip_serializing_if = "TopicConfigApi::is_topic")]
+    pub api: TopicConfigApi,
     /// Caller-ordered selected topic configurations without expectations.
     pub topics: Vec<TopicConfigSelection>,
     /// Complete public operation bound.
@@ -199,3 +222,6 @@ pub struct BrokerTopicConfigState {
 #[cfg(test)]
 #[path = "admin_config_batch_test.rs"]
 mod batch_test;
+#[cfg(test)]
+#[path = "admin_config_test.rs"]
+mod test;

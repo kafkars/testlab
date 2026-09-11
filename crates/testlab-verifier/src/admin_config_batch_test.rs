@@ -72,6 +72,7 @@ fn command_payload() -> DescribeTopicConfigsCommand {
     DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             selection(zulu_topic(), "cleanup.policy"),
             selection(alpha_topic(), "cleanup.policy"),

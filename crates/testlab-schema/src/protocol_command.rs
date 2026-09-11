@@ -182,7 +182,7 @@ pub enum AdapterCommand {
     DescribeTopic(crate::DescribeTopicCommand),
     DescribeTopics(crate::DescribeTopicsCommand),
     ListTopics(crate::ListTopicsCommand),
-    /// Lists one offset position through the public admin surface.
+    ListConfigResources(crate::ListConfigResourcesCommand),
     ListOffsets(crate::ListOffsetsCommand),
     /// Lists ordered offset positions through one public admin call.
     ListOffsetsBatch(crate::ListOffsetsBatchCommand),

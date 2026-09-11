@@ -1,5 +1,4 @@
 pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, ProducerStates};
-use crate::transaction_action_validation::TransactionStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 use std::collections::BTreeSet;
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
@@ -119,6 +118,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::DescribeTopics(_)
         | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListConfigResources(_)
         | ScenarioAction::ListOffsets(_)
         | ScenarioAction::ListOffsetsBatch(_)
         | ScenarioAction::DeleteRecords(_)
@@ -252,7 +252,7 @@ fn create_producer(
     producer_id: &ProducerId,
     clients: &ClientStates,
     producers: &mut ProducerStates,
-    transactions: &TransactionStates,
+    transactions: &crate::transaction_action_validation::TransactionStates,
     problems: &mut Vec<String>,
 ) {
     match clients.get(client_id) {

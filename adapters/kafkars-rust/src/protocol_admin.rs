@@ -106,6 +106,7 @@ pub(crate) fn dispatch<W: Write>(
             crate::protocol_admin_leader_election::dispatch(state, writer, command_id, command)
         }
         command @ (AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::ListConfigResources(_)
         | AdapterCommand::DescribeTopicConfigs(_)
         | AdapterCommand::AlterTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)) => {

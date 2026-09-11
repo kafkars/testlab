@@ -1,0 +1,58 @@
+schema_version = 67
+id = "kafka.admin-config-resources"
+title = "packaged admin lists dynamically configured topic resources"
+description = "After a resource-generic public mutation creates two dynamic topic configurations, one filtered ListConfigResources call returns canonical type-tagged identities containing both topics and immediate independent metadata confirms both resources exist."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-configs-before"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-list-config-resources-before"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-config-resource-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "create-dynamic-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-list-config-resources-alter"
+baseline_operation_id = "admin-list-config-resources-before"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+  { topic = "testlab-kafkars-config-resource-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "list-config-resources"
+kind = "list_config_resources"
+client_id = "client-1"
+operation_id = "admin-list-config-resources"
+required_topics = [
+  "testlab-kafkars-config-resource-zulu",
+  "testlab-kafkars-config-resource-alpha",
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

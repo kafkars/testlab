@@ -42,7 +42,7 @@ fn verify_description(
         .get(&action.operation_id);
     let independent = index.topic_configs_observed.get(&action.operation_id);
     violations.push(violation(
-        "ADMIN-048",
+        description_contract(action.api),
         format!(
             "admin operation {} expected caller-ordered selected configuration values and immediate independent reads for every requested topic",
             action.operation_id
@@ -105,7 +105,7 @@ fn verify_alteration(
         .flat_map(|evidence| evidence.independent.iter())
         .map(|value| format!("broker-state-observation:{}", value.observation));
     violations.push(violation(
-        "ADMIN-049",
+        alteration_contract(action.api),
         format!(
             "admin operation {} expected one caller-ordered successful plural configuration replacement, immediate independent post-state, and exact distinct baseline {}",
             action.operation_id, action.baseline_operation_id
@@ -146,7 +146,8 @@ fn baseline_evidence<'a>(
     let ScenarioAction::DescribeTopicConfigs(baseline) = &baseline_step.action else {
         return None;
     };
-    if baseline.topics.len() != action.topics.len()
+    if baseline.api != action.api
+        || baseline.topics.len() != action.topics.len()
         || !baseline
             .topics
             .iter()
@@ -271,4 +272,18 @@ fn one<T>(values: Option<&Vec<T>>) -> Option<&T> {
         return None;
     };
     Some(value)
+}
+
+fn description_contract(api: testlab_schema::TopicConfigApi) -> &'static str {
+    match api {
+        testlab_schema::TopicConfigApi::Topic => "ADMIN-048",
+        testlab_schema::TopicConfigApi::Resource => "ADMIN-064",
+    }
+}
+
+fn alteration_contract(api: testlab_schema::TopicConfigApi) -> &'static str {
+    match api {
+        testlab_schema::TopicConfigApi::Topic => "ADMIN-049",
+        testlab_schema::TopicConfigApi::Resource => "ADMIN-065",
+    }
 }

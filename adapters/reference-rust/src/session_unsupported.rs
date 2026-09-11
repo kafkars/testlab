@@ -33,6 +33,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DescribeTopic(_)
         | AdapterCommand::DescribeTopics(_)
         | AdapterCommand::ListTopics(_)
+        | AdapterCommand::ListConfigResources(_)
         | AdapterCommand::ListOffsets(_)
         | AdapterCommand::ListOffsetsBatch(_)
         | AdapterCommand::DeleteRecords(_)

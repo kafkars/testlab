@@ -7,7 +7,6 @@ use crate::runner_protocol_event::classify_core;
 use crate::runner_protocol_family::{classify_group, classify_transaction};
 use std::collections::BTreeSet;
 use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
-
 #[derive(Clone, Debug)]
 pub(crate) enum ExpectedEvent {
     Ready,
@@ -78,6 +77,7 @@ pub(crate) enum ExpectedEvent {
     TopicsListed {
         operation_id: OperationId,
     },
+    ConfigResourcesListed(OperationId),
     OffsetListed {
         operation_id: OperationId,
         topic: String,

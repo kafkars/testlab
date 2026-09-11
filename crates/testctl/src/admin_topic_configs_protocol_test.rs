@@ -109,10 +109,36 @@ fn mutation_completion_requires_every_selected_identity_in_order() {
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 
+#[test]
+fn generic_resource_selection_crosses_both_wire_commands() {
+    let mut description = action();
+    description.api = testlab_schema::TopicConfigApi::Resource;
+    let Some((AdapterCommand::DescribeTopicConfigs(description), _)) =
+        crate::session_command_admin_config::translate(&ScenarioAction::DescribeTopicConfigs(
+            description,
+        ))
+    else {
+        panic!("generic description translation");
+    };
+    assert_eq!(description.api, testlab_schema::TopicConfigApi::Resource);
+
+    let mut mutation = mutation_action();
+    mutation.api = testlab_schema::TopicConfigApi::Resource;
+    let Some((AdapterCommand::AlterTopicConfigs(mutation), _)) =
+        crate::session_command_admin_config::translate(&ScenarioAction::AlterTopicConfigs(
+            mutation,
+        ))
+    else {
+        panic!("generic mutation translation");
+    };
+    assert_eq!(mutation.api, testlab_schema::TopicConfigApi::Resource);
+}
+
 fn action() -> DescribeTopicConfigsAction {
     DescribeTopicConfigsAction {
         client_id: client(),
         operation_id: operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             expectation("topic-z", "cleanup.policy", "delete"),
             expectation("topic-a", "retention.ms", "604800000"),
@@ -136,6 +162,7 @@ fn mutation_action() -> AlterTopicConfigsAction {
         client_id: client(),
         operation_id: mutation_operation(),
         baseline_operation_id: operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             mutation("topic-z", "cleanup.policy"),
             mutation("topic-a", "cleanup.policy"),

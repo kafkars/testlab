@@ -92,6 +92,7 @@ fn action() -> DescribeTopicConfigsAction {
     DescribeTopicConfigsAction {
         client_id: client(),
         operation_id: operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             expectation("topic-z", "cleanup.policy", "delete"),
             expectation("topic-a", "retention.ms", "604800000"),
@@ -104,6 +105,7 @@ fn command() -> DescribeTopicConfigsCommand {
     DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             selection("topic-z", "cleanup.policy"),
             selection("topic-a", "retention.ms"),
@@ -127,6 +129,7 @@ fn mutation_action() -> AlterTopicConfigsAction {
         client_id: client(),
         operation_id: mutation_operation(),
         baseline_operation_id: operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             mutation_expectation("topic-z", "cleanup.policy"),
             mutation_expectation("topic-a", "cleanup.policy"),
@@ -139,6 +142,7 @@ fn mutation_command() -> AlterTopicConfigsCommand {
     AlterTopicConfigsCommand {
         client_id: client(),
         operation_id: mutation_operation(),
+        api: testlab_schema::TopicConfigApi::Topic,
         topics: vec![
             mutation("topic-z", "cleanup.policy"),
             mutation("topic-a", "cleanup.policy"),

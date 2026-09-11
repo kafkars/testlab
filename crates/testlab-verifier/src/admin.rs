@@ -8,6 +8,7 @@ use crate::admin_client_quota::verify_client_quota_action;
 use crate::admin_cluster::verify_cluster_action;
 use crate::admin_config::verify_config_action;
 use crate::admin_config_batch::verify_config_batch_action;
+use crate::admin_config_resources::verify_config_resources_action;
 use crate::admin_discovery::verify_discovery_action;
 use crate::admin_failure::verify_expected_failure;
 use crate::admin_features::verify_features_action;
@@ -100,6 +101,7 @@ pub(crate) fn verify_admin(
             || verify_partition_reassignments_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
             || verify_group_batch_action(scenario, &step.action, index, violations)
+            || verify_config_resources_action(&step.action, index, violations)
             || verify_config_batch_action(scenario, &step.action, index, violations)
             || verify_config_action(&step.action, index, violations)
             || verify_topic_action(&step.action, index, violations)
@@ -198,12 +200,19 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteTopics(_) => "ADMIN-045",
         ScenarioAction::DeleteConsumerGroups(_) => "ADMIN-046",
         ScenarioAction::ListTopics(_) => "ADMIN-004",
+        ScenarioAction::ListConfigResources(_) => "ADMIN-063",
         ScenarioAction::ListOffsets(_) => "ADMIN-005",
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
         ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",
         ScenarioAction::DescribeTopicConfig(_) => "ADMIN-015",
-        ScenarioAction::DescribeTopicConfigs(_) => "ADMIN-048",
-        ScenarioAction::AlterTopicConfigs(_) => "ADMIN-049",
+        ScenarioAction::DescribeTopicConfigs(value) => match value.api {
+            testlab_schema::TopicConfigApi::Topic => "ADMIN-048",
+            testlab_schema::TopicConfigApi::Resource => "ADMIN-064",
+        },
+        ScenarioAction::AlterTopicConfigs(value) => match value.api {
+            testlab_schema::TopicConfigApi::Topic => "ADMIN-049",
+            testlab_schema::TopicConfigApi::Resource => "ADMIN-065",
+        },
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",
         ScenarioAction::ListTransactions(_) => "ADMIN-052",
@@ -238,6 +247,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DescribeTopic(value) => &value.operation_id,
         ScenarioAction::DescribeTopics(value) => &value.operation_id,
         ScenarioAction::ListTopics(value) => &value.operation_id,
+        ScenarioAction::ListConfigResources(value) => &value.operation_id,
         ScenarioAction::ListOffsets(value) => &value.operation_id,
         ScenarioAction::ListOffsetsBatch(value) => &value.operation_id,
         ScenarioAction::DeleteRecords(value) => &value.operation_id,

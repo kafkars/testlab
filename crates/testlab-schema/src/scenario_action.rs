@@ -50,7 +50,6 @@ pub enum ScenarioAction {
     AlterBrokerPolicy(crate::BrokerPolicyAction),
     Send {
         producer_id: ProducerId,
-        /// Stable operation identity.
         operation_id: OperationId,
         /// Exact record.
         record: crate::RecordSpec,
@@ -199,6 +198,7 @@ pub enum ScenarioAction {
     DescribeTopic(crate::DescribeTopicAction),
     DescribeTopics(crate::DescribeTopicsAction),
     ListTopics(crate::ListTopicsAction),
+    ListConfigResources(crate::ListConfigResourcesAction),
     ListOffsets(crate::ListOffsetsAction),
     ListOffsetsBatch(crate::ListOffsetsBatchAction),
     DeleteRecords(crate::DeleteRecordsAction),

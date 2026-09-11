@@ -11,6 +11,10 @@ pub(super) fn classify(
 ) -> Option<Result<EventDisposition, RunFailure>> {
     let matches = match (expected, event) {
         (
+            ExpectedEvent::ConfigResourcesListed(operation_id),
+            AdapterEvent::ConfigResourcesListed(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::TopicConfigDescribed {
                 operation_id,
                 topic,
@@ -89,7 +93,8 @@ pub(super) fn classify(
 pub(super) fn expected(expected: &ExpectedEvent) -> bool {
     matches!(
         expected,
-        ExpectedEvent::TopicConfigDescribed { .. }
+        ExpectedEvent::ConfigResourcesListed(_)
+            | ExpectedEvent::TopicConfigDescribed { .. }
             | ExpectedEvent::TopicConfigsDescribed { .. }
             | ExpectedEvent::TopicConfigsAltered { .. }
             | ExpectedEvent::TopicConfigAltered { .. }
@@ -100,7 +105,8 @@ pub(super) fn expected(expected: &ExpectedEvent) -> bool {
 pub(super) fn event(event: &AdapterEvent) -> bool {
     matches!(
         event,
-        AdapterEvent::TopicConfigDescribed(_)
+        AdapterEvent::ConfigResourcesListed(_)
+            | AdapterEvent::TopicConfigDescribed(_)
             | AdapterEvent::TopicConfigsDescribed(_)
             | AdapterEvent::TopicConfigsAltered(_)
             | AdapterEvent::TopicConfigAltered(_)

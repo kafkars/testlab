@@ -191,10 +191,10 @@ pub enum AdapterEvent {
     /// One public admin topic deletion completed successfully.
     TopicDeleted(crate::AdminTopicCompletion),
     TopicsDeleted(crate::AdminTopicsDeletion),
-    /// One public admin topic description completed successfully.
     TopicDescribed(crate::AdminTopicDescription),
     TopicsDescribed(crate::AdminTopicsDescription),
     TopicsListed(crate::AdminTopicsListing),
+    ConfigResourcesListed(crate::AdminConfigResourcesListing),
     OffsetListed(crate::AdminOffsetListing),
     OffsetsListed(crate::AdminOffsetsListing),
     RecordsDeleted(crate::AdminRecordsDeleted),

@@ -2,16 +2,35 @@
 
 use testlab_schema::{
     AdapterCommand, AlterTopicConfigCommand, AlterTopicConfigsCommand, DescribeTopicConfigCommand,
-    DescribeTopicConfigsCommand, ScenarioAction, TopicConfigAlteration, TopicConfigSelection,
+    DescribeTopicConfigsCommand, ListConfigResourcesCommand, ScenarioAction, TopicConfigAlteration,
+    TopicConfigSelection,
 };
 
 use crate::observer_admin_target::{
-    AdminTarget, ConfigBatchTarget, ConfigTarget, TargetMatch, unique,
+    AdminTarget, ConfigBatchTarget, ConfigTarget, ListTarget, TargetMatch, unique,
 };
 use crate::observer_error::ObserverError;
 
 pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch>, ObserverError> {
     Ok(Some(match action {
+        ScenarioAction::ListConfigResources(action) => {
+            unique(
+                &action.required_topics,
+                &action.operation_id,
+                "required_topics",
+            )?;
+            (
+                AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
+                    client_id: action.client_id.clone(),
+                    operation_id: action.operation_id.clone(),
+                    timeout_ms: action.timeout_ms,
+                }),
+                AdminTarget::Topics(ListTarget {
+                    operation_id: action.operation_id.clone(),
+                    names: action.required_topics.clone(),
+                }),
+            )
+        }
         ScenarioAction::DescribeTopicConfig(action) => (
             AdapterCommand::DescribeTopicConfig(DescribeTopicConfigCommand {
                 client_id: action.client_id.clone(),
@@ -39,6 +58,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 AdapterCommand::DescribeTopicConfigs(DescribeTopicConfigsCommand {
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
+                    api: action.api,
                     topics: action
                         .topics
                         .iter()
@@ -76,6 +96,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 AdapterCommand::AlterTopicConfigs(AlterTopicConfigsCommand {
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
+                    api: action.api,
                     topics: action
                         .topics
                         .iter()

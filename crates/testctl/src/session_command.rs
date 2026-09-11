@@ -1,9 +1,6 @@
 use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{AdapterCommand, ScenarioAction};
-#[allow(
-    clippy::too_many_lines,
-    reason = "the exhaustive translator keeps every scenario action visibly routed"
-)]
+#[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
         action @ (ScenarioAction::CreateClient { .. }
@@ -80,6 +77,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DescribeTopic(_)
         | ScenarioAction::DescribeTopics(_)
         | ScenarioAction::ListTopics(_)
+        | ScenarioAction::ListConfigResources(_)
         | ScenarioAction::ListOffsets(_)
         | ScenarioAction::ListOffsetsBatch(_)
         | ScenarioAction::DeleteRecords(_)
