@@ -76,6 +76,7 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
+        | ScenarioAction::DescribeShareGroup(_)
         | ScenarioAction::ListConsumerGroupOffsets(_)
         | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
         | ScenarioAction::ListConsumerGroupsOffsets(_)

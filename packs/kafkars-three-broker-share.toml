@@ -47,6 +47,7 @@ scenarios = [
   "scenarios/kafka/share-group-membership-ownership.toml",
   "scenarios/kafka/share-group-leader-recovery.toml",
   "scenarios/kafka/share-group-session-recovery.toml",
+  "scenarios/kafka/admin-describe-share-group.toml",
   "scenarios/kafka/admin-create-topic.toml",
   "scenarios/kafka/admin-create-topic-validate-only.toml",
   "scenarios/kafka/admin-create-topic-duplicate.toml",

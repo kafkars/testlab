@@ -12,6 +12,7 @@ use crate::observer_admin_group_target;
 use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
 use crate::observer_admin_plural_group_target;
+use crate::observer_admin_share_group_target;
 use crate::observer_admin_topic_target;
 use crate::observer_admin_user_scram_target;
 use crate::observer_error::ObserverError;
@@ -28,6 +29,7 @@ pub(super) enum AdminTarget {
     Cluster(OperationId),
     ConsumerGroups(ListTarget),
     ConsumerGroup(GroupTarget),
+    ShareGroup(ShareGroupTarget),
     ConsumerGroupOffset(OffsetTarget),
     ConsumerGroupOffsets(GroupOffsetsTarget),
     ConsumerGroupsOffsets(GroupsOffsetsTarget),
@@ -79,6 +81,12 @@ pub(super) struct GroupTarget {
     pub(super) expected_member_count: Option<u32>,
     pub(super) expected_exists: bool,
     pub(super) poll_expected: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct ShareGroupTarget {
+    pub(super) operation_id: OperationId,
+    pub(super) group_id: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -155,6 +163,7 @@ impl AdminTarget {
         command: &AdapterCommand,
     ) -> Result<Option<Self>, ObserverError> {
         let matched = match observer_admin_user_scram_target::match_action(action)?
+            .or(observer_admin_share_group_target::match_action(action)?)
             .or(observer_admin_client_quota_target::match_action(action)?)
             .or(observer_admin_acl_target::match_action(action)?)
             .or(observer_admin_offset_batch_target::match_action(action)?)
@@ -188,6 +197,7 @@ impl AdminTarget {
             Self::Topics(target) | Self::ConsumerGroups(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
             Self::ConsumerGroup(target) => &target.operation_id,
+            Self::ShareGroup(target) => &target.operation_id,
             Self::ConsumerGroupOffset(target) => &target.operation_id,
             Self::ConsumerGroupOffsets(target) => &target.operation_id,
             Self::ConsumerGroupsOffsets(target) => &target.operation_id,

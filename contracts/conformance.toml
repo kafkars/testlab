@@ -277,6 +277,12 @@ statement = "One exact named-user SCRAM upsert or deletion returns the requested
 category = "admin"
 
 [[contract]]
+id = "ADMIN-037"
+title = "Share-group descriptions preserve exact public and broker state"
+statement = "One active Share-group description returns the exact public state and assignment, and an immediate independent Kafka CLI query confirms the same state and member count."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

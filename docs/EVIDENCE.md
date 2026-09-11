@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v29 records the exact environment identity in `manifest.json`,
-retains protocol-v40 direct and hosted-group consumer controls and shutdown,
+Evidence schema v30 records the exact environment identity in `manifest.json`,
+retains protocol-v41 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -175,7 +175,8 @@ replica topology, or untested offset selectors.
 `broker-state-observations.jsonl` retains independently queried broker state
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
-consumer-group existence and member count, one consumer-group committed offset,
+consumer-group existence and member count, active Share-group state and member
+count, one consumer-group committed offset,
 exact partition low and high watermarks, exact literal wildcard-host ACL
 presence, exact named-user byte-rate quota state, and exact non-secret named-user
 SCRAM mechanism and iteration state or absence. Each query runs
@@ -191,7 +192,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in schema v43. Plural offset
+retain the same broker-state fact shapes in schema v44. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -255,6 +256,13 @@ topic-configuration values and require a distinct independent pre-mutation
 baseline. In particular, mutation baselines use distinct preceding list or
 describe operation IDs, so history order preserves precondition and
 postcondition meaning without trusting an adapter echo.
+
+ADMIN-037 binds one active public Share-group description to the exact expected
+state, epochs, assignor, member subscription, nonzero topic identity, and
+partition assignment. A separate immediate Kafka CLI state query must agree on
+the group, stable state, and member count. The coarse independent snapshot
+cannot manufacture the detailed public assignment, and the public completion
+cannot manufacture broker-visible membership.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

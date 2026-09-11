@@ -40,6 +40,7 @@ mod protocol_admin_list_offsets_batch;
 mod protocol_admin_plural_result;
 mod protocol_admin_read;
 mod protocol_admin_result;
+mod protocol_admin_share_group;
 mod protocol_admin_topic_description;
 mod protocol_admin_user_scram;
 mod protocol_admin_validation_event;

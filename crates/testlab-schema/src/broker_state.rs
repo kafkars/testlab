@@ -50,6 +50,24 @@ pub struct BrokerConsumerGroupState {
     pub member_count: Option<u32>,
 }
 
+/// Share-group existence, state, and membership read through Kafka's own CLI.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrokerShareGroupState {
+    /// Monotonic observation identity within the run.
+    pub observation: u64,
+    /// Admin operation whose result triggered this observation.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Whether the group exists in the broker result.
+    pub exists: bool,
+    /// Independently observed group state, when the group exists.
+    pub state: Option<String>,
+    /// Independently observed member count, when the group exists.
+    pub member_count: Option<u32>,
+}
+
 /// One committed consumer-group offset independently read from Kafka.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

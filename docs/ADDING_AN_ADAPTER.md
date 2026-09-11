@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v40. It is not a
+An adapter translates one packaged client surface to protocol v41. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -15,6 +15,8 @@ runner and not a verifier.
   identities, and rejoin without exposing private client state.
 - Preserve exact read-only admin results without receiving scenario
   expectations through the adapter command.
+- Preserve Share-group state, epochs, assignor, ordered members, subscriptions,
+  topic IDs, and partition assignments without replacing them with CLI state.
 - Preserve caller order and one exact public outcome per resource in admin batch
   completions; do not collapse a mixed-result batch into `command_failed`.
 - Keep scenario-only expected per-resource errors out of adapter commands.

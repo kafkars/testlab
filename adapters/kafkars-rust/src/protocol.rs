@@ -179,6 +179,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
+        | AdapterCommand::DescribeShareGroup(_)
         | AdapterCommand::ListConsumerGroupOffsets(_)
         | AdapterCommand::ListConsumerGroupOffsetsBatch(_)
         | AdapterCommand::ListConsumerGroupsOffsets(_)

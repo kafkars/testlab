@@ -66,6 +66,41 @@ fn validate_singleton(
             );
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
+        ScenarioAction::DescribeShareGroup(action) => {
+            group_common(
+                &action.client_id,
+                &action.operation_id,
+                &action.group_id,
+                clients,
+                operation_ids,
+                problems,
+            );
+            if action.expected_state != "Stable" {
+                problems.push(format!(
+                    "admin operation {} expected_state must be Stable",
+                    action.operation_id
+                ));
+            }
+            if action.expected_member_count == 0 || action.expected_member_count > 32 {
+                problems.push(format!(
+                    "admin operation {} expected_member_count must be between 1 and 32",
+                    action.operation_id
+                ));
+            }
+            if action.expected_topic.is_empty() || action.expected_topic.len() > 249 {
+                problems.push(format!(
+                    "admin operation {} has invalid expected_topic",
+                    action.operation_id
+                ));
+            }
+            if action.expected_partition < 0 {
+                problems.push(format!(
+                    "admin operation {} expected_partition must be nonnegative",
+                    action.operation_id
+                ));
+            }
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
         ScenarioAction::DeleteConsumerGroup(action) => {
             group_common(
                 &action.client_id,

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v40 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v43 and evidence schema v29.
+Protocol v41 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v44 and evidence schema v30.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -82,6 +82,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_cluster`
 - `list_consumer_groups`
 - `describe_consumer_group`
+- `describe_share_group`
 - `list_consumer_group_offsets`
 - `list_consumer_group_offsets_batch`
 - `list_consumer_groups_offsets`
@@ -221,6 +222,7 @@ timeouts invalidate evidence.
 - `cluster_described`
 - `consumer_groups_listed`
 - `consumer_group_described`
+- `share_group_described`
 - `consumer_group_offset_listed`
 - `consumer_group_offsets_listed`
 - `consumer_groups_offsets_listed`
@@ -542,6 +544,15 @@ query whose raw output is retained. The verifier requires public and independent
 non-secret state to agree; extra users, mechanisms, rows, quota values, or
 malformed CLI output invalidate the claim.
 
+Share-group description selects one exact active group while its public member
+retains an acquired batch. Scenario-owned state, member-count, topic, and
+partition expectations stay in `testctl`. The completion preserves Kafka's
+public state, group and assignment epochs, assignor, ordered members,
+subscriptions, nonzero topic IDs, and exact partition assignments. An immediate
+pinned `kafka-share-groups.sh --describe --state` query independently confirms
+the stable state and member count; that CLI snapshot cannot substitute for the
+detailed public assignment.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -623,6 +634,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v40 is an exact semantic contract. New capabilities may be declared
+Protocol v41 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -3,7 +3,8 @@
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
-    super::admin_user_scram_command_match::action_operation_id(action)
+    super::admin_share_group_command_match::action_operation_id(action)
+        .or_else(|| super::admin_user_scram_command_match::action_operation_id(action))
         .or_else(|| super::admin_client_quota_command_match::action_operation_id(action))
         .or_else(|| super::admin_acl_command_match::action_operation_id(action))
         .or_else(|| super::admin_batch_command_match::action_operation_id(action))
@@ -14,7 +15,8 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
 }
 
 pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&OperationId> {
-    super::admin_user_scram_command_match::command_operation_id(command)
+    super::admin_share_group_command_match::command_operation_id(command)
+        .or_else(|| super::admin_user_scram_command_match::command_operation_id(command))
         .or_else(|| super::admin_client_quota_command_match::command_operation_id(command))
         .or_else(|| super::admin_acl_command_match::command_operation_id(command))
         .or_else(|| super::admin_batch_command_match::command_operation_id(command))
@@ -25,7 +27,8 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
 }
 
 pub(super) fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
-    super::admin_user_scram_command_match::matches(action, command)
+    super::admin_share_group_command_match::matches(action, command)
+        .or_else(|| super::admin_user_scram_command_match::matches(action, command))
         .or_else(|| super::admin_client_quota_command_match::matches(action, command))
         .or_else(|| super::admin_acl_command_match::matches(action, command))
         .or_else(|| super::admin_batch_command_match::matches(action, command))

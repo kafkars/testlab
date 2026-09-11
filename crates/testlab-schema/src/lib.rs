@@ -111,7 +111,7 @@ pub use broker_policy::{
 pub use broker_role::BrokerRoleTarget;
 pub use broker_state::{
     BrokerClusterState, BrokerConsumerGroupOffset, BrokerConsumerGroupState,
-    BrokerPartitionOffsets, BrokerTopicState,
+    BrokerPartitionOffsets, BrokerShareGroupState, BrokerTopicState,
 };
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use client_metrics::*;
@@ -211,6 +211,8 @@ mod admin_query_ownership_test;
 mod admin_query_protocol_test;
 #[cfg(test)]
 mod admin_query_validation_test;
+#[cfg(test)]
+mod admin_share_group_test;
 #[cfg(test)]
 mod admin_topic_failure_validation_test;
 #[cfg(test)]

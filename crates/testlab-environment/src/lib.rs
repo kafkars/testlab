@@ -33,6 +33,7 @@ mod compose_provision_targets;
 mod compose_readiness;
 mod compose_security;
 mod compose_seed;
+mod compose_share_group_observe;
 mod compose_startup;
 mod compose_support;
 mod compose_topic_readiness;
@@ -62,6 +63,7 @@ mod observer_admin_metadata;
 mod observer_admin_offset_batch_target;
 mod observer_admin_partition_offsets_target;
 mod observer_admin_plural_group_target;
+mod observer_admin_share_group_target;
 mod observer_admin_target;
 mod observer_admin_topic_target;
 mod observer_admin_user_scram_target;
@@ -72,6 +74,7 @@ mod observer_partition_offsets;
 mod observer_record;
 mod observer_watermarks;
 mod security;
+mod share_group_cli_observation;
 mod terminal;
 mod terminal_capture;
 mod user_scram_cli_observation;
@@ -146,6 +149,8 @@ mod observer_admin_group_test;
 mod observer_admin_offset_batch_target_test;
 #[cfg(test)]
 mod observer_admin_plural_group_target_test;
+#[cfg(test)]
+mod observer_admin_share_group_test;
 #[cfg(test)]
 mod observer_admin_target_test;
 #[cfg(test)]

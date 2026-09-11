@@ -106,6 +106,7 @@ impl HistoryIndex {
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::ListConsumerGroups(_)
             | ScenarioAction::DescribeConsumerGroup(_)
+            | ScenarioAction::DescribeShareGroup(_)
             | ScenarioAction::ListConsumerGroupOffsets(_)
             | ScenarioAction::AlterConsumerGroupOffset(_)
             | ScenarioAction::DeleteConsumerGroupOffset(_)

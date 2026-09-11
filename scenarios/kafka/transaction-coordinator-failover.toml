@@ -1,4 +1,4 @@
-schema_version = 43
+schema_version = 44
 id = "kafka.transaction-coordinator-failover"
 title = "transactional producer recovers across its observed coordinator election"
 description = "After one committed transaction, Testlab independently selects and stops that exact transaction coordinator, proves a distinct replacement, and the live packaged producer commits independently visible work while the original coordinator remains offline."

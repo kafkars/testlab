@@ -77,6 +77,42 @@ pub struct DescribeConsumerGroupCommand {
     pub timeout_ms: u64,
 }
 
+/// Scenario intent for one bounded Share-group description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeShareGroupAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact public and independently observed group state.
+    pub expected_state: String,
+    /// Exact public and independently observed member count.
+    pub expected_member_count: u32,
+    /// Topic that must appear in the public member subscription and assignment.
+    pub expected_topic: String,
+    /// Partition that must appear in the public member assignment.
+    pub expected_partition: i32,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Wire payload for one bounded Share-group description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeShareGroupCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
 /// Scenario intent for one bounded consumer-group deletion.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -137,6 +173,54 @@ pub struct AdminConsumerGroupDescription {
     pub group_id: String,
     /// Public member count reported by the adapter.
     pub member_count: u32,
+}
+
+/// One public Share-group member and its exact current assignment.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminShareGroupMember {
+    /// Stable broker-issued member identity.
+    pub member_id: String,
+    /// Exact signed member epoch.
+    pub member_epoch: i32,
+    /// Public client identity reported by Kafka.
+    pub client_id: String,
+    /// Sorted subscribed topic names.
+    pub subscribed_topics: Vec<String>,
+    /// Deterministically ordered topic assignments.
+    pub assignments: Vec<AdminShareGroupTopicAssignment>,
+}
+
+/// One topic and its exact partition assignment for a Share-group member.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminShareGroupTopicAssignment {
+    /// Broker-issued nonzero topic identity.
+    pub topic_id: [u8; 16],
+    /// Correlated UTF-8 topic name.
+    pub topic: String,
+    /// Sorted nonnegative assigned partitions.
+    pub partitions: Vec<i32>,
+}
+
+/// Public result for one exact Share-group description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminShareGroupDescription {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Broker-reported group state.
+    pub state: String,
+    /// Exact signed group epoch.
+    pub group_epoch: i32,
+    /// Exact signed target-assignment epoch.
+    pub assignment_epoch: i32,
+    /// Broker-selected server assignor.
+    pub assignor_name: String,
+    /// Members ordered by broker-issued member identity.
+    pub members: Vec<AdminShareGroupMember>,
 }
 
 /// Public completion for one exact consumer-group mutation.

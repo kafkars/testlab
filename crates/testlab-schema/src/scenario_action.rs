@@ -12,7 +12,6 @@ pub enum ScenarioAction {
         client_id: ClientId,
     },
     ObserveClientMetrics(crate::ObserveClientMetricsAction),
-    /// Creates one public producer.
     CreateProducer {
         /// Owning client.
         client_id: ClientId,
@@ -222,6 +221,7 @@ pub enum ScenarioAction {
     DescribeCluster(crate::DescribeClusterAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
+    DescribeShareGroup(crate::DescribeShareGroupAction),
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsAction),
     ListConsumerGroupOffsetsBatch(crate::ListConsumerGroupOffsetsBatchAction),
     ListConsumerGroupsOffsets(crate::ListConsumerGroupsOffsetsAction),

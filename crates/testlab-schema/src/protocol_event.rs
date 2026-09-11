@@ -216,8 +216,8 @@ pub enum AdapterEvent {
     ClusterDescribed(crate::AdminClusterDescription),
     /// One public admin consumer-group listing completed successfully.
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
-    /// One public admin consumer-group description completed successfully.
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
+    ShareGroupDescribed(crate::AdminShareGroupDescription),
     /// One public admin consumer-group offset listing completed successfully.
     ConsumerGroupOffsetListed(crate::AdminConsumerGroupOffsetListing),
     /// One public single-group offset batch listing returned ordered outcomes.

@@ -22,7 +22,8 @@
   topic-configuration description, replacement, and restoration; caller-ordered
   literal ACL creation, exact description, and exact deletion plus named-user
   producer and consumer quota replacement, description, and removal and
-  SCRAM-SHA-256/512 credential upsert, description, and deletion against
+  SCRAM-SHA-256/512 credential upsert, description, and deletion, plus active
+  Share-group state and assignment description, against
   independent Kafka CLI state; transactions, fencing, broker restart, rolling restart, and independently targeted
   partition-leader, controller, classic and KIP-848 group-coordinator, and
   transaction-coordinator recovery.

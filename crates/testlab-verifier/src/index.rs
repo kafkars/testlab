@@ -18,6 +18,8 @@ mod admin_delete_records_command_match;
 pub(crate) mod admin_group_batch;
 pub(crate) mod admin_offset_batch;
 mod admin_recording;
+pub(crate) mod admin_share_group;
+mod admin_share_group_command_match;
 mod admin_state_recording;
 mod admin_types;
 pub(crate) mod admin_user_scram;
@@ -30,7 +32,6 @@ mod generic_command_recording;
 mod issued;
 mod recording;
 mod share;
-
 pub(super) use admin_types::push;
 pub(crate) use admin_types::{
     IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion, IndexedAdminTopicCompletion,
@@ -45,7 +46,6 @@ pub(crate) use concurrent::{
     ConcurrentPublicEventKind, IndexedConcurrentActorCompletion, IndexedConcurrentBoundary,
     IndexedConcurrentJoin, IndexedConcurrentPublicEvent, IndexedConcurrentStart,
 };
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTerminal {
     pub(crate) history_sequence: u64,
@@ -53,7 +53,6 @@ pub(crate) struct IndexedTerminal {
     pub(crate) code: Option<String>,
     pub(crate) offset: Option<i64>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedOperationError {
     pub(crate) history_sequence: u64,
@@ -229,6 +228,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
     pub(crate) admin_user_scram: admin_user_scram::AdminUserScramIndex,
+    pub(crate) admin_share_groups: admin_share_group::AdminShareGroupIndex,
     pub(crate) clusters_described: BTreeMap<OperationId, Vec<IndexedClusterDescription>>,
     pub(crate) consumer_groups_listed: BTreeMap<OperationId, Vec<IndexedConsumerGroupsList>>,
     pub(crate) consumer_groups_described:

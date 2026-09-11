@@ -203,8 +203,8 @@ pub enum AdapterCommand {
     DescribeCluster(crate::DescribeClusterCommand),
     /// Lists consumer groups visible through the public admin surface.
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
-    /// Describes one consumer group through the public admin surface.
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
+    DescribeShareGroup(crate::DescribeShareGroupCommand),
     /// Lists one committed consumer-group offset through the public admin surface.
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsCommand),
     /// Lists selected offsets from one consumer group through one public call.

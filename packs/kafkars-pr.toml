@@ -48,6 +48,7 @@ scenarios = [
   "scenarios/kafka/share-group-fetch-max-records.toml",
   "scenarios/kafka/share-group-fetch-batch-size.toml",
   "scenarios/kafka/share-group-membership-ownership.toml",
+  "scenarios/kafka/admin-describe-share-group.toml",
   "scenarios/kafka/admin-create-topic.toml",
   "scenarios/kafka/admin-create-topic-validate-only.toml",
   "scenarios/kafka/admin-create-topic-duplicate.toml",

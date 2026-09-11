@@ -13,6 +13,7 @@ use crate::admin_group::verify_group_action;
 use crate::admin_group_batch::verify_group_batch_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
 use crate::admin_records::verify_records_action;
+use crate::admin_share_group::verify_share_group_action;
 use crate::admin_topic::verify_topic_action;
 use crate::admin_user_scram::verify_user_scram_action;
 use crate::admin_validate_only::verify_validate_only_action;
@@ -80,6 +81,7 @@ pub(crate) fn verify_admin(
             || verify_acl_action(&step.action, index, violations)
             || verify_client_quota_action(&step.action, index, violations)
             || verify_user_scram_action(&step.action, index, violations)
+            || verify_share_group_action(&step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
@@ -147,6 +149,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterClientQuota(_) => "ADMIN-034",
         ScenarioAction::DescribeUserScramCredential(_) => "ADMIN-035",
         ScenarioAction::AlterUserScramCredential(_) => "ADMIN-036",
+        ScenarioAction::DescribeShareGroup(_) => "ADMIN-037",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -200,6 +203,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DescribeClientQuota(value) => &value.operation_id,
         ScenarioAction::AlterUserScramCredential(value) => &value.operation_id,
         ScenarioAction::DescribeUserScramCredential(value) => &value.operation_id,
+        ScenarioAction::DescribeShareGroup(value) => &value.operation_id,
         _ => return None,
     })
 }
