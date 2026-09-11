@@ -45,6 +45,34 @@ attempts = 1
 gating = true
 
 [[cells]]
+id = "apache-kafka-4-3-1-broker-role-failover"
+environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
+pack = "packs/kafkars-broker-role-failover.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-broker-policy"
+environment = "clusters/apache-kafka/4.3.1/single-sasl-plain-policy.toml"
+pack = "packs/kafkars-broker-policy.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-network-faults"
+environment = "clusters/apache-kafka/4.3.1/single-plaintext-network.toml"
+pack = "packs/kafkars-network-faults.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "protocol-adversary"
+environment = "clusters/protocol-adversary.toml"
+pack = "packs/kafkars-protocol-adversary.toml"
+attempts = 1
+gating = true
+
+[[cells]]
 id = "apache-kafka-4-2-1-plaintext"
 environment = "clusters/apache-kafka/4.2.1/single-plaintext.toml"
 pack = "packs/kafkars-share-release.toml"

@@ -137,6 +137,17 @@ fn release_cells_use_eight_runners_and_schedule_longest_first() {
             "apache-kafka-4-3-1-three-scram-sha-512",
         ]
     );
+    for expected in [
+        "apache-kafka-4-3-1-broker-role-failover",
+        "apache-kafka-4-3-1-broker-policy",
+        "apache-kafka-4-3-1-network-faults",
+        "protocol-adversary",
+    ] {
+        assert!(
+            ids.contains(&expected),
+            "release qualification omitted {expected}"
+        );
+    }
 }
 
 #[test]

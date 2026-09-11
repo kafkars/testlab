@@ -40,7 +40,15 @@ fn release_cells_use_their_topology_pack() {
         let three_plaintext = cell.environment.ends_with("three-plaintext.toml");
         let three_security = cell.environment.contains("/three-") && !three_plaintext;
         let kafka_4_0 = cell.environment.contains("apache-kafka/4.0.");
-        let expected = if legacy {
+        let expected = if cell.environment.ends_with("protocol-adversary.toml") {
+            "packs/kafkars-protocol-adversary.toml"
+        } else if cell.environment.ends_with("single-plaintext-network.toml") {
+            "packs/kafkars-network-faults.toml"
+        } else if cell.environment.ends_with("single-sasl-plain-policy.toml") {
+            "packs/kafkars-broker-policy.toml"
+        } else if cell.pack == "packs/kafkars-broker-role-failover.toml" {
+            "packs/kafkars-broker-role-failover.toml"
+        } else if legacy {
             "packs/kafkars-classic.toml"
         } else if kafka_4_0 {
             "packs/kafkars-release.toml"

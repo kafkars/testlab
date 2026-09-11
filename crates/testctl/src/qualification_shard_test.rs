@@ -25,7 +25,7 @@ fn pr_is_one_pass_and_release_retains_repetitions() {
     let (_, release) =
         must(repository.load_qualification(Path::new("qualifications/kafkars-release.toml")));
     assert_eq!(pr.cells[0].attempts, 1);
-    assert_eq!(release.cells.len(), 12);
+    assert_eq!(release.cells.len(), 16);
     assert_eq!(release.cells[0].attempts, 3);
     assert!(release.cells.iter().all(|cell| cell.gating));
 }
