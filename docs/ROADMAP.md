@@ -11,7 +11,7 @@
   three-broker clusters, TLS, SASL/PLAIN, and SCRAM-SHA-256/512.
 - Real-Kafka scenarios cover producing, assigned, group, and share consumption;
   singleton and ordered partial-batch topic creation, exact duplicate-creation
-  rejection, exact unknown-topic and invalid-partition rejection, partition
+  rejection, exact unknown-topic rejection, partition
   expansion and deletion, validate-only topic creation, partition expansion,
   and topic-configuration replacement, scoped topic, cluster, and
   consumer-group discovery, earliest- and
@@ -53,9 +53,9 @@
   work, with exact command ownership and deterministic cross-field invariants.
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
-  incremental add/remove with survivor cursors, and independent cursors across
-  two public consumers. Repeated lifecycle operations and public controls settle
-  against exact command identities rather than aggregate resource counts.
+  and incremental add/remove with survivor cursors. Repeated lifecycle
+  operations and public controls settle against exact command identities rather
+  than aggregate resource counts.
 - Classic and KIP-848 group consumers cover public pause/resume partition
   isolation and assignment-fenced seek replay, with committed public outcomes
   joined to positive protocol epochs and independent broker coordinates.
@@ -65,12 +65,10 @@
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.
-- Configured Share consumers cover public record ceilings and one-record
-  acquisition ranges, retaining exact public acquisition counts while every
-  delivered record remains joined to independent broker observations.
-- Multi-handle lifecycle scenarios cover repeated client readiness and producer
-  flush, sibling and replacement producer progress after close, and independent
-  client progress after another client shuts down.
+- Configured Share consumers cover public record ceilings while every delivered
+  record remains joined to independent broker observations.
+- Lifecycle scenarios cover repeated client readiness and producer flush plus
+  independent client progress after another client shuts down.
 - Multi-record transactions span topics and partitions with the same field and
   header distinctions. Committed sets retain exact independent coordinates and
   per-partition order, aborted sets remain wholly read-committed invisible, and
@@ -82,14 +80,14 @@
 - A pinned composite action gives client repositories one qualification entry
   point while Testlab retains the broker matrix and verdict rules.
 
-## Now — adopt the release boundary
+## Now — complete the stable boundary
 
-1. Make Kafkars pull requests call the pinned Testlab action and archive its
-   sealed evidence.
-2. Make scheduled and manual release qualification call the Testlab release
-   tier.
-3. Remove duplicated broker, scenario, matrix, and aggregation logic from the
-   Kafkars repository.
+1. Requalify the excluded invalid-partition offset and configured Share
+   acquisition-range scenarios before adding them to Kafkars packs.
+2. Add explicit independent producer and directly assigned consumer ownership
+   in Kafkars before enabling the corresponding multi-handle scenarios.
+3. Extend black-box coverage across high-use public group configuration and
+   Admin operations that currently have only client-repository evidence.
 4. Fix client failures exposed by Testlab until every gating release cell
    passes.
 5. Derive Kafkars support and release eligibility from archived qualification
