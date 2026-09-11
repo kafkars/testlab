@@ -152,3 +152,7 @@ identifier!(
     SubjectId,
     "Stable identity for one packaged subject definition."
 );
+
+#[cfg(test)]
+#[path = "ids_test.rs"]
+mod tests;

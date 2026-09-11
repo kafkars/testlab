@@ -47,6 +47,9 @@ mod admin_topic;
 mod admin_topic_action_validation;
 mod admin_topic_description_batch;
 mod admin_topic_description_batch_validation;
+mod admin_transaction_transition_validation;
+mod admin_transaction_validation;
+mod admin_transactions;
 mod admin_transition_validation;
 mod admin_user_scram;
 mod admin_user_scram_validation;
@@ -259,8 +262,6 @@ mod broker_policy_test;
 #[cfg(test)]
 mod broker_role_test;
 #[cfg(test)]
-mod bytes_test;
-#[cfg(test)]
 mod client_metrics_test;
 #[cfg(test)]
 mod concurrent_test;
@@ -272,8 +273,6 @@ mod environment_test;
 mod group_consumer_control_test;
 #[cfg(test)]
 mod group_consumer_shutdown_test;
-#[cfg(test)]
-mod ids_test;
 #[cfg(test)]
 mod network_proxy_test;
 #[cfg(test)]

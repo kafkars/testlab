@@ -61,6 +61,9 @@ pub(super) fn capture(
         AdminTarget::Producers(_) => Err(ObserverError::InvalidTarget(
             "active-producer target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::Transactions(_) => Err(ObserverError::InvalidTarget(
+            "transaction target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::ShareGroupsOffsets(_) => Err(ObserverError::InvalidTarget(
             "Share-group offsets target requires the pinned Kafka CLI observer".to_owned(),
         )),

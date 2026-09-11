@@ -177,6 +177,8 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::DescribeProducers(_)
+            | ScenarioAction::ListTransactions(_)
+            | ScenarioAction::DescribeTransactions(_)
             | ScenarioAction::ListConsumerGroups(_)
             | ScenarioAction::DescribeConsumerGroup(_)
             | ScenarioAction::DescribeShareGroup(_)

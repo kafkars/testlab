@@ -132,6 +132,8 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::DescribeFeatures(_)
         | ScenarioAction::DescribeProducers(_)
+        | ScenarioAction::ListTransactions(_)
+        | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)
@@ -185,13 +187,11 @@ pub(crate) fn validate_action(
         }
     }
 }
-
 fn create_client(client_id: &ClientId, clients: &mut ClientStates, problems: &mut Vec<String>) {
     if clients.insert(client_id.clone(), false).is_some() {
         problems.push(format!("duplicate client id {client_id}"));
     }
 }
-
 fn validate_batch(
     producer_id: &ProducerId,
     batch: &[crate::BatchRecord],

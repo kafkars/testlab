@@ -4,6 +4,7 @@ use testlab_schema::AdapterEvent;
 
 use crate::run_error::RunFailure;
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
+pub(super) use crate::runner_protocol_admin_family::same_admin_event_family;
 
 #[allow(
     clippy::too_many_lines,
@@ -235,66 +236,4 @@ fn group_offset_matches(
         && expected_group == actual_group
         && expected_topic == actual_topic
         && expected_partition == actual_partition
-}
-
-pub(super) fn same_admin_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
-    expected_is_admin(expected) && event_is_admin(event)
-}
-
-fn expected_is_admin(expected: &ExpectedEvent) -> bool {
-    matches!(
-        expected,
-        ExpectedEvent::TopicCreated { .. }
-            | ExpectedEvent::TopicCreationValidated { .. }
-            | ExpectedEvent::TopicsCreationCompleted { .. }
-            | ExpectedEvent::TopicPartitionsCreated { .. }
-            | ExpectedEvent::TopicPartitionIncreaseValidated { .. }
-            | ExpectedEvent::TopicDeleted { .. }
-            | ExpectedEvent::TopicsDeleted { .. }
-            | ExpectedEvent::TopicDescribed { .. }
-            | ExpectedEvent::TopicsDescribed { .. }
-            | ExpectedEvent::TopicsListed { .. }
-            | ExpectedEvent::OffsetListed { .. }
-            | ExpectedEvent::OffsetsListed { .. }
-            | ExpectedEvent::RecordsDeleted { .. }
-            | ExpectedEvent::RecordsBatchDeleted { .. }
-            | ExpectedEvent::ClusterDescribed { .. }
-            | ExpectedEvent::FeaturesDescribed(_)
-            | ExpectedEvent::ProducerStatesDescribed { .. }
-            | ExpectedEvent::ConsumerGroupsListed { .. }
-            | ExpectedEvent::ConsumerGroupDescribed { .. }
-            | ExpectedEvent::ConsumerGroupOffsetListed { .. }
-            | ExpectedEvent::ConsumerGroupOffsetAltered { .. }
-            | ExpectedEvent::ConsumerGroupOffsetDeleted { .. }
-            | ExpectedEvent::ConsumerGroupDeleted { .. }
-    )
-}
-
-fn event_is_admin(event: &AdapterEvent) -> bool {
-    matches!(
-        event,
-        AdapterEvent::TopicCreated(_)
-            | AdapterEvent::TopicCreationValidated(_)
-            | AdapterEvent::TopicsCreationCompleted(_)
-            | AdapterEvent::TopicPartitionsCreated(_)
-            | AdapterEvent::TopicPartitionIncreaseValidated(_)
-            | AdapterEvent::TopicDeleted(_)
-            | AdapterEvent::TopicsDeleted(_)
-            | AdapterEvent::TopicDescribed(_)
-            | AdapterEvent::TopicsDescribed(_)
-            | AdapterEvent::TopicsListed(_)
-            | AdapterEvent::OffsetListed(_)
-            | AdapterEvent::OffsetsListed(_)
-            | AdapterEvent::RecordsDeleted(_)
-            | AdapterEvent::RecordsBatchDeleted(_)
-            | AdapterEvent::ClusterDescribed(_)
-            | AdapterEvent::FeaturesDescribed(_)
-            | AdapterEvent::ProducersDescribed(_)
-            | AdapterEvent::ConsumerGroupsListed(_)
-            | AdapterEvent::ConsumerGroupDescribed(_)
-            | AdapterEvent::ConsumerGroupOffsetListed(_)
-            | AdapterEvent::ConsumerGroupOffsetAltered(_)
-            | AdapterEvent::ConsumerGroupOffsetDeleted(_)
-            | AdapterEvent::ConsumerGroupDeleted(_)
-    )
 }

@@ -182,9 +182,7 @@ pub enum AdapterEvent {
         /// Stable normalized failure code, when failed.
         code: Option<String>,
     },
-    /// One public admin topic creation completed successfully.
     TopicCreated(crate::AdminTopicCompletion),
-    /// One public admin topic-creation request validated without mutation.
     TopicCreationValidated(crate::AdminTopicCompletion),
     /// One public admin batch topic-creation call returned ordered outcomes.
     TopicsCreationCompleted(crate::AdminTopicsCreationBatch),
@@ -215,6 +213,8 @@ pub enum AdapterEvent {
     ClusterDescribed(crate::AdminClusterDescription),
     FeaturesDescribed(crate::AdminFeaturesDescription),
     ProducersDescribed(crate::AdminProducersDescription),
+    TransactionsListed(crate::AdminTransactionsListing),
+    TransactionsDescribed(crate::AdminTransactionsDescription),
     /// One public admin consumer-group listing completed successfully.
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),

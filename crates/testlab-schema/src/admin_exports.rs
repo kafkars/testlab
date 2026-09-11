@@ -100,4 +100,5 @@ pub use crate::admin_topic_description_batch::{
     AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, DescribeTopicExpectation,
     DescribeTopicsAction, DescribeTopicsCommand,
 };
+pub use crate::admin_transactions::*;
 pub use crate::admin_user_scram::*;

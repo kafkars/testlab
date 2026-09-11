@@ -175,9 +175,7 @@ pub enum AdapterCommand {
         /// Unique share consumer consumed by close.
         consumer_id: ConsumerId,
     },
-    /// Creates one Kafka topic through the public admin surface.
     CreateTopic(crate::CreateTopicCommand),
-    /// Creates an ordered Kafka topic batch through one public admin call.
     CreateTopicsBatch(crate::CreateTopicsBatchCommand),
     /// Increases one Kafka topic through the public admin surface.
     CreatePartitions(crate::CreatePartitionsCommand),
@@ -202,6 +200,8 @@ pub enum AdapterCommand {
     DescribeCluster(crate::DescribeClusterCommand),
     DescribeFeatures(crate::DescribeFeaturesCommand),
     DescribeProducers(crate::DescribeProducersCommand),
+    ListTransactions(crate::ListTransactionsCommand),
+    DescribeTransactions(crate::DescribeTransactionsCommand),
     /// Lists consumer groups visible through the public admin surface.
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),

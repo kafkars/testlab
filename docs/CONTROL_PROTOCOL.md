@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v55 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v58 and evidence schema v44.
+Protocol v56 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v59 and evidence schema v45.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -87,6 +87,8 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_cluster`
 - `describe_features`
 - `describe_producers`
+- `list_transactions`
+- `describe_transactions`
 - `list_consumer_groups`
 - `describe_consumer_group`
 - `describe_share_group`
@@ -239,6 +241,10 @@ timeouts invalidate evidence.
 - `topic_configs_altered`
 - `topic_config_altered`
 - `cluster_described`
+- `features_described`
+- `producers_described`
+- `transactions_listed`
+- `transactions_described`
 - `consumer_groups_listed`
 - `consumer_group_described`
 - `share_group_described`
@@ -700,6 +706,17 @@ timestamp, coordinator epoch, and optional current-transaction start offset in
 canonical producer-ID order. An immediate independent
 `kafka-transactions.sh describe-producers` snapshot retains the same fields.
 
+Transaction listing carries no fixture expectations or filters across the
+wire. Its public completion retains every transactional ID, producer ID, and
+Kafka-owned state in canonical transactional-ID order. Caller-ordered
+transaction description carries only the selected IDs and complete deadline;
+its completion retains state, configured timeout, optional start time,
+producer identity and epoch, and canonical topic-partition participation.
+Immediate pinned `kafka-transactions.sh list` and one
+`kafka-transactions.sh describe` query per selected ID retain independent exact
+snapshots. Scenario validation requires all selected transactional producers
+to be initialized and closed before either read.
+
 Group listing carries an exact `api` selector for the consumer-only compatibility
 view or the generic unfiltered `ListGroups` view, while required group IDs remain
 scenario-only. Either public result must contain the independently listed live
@@ -774,6 +791,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v55 is an exact semantic contract. New capabilities may be declared
+Protocol v56 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -367,6 +367,18 @@ statement = "Each public partition producer-state description returns the scenar
 category = "admin"
 
 [[contract]]
+id = "ADMIN-052"
+title = "Transaction listings match Kafka CLI state"
+statement = "Each unfiltered public transaction listing preserves every initialized transactional ID, producer ID, and exact state in canonical transactional-ID order, with no broker or unknown-filter errors, and exactly matches one immediate snapshot from Kafka's pinned administration CLI."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-053"
+title = "Transaction descriptions preserve caller order and match Kafka CLI state"
+statement = "One public transaction-description batch preserves caller order and every state, timeout, start-time presence, producer identity, epoch, and canonical topic-partition set, while contiguous immediate Kafka CLI descriptions exactly match every selected transaction in the same order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

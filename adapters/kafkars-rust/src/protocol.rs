@@ -22,11 +22,9 @@ const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
 const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
 
 pub fn run_stdio() -> Result<(), AdapterError> {
-    let stdin = io::stdin();
-    let stdout = io::stdout();
+    let (stdin, stdout) = (io::stdin(), io::stdout());
     run_session(stdin.lock(), stdout.lock())
 }
-
 pub(crate) fn run_session<R, W>(mut reader: R, mut writer: W) -> Result<(), AdapterError>
 where
     R: BufRead,
@@ -180,6 +178,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::DescribeProducers(_)
+        | AdapterCommand::ListTransactions(_)
+        | AdapterCommand::DescribeTransactions(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 use crate::observer_admin_acl_target;
@@ -17,9 +15,11 @@ pub(super) use crate::observer_admin_share_group_offset_batch_target::{
     ShareGroupOffsetSelectionTarget, ShareGroupOffsetsSelectionTarget, ShareGroupsOffsetsTarget,
 };
 use crate::observer_admin_share_group_target;
+pub(super) use crate::observer_admin_target_support::{invalid, ordinal, unique};
 use crate::observer_admin_topic_deletion_batch_target;
 use crate::observer_admin_topic_description_batch_target;
 use crate::observer_admin_topic_target;
+use crate::observer_admin_transaction_target;
 use crate::observer_admin_user_scram_target;
 use crate::observer_error::ObserverError;
 
@@ -35,6 +35,7 @@ pub(super) enum AdminTarget {
     Cluster(OperationId),
     Features(OperationId),
     Producers(observer_admin_producer_target::ProducerTarget),
+    Transactions(observer_admin_transaction_target::TransactionTarget),
     ConsumerGroups(ListTarget),
     ConsumerGroupDeletions(ListTarget),
     ConsumerGroup(GroupTarget),
@@ -190,6 +191,7 @@ impl AdminTarget {
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)
             .or(observer_admin_producer_target::match_action(action)?)
+            .or(observer_admin_transaction_target::match_action(action)?)
             .or(observer_admin_consumer_group_deletion_batch_target::match_action(action)?)
         {
             Some(matched) => Some(matched),
@@ -221,6 +223,7 @@ impl AdminTarget {
             Self::Cluster(operation_id) => operation_id,
             Self::Features(operation_id) => operation_id,
             Self::Producers(target) => &target.operation_id,
+            Self::Transactions(target) => target.operation_id(),
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
             Self::ShareGroupDescriptions(target) => &target.operation_id,
@@ -259,6 +262,7 @@ impl AdminTarget {
             }
             Self::TopicConfigs(target) => target.configs.len(),
             Self::PartitionOffsetsBatch(target) => target.offsets.len(),
+            Self::Transactions(target) => target.observation_count(),
             _ => 1,
         }
     }
@@ -271,29 +275,4 @@ impl AdminTarget {
             self.observation_count().to_string(),
         ]
     }
-}
-
-pub(super) fn unique<T: Ord>(
-    values: &[T],
-    operation_id: &OperationId,
-    resource: &str,
-) -> Result<(), ObserverError> {
-    let mut seen = BTreeSet::new();
-    if values.iter().any(|value| !seen.insert(value)) {
-        return Err(invalid(
-            operation_id,
-            format!("contains duplicate {resource}"),
-        ));
-    }
-    Ok(())
-}
-
-pub(super) fn invalid(operation_id: &OperationId, detail: impl std::fmt::Display) -> ObserverError {
-    ObserverError::InvalidTarget(format!("admin operation {operation_id} {detail}"))
-}
-
-pub(super) fn ordinal(first: u64, index: usize) -> Result<u64, ObserverError> {
-    first
-        .checked_add(u64::try_from(index).map_err(|_| ObserverError::ObservationOverflow)?)
-        .ok_or(ObserverError::ObservationOverflow)
 }

@@ -7,6 +7,7 @@ use crate::{Scenario, ScenarioAction};
 type TopicDefinition = (i32, i16);
 
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
+    crate::admin_transaction_transition_validation::validate(scenario, problems);
     crate::admin_config_transition_validation::validate(scenario, problems);
     crate::admin_consumer_group_deletion_batch::validate_transition(scenario, problems);
     crate::admin_delete_records_transition_validation::validate(scenario, problems);

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v55. It is not a
+An adapter translates one packaged client surface to protocol v56. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -15,6 +15,8 @@ runner and not a verifier.
   identities, and rejoin without exposing private client state.
 - Preserve exact read-only admin results without receiving scenario
   expectations through the adapter command.
+- Preserve canonical unfiltered transaction listings and caller-ordered exact
+  transaction descriptions without receiving expected states or fields.
 - Preserve caller order, exact topic keys, topic IDs, internal markers, ordered
   partitions, and per-topic or per-partition errors for plural topic
   descriptions.

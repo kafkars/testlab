@@ -27,9 +27,11 @@ mod runner_protocol_admin;
 mod runner_protocol_admin_acl;
 mod runner_protocol_admin_client_quota;
 mod runner_protocol_admin_config;
+mod runner_protocol_admin_family;
 mod runner_protocol_admin_group_batch;
 mod runner_protocol_admin_producers;
 mod runner_protocol_admin_share_group;
+mod runner_protocol_admin_transactions;
 mod runner_protocol_admin_user_scram;
 mod runner_protocol_cancel;
 mod runner_protocol_concurrent;
@@ -47,6 +49,7 @@ mod session_command_admin_config;
 mod session_command_admin_group_batch;
 mod session_command_admin_records;
 mod session_command_admin_share_group;
+mod session_command_admin_transactions;
 mod session_command_admin_user_scram;
 mod session_command_concurrent;
 mod session_command_consumer;
@@ -87,6 +90,8 @@ mod admin_topic_configs_protocol_test;
 mod admin_topics_deletion_protocol_test;
 #[cfg(test)]
 mod admin_topics_description_protocol_test;
+#[cfg(test)]
+mod admin_transactions_protocol_test;
 #[cfg(test)]
 mod admin_user_scram_protocol_test;
 #[cfg(test)]

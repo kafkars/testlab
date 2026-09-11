@@ -1,0 +1,86 @@
+schema_version = 59
+id = "kafka.admin-transaction-discovery"
+title = "packaged admin lists and describes independently observed transactions"
+description = "Two initialized and closed transactional producers leave stable Empty transaction state; the packaged client's canonical listing and caller-ordered descriptions must preserve every public field exposed by the pinned Kafka administration CLI."
+timeout_ms = 90000
+requires = ["transactions", "admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-zulu-transaction"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-zulu"
+transactional_id = "testlab-admin-transaction-zulu"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "close-zulu-transaction"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-zulu"
+
+[[steps]]
+id = "create-alpha-transaction"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-alpha"
+transactional_id = "testlab-admin-transaction-alpha"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "close-alpha-transaction"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-alpha"
+
+[[steps]]
+id = "list-transactions"
+kind = "list_transactions"
+client_id = "client-1"
+operation_id = "admin-list-transactions"
+timeout_ms = 20000
+
+[[steps.expected_transactions]]
+transactional_id = "testlab-admin-transaction-alpha"
+expected_state = "Empty"
+
+[[steps.expected_transactions]]
+transactional_id = "testlab-admin-transaction-zulu"
+expected_state = "Empty"
+
+[[steps]]
+id = "describe-transactions"
+kind = "describe_transactions"
+client_id = "client-1"
+operation_id = "admin-describe-transactions"
+timeout_ms = 20000
+
+[[steps.transactions]]
+transactional_id = "testlab-admin-transaction-zulu"
+expected_state = "Empty"
+expected_transaction_timeout_ms = 30000
+expected_start_time_present = false
+expected_topics = []
+
+[[steps.transactions]]
+transactional_id = "testlab-admin-transaction-alpha"
+expected_state = "Empty"
+expected_transaction_timeout_ms = 30000
+expected_start_time_present = false
+expected_topics = []
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

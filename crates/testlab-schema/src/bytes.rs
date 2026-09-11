@@ -56,3 +56,7 @@ pub enum ByteStringError {
     #[error("invalid hexadecimal byte string: {0}")]
     InvalidHex(#[from] hex::FromHexError),
 }
+
+#[cfg(test)]
+#[path = "bytes_test.rs"]
+mod tests;

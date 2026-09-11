@@ -12,6 +12,7 @@ use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     crate::session_command_admin_user_scram::translate(action)
+        .or_else(|| crate::session_command_admin_transactions::translate(action))
         .or_else(|| crate::session_command_admin_share_group::translate(action))
         .or_else(|| crate::session_command_admin_client_quota::translate(action))
         .or_else(|| crate::session_command_admin_acl::translate(action))

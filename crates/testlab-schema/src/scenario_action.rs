@@ -26,14 +26,12 @@ pub enum ScenarioAction {
         broker_ordinal: u16,
         timeout_ms: u64,
     },
-    /// Stops one declared broker without restoring it in the same action.
     StopBroker {
         /// One-based declared broker ordinal.
         broker_ordinal: u16,
         /// Complete stop bound.
         timeout_ms: u64,
     },
-    /// Starts one broker retained by a prior stop action.
     StartBroker {
         /// One-based declared broker ordinal.
         broker_ordinal: u16,
@@ -218,6 +216,8 @@ pub enum ScenarioAction {
     DescribeCluster(crate::DescribeClusterAction),
     DescribeFeatures(crate::DescribeFeaturesAction),
     DescribeProducers(crate::DescribeProducersAction),
+    ListTransactions(crate::ListTransactionsAction),
+    DescribeTransactions(crate::DescribeTransactionsAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),

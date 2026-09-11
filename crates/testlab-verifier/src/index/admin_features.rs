@@ -4,13 +4,17 @@ use std::collections::BTreeMap;
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminFeaturesDescription, AdminProducersDescription,
-    BrokerFeaturesState, BrokerProducersState, BrokerStateObservation, OperationId, ScenarioAction,
+    AdminTransactionsDescription, AdminTransactionsListing, BrokerFeaturesState,
+    BrokerProducersState, BrokerStateObservation, BrokerTransactionState, BrokerTransactionsState,
+    OperationId, ScenarioAction,
 };
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
     match action {
         ScenarioAction::DescribeFeatures(value) => Some(&value.operation_id),
         ScenarioAction::DescribeProducers(value) => Some(&value.operation_id),
+        ScenarioAction::ListTransactions(value) => Some(&value.operation_id),
+        ScenarioAction::DescribeTransactions(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -19,6 +23,8 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
     match command {
         AdapterCommand::DescribeFeatures(value) => Some(&value.operation_id),
         AdapterCommand::DescribeProducers(value) => Some(&value.operation_id),
+        AdapterCommand::ListTransactions(value) => Some(&value.operation_id),
+        AdapterCommand::DescribeTransactions(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -37,12 +43,35 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.partition == command.partition
                 && action.timeout_ms == command.timeout_ms
         }
+        (ScenarioAction::ListTransactions(action), AdapterCommand::ListTransactions(command)) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.timeout_ms == command.timeout_ms
+        }
+        (
+            ScenarioAction::DescribeTransactions(action),
+            AdapterCommand::DescribeTransactions(command),
+        ) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action
+                    .transactions
+                    .iter()
+                    .map(|transaction| &transaction.transactional_id)
+                    .eq(&command.transactional_ids)
+                && action.timeout_ms == command.timeout_ms
+        }
         (ScenarioAction::DescribeFeatures(_), _) | (_, AdapterCommand::DescribeFeatures(_)) => {
             false
         }
         (ScenarioAction::DescribeProducers(_), _) | (_, AdapterCommand::DescribeProducers(_)) => {
             false
         }
+        (ScenarioAction::ListTransactions(_), _) | (_, AdapterCommand::ListTransactions(_)) => {
+            false
+        }
+        (ScenarioAction::DescribeTransactions(_), _)
+        | (_, AdapterCommand::DescribeTransactions(_)) => false,
         _ => return None,
     })
 }
@@ -59,6 +88,12 @@ pub(crate) struct AdminFeaturesIndex {
     pub(crate) observed: BTreeMap<OperationId, Vec<Indexed<BrokerFeaturesState>>>,
     pub(crate) producers_described: BTreeMap<OperationId, Vec<Indexed<AdminProducersDescription>>>,
     pub(crate) producers_observed: BTreeMap<OperationId, Vec<Indexed<BrokerProducersState>>>,
+    pub(crate) transactions_listed: BTreeMap<OperationId, Vec<Indexed<AdminTransactionsListing>>>,
+    pub(crate) transactions_observed: BTreeMap<OperationId, Vec<Indexed<BrokerTransactionsState>>>,
+    pub(crate) transactions_described:
+        BTreeMap<OperationId, Vec<Indexed<AdminTransactionsDescription>>>,
+    pub(crate) transaction_states_observed:
+        BTreeMap<OperationId, Vec<Indexed<BrokerTransactionState>>>,
 }
 
 impl AdminFeaturesIndex {
@@ -72,6 +107,18 @@ impl AdminFeaturesIndex {
             ),
             AdapterEvent::ProducersDescribed(value) => push(
                 &mut self.producers_described,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            AdapterEvent::TransactionsListed(value) => push(
+                &mut self.transactions_listed,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            AdapterEvent::TransactionsDescribed(value) => push(
+                &mut self.transactions_described,
                 value.operation_id.clone(),
                 value.clone(),
                 sequence,
@@ -95,6 +142,18 @@ impl AdminFeaturesIndex {
             ),
             BrokerStateObservation::Producers(value) => push(
                 &mut self.producers_observed,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            BrokerStateObservation::Transactions(value) => push(
+                &mut self.transactions_observed,
+                value.operation_id.clone(),
+                value.clone(),
+                sequence,
+            ),
+            BrokerStateObservation::Transaction(value) => push(
+                &mut self.transaction_states_observed,
                 value.operation_id.clone(),
                 value.clone(),
                 sequence,

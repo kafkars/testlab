@@ -1,4 +1,4 @@
-schema_version = 58
+schema_version = 59
 id = "kafka.consumer-protocol-group-seek-replay"
 title = "a KIP-848 group seek replays one committed broker record"
 description = "The packaged KIP-848 member receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."

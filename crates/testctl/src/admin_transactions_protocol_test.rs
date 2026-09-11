@@ -1,0 +1,138 @@
+//! Transaction discovery protocol tests pin expectation-free exact identities.
+
+use testlab_schema::{
+    AdapterCommand, AdapterEvent, AdminTransactionsDescription, AdminTransactionsListing, ClientId,
+    DescribeTransactionsAction, ListTransactionsAction, OperationId, ScenarioAction,
+    TransactionDescriptionExpectation, TransactionDescriptionSnapshot,
+    TransactionListingExpectation,
+};
+
+use crate::runner_protocol::{EventDisposition, ExpectedEvent};
+
+#[test]
+fn translation_omits_listing_and_description_expectations() {
+    let Some((AdapterCommand::ListTransactions(list), expected)) =
+        crate::session_command_admin_transactions::translate(&ScenarioAction::ListTransactions(
+            list_action(),
+        ))
+    else {
+        panic!("transaction-list translation");
+    };
+    assert_eq!(list.client_id, client());
+    assert_eq!(list.operation_id, operation("list-transactions"));
+    assert_eq!(list.timeout_ms, 1_000);
+    assert!(matches!(expected, ExpectedEvent::TransactionsListed(_)));
+
+    let Some((AdapterCommand::DescribeTransactions(describe), expected)) =
+        crate::session_command_admin_transactions::translate(
+            &ScenarioAction::DescribeTransactions(describe_action()),
+        )
+    else {
+        panic!("transaction-description translation");
+    };
+    assert_eq!(
+        describe.transactional_ids,
+        vec!["zulu".to_owned(), "alpha".to_owned()]
+    );
+    let encoded = serde_json::to_string(&describe)
+        .unwrap_or_else(|error| panic!("encode description command: {error}"));
+    assert!(!encoded.contains("expected_state"));
+    assert!(matches!(
+        expected,
+        ExpectedEvent::TransactionsDescribed { .. }
+    ));
+}
+
+#[test]
+fn completions_require_exact_operation_and_caller_order() {
+    let listed = ExpectedEvent::TransactionsListed(operation("list-transactions"));
+    assert_eq!(
+        listed
+            .classify(&AdapterEvent::TransactionsListed(
+                AdminTransactionsListing {
+                    operation_id: operation("list-transactions"),
+                    transactions: Vec::new(),
+                }
+            ))
+            .unwrap_or_else(|error| panic!("classify transaction list: {error}")),
+        EventDisposition::Complete
+    );
+
+    let described = ExpectedEvent::TransactionsDescribed {
+        operation_id: operation("describe-transactions"),
+        transactional_ids: vec!["zulu".to_owned(), "alpha".to_owned()],
+    };
+    let mut event = AdapterEvent::TransactionsDescribed(AdminTransactionsDescription {
+        operation_id: operation("describe-transactions"),
+        transactions: vec![description("zulu"), description("alpha")],
+    });
+    assert_eq!(
+        described
+            .classify(&event)
+            .unwrap_or_else(|error| panic!("classify transaction descriptions: {error}")),
+        EventDisposition::Complete
+    );
+    let AdapterEvent::TransactionsDescribed(actual) = &mut event else {
+        panic!("transaction description event");
+    };
+    actual.transactions.swap(0, 1);
+    let error = described
+        .classify(&event)
+        .expect_err("reordered descriptions must not complete");
+    assert_eq!(error.harness_error().code, "event_identity_mismatch");
+}
+
+fn list_action() -> ListTransactionsAction {
+    ListTransactionsAction {
+        client_id: client(),
+        operation_id: operation("list-transactions"),
+        expected_transactions: vec![listing("alpha"), listing("zulu")],
+        timeout_ms: 1_000,
+    }
+}
+
+fn describe_action() -> DescribeTransactionsAction {
+    DescribeTransactionsAction {
+        client_id: client(),
+        operation_id: operation("describe-transactions"),
+        transactions: vec![expectation("zulu"), expectation("alpha")],
+        timeout_ms: 1_000,
+    }
+}
+
+fn listing(id: &str) -> TransactionListingExpectation {
+    TransactionListingExpectation {
+        transactional_id: id.to_owned(),
+        expected_state: "Empty".to_owned(),
+    }
+}
+
+fn expectation(id: &str) -> TransactionDescriptionExpectation {
+    TransactionDescriptionExpectation {
+        transactional_id: id.to_owned(),
+        expected_state: "Empty".to_owned(),
+        expected_transaction_timeout_ms: 30_000,
+        expected_start_time_present: false,
+        expected_topics: Vec::new(),
+    }
+}
+
+fn description(id: &str) -> TransactionDescriptionSnapshot {
+    TransactionDescriptionSnapshot {
+        transactional_id: id.to_owned(),
+        transaction_state: "Empty".to_owned(),
+        transaction_timeout_ms: 30_000,
+        transaction_start_time_ms: None,
+        producer_id: 71,
+        producer_epoch: 0,
+        topics: Vec::new(),
+    }
+}
+
+fn client() -> ClientId {
+    ClientId::new("client-1").unwrap_or_else(|error| panic!("client ID: {error}"))
+}
+
+fn operation(value: &str) -> OperationId {
+    OperationId::new(value).unwrap_or_else(|error| panic!("operation ID: {error}"))
+}

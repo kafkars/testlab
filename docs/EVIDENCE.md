@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v44 records the exact environment identity in `manifest.json`,
-retains protocol-v55 direct and hosted-group consumer controls and shutdown,
+Evidence schema v45 records the exact environment identity in `manifest.json`,
+retains protocol-v56 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -176,7 +176,8 @@ replica topology, or untested offset selectors.
 `broker-state-observations.jsonl` retains independently queried broker state
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
-cluster feature ranges and active partition producer states,
+cluster feature ranges, active partition producer states, canonical cluster
+transaction listings, and caller-ordered transaction descriptions,
 consumer-group existence and member count, active Share-group state and member
 count, caller-ordered selected Share-group partition start offsets and lags or
 explicit absence, one consumer-group committed offset,
@@ -358,6 +359,21 @@ and every producer ID, epoch, last sequence, last timestamp, coordinator epoch,
 and optional current-transaction start offset must match exactly. The fixture
 closes its producer after an acknowledged send so the compared broker state is
 not changing between snapshots.
+
+ADMIN-052 binds one unfiltered public transaction listing to one immediate
+pinned Kafka CLI snapshot. The fixture initializes and closes every modeled
+transactional producer first. Public rows must be canonical by transactional
+ID, contain exactly the scenario-declared identities and states, preserve each
+nonnegative producer ID, and exactly equal the independently parsed rows; any
+unknown filter or broker error prevents the public completion.
+
+ADMIN-053 binds one caller-ordered public description batch to one immediate
+pinned Kafka CLI description per selected transactional ID. Public and
+independent rows must agree exactly on state, timeout, start-time presence and
+value, producer identity and epoch, and canonical topic-partition membership.
+CLI observations retain contiguous history and observation order. Every
+selected producer is initialized and closed before the read, keeping the
+compared `Empty` fixture state stable between public and independent snapshots.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which
