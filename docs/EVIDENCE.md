@@ -21,7 +21,7 @@ digests exist.
 - `digests.json`
 
 Evidence schema v26 records the exact environment identity in `manifest.json`,
-retains protocol-v34 direct and hosted-group consumer controls and shutdown,
+retains protocol-v35 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
