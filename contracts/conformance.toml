@@ -289,6 +289,12 @@ statement = "One selected Share-group partition listing returns its exact public
 category = "admin"
 
 [[contract]]
+id = "ADMIN-039"
+title = "Share-group offset alteration changes a listed empty-group baseline"
+statement = "One selected public Share-group offset alteration follows successful closure of every modeled member, returns the exact successful partition and topic identity, changes a distinct independently corroborated baseline, and an immediate independent Kafka CLI query confirms the requested start offset and resulting lag."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

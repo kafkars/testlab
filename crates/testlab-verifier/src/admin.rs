@@ -81,7 +81,7 @@ pub(crate) fn verify_admin(
             || verify_acl_action(&step.action, index, violations)
             || verify_client_quota_action(&step.action, index, violations)
             || verify_user_scram_action(&step.action, index, violations)
-            || verify_share_group_action(&step.action, index, violations)
+            || verify_share_group_action(scenario, &step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
@@ -151,6 +151,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterUserScramCredential(_) => "ADMIN-036",
         ScenarioAction::DescribeShareGroup(_) => "ADMIN-037",
         ScenarioAction::ListShareGroupOffsets(_) => "ADMIN-038",
+        ScenarioAction::AlterShareGroupOffsets(_) => "ADMIN-039",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -206,6 +207,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DescribeUserScramCredential(value) => &value.operation_id,
         ScenarioAction::DescribeShareGroup(value) => &value.operation_id,
         ScenarioAction::ListShareGroupOffsets(value) => &value.operation_id,
+        ScenarioAction::AlterShareGroupOffsets(value) => &value.operation_id,
         _ => return None,
     })
 }

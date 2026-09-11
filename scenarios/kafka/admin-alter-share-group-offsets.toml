@@ -1,0 +1,135 @@
+schema_version = 46
+id = "kafka.admin-alter-share-group-offsets"
+title = "packaged admin alters an independently observed Share-group offset"
+description = "After the only modeled Share member closes, the packaged client's public Share-group offset alteration advances one independently listed start offset to the log end, and an immediate Kafka CLI query plus a subsequent public listing confirm the exact new start offset and zero lag."
+timeout_ms = 180000
+requires = ["producer", "share_consumer", "share_consumer_configuration", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-accepted-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-alter-accepted"
+record = { topic = "testlab-kafkars-admin-share-group-alter", partition = 0, sequence = 1, value = { encoding = "utf8", data = "accepted" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-alter-accepted" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps]]
+id = "send-pending-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-alter-pending"
+record = { topic = "testlab-kafkars-admin-share-group-alter", partition = 0, sequence = 2, value = { encoding = "utf8", data = "pending" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-alter-pending" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-markers"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-admin-share-group-alter"
+topic = "testlab-kafkars-admin-share-group-alter"
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+configuration = { max_records = 1, batch_size = 1 }
+
+[[steps]]
+id = "receive-accepted-marker"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-share-alter-accepted"
+expected_operation_ids = ["op-share-alter-accepted"]
+minimum_delivery_count = 1
+expected_acquisition_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "acknowledge-accepted-marker"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-share-alter-accepted"
+acknowledgement_id = "ack-share-alter-accepted"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "list-share-group-offset-before"
+kind = "list_share_group_offsets"
+client_id = "client-1"
+operation_id = "admin-list-share-group-offset-before-alter"
+group_id = "testlab-admin-share-group-alter"
+topic = "testlab-kafkars-admin-share-group-alter"
+partition = 0
+expected_start_offset = 1
+expected_lag = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "alter-share-group-offset"
+kind = "alter_share_group_offsets"
+client_id = "client-1"
+operation_id = "admin-alter-share-group-offsets-1"
+group_id = "testlab-admin-share-group-alter"
+topic = "testlab-kafkars-admin-share-group-alter"
+partition = 0
+start_offset = 2
+expected_lag = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "list-share-group-offset-after"
+kind = "list_share_group_offsets"
+client_id = "client-1"
+operation_id = "admin-list-share-group-offset-after-alter"
+group_id = "testlab-admin-share-group-alter"
+topic = "testlab-kafkars-admin-share-group-alter"
+partition = 0
+expected_start_offset = 2
+expected_lag = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-share-alter-accepted"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-share-alter-pending"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -52,7 +52,8 @@ pub use crate::admin_scenario_action::{
     TopicDescriptionApi,
 };
 pub use crate::admin_share_group_offset::{
-    AdminShareGroupOffsetListing, ListShareGroupOffsetsAction, ListShareGroupOffsetsCommand,
+    AdminShareGroupOffsetAlteration, AdminShareGroupOffsetListing, AlterShareGroupOffsetsAction,
+    AlterShareGroupOffsetsCommand, ListShareGroupOffsetsAction, ListShareGroupOffsetsCommand,
 };
 pub use crate::admin_topic::{
     AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription, AdminTopicsListing,

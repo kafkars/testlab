@@ -176,6 +176,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeConsumerGroup(_)
             | ScenarioAction::DescribeShareGroup(_)
             | ScenarioAction::ListShareGroupOffsets(_)
+            | ScenarioAction::AlterShareGroupOffsets(_)
             | ScenarioAction::ListConsumerGroupOffsets(_)
             | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
             | ScenarioAction::ListConsumerGroupsOffsets(_)

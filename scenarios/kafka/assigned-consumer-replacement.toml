@@ -1,4 +1,4 @@
-schema_version = 45
+schema_version = 46
 id = "kafka.assigned-consumer-replacement"
 title = "direct assignment replacement excludes the removed partition"
 description = "After replacing partition zero with partition one, a packaged direct consumer returns the exact partition-one record even while a later partition-zero record is broker-visible."

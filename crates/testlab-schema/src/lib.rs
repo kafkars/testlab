@@ -31,7 +31,9 @@ mod admin_list_offsets_batch;
 mod admin_list_offsets_batch_validation;
 mod admin_offset_position;
 mod admin_scenario_action;
+mod admin_share_group_action_validation;
 mod admin_share_group_offset;
+mod admin_share_group_offset_transition_validation;
 mod admin_topic;
 mod admin_topic_action_validation;
 mod admin_transition_validation;
@@ -212,6 +214,8 @@ mod admin_query_ownership_test;
 mod admin_query_protocol_test;
 #[cfg(test)]
 mod admin_query_validation_test;
+#[cfg(test)]
+mod admin_share_group_offset_mutation_test;
 #[cfg(test)]
 mod admin_share_group_test;
 #[cfg(test)]

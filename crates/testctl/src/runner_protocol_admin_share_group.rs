@@ -1,4 +1,4 @@
-//! Share-group read terminals require exact operation and resource identities.
+//! Share-group Admin terminals require exact operation and resource identities.
 
 use testlab_schema::AdapterEvent;
 
@@ -32,6 +32,20 @@ pub(super) fn classify(
                 && topic == &actual.topic
                 && partition == &actual.partition
         }
+        (
+            ExpectedEvent::ShareGroupOffsetsAltered {
+                operation_id,
+                group_id,
+                topic,
+                partition,
+            },
+            AdapterEvent::ShareGroupOffsetsAltered(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && group_id == &actual.group_id
+                && topic == &actual.topic
+                && partition == &actual.partition
+        }
         _ => return None,
     };
     Some(identity_result(matches, event, expected))
@@ -46,6 +60,9 @@ pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) 
         ) | (
             ExpectedEvent::ShareGroupOffsetsListed { .. },
             AdapterEvent::ShareGroupOffsetsListed(_)
+        ) | (
+            ExpectedEvent::ShareGroupOffsetsAltered { .. },
+            AdapterEvent::ShareGroupOffsetsAltered(_)
         )
     )
 }

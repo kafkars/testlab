@@ -18,6 +18,7 @@ mod admin_group_mutation;
 mod admin_offset_batch;
 mod admin_records;
 mod admin_share_group;
+mod admin_share_group_offset_mutation;
 mod admin_topic;
 mod admin_user_scram;
 mod admin_validate_only;
@@ -99,6 +100,8 @@ mod admin_group_verdict_test;
 mod admin_offset_batch_test;
 #[cfg(test)]
 mod admin_records_test;
+#[cfg(test)]
+mod admin_share_group_offset_mutation_test;
 #[cfg(test)]
 mod admin_share_group_offset_test;
 #[cfg(test)]

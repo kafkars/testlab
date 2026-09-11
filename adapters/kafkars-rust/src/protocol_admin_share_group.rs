@@ -1,17 +1,20 @@
-//! Share-group Admin reads retain public description and partition-offset facts.
+//! Share-group Admin operations retain public description and partition-offset facts.
 
 use std::io::Write;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminShareGroupDescription, AdminShareGroupMember,
-    AdminShareGroupOffsetListing, AdminShareGroupTopicAssignment, CommandId,
-    DescribeShareGroupCommand, ListShareGroupOffsetsCommand,
+    AdminShareGroupOffsetAlteration, AdminShareGroupOffsetListing, AdminShareGroupTopicAssignment,
+    AlterShareGroupOffsetsCommand, CommandId, DescribeShareGroupCommand,
+    ListShareGroupOffsetsCommand,
 };
 
 use crate::AdapterError;
 use crate::admission_retry::retry_until_with_remaining;
-use crate::kafkars_api::{KafkaError, RetryAdvice, ShareGroupDescription, TopicPartition};
+use crate::kafkars_api::{
+    KafkaError, RetryAdvice, ShareGroupDescription, ShareGroupOffsetAlteration, TopicPartition,
+};
 use crate::protocol::emit;
 use crate::protocol_admin_plural_result::{ResourceResult, ordered_partition_results};
 use crate::state::AdapterState;
@@ -102,6 +105,62 @@ pub(crate) fn list_offsets<W: Write>(
                 start_offset,
                 leader_epoch,
                 lag,
+                error_code,
+            }),
+        ),
+    )
+}
+
+pub(crate) fn alter_offsets<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: AlterShareGroupOffsetsCommand,
+) -> Result<(), AdapterError> {
+    let result = state
+        .client(&command.client_id)?
+        .admin()
+        .alter_share_group_offsets(
+            command.group_id.clone(),
+            [ShareGroupOffsetAlteration::new(
+                command.topic.clone(),
+                command.partition,
+                command.start_offset,
+            )],
+        )
+        .deadline_after(Duration::from_millis(command.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let requested = [(command.topic.clone(), command.partition)];
+    let result = ordered_partition_results(
+        result.into_offsets().into_entries(),
+        &requested,
+        &command.operation_id,
+        "Share-group offset alteration",
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| {
+        AdapterError::AdminResult(format!(
+            "admin operation {} omitted its Share-group offset alteration outcome",
+            command.operation_id
+        ))
+    })?;
+    let (topic_id, error_code) = match result.result {
+        ResourceResult::Success(topic_id) => (topic_id, None),
+        ResourceResult::Failure(code) => ([0; 16], Some(code)),
+    };
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::ShareGroupOffsetsAltered(AdminShareGroupOffsetAlteration {
+                operation_id: command.operation_id,
+                group_id: command.group_id,
+                topic: result.topic,
+                partition: result.partition,
+                topic_id,
                 error_code,
             }),
         ),

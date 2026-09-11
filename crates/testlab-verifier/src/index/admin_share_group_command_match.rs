@@ -6,6 +6,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
     match action {
         ScenarioAction::DescribeShareGroup(value) => Some(&value.operation_id),
         ScenarioAction::ListShareGroupOffsets(value) => Some(&value.operation_id),
+        ScenarioAction::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -14,6 +15,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
     match command {
         AdapterCommand::DescribeShareGroup(value) => Some(&value.operation_id),
         AdapterCommand::ListShareGroupOffsets(value) => Some(&value.operation_id),
+        AdapterCommand::AlterShareGroupOffsets(value) => Some(&value.operation_id),
         _ => None,
     }
 }
@@ -45,6 +47,20 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         }
         (ScenarioAction::ListShareGroupOffsets(_), _)
         | (_, AdapterCommand::ListShareGroupOffsets(_)) => false,
+        (
+            ScenarioAction::AlterShareGroupOffsets(action),
+            AdapterCommand::AlterShareGroupOffsets(command),
+        ) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.group_id == command.group_id
+                && action.topic == command.topic
+                && action.partition == command.partition
+                && action.start_offset == command.start_offset
+                && action.timeout_ms == command.timeout_ms
+        }
+        (ScenarioAction::AlterShareGroupOffsets(_), _)
+        | (_, AdapterCommand::AlterShareGroupOffsets(_)) => false,
         _ => return None,
     };
     Some(matches)

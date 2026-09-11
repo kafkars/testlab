@@ -1,7 +1,8 @@
 //! Share-group observation targets require an exact action and wire command pair.
 
 use testlab_schema::{
-    AdapterCommand, DescribeShareGroupCommand, ListShareGroupOffsetsCommand, ScenarioAction,
+    AdapterCommand, AlterShareGroupOffsetsCommand, DescribeShareGroupCommand,
+    ListShareGroupOffsetsCommand, ScenarioAction,
 };
 
 use crate::observer_admin_target::{
@@ -30,6 +31,23 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 group_id: action.group_id.clone(),
                 topic: action.topic.clone(),
                 partition: action.partition,
+                timeout_ms: action.timeout_ms,
+            }),
+            AdminTarget::ShareGroupOffset(ShareGroupOffsetTarget {
+                operation_id: action.operation_id.clone(),
+                group_id: action.group_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+            }),
+        ),
+        ScenarioAction::AlterShareGroupOffsets(action) => (
+            AdapterCommand::AlterShareGroupOffsets(AlterShareGroupOffsetsCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                group_id: action.group_id.clone(),
+                topic: action.topic.clone(),
+                partition: action.partition,
+                start_offset: action.start_offset,
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::ShareGroupOffset(ShareGroupOffsetTarget {

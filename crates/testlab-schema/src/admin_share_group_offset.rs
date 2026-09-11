@@ -44,6 +44,48 @@ pub struct ListShareGroupOffsetsCommand {
     pub timeout_ms: u64,
 }
 
+/// Scenario intent for altering one selected Share-group partition offset.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AlterShareGroupOffsetsAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact nonnegative partition.
+    pub partition: i32,
+    /// Exact nonnegative Share-partition start offset to install.
+    pub start_offset: i64,
+    /// Exact nonnegative resulting lag required by the verifier.
+    pub expected_lag: i64,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Wire payload for altering one selected Share-group partition offset.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AlterShareGroupOffsetsCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact nonnegative partition.
+    pub partition: i32,
+    /// Exact nonnegative Share-partition start offset to install.
+    pub start_offset: i64,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
 /// Public result for one selected Share-group partition offset.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -64,6 +106,24 @@ pub struct AdminShareGroupOffsetListing {
     pub leader_epoch: Option<i32>,
     /// Share-partition lag, when the negotiated version supplied it.
     pub lag: Option<i64>,
+    /// Stable normalized per-partition error code.
+    pub error_code: Option<String>,
+}
+
+/// Public result for one selected Share-group partition offset alteration.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminShareGroupOffsetAlteration {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact Kafka Share-group identity.
+    pub group_id: String,
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact nonnegative partition.
+    pub partition: i32,
+    /// Broker-issued nonzero topic identity on success.
+    pub topic_id: [u8; 16],
     /// Stable normalized per-partition error code.
     pub error_code: Option<String>,
 }

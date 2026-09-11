@@ -1,7 +1,7 @@
 //! Share-group verification joins detailed public results to immediate Kafka CLI state.
 
 use testlab_schema::{
-    AdminShareGroupDescription, AdminShareGroupOffsetListing, BrokerShareGroupOffset,
+    AdminShareGroupDescription, AdminShareGroupOffsetListing, BrokerShareGroupOffset, Scenario,
     ScenarioAction, Violation,
 };
 
@@ -11,6 +11,7 @@ use crate::index::admin_share_group::Indexed;
 use crate::support::violation;
 
 pub(crate) fn verify_share_group_action(
+    scenario: &Scenario,
     action: &ScenarioAction,
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
@@ -21,6 +22,11 @@ pub(crate) fn verify_share_group_action(
         }
         ScenarioAction::ListShareGroupOffsets(value) => {
             verify_offset_action(action, value, index, violations)
+        }
+        ScenarioAction::AlterShareGroupOffsets(value) => {
+            crate::admin_share_group_offset_mutation::verify(
+                scenario, action, value, index, violations,
+            );
         }
         _ => return false,
     }
@@ -226,6 +232,38 @@ fn offset_observation_matches(
         && actual.partition == expected.partition
         && actual.start_offset == Some(expected.expected_start_offset)
         && actual.lag == Some(expected.expected_lag)
+}
+
+pub(crate) fn exact_offset_evidence(
+    scenario_action: &ScenarioAction,
+    action: &testlab_schema::ListShareGroupOffsetsAction,
+    index: &HistoryIndex,
+) -> bool {
+    if index.admin_command_state(scenario_action) != (true, 1) {
+        return false;
+    }
+    let window = index.admin_command_window(scenario_action);
+    let public = one(index
+        .admin_share_groups
+        .offsets_listed
+        .get(&action.operation_id));
+    let independent = one(index
+        .admin_share_groups
+        .offsets_observed
+        .get(&action.operation_id));
+    match (public, independent) {
+        (Some(public), Some(independent)) => {
+            public_after_command(window, public.history_sequence)
+                && offset_matches(&public.value, action)
+                && offset_observation_matches(&independent.value, action)
+                && immediate_after_public(
+                    window,
+                    public.history_sequence,
+                    independent.history_sequence,
+                )
+        }
+        _ => false,
+    }
 }
 
 fn one<T>(values: Option<&Vec<Indexed<T>>>) -> Option<&Indexed<T>> {

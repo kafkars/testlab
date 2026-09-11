@@ -223,6 +223,7 @@ pub enum ScenarioAction {
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsAction),
+    AlterShareGroupOffsets(crate::AlterShareGroupOffsetsAction),
     ListConsumerGroupOffsets(crate::ListConsumerGroupOffsetsAction),
     ListConsumerGroupOffsetsBatch(crate::ListConsumerGroupOffsetsBatchAction),
     ListConsumerGroupsOffsets(crate::ListConsumerGroupsOffsetsAction),
@@ -291,7 +292,6 @@ pub enum ScenarioAction {
         producer_id: ProducerId,
     },
     CloseProducer {
-        /// Producer to close.
         producer_id: ProducerId,
     },
     ShutdownClient {
