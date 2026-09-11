@@ -207,6 +207,7 @@ pub enum ScenarioAction {
     DescribeCluster(crate::DescribeClusterAction),
     DescribeFeatures(crate::DescribeFeaturesAction),
     ValidateFeatureUpdates(crate::ValidateFeatureUpdatesAction),
+    ExerciseDelegationTokenLifecycle(crate::ExerciseDelegationTokenLifecycleAction),
     DescribeProducers(crate::DescribeProducersAction),
     DescribeLogDirs(crate::DescribeLogDirsAction),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsAction),
@@ -252,7 +253,6 @@ pub enum ScenarioAction {
         transactional_id: String,
         transaction_timeout_ms: u64,
         initialization_timeout_ms: u64,
-        /// Exact normalized public initialization failure.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         expected_error_code: Option<String>,
     },

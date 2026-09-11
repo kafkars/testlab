@@ -493,6 +493,12 @@ statement = "One public validation-only finalized-feature update returns success
 category = "admin"
 
 [[contract]]
+id = "ADMIN-073"
+title = "Delegation-token administration completes without secret evidence"
+statement = "One authenticated public Admin sequence creates an explicitly owned delegation token, exactly describes its non-secret metadata and matching process-local HMAC, renews its expiry, and expires it immediately under one bound; retained protocol and independently sanitized pinned CLI evidence contain no HMAC bytes, and the immediate owner-filtered CLI state reports zero live tokens."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

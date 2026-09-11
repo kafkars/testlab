@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v61 records the exact environment identity in `manifest.json`,
-retains protocol-v72 direct and hosted-group consumer controls, abandonment,
+Evidence schema v62 records the exact environment identity in `manifest.json`,
+retains protocol-v73 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
@@ -544,6 +544,17 @@ outcome must succeed in caller order and the throttle must fit the operation
 deadline. Exact pinned Kafka CLI feature rows and the finalized epoch must be
 unchanged from the prior ADMIN-050 baseline to the immediate post-completion
 snapshot. This contract is configured only for Kafka 4.3.1 cells.
+
+ADMIN-073 binds one authenticated public Admin command to four sequential
+Kafkars operations under one deadline: create, owner-filtered describe, renew,
+and immediate expire. The adapter compares the two returned HMAC values only
+inside its process and retains only the secret length and equality result;
+neither command nor completion can serialize HMAC bytes. After the public
+completion, Testlab invokes Kafka's pinned delegation-token CLI through a
+separate SASL-authenticated observer listener. A fail-closed shell projection
+emits only the owner-filtered token count, so even unexpected live-token rows
+cannot put CLI HMACs into terminal artifacts. The polled final count must be
+zero and contiguous with the public completion.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

@@ -26,9 +26,10 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::OffsetsListed { .. }
             | ExpectedEvent::RecordsDeleted { .. }
             | ExpectedEvent::RecordsBatchDeleted { .. }
-            | ExpectedEvent::ClusterDescribed { .. }
+            | ExpectedEvent::ClusterDescribed(_)
             | ExpectedEvent::FeaturesDescribed(_)
             | ExpectedEvent::FeatureUpdatesValidated(_)
+            | ExpectedEvent::DelegationTokenLifecycleExercised(_)
             | ExpectedEvent::MetadataQuorumDescribed(_)
             | ExpectedEvent::ProducerStatesDescribed { .. }
             | ExpectedEvent::LogDirsDescribed { .. }
@@ -70,6 +71,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::ClusterDescribed(_)
             | AdapterEvent::FeaturesDescribed(_)
             | AdapterEvent::FeatureUpdatesValidated(_)
+            | AdapterEvent::DelegationTokenLifecycleExercised(_)
             | AdapterEvent::MetadataQuorumDescribed(_)
             | AdapterEvent::ProducersDescribed(_)
             | AdapterEvent::LogDirsDescribed(_)

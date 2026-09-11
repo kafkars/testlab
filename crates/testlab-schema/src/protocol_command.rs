@@ -192,6 +192,7 @@ pub enum AdapterCommand {
     DescribeCluster(crate::DescribeClusterCommand),
     DescribeFeatures(crate::DescribeFeaturesCommand),
     ValidateFeatureUpdates(crate::ValidateFeatureUpdatesCommand),
+    ExerciseDelegationTokenLifecycle(crate::ExerciseDelegationTokenLifecycleCommand),
     DescribeProducers(crate::DescribeProducersCommand),
     DescribeLogDirs(crate::DescribeLogDirsCommand),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsCommand),
@@ -229,7 +230,6 @@ pub enum AdapterCommand {
     DeleteConsumerGroup(crate::DeleteConsumerGroupCommand),
     DeleteConsumerGroups(crate::DeleteConsumerGroupsCommand),
     RemoveConsumerGroupMembers(crate::RemoveConsumerGroupMembersCommand),
-    /// Describes multiple classic consumer groups through one public admin call.
     DescribeClassicGroups(crate::DescribeClassicGroupsCommand),
     CreateAcls(crate::CreateAclsCommand),
     DescribeAcls(crate::DescribeAclsCommand),

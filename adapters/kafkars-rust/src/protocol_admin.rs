@@ -92,6 +92,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::ValidateFeatureUpdates(command) => {
             crate::protocol_admin_feature_updates::validate(state, writer, command_id, command)
         }
+        AdapterCommand::ExerciseDelegationTokenLifecycle(command) => {
+            crate::protocol_admin_delegation_token::exercise(state, writer, command_id, command)
+        }
         AdapterCommand::DescribeProducers(command) => {
             crate::protocol_admin_producers::describe(state, writer, command_id, command)
         }

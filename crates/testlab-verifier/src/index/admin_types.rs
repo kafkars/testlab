@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-pub(super) fn push<K: Ord>(map: &mut BTreeMap<K, Vec<u64>>, key: K, sequence: u64) {
+pub(crate) fn push<K: Ord>(map: &mut BTreeMap<K, Vec<u64>>, key: K, sequence: u64) {
     map.entry(key).or_default().push(sequence);
 }
 

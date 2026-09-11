@@ -12,7 +12,8 @@ use testlab_schema::{
 use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    crate::session_command_admin_user_scram::translate(action)
+    crate::session_command_admin_delegation_token::translate(action)
+        .or_else(|| crate::session_command_admin_user_scram::translate(action))
         .or_else(|| crate::session_command_admin_replica_log_dirs::translate(action))
         .or_else(|| crate::session_command_admin_leader_election::translate(action))
         .or_else(|| crate::session_command_admin_partition_reassignments::translate(action))
@@ -110,9 +111,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 operation_id: action.operation_id.clone(),
                 timeout_ms: action.timeout_ms,
             }),
-            ExpectedEvent::ClusterDescribed {
-                operation_id: action.operation_id.clone(),
-            },
+            ExpectedEvent::ClusterDescribed(action.operation_id.clone()),
         ),
         ScenarioAction::DescribeFeatures(action) => (
             AdapterCommand::DescribeFeatures(DescribeFeaturesCommand {

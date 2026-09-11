@@ -1,0 +1,4 @@
+schema_version = 1
+id = "kafkars-delegation-token"
+title = "packaged Kafkars authenticated delegation-token qualification"
+scenarios = ["scenarios/kafka/admin-delegation-token-lifecycle.toml"]

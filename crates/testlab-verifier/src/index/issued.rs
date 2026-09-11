@@ -116,6 +116,7 @@ impl HistoryIndex {
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::ValidateFeatureUpdates(_)
+            | ScenarioAction::ExerciseDelegationTokenLifecycle(_)
             | ScenarioAction::DescribeProducers(_)
             | ScenarioAction::DescribeLogDirs(_)
             | ScenarioAction::DescribeReplicaLogDirs(_)

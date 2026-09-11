@@ -39,6 +39,7 @@ pub use crate::admin_create_topics_batch::{
     AdminTopicCreationOutcome, AdminTopicsCreationBatch, CreateTopicBatchActionItem,
     CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,
 };
+pub use crate::admin_delegation_token::*;
 pub use crate::admin_delete_records::{
     AdminRecordsBatchDeleted, AdminRecordsDeleted, AdminRecordsDeletionOutcome,
     DeleteRecordsAction, DeleteRecordsBatchAction, DeleteRecordsBatchCommand,
@@ -49,6 +50,7 @@ pub use crate::admin_delete_topics_batch::{
     AdminTopicDeletionOutcome, AdminTopicsDeletion, DeleteTopicExpectation, DeleteTopicsAction,
     DeleteTopicsCommand,
 };
+pub use crate::admin_expected_error::expected_admin_error;
 pub use crate::admin_group::description_batch::{
     AdminConsumerGroupDescriptionOutcome, AdminConsumerGroupDescriptionValue,
     AdminConsumerGroupMemberDescription, AdminConsumerGroupTopicAssignment,

@@ -135,10 +135,9 @@ pub(super) fn classify_admin(
                         .iter()
                         .map(|(topic, partition)| (topic.as_str(), *partition)))
         }
-        (
-            ExpectedEvent::ClusterDescribed { operation_id },
-            AdapterEvent::ClusterDescribed(actual),
-        ) => operation_id == &actual.operation_id,
+        (ExpectedEvent::ClusterDescribed(operation_id), AdapterEvent::ClusterDescribed(actual)) => {
+            operation_id == &actual.operation_id
+        }
         (
             ExpectedEvent::PartitionReassignmentsAltered(operation_id),
             AdapterEvent::PartitionReassignmentsAltered(actual),
@@ -157,6 +156,10 @@ pub(super) fn classify_admin(
         (
             ExpectedEvent::FeatureUpdatesValidated(operation_id),
             AdapterEvent::FeatureUpdatesValidated(actual),
+        ) => operation_id == &actual.operation_id,
+        (
+            ExpectedEvent::DelegationTokenLifecycleExercised(operation_id),
+            AdapterEvent::DelegationTokenLifecycleExercised(actual),
         ) => operation_id == &actual.operation_id,
         (
             ExpectedEvent::MetadataQuorumDescribed(operation_id),

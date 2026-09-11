@@ -94,6 +94,13 @@ attempts = 1
 gating = true
 
 [[cells]]
+id = "apache-kafka-4-3-1-delegation-token-sasl-plain-tls"
+environment = "clusters/apache-kafka/4.3.1/three-sasl-plain-tls.toml"
+pack = "packs/kafkars-delegation-token.toml"
+attempts = 1
+gating = true
+
+[[cells]]
 id = "apache-kafka-4-2-1-plaintext"
 environment = "clusters/apache-kafka/4.2.1/single-plaintext.toml"
 pack = "packs/kafkars-share-release.toml"

@@ -1,8 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use testlab_schema::{
-    AdapterDescriptor, ClientId, CommandId, ConsumedRecord, ConsumerId, EnvironmentOperation,
-    GroupAssignmentsObservation, GroupMembershipEpoch, GroupReceiveSetCompletion, HistoryEntry,
-    OperationId, ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus,
+    ClientId, CommandId, ConsumedRecord, ConsumerId, EnvironmentOperation, OperationId, ProducerId,
+    TerminalStatus,
 };
 pub(crate) mod admin_acl;
 mod admin_acl_command_match;
@@ -13,6 +12,7 @@ mod admin_command_match;
 mod admin_command_router;
 mod admin_config_command_match;
 pub(crate) mod admin_config_resources;
+pub(crate) mod admin_delegation_token;
 mod admin_delete_records_command_match;
 mod admin_feature_update_command_match;
 pub(crate) mod admin_features;
@@ -37,7 +37,6 @@ mod generic_command_recording;
 mod issued;
 mod recording;
 mod share;
-pub(super) use admin_types::push;
 pub(crate) use admin_types::{
     IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion, IndexedAdminTopicCompletion,
     IndexedAdminTopicConfigCompletion, IndexedAdminTopicConfigsDescription,
@@ -47,7 +46,7 @@ pub(crate) use admin_types::{
     IndexedConsumerGroupOffsetObservation, IndexedConsumerGroupsList, IndexedOffsetList,
     IndexedPartitionOffsetsObservation, IndexedRecordsDeleted, IndexedTopicConfigDescription,
     IndexedTopicConfigObservation, IndexedTopicDescription, IndexedTopicIdentityObservation,
-    IndexedTopicObservation, IndexedTopicsList,
+    IndexedTopicObservation, IndexedTopicsList, push,
 };
 pub(crate) use concurrent::{
     ConcurrentPublicEventKind, IndexedConcurrentActorCompletion, IndexedConcurrentBoundary,
@@ -94,17 +93,17 @@ pub(crate) struct IndexedReceive {
     pub(crate) history_sequence: u64,
     pub(crate) records: Vec<ConsumedRecord>,
     pub(crate) committed: Option<bool>,
-    pub(crate) group_epoch: Option<GroupMembershipEpoch>,
+    pub(crate) group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedGroupAssignments {
     pub(crate) history_sequence: u64,
-    pub(crate) observation: GroupAssignmentsObservation,
+    pub(crate) observation: testlab_schema::GroupAssignmentsObservation,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedGroupReceiveSet {
     pub(crate) history_sequence: u64,
-    pub(crate) completion: GroupReceiveSetCompletion,
+    pub(crate) completion: testlab_schema::GroupReceiveSetCompletion,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionCompletion {
@@ -125,7 +124,7 @@ pub(crate) struct IndexedTransactionFence {
 pub(crate) struct IndexedShareReceive {
     pub(crate) history_sequence: u64,
     pub(crate) consumer_id: ConsumerId,
-    pub(crate) records: Vec<ShareConsumedRecord>,
+    pub(crate) records: Vec<testlab_schema::ShareConsumedRecord>,
     pub(crate) acquisition_count: usize,
     pub(crate) member_epoch: Option<i32>,
     pub(crate) assignment_epoch: Option<u64>,
@@ -134,7 +133,7 @@ pub(crate) struct IndexedShareReceive {
 pub(crate) struct IndexedShareAcknowledgement {
     pub(crate) history_sequence: u64,
     pub(crate) receive_id: OperationId,
-    pub(crate) dispositions: Vec<ShareDisposition>,
+    pub(crate) dispositions: Vec<testlab_schema::ShareDisposition>,
     pub(crate) success: bool,
     pub(crate) delivery: Option<TerminalStatus>,
     pub(crate) code: Option<String>,
@@ -195,7 +194,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) concurrent_completed:
         BTreeMap<testlab_schema::ConcurrencyId, Vec<IndexedConcurrentBoundary>>,
     pub(crate) concurrent_public_events: Vec<IndexedConcurrentPublicEvent>,
-    pub(crate) ready: Vec<(u64, AdapterDescriptor)>,
+    pub(crate) ready: Vec<(u64, testlab_schema::AdapterDescriptor)>,
     pub(crate) accepted: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) rejected: BTreeMap<OperationId, Vec<u64>>,
     pub(crate) terminals: BTreeMap<OperationId, Vec<IndexedTerminal>>,
@@ -228,6 +227,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_replica_log_dirs: admin_replica_log_dirs::AdminReplicaLogDirsIndex,
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
+    pub(crate) admin_delegation_tokens: admin_delegation_token::AdminDelegationTokenIndex,
     pub(crate) admin_features: admin_features::AdminFeaturesIndex,
     pub(crate) admin_user_scram: admin_user_scram::AdminUserScramIndex,
     pub(crate) admin_share_groups: admin_share_group::AdminShareGroupIndex,
@@ -290,7 +290,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) environment_operations: Vec<(u64, EnvironmentOperation)>,
 }
 impl HistoryIndex {
-    pub(crate) fn build(history: &[HistoryEntry]) -> Self {
+    pub(crate) fn build(history: &[testlab_schema::HistoryEntry]) -> Self {
         let mut index = Self::default();
         for entry in history {
             index.record(entry);

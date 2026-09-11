@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v72 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v75 and evidence schema v61.
+Protocol v73 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v76 and evidence schema v62.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -97,6 +97,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_cluster`
 - `describe_features`
 - `validate_feature_updates`
+- `exercise_delegation_token_lifecycle`
 - `describe_producers`
 - `describe_log_dirs`
 - `describe_replica_log_dirs`
@@ -265,6 +266,7 @@ timeouts invalidate evidence.
 - `cluster_described`
 - `features_described`
 - `feature_updates_validated`
+- `delegation_token_lifecycle_exercised`
 - `producers_described`
 - `transactions_listed`
 - `transactions_described`
@@ -945,6 +947,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v72 is an exact semantic contract. New capabilities may be declared
+Protocol v73 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

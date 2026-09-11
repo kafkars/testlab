@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 61;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 62;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -76,6 +76,8 @@ pub enum BrokerStateObservation {
     ClientQuota(crate::BrokerClientQuotaState),
     /// One exact named-user SCRAM credential independently read through Kafka's CLI.
     UserScramCredential(crate::BrokerUserScramCredentialState),
+    /// Owner-filtered delegation-token state independently read through Kafka's pinned CLI.
+    DelegationTokens(crate::BrokerDelegationTokensState),
 }
 
 /// One ordered entry in the complete run history.

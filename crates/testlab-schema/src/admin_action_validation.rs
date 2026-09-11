@@ -10,6 +10,10 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
+    if crate::admin_delegation_token::validation::validate(action, clients, operation_ids, problems)
+    {
+        return;
+    }
     if crate::admin_log_dirs::replica_action_validation::validate(
         action,
         clients,

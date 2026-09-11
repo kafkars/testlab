@@ -76,6 +76,10 @@
   listed pinned Kafka CLI state.
 - Kafka 4.3.1 finalized-feature updates cover the public validation-only path,
   caller-ordered outcomes, and exact unchanged CLI state and epoch.
+- Kafka 4.3.1 authenticated delegation-token coverage exercises public create,
+  owner-filtered describe, renew, and immediate expire under one deadline,
+  retains no HMAC bytes, and proves final absence through a secret-free pinned
+  CLI projection on an independently authenticated listener.
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
   incremental add/remove with survivor cursors, and read-committed isolation

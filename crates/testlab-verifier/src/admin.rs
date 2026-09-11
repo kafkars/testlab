@@ -5,6 +5,7 @@ use crate::admin_cluster::verify_cluster_action;
 use crate::admin_config::verify_config_action;
 use crate::admin_config_batch::verify_config_batch_action;
 use crate::admin_config_resources::verify_config_resources_action;
+use crate::admin_delegation_token::verify as verify_delegation_token;
 use crate::admin_discovery::verify_discovery_action;
 use crate::admin_failure::verify_expected_failure;
 use crate::admin_features::verify_features_action;
@@ -14,6 +15,7 @@ use crate::admin_leader_election::verify_leader_election_action;
 use crate::admin_log_dirs::verify_log_dirs_action;
 use crate::admin_metadata_quorum::verify_metadata_quorum_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
+use crate::admin_operation::operation_id;
 use crate::admin_partition_reassignments::verify_partition_reassignments_action;
 use crate::admin_producers::verify_producers_action;
 use crate::admin_records::verify_records_action;
@@ -88,6 +90,7 @@ pub(crate) fn verify_admin(
             || verify_acl_action(&step.action, index, violations)
             || verify_client_quota_action(&step.action, index, violations)
             || verify_user_scram_action(&step.action, index, violations)
+            || verify_delegation_token(&step.action, index, violations)
             || verify_share_group_action(scenario, &step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
@@ -211,6 +214,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         },
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
         ScenarioAction::ValidateFeatureUpdates(_) => "ADMIN-072",
+        ScenarioAction::ExerciseDelegationTokenLifecycle(_) => "ADMIN-073",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",
         ScenarioAction::ListTransactions(_) => "ADMIN-052",
         ScenarioAction::DescribeTransactions(_) => "ADMIN-053",
@@ -231,70 +235,6 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterConsumerGroupOffset(_) => "ADMIN-011",
         ScenarioAction::DeleteConsumerGroupOffset(_) => "ADMIN-012",
         ScenarioAction::DeleteConsumerGroup(_) => "ADMIN-013",
-        _ => return None,
-    })
-}
-fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId> {
-    Some(match action {
-        ScenarioAction::CreateTopic(value) => &value.operation_id,
-        ScenarioAction::CreateTopicsBatch(value) => &value.operation_id,
-        ScenarioAction::CreatePartitions(value) => &value.operation_id,
-        ScenarioAction::DeleteTopic(value) => &value.operation_id,
-        ScenarioAction::DeleteTopics(value) => &value.operation_id,
-        ScenarioAction::DescribeTopic(value) => &value.operation_id,
-        ScenarioAction::DescribeTopics(value) => &value.operation_id,
-        ScenarioAction::ListTopics(value) => &value.operation_id,
-        ScenarioAction::ListConfigResources(value) => &value.operation_id,
-        ScenarioAction::ListOffsets(value) => &value.operation_id,
-        ScenarioAction::ListOffsetsBatch(value) => &value.operation_id,
-        ScenarioAction::DeleteRecords(value) => &value.operation_id,
-        ScenarioAction::DeleteRecordsBatch(value) => &value.operation_id,
-        ScenarioAction::DescribeTopicConfig(value) => &value.operation_id,
-        ScenarioAction::DescribeTopicConfigs(value) => &value.operation_id,
-        ScenarioAction::AlterTopicConfigs(value) => &value.operation_id,
-        ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
-        ScenarioAction::DescribeCluster(value) => &value.operation_id,
-        ScenarioAction::DescribeFeatures(value) => &value.operation_id,
-        ScenarioAction::ValidateFeatureUpdates(value) => &value.operation_id,
-        ScenarioAction::DescribeProducers(value) => &value.operation_id,
-        ScenarioAction::ListTransactions(value) => &value.operation_id,
-        ScenarioAction::DescribeTransactions(value) => &value.operation_id,
-        ScenarioAction::FenceProducers(value) => &value.operation_id,
-        ScenarioAction::AlterPartitionReassignments(value) => &value.operation_id,
-        ScenarioAction::ListPartitionReassignments(value) => &value.operation_id,
-        ScenarioAction::ElectLeaders(value) => &value.operation_id,
-        ScenarioAction::DescribeLogDirs(value) => &value.operation_id,
-        ScenarioAction::DescribeReplicaLogDirs(value) => &value.operation_id,
-        ScenarioAction::AlterReplicaLogDirs(value) => &value.operation_id,
-        ScenarioAction::DescribeMetadataQuorum(value) => &value.operation_id,
-        ScenarioAction::ListConsumerGroups(value) => &value.operation_id,
-        ScenarioAction::DescribeConsumerGroup(value) => &value.operation_id,
-        ScenarioAction::ListConsumerGroupOffsets(value) => &value.operation_id,
-        ScenarioAction::AlterConsumerGroupOffset(value) => &value.operation_id,
-        ScenarioAction::DeleteConsumerGroupOffset(value) => &value.operation_id,
-        ScenarioAction::DeleteConsumerGroup(value) => &value.operation_id,
-        ScenarioAction::DeleteConsumerGroups(value) => &value.operation_id,
-        ScenarioAction::RemoveConsumerGroupMembers(value) => &value.operation_id,
-        ScenarioAction::ListConsumerGroupOffsetsBatch(value) => &value.operation_id,
-        ScenarioAction::ListConsumerGroupsOffsets(value) => &value.operation_id,
-        ScenarioAction::AlterConsumerGroupOffsets(value) => &value.operation_id,
-        ScenarioAction::DeleteConsumerGroupOffsets(value) => &value.operation_id,
-        ScenarioAction::DescribeClassicGroups(value) => &value.operation_id,
-        ScenarioAction::DescribeConsumerGroups(value) => &value.operation_id,
-        ScenarioAction::CreateAcls(value) => &value.operation_id,
-        ScenarioAction::DescribeAcls(value) => &value.operation_id,
-        ScenarioAction::DeleteAcls(value) => &value.operation_id,
-        ScenarioAction::AlterClientQuota(value) => &value.operation_id,
-        ScenarioAction::DescribeClientQuota(value) => &value.operation_id,
-        ScenarioAction::AlterUserScramCredential(value) => &value.operation_id,
-        ScenarioAction::DescribeUserScramCredential(value) => &value.operation_id,
-        ScenarioAction::DescribeShareGroup(value) => &value.operation_id,
-        ScenarioAction::DescribeShareGroups(value) => &value.operation_id,
-        ScenarioAction::ListShareGroupOffsets(value) => &value.operation_id,
-        ScenarioAction::ListShareGroupsOffsets(value) => &value.operation_id,
-        ScenarioAction::AlterShareGroupOffsets(value) => &value.operation_id,
-        ScenarioAction::DeleteShareGroupOffsets(value) => &value.operation_id,
-        ScenarioAction::DeleteShareGroups(value) => &value.operation_id,
         _ => return None,
     })
 }

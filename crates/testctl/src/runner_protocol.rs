@@ -118,11 +118,10 @@ pub(crate) enum ExpectedEvent {
         topic: String,
         config_name: String,
     },
-    ClusterDescribed {
-        operation_id: OperationId,
-    },
+    ClusterDescribed(OperationId),
     FeaturesDescribed(OperationId),
     FeatureUpdatesValidated(OperationId),
+    DelegationTokenLifecycleExercised(OperationId),
     MetadataQuorumDescribed(OperationId),
     ProducerStatesDescribed {
         operation_id: OperationId,

@@ -174,6 +174,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::ValidateFeatureUpdates(_)
+        | AdapterCommand::ExerciseDelegationTokenLifecycle(_)
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
         | AdapterCommand::DescribeReplicaLogDirs(_)

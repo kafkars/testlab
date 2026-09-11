@@ -129,6 +129,12 @@ impl ClientSecurity {
                 SASL_PASSWORD.to_owned(),
             ));
         }
+        if self.profile.authentication != Authentication::None {
+            environment.push((
+                SASL_PASSWORD_ENVIRONMENT.to_owned(),
+                SASL_PASSWORD.to_owned(),
+            ));
+        }
         environment
     }
 

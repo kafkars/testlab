@@ -49,6 +49,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::ValidateFeatureUpdates(_)
+        | AdapterCommand::ExerciseDelegationTokenLifecycle(_)
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
         | AdapterCommand::DescribeReplicaLogDirs(_)

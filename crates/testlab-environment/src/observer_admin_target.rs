@@ -6,10 +6,15 @@ use crate::observer_admin_client_quota_target;
 use crate::observer_admin_config_target;
 pub(super) use crate::observer_admin_config_types::{ConfigBatchTarget, ConfigTarget};
 use crate::observer_admin_consumer_group_deletion_batch_target;
+use crate::observer_admin_delegation_token_target;
 use crate::observer_admin_group_target;
 use crate::observer_admin_leader_election_target;
 use crate::observer_admin_log_dirs_target;
 use crate::observer_admin_offset_batch_target;
+pub(super) use crate::observer_admin_offset_types::{
+    GroupOffsetTarget, GroupOffsetsSelectionTarget, GroupOffsetsTarget, GroupsOffsetsTarget,
+    PartitionOffsetsBatchTarget, PartitionOffsetsTarget,
+};
 use crate::observer_admin_partition_offsets_target;
 use crate::observer_admin_partition_reassignment_target;
 use crate::observer_admin_plural_group_target;
@@ -32,6 +37,7 @@ pub(super) enum AdminTarget {
     Acls(AclsTarget),
     ClientQuota(ClientQuotaTarget),
     UserScramCredential(UserScramCredentialTarget),
+    DelegationTokens(observer_admin_delegation_token_target::DelegationTokenTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
     ClientMetricsResources(ListTarget),
@@ -133,55 +139,13 @@ pub(super) struct OffsetTarget {
     pub(super) poll_expected: bool,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct GroupOffsetTarget {
-    pub(super) topic: String,
-    pub(super) partition: i32,
-    pub(super) expected_offset: Option<i64>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct GroupOffsetsSelectionTarget {
-    pub(super) group_id: String,
-    pub(super) offsets: Vec<GroupOffsetTarget>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct GroupOffsetsTarget {
-    pub(super) operation_id: OperationId,
-    pub(super) group_id: String,
-    pub(super) offsets: Vec<GroupOffsetTarget>,
-    pub(super) poll_expected: bool,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct GroupsOffsetsTarget {
-    pub(super) operation_id: OperationId,
-    pub(super) groups: Vec<GroupOffsetsSelectionTarget>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct PartitionOffsetsTarget {
-    pub(super) operation_id: OperationId,
-    pub(super) topic: String,
-    pub(super) partition: i32,
-    pub(super) expected_low: Option<i64>,
-    pub(super) expected_high: Option<i64>,
-    pub(super) poll_expected: bool,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct PartitionOffsetsBatchTarget {
-    pub(super) operation_id: OperationId,
-    pub(super) offsets: Vec<PartitionOffsetsTarget>,
-}
-
 impl AdminTarget {
     pub(super) fn from_exact(
         action: &ScenarioAction,
         command: &AdapterCommand,
     ) -> Result<Option<Self>, ObserverError> {
         let matched = match observer_admin_user_scram_target::match_action(action)?
+            .or_else(|| observer_admin_delegation_token_target::match_action(action))
             .or(observer_admin_share_group_target::match_action(action)?)
             .or(observer_admin_client_quota_target::match_action(action)?)
             .or(observer_admin_acl_target::match_action(action)?)
@@ -224,6 +188,7 @@ impl AdminTarget {
             Self::Acls(target) => &target.operation_id,
             Self::ClientQuota(target) => &target.operation_id,
             Self::UserScramCredential(target) => &target.operation_id,
+            Self::DelegationTokens(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
             Self::Topics(target)
             | Self::ClientMetricsResources(target)
@@ -265,6 +230,7 @@ impl AdminTarget {
             Self::Acls(target) => target.bindings.len(),
             Self::ClientQuota(_) => 1,
             Self::UserScramCredential(_) => 1,
+            Self::DelegationTokens(_) => 1,
             Self::Topics(target)
             | Self::TopicIdentities(target)
             | Self::TopicDeletions(target)

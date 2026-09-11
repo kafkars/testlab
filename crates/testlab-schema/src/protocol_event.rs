@@ -205,6 +205,7 @@ pub enum AdapterEvent {
     ClusterDescribed(crate::AdminClusterDescription),
     FeaturesDescribed(crate::AdminFeaturesDescription),
     FeatureUpdatesValidated(crate::AdminFeatureUpdatesValidation),
+    DelegationTokenLifecycleExercised(crate::AdminDelegationTokenLifecycle),
     ProducersDescribed(crate::AdminProducersDescription),
     LogDirsDescribed(crate::AdminLogDirsDescription),
     ReplicaLogDirsDescribed(crate::AdminReplicaLogDirsDescription),
@@ -226,7 +227,6 @@ pub enum AdapterEvent {
     ShareGroupOffsetsAltered(crate::AdminShareGroupOffsetAlteration),
     ShareGroupOffsetsDeleted(crate::AdminShareGroupOffsetDeletion),
     ShareGroupsDeleted(crate::AdminShareGroupsDeletion),
-    /// One public admin consumer-group offset listing completed successfully.
     ConsumerGroupOffsetListed(crate::AdminConsumerGroupOffsetListing),
     /// One public single-group offset batch listing returned ordered outcomes.
     ConsumerGroupOffsetsListed(crate::AdminConsumerGroupOffsetsListing),
