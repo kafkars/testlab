@@ -5,8 +5,9 @@ use testlab_schema::{
     ClientId, ConsumerGroupOffsetAlteration, ConsumerGroupOffsetSelection,
     ConsumerGroupOffsetsSelection, ConsumerId, DeleteConsumerGroupOffsetsCommand,
     DescribeClassicGroupsCommand, DescribeTopicCommand, DescribeTopicConfigCommand,
-    ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupOffsetsCommand,
-    ListConsumerGroupsOffsetsCommand, ListOffsetsCommand, ListTopicsCommand, OperationId,
+    DescribeTopicConfigsCommand, ListConsumerGroupOffsetsBatchCommand,
+    ListConsumerGroupOffsetsCommand, ListConsumerGroupsOffsetsCommand, ListOffsetsCommand,
+    ListTopicsCommand, OperationId, TopicConfigSelection,
 };
 
 use crate::session_unsupported::reason;
@@ -121,6 +122,15 @@ fn topic_config_commands_require_admin_capability() {
             operation_id: operation_id.clone(),
             topic: "orders".to_owned(),
             config_name: "cleanup.policy".to_owned(),
+            timeout_ms: 1_000,
+        }),
+        AdapterCommand::DescribeTopicConfigs(DescribeTopicConfigsCommand {
+            client_id: client_id.clone(),
+            operation_id: operation_id.clone(),
+            topics: vec![TopicConfigSelection {
+                topic: "orders".to_owned(),
+                config_name: "cleanup.policy".to_owned(),
+            }],
             timeout_ms: 1_000,
         }),
         AdapterCommand::AlterTopicConfig(AlterTopicConfigCommand {

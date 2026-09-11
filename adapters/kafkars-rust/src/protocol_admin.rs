@@ -76,8 +76,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeCluster(command) => {
             protocol_admin_cluster::describe(state, writer, command_id, command)
         }
-        command
-        @ (AdapterCommand::DescribeTopicConfig(_) | AdapterCommand::AlterTopicConfig(_)) => {
+        command @ (AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::DescribeTopicConfigs(_)
+        | AdapterCommand::AlterTopicConfig(_)) => {
             protocol_admin_config::dispatch(state, writer, command_id, command)
         }
         command @ (AdapterCommand::ListConsumerGroups(_)

@@ -143,6 +143,11 @@ fn admin_targets(
         ScenarioAction::DescribeTopicConfig(action) => {
             require_topic(topics, subject_created, &action.topic, 1);
         }
+        ScenarioAction::DescribeTopicConfigs(action) => {
+            for selected in &action.topics {
+                require_topic(topics, subject_created, &selected.topic, 1);
+            }
+        }
         ScenarioAction::AlterTopicConfig(action) => {
             require_topic(topics, subject_created, &action.topic, 1);
         }

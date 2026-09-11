@@ -15,12 +15,12 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 152);
+    assert_eq!(summary.scenarios, 153);
     assert_eq!(summary.packs, 26);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 20);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 133);
+    assert_eq!(summary.contracts, 134);
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn pull_request_pack_excludes_release_disruptions() {
         Err(error) => panic!("load pull-request pack: {error}"),
     };
 
-    assert_eq!(pack.scenarios.len(), 106);
+    assert_eq!(pack.scenarios.len(), 107);
     assert!(
         !pack
             .scenarios
@@ -286,6 +286,7 @@ fn kafkars_pack_variants_retain_admin_discovery() {
             "admin-topic-lifecycle.toml",
             "admin-alter-consumer-group-offset-partition-isolation.toml",
             "admin-topic-config-lifecycle.toml",
+            "admin-describe-topic-configs.toml",
             "admin-topic-config-validate-only.toml",
         ] {
             assert!(

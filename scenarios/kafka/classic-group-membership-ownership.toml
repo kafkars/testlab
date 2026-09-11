@@ -1,4 +1,4 @@
-schema_version = 54
+schema_version = 55
 id = "kafka.classic-group-membership-ownership"
 title = "two classic members redistribute one complete disjoint assignment"
 description = "Public assignment snapshots prove complete pairwise-disjoint ownership before and after a second classic member joins and leaves, while exact committed records and independent group descriptions corroborate live progress."

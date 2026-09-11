@@ -117,6 +117,14 @@ impl HistoryIndex {
                     config_name: value.config_name.clone(),
                     value: value.value.clone(),
                 }),
+            AdapterEvent::TopicConfigsDescribed(value) => self
+                .topic_configs_batch_described
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(IndexedAdminTopicConfigsDescription {
+                    history_sequence: sequence,
+                    value: value.clone(),
+                }),
             AdapterEvent::TopicConfigAltered(value) => self
                 .topic_configs_altered
                 .entry(value.operation_id.clone())

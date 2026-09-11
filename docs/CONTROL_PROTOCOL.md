@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v51 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v54 and evidence schema v40.
+Protocol v52 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v55 and evidence schema v41.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -81,6 +81,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `delete_records`
 - `delete_records_batch`
 - `describe_topic_config`
+- `describe_topic_configs`
 - `alter_topic_config`
 - `describe_cluster`
 - `list_consumer_groups`
@@ -231,6 +232,7 @@ timeouts invalidate evidence.
 - `records_deleted`
 - `records_batch_deleted`
 - `topic_config_described`
+- `topic_configs_described`
 - `topic_config_altered`
 - `cluster_described`
 - `consumer_groups_listed`
@@ -509,8 +511,12 @@ as broker truth.
 
 Topic-configuration description selects one exact key. Its wire command omits
 the scenario's expected value, and the public nullable value must match an
-immediate independent librdkafka query. Incremental alteration is restricted to
-one exact `SET` replacement after a separately identified description proves a
+immediate independent librdkafka query. `describe_topic_configs` carries two
+through 32 distinct topics with one selected key each into one public call; its
+single completion retains every public value or normalized error in caller
+order, and contiguous immediate independent reads must confirm every expected
+non-sensitive value in that order. Incremental alteration is restricted to one
+exact `SET` replacement after a separately identified description proves a
 different baseline. The public completion and a polling independent query must
 then establish the requested value. Sensitive or unavailable values invalidate
 the evidence instead of being converted into a definite result.
@@ -740,6 +746,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v51 is an exact semantic contract. New capabilities may be declared
+Protocol v52 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -79,6 +79,8 @@ mod admin_share_groups_description_protocol_test;
 #[cfg(test)]
 mod admin_share_groups_offsets_protocol_test;
 #[cfg(test)]
+mod admin_topic_configs_protocol_test;
+#[cfg(test)]
 mod admin_topics_deletion_protocol_test;
 #[cfg(test)]
 mod admin_topics_description_protocol_test;

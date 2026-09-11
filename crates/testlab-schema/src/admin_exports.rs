@@ -7,9 +7,11 @@ pub use crate::admin_cluster::{
     AdminClusterDescription, DescribeClusterAction, DescribeClusterCommand,
 };
 pub use crate::admin_config::{
-    AdminTopicConfigCompletion, AdminTopicConfigDescription, AlterTopicConfigAction,
-    AlterTopicConfigCommand, BrokerTopicConfigState, DescribeTopicConfigAction,
-    DescribeTopicConfigCommand,
+    AdminTopicConfigCompletion, AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome,
+    AdminTopicConfigsDescription, AlterTopicConfigAction, AlterTopicConfigCommand,
+    BrokerTopicConfigState, DescribeTopicConfigAction, DescribeTopicConfigCommand,
+    DescribeTopicConfigExpectation, DescribeTopicConfigsAction, DescribeTopicConfigsCommand,
+    TopicConfigSelection,
 };
 pub use crate::admin_consumer_group_deletion_batch::{
     AdminConsumerGroupDeletionOutcome, AdminConsumerGroupsDeletion, DeleteConsumerGroupsAction,

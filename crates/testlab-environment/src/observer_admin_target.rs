@@ -8,6 +8,7 @@ use crate::observer_admin_acl_target;
 use crate::observer_admin_batch_topic_target;
 use crate::observer_admin_client_quota_target;
 use crate::observer_admin_config_target;
+pub(super) use crate::observer_admin_config_types::{ConfigBatchTarget, ConfigTarget};
 use crate::observer_admin_consumer_group_deletion_batch_target;
 use crate::observer_admin_group_target;
 use crate::observer_admin_offset_batch_target;
@@ -46,6 +47,7 @@ pub(super) enum AdminTarget {
     ConsumerGroupsOffsets(GroupsOffsetsTarget),
     ClassicGroups(ClassicGroupsTarget),
     TopicConfig(ConfigTarget),
+    TopicConfigs(ConfigBatchTarget),
     PartitionOffsets(PartitionOffsetsTarget),
     PartitionOffsetsBatch(PartitionOffsetsBatchTarget),
 }
@@ -151,15 +153,6 @@ pub(super) struct ClassicGroupsTarget {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct ConfigTarget {
-    pub(super) operation_id: OperationId,
-    pub(super) topic: String,
-    pub(super) config_name: String,
-    pub(super) expected_value: String,
-    pub(super) poll_expected: bool,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct PartitionOffsetsTarget {
     pub(super) operation_id: OperationId,
     pub(super) topic: String,
@@ -235,6 +228,7 @@ impl AdminTarget {
             Self::ConsumerGroupsOffsets(target) => &target.operation_id,
             Self::ClassicGroups(target) => &target.operation_id,
             Self::TopicConfig(target) => &target.operation_id,
+            Self::TopicConfigs(target) => &target.operation_id,
             Self::PartitionOffsets(target) => &target.operation_id,
             Self::PartitionOffsetsBatch(target) => &target.operation_id,
         }
@@ -259,6 +253,7 @@ impl AdminTarget {
             Self::ShareGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()
             }
+            Self::TopicConfigs(target) => target.configs.len(),
             Self::PartitionOffsetsBatch(target) => target.offsets.len(),
             _ => 1,
         }

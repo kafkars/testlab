@@ -38,6 +38,56 @@ pub struct DescribeTopicConfigCommand {
     pub timeout_ms: u64,
 }
 
+/// One scenario-side selected topic-configuration expectation.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeTopicConfigExpectation {
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact configuration key selected for this topic.
+    pub config_name: String,
+    /// Exact non-sensitive value required by the verifier.
+    pub expected_value: String,
+}
+
+/// Scenario intent for one caller-ordered plural topic-configuration description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeTopicConfigsAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable identity for the complete public call.
+    pub operation_id: OperationId,
+    /// Caller-ordered selected topic-configuration expectations.
+    pub topics: Vec<DescribeTopicConfigExpectation>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// One selected topic configuration crossing the adapter boundary.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TopicConfigSelection {
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Exact configuration key selected for this topic.
+    pub config_name: String,
+}
+
+/// Wire payload for one caller-ordered plural topic-configuration description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeTopicConfigsCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable identity for the complete public call.
+    pub operation_id: OperationId,
+    /// Caller-ordered selected topic configurations without expectations.
+    pub topics: Vec<TopicConfigSelection>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
 /// Scenario intent for one bounded incremental topic-configuration replacement.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -94,6 +144,30 @@ pub struct AdminTopicConfigDescription {
     pub value: Option<String>,
 }
 
+/// One caller-positioned public topic-configuration outcome.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminTopicConfigDescriptionOutcome {
+    /// Exact topic key returned for this request position.
+    pub topic: String,
+    /// Exact selected configuration key.
+    pub config_name: String,
+    /// Public value, preserving absence for sensitive or unavailable values.
+    pub value: Option<String>,
+    /// Stable normalized per-topic error when the selected description failed.
+    pub error_code: Option<String>,
+}
+
+/// Public result for one caller-ordered plural topic-configuration description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminTopicConfigsDescription {
+    /// Stable identity for the complete public call.
+    pub operation_id: OperationId,
+    /// Caller-ordered public topic-configuration outcomes.
+    pub outcomes: Vec<AdminTopicConfigDescriptionOutcome>,
+}
+
 /// Public completion for one exact topic-configuration mutation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -121,3 +195,7 @@ pub struct BrokerTopicConfigState {
     /// Independently returned non-sensitive value.
     pub value: String,
 }
+
+#[cfg(test)]
+#[path = "admin_config_batch_test.rs"]
+mod batch_test;

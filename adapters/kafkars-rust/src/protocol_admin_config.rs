@@ -6,8 +6,9 @@ use std::time::Duration;
 use crate::kafkars_api::{ConfigAlteration, KafkaError, TopicConfigAlterations, TopicConfigQuery};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminTopicConfigCompletion,
-    AdminTopicConfigDescription, AlterTopicConfigCommand, CommandId, DescribeTopicConfigCommand,
-    OperationId,
+    AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome, AdminTopicConfigsDescription,
+    AlterTopicConfigCommand, CommandId, DescribeTopicConfigCommand, DescribeTopicConfigsCommand,
+    OperationId, TopicConfigSelection,
 };
 
 use crate::AdapterError;
@@ -29,11 +30,59 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeTopicConfig(command) => {
             describe(state, writer, command_id, command)
         }
+        AdapterCommand::DescribeTopicConfigs(command) => {
+            describe_batch(state, writer, command_id, command)
+        }
         AdapterCommand::AlterTopicConfig(command) => alter(state, writer, command_id, command),
         _ => Err(AdapterError::AdminResult(
             "non-config command reached admin config dispatcher".to_owned(),
         )),
     }
+}
+
+fn describe_batch<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: DescribeTopicConfigsCommand,
+) -> Result<(), AdapterError> {
+    let queries = command.topics.iter().map(|selected| {
+        TopicConfigQuery::new(selected.topic.clone())
+            .configuration_keys([selected.config_name.clone()])
+    });
+    let result = state
+        .client(&command.client_id)?
+        .admin()
+        .describe_configs(queries)
+        .deadline_after(Duration::from_millis(command.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let entries = result
+        .into_topics()
+        .into_entries()
+        .into_iter()
+        .map(|(topic, result)| {
+            (
+                topic,
+                result.map(|entries| {
+                    entries
+                        .into_iter()
+                        .map(|entry| (entry.name().to_owned(), entry.value().map(str::to_owned)))
+                        .collect::<Vec<_>>()
+                }),
+            )
+        })
+        .collect();
+    let outcomes = described_outcomes(entries, &command.topics, &command.operation_id)?;
+    emit_event(
+        writer,
+        command_id,
+        AdapterEvent::TopicConfigsDescribed(AdminTopicConfigsDescription {
+            operation_id: command.operation_id,
+            outcomes,
+        }),
+    )
 }
 
 fn describe<W: Write>(
@@ -151,6 +200,59 @@ pub(crate) fn described_value(
         ));
     }
     Ok(value)
+}
+
+pub(crate) fn described_outcomes(
+    entries: Vec<TopicConfigResult>,
+    expected: &[TopicConfigSelection],
+    operation_id: &OperationId,
+) -> Result<Vec<AdminTopicConfigDescriptionOutcome>, AdapterError> {
+    if entries.len() != expected.len() {
+        return Err(invalid(
+            operation_id,
+            "returned a different number of topic-configuration outcomes than requested",
+        ));
+    }
+    entries
+        .into_iter()
+        .zip(expected)
+        .map(|((topic, result), expected)| {
+            if topic.as_str() != expected.topic.as_str() {
+                return Err(invalid(
+                    operation_id,
+                    "returned topic-configuration outcomes outside caller order",
+                ));
+            }
+            match result {
+                Ok(configs) => {
+                    let mut configs = configs.into_iter();
+                    let Some((config_name, value)) = configs.next() else {
+                        return Err(invalid(operation_id, "returned no selected configuration"));
+                    };
+                    if configs.next().is_some()
+                        || config_name.as_str() != expected.config_name.as_str()
+                    {
+                        return Err(invalid(
+                            operation_id,
+                            "returned an unexpected selected configuration",
+                        ));
+                    }
+                    Ok(AdminTopicConfigDescriptionOutcome {
+                        topic,
+                        config_name,
+                        value,
+                        error_code: None,
+                    })
+                }
+                Err(error) => Ok(AdminTopicConfigDescriptionOutcome {
+                    topic,
+                    config_name: expected.config_name.clone(),
+                    value: None,
+                    error_code: Some(crate::normalize::error_code(&error)),
+                }),
+            }
+        })
+        .collect()
 }
 
 fn emit_event<W: Write>(

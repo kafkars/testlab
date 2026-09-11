@@ -95,6 +95,7 @@ pub(super) fn capture(
         AdminTarget::TopicConfig(target) => {
             Ok(vec![observer_admin_config::capture(request, target)?])
         }
+        AdminTarget::TopicConfigs(target) => observer_admin_config::capture_batch(request, target),
         AdminTarget::PartitionOffsets(target) => {
             Ok(vec![observer_partition_offsets::capture(request, target)?])
         }

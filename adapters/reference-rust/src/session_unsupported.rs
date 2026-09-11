@@ -38,6 +38,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DeleteRecords(_)
         | AdapterCommand::DeleteRecordsBatch(_)
         | AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::DescribeTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::ListConsumerGroups(_)

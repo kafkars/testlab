@@ -135,6 +135,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteRecords(_)
         | AdapterCommand::DeleteRecordsBatch(_)
         | AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::DescribeTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::ListConsumerGroups(_)

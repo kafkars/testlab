@@ -11,10 +11,30 @@ use testlab_schema::{BrokerStateObservation, BrokerTopicConfigState};
 
 use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
-use crate::observer_admin_target::ConfigTarget;
+use crate::observer_admin_target::{ConfigBatchTarget, ConfigTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 const POLL_SLICE: Duration = Duration::from_millis(50);
+
+pub(super) fn capture_batch(
+    request: AdminObserverRequest<'_>,
+    target: &ConfigBatchTarget,
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
+    target
+        .configs
+        .iter()
+        .enumerate()
+        .map(|(index, selected)| {
+            capture(
+                AdminObserverRequest {
+                    first_observation: ordinal(request.first_observation, index)?,
+                    ..request
+                },
+                selected,
+            )
+        })
+        .collect()
+}
 
 pub(super) fn capture(
     request: AdminObserverRequest<'_>,

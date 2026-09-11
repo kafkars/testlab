@@ -1,4 +1,4 @@
-schema_version = 54
+schema_version = 55
 id = "kafka.consumer-protocol-group-session-recovery"
 title = "one KIP-848 member recovers while every broker is disrupted"
 description = "Testlab stops each broker in turn while one KIP-848 member remains live, observes a valid public assignment after every disruption, and proves committed forward progress after the stop that necessarily disrupts its original group coordinator."

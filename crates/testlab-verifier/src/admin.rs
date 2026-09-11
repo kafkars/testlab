@@ -7,6 +7,7 @@ use crate::admin_batch::verify_batch_action;
 use crate::admin_client_quota::verify_client_quota_action;
 use crate::admin_cluster::verify_cluster_action;
 use crate::admin_config::verify_config_action;
+use crate::admin_config_batch::verify_config_batch_action;
 use crate::admin_discovery::verify_discovery_action;
 use crate::admin_failure::verify_expected_failure;
 use crate::admin_group::verify_group_action;
@@ -89,6 +90,7 @@ pub(crate) fn verify_admin(
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
             || verify_group_batch_action(scenario, &step.action, index, violations)
+            || verify_config_batch_action(&step.action, index, violations)
             || verify_config_action(&step.action, index, violations)
             || verify_topic_action(&step.action, index, violations)
             || verify_topics_deletion_action(scenario, &step.action, index, violations)
@@ -174,6 +176,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
         ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",
         ScenarioAction::DescribeTopicConfig(_) => "ADMIN-015",
+        ScenarioAction::DescribeTopicConfigs(_) => "ADMIN-048",
         ScenarioAction::AlterTopicConfig(_) => "ADMIN-016",
         ScenarioAction::ListConsumerGroupOffsets(_) => "ADMIN-006",
         ScenarioAction::DeleteTopic(_) => "ADMIN-007",
@@ -202,6 +205,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DeleteRecords(value) => &value.operation_id,
         ScenarioAction::DeleteRecordsBatch(value) => &value.operation_id,
         ScenarioAction::DescribeTopicConfig(value) => &value.operation_id,
+        ScenarioAction::DescribeTopicConfigs(value) => &value.operation_id,
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeCluster(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroups(value) => &value.operation_id,

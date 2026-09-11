@@ -36,9 +36,10 @@ mod share;
 pub(super) use admin_types::push;
 pub(crate) use admin_types::{
     IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion, IndexedAdminTopicCompletion,
-    IndexedAdminTopicConfigCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion,
-    IndexedAdminTopicsDescription, IndexedClusterDescription, IndexedClusterObservation,
-    IndexedConsumerGroupDescription, IndexedConsumerGroupObservation, IndexedConsumerGroupOffset,
+    IndexedAdminTopicConfigCompletion, IndexedAdminTopicConfigsDescription,
+    IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion, IndexedAdminTopicsDescription,
+    IndexedClusterDescription, IndexedClusterObservation, IndexedConsumerGroupDescription,
+    IndexedConsumerGroupObservation, IndexedConsumerGroupOffset,
     IndexedConsumerGroupOffsetObservation, IndexedConsumerGroupsList, IndexedOffsetList,
     IndexedPartitionOffsetsObservation, IndexedRecordsDeleted, IndexedTopicConfigDescription,
     IndexedTopicConfigObservation, IndexedTopicDescription, IndexedTopicObservation,
@@ -222,6 +223,8 @@ pub(crate) struct HistoryIndex {
     pub(crate) offsets_listed: BTreeMap<OperationId, Vec<IndexedOffsetList>>,
     pub(crate) records_deleted: BTreeMap<OperationId, Vec<IndexedRecordsDeleted>>,
     pub(crate) topic_configs_described: BTreeMap<OperationId, Vec<IndexedTopicConfigDescription>>,
+    pub(crate) topic_configs_batch_described:
+        BTreeMap<OperationId, Vec<IndexedAdminTopicConfigsDescription>>,
     pub(crate) topic_configs_altered: BTreeMap<OperationId, Vec<IndexedAdminTopicConfigCompletion>>,
     pub(crate) admin_validations: admin_validation::AdminValidationIndex,
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
@@ -292,9 +295,5 @@ impl HistoryIndex {
             index.record(entry);
         }
         index
-    }
-
-    pub(crate) fn finish_issued(&self) -> bool {
-        !self.has_harness_commands || self.finish_issued
     }
 }

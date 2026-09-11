@@ -343,6 +343,12 @@ statement = "One public record deletion over multiple distinct topic-partitions 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-048"
+title = "Plural topic-configuration descriptions preserve caller order and broker truth"
+statement = "One public selected-configuration description over multiple topics preserves every topic, selected key, and non-sensitive value in caller order, while contiguous immediate independent configuration reads confirm the same values in the same order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

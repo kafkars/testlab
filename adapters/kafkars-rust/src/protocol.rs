@@ -1,5 +1,4 @@
 //! Protocol interpreter translates commands into packaged Kafkars public calls.
-
 use std::io::{self, BufRead, Read, Write};
 
 use testlab_schema::{
@@ -178,6 +177,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ListOffsets(_)
         | AdapterCommand::ListOffsetsBatch(_)
         | AdapterCommand::DescribeTopicConfig(_)
+        | AdapterCommand::DescribeTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::ListConsumerGroups(_)

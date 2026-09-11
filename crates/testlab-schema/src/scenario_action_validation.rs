@@ -1,5 +1,4 @@
 //! Action validation owns handle state and producer operation identities.
-
 use std::collections::BTreeSet;
 
 pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, ProducerStates};
@@ -130,6 +129,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DeleteRecords(_)
         | ScenarioAction::DeleteRecordsBatch(_)
         | ScenarioAction::DescribeTopicConfig(_)
+        | ScenarioAction::DescribeTopicConfigs(_)
         | ScenarioAction::AlterTopicConfig(_)
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::ListConsumerGroups(_)

@@ -23,7 +23,8 @@
   deletion, singleton record-prefix deletion and caller-ordered plural record
   deletion with explicit and high-watermark boundaries, singleton and caller-ordered plural
   empty-group deletion, and selected
-  topic-configuration description, replacement, and restoration; caller-ordered
+  topic-configuration description, caller-ordered plural selected-configuration
+  description, replacement, and restoration; caller-ordered
   literal ACL creation, exact description, and exact deletion plus named-user
   producer and consumer quota replacement, description, and removal and
   SCRAM-SHA-256/512 credential upsert, description, and deletion, plus active

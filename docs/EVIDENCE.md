@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v40 records the exact environment identity in `manifest.json`,
-retains protocol-v51 direct and hosted-group consumer controls and shutdown,
+Evidence schema v41 records the exact environment identity in `manifest.json`,
+retains protocol-v52 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -330,6 +330,11 @@ explicit offset or high-watermark selection, and successful low watermark.
 Immediate independent polling must retain consecutive facts in that same order,
 with each low watermark at the selected boundary and each high watermark
 unchanged before the next command.
+
+ADMIN-048 binds one caller-ordered public selected-configuration batch to every
+topic, key, non-sensitive value, and absence of a per-topic error. Immediate
+independent configuration facts retain consecutive history and observation
+order and must confirm every exact selected value before the next command.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

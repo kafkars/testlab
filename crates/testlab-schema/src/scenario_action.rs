@@ -17,7 +17,6 @@ pub enum ScenarioAction {
         producer_id: ProducerId,
     },
     SetBrokerBehavior {
-        /// Next model-broker behavior.
         behavior: crate::BrokerBehavior,
     },
     ArmProtocolFault(crate::ProtocolFaultAction),
@@ -215,6 +214,7 @@ pub enum ScenarioAction {
     DeleteRecords(crate::DeleteRecordsAction),
     DeleteRecordsBatch(crate::DeleteRecordsBatchAction),
     DescribeTopicConfig(crate::DescribeTopicConfigAction),
+    DescribeTopicConfigs(crate::DescribeTopicConfigsAction),
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),

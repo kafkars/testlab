@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v51. It is not a
+An adapter translates one packaged client surface to protocol v52. It is not a
 runner and not a verifier.
 
 ## Checklist

@@ -105,6 +105,7 @@ impl HistoryIndex {
             | ScenarioAction::DeleteRecords(_)
             | ScenarioAction::DeleteRecordsBatch(_)
             | ScenarioAction::DescribeTopicConfig(_)
+            | ScenarioAction::DescribeTopicConfigs(_)
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::DescribeCluster(_)
             | ScenarioAction::ListConsumerGroups(_)
@@ -227,5 +228,9 @@ impl HistoryIndex {
             }
             _ => None,
         }
+    }
+
+    pub(crate) fn finish_issued(&self) -> bool {
+        !self.has_harness_commands || self.finish_issued
     }
 }

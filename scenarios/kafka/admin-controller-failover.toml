@@ -1,4 +1,4 @@
-schema_version = 54
+schema_version = 55
 id = "kafka.admin-controller-failover"
 title = "admin mutation recovers across an observed controller election"
 description = "Testlab independently selects and stops the active Kafka controller, proves a distinct replacement, and the packaged admin creates one exact topic with immediate independent metadata while the original controller remains offline."

@@ -1,0 +1,33 @@
+schema_version = 55
+id = "kafka.admin-describe-topic-configs"
+title = "packaged admin describes caller-ordered topic configurations"
+description = "One public plural topic-configuration description preserves caller order and exact selected values while contiguous independent configuration reads confirm both topics."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-topic-configs"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-describe-topic-configs"
+topics = [
+  { topic = "testlab-kafkars-admin-describe-topic-configs-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-admin-describe-topic-configs-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
