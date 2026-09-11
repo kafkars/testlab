@@ -20,8 +20,9 @@
   latest-offset administration, consumer-group offset listing, alteration, and
   deletion, record-prefix deletion, empty-group deletion, and selected
   topic-configuration description, replacement, and restoration; caller-ordered
-  literal ACL creation, exact description, and exact deletion against independent
-  Kafka CLI state; transactions, fencing, broker restart, rolling restart, and independently targeted
+  literal ACL creation, exact description, and exact deletion plus named-user
+  producer and consumer quota replacement, description, and removal against
+  independent Kafka CLI state; transactions, fencing, broker restart, rolling restart, and independently targeted
   partition-leader, controller, classic and KIP-848 group-coordinator, and
   transaction-coordinator recovery.
 - A SASL/PLAIN policy environment and targeted scenarios cover topic produce,

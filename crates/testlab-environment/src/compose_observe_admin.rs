@@ -30,6 +30,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::Acls(_)) = &target {
             return self.observe_acls_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::ClientQuota(_)) = &target {
+            return self.observe_client_quota_with_cli(target, timeout);
+        }
         if self.cluster_size > 1
             && let Ok(target) = &target
             && crate::group_cli_observation::supports(target)

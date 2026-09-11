@@ -7,6 +7,7 @@ use super::{
     IndexedConsumerGroupDescription, IndexedConsumerGroupOffset, IndexedConsumerGroupsList,
     IndexedOffsetList, IndexedRecordsDeleted, IndexedTopicConfigDescription,
     IndexedTopicDescription, IndexedTopicsList,
+    admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
 
 impl HistoryIndex {
@@ -15,6 +16,9 @@ impl HistoryIndex {
         reason = "the exhaustive event recorder keeps every public admin result visibly indexed"
     )]
     pub(super) fn record_admin_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
+        if self.admin_client_quotas.record_event(event, sequence) {
+            return true;
+        }
         if self.admin_acls.record_event(event, sequence) {
             return true;
         }
@@ -251,33 +255,6 @@ impl HistoryIndex {
             .filter(|failure| &failure.command_id == command_id)
             .collect()
     }
-}
-
-fn action_operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId> {
-    super::admin_acl_command_match::action_operation_id(action)
-        .or_else(|| super::admin_batch_command_match::action_operation_id(action))
-        .or_else(|| super::admin_group_batch::action_operation_id(action))
-        .or_else(|| super::admin_delete_records_command_match::action_operation_id(action))
-        .or_else(|| super::admin_command_match::action_operation_id(action))
-        .or_else(|| super::admin_config_command_match::action_operation_id(action))
-}
-
-fn command_operation_id(command: &AdapterCommand) -> Option<&testlab_schema::OperationId> {
-    super::admin_acl_command_match::command_operation_id(command)
-        .or_else(|| super::admin_batch_command_match::command_operation_id(command))
-        .or_else(|| super::admin_group_batch::command_operation_id(command))
-        .or_else(|| super::admin_delete_records_command_match::command_operation_id(command))
-        .or_else(|| super::admin_command_match::command_operation_id(command))
-        .or_else(|| super::admin_config_command_match::command_operation_id(command))
-}
-
-fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
-    super::admin_acl_command_match::matches(action, command)
-        .or_else(|| super::admin_batch_command_match::matches(action, command))
-        .or_else(|| super::admin_group_batch::matches(action, command))
-        .or_else(|| super::admin_delete_records_command_match::matches(action, command))
-        .or_else(|| super::admin_config_command_match::matches(action, command))
-        .unwrap_or_else(|| super::admin_command_match::matches(action, command))
 }
 
 fn topic_completion(history_sequence: u64, topic: String) -> IndexedAdminTopicCompletion {

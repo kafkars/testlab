@@ -6,6 +6,8 @@ mod admin_acl_validation;
 mod admin_action_validation;
 mod admin_classic_group;
 mod admin_classic_group_transition_validation;
+mod admin_client_quota;
+mod admin_client_quota_validation;
 mod admin_cluster;
 mod admin_config;
 mod admin_config_action_validation;
@@ -179,6 +181,8 @@ pub use verdict::{Verdict, VerdictStatus, Violation};
 mod admin_acl_test;
 #[cfg(test)]
 mod admin_action_validation_test;
+#[cfg(test)]
+mod admin_client_quota_test;
 #[cfg(test)]
 mod admin_config_test;
 #[cfg(test)]

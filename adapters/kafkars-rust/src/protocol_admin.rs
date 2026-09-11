@@ -23,6 +23,10 @@ pub(crate) fn dispatch<W: Write>(
     command: AdapterCommand,
 ) -> Result<(), AdapterError> {
     match command {
+        command
+        @ (AdapterCommand::AlterClientQuota(_) | AdapterCommand::DescribeClientQuota(_)) => {
+            crate::protocol_admin_client_quota::dispatch(state, writer, command_id, command)
+        }
         command @ (AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)
         | AdapterCommand::DeleteAcls(_)) => {

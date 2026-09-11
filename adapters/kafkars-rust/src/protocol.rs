@@ -190,7 +190,9 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteConsumerGroup(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)
-        | AdapterCommand::DeleteAcls(_)) => {
+        | AdapterCommand::DeleteAcls(_)
+        | AdapterCommand::AlterClientQuota(_)
+        | AdapterCommand::DescribeClientQuota(_)) => {
             protocol_admin::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateTransactionalProducer { .. }

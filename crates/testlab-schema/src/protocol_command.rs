@@ -226,6 +226,8 @@ pub enum AdapterCommand {
     CreateAcls(crate::CreateAclsCommand),
     DescribeAcls(crate::DescribeAclsCommand),
     DeleteAcls(crate::DeleteAclsCommand),
+    AlterClientQuota(crate::AlterClientQuotaCommand),
+    DescribeClientQuota(crate::DescribeClientQuotaCommand),
     /// Initializes one public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.
@@ -234,9 +236,7 @@ pub enum AdapterCommand {
         producer_id: ProducerId,
         /// Exact Kafka transactional identity.
         transactional_id: String,
-        /// Broker-side transaction timeout.
         transaction_timeout_ms: u64,
-        /// Complete public initialization bound.
         initialization_timeout_ms: u64,
     },
     /// Runs one bounded linear public transaction.

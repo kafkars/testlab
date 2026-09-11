@@ -1,4 +1,4 @@
-schema_version = 41
+schema_version = 42
 id = "kafka.admin-describe-classic-groups"
 title = "packaged admin describes multiple live classic consumer groups"
 description = "Two live classic members each receive and commit an exact marker, then the dedicated packaged classic-group API returns both groups in caller order while one independent broker snapshot confirms their member counts."

@@ -101,7 +101,9 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DescribeClassicGroups(_)
         | ScenarioAction::CreateAcls(_)
         | ScenarioAction::DescribeAcls(_)
-        | ScenarioAction::DeleteAcls(_)) => {
+        | ScenarioAction::DeleteAcls(_)
+        | ScenarioAction::AlterClientQuota(_)
+        | ScenarioAction::DescribeClientQuota(_)) => {
             return crate::session_command_admin::translate(action);
         }
         action @ (ScenarioAction::CreateTransactionalProducer { .. }

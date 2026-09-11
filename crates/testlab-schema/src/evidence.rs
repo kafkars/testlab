@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 27;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 28;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -46,6 +46,8 @@ pub enum BrokerStateObservation {
     PartitionOffsets(crate::BrokerPartitionOffsets),
     /// One exact literal wildcard-host ACL independently read through Kafka's CLI.
     Acl(crate::BrokerAclState),
+    /// One exact named-user byte-rate quota independently read through Kafka's CLI.
+    ClientQuota(crate::BrokerClientQuotaState),
 }
 
 /// One ordered entry in the complete run history.

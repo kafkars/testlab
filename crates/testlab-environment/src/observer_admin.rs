@@ -36,6 +36,9 @@ pub(super) fn capture(
         AdminTarget::Acls(_) => Err(ObserverError::InvalidTarget(
             "ACL target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::ClientQuota(_) => Err(ObserverError::InvalidTarget(
+            "client-quota target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::Topic(target) => Ok(vec![observer_admin_metadata::capture_topic(
             request, target,
         )?]),

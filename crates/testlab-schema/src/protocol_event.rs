@@ -240,6 +240,8 @@ pub enum AdapterEvent {
     AclsCreated(crate::AdminAclsCreation),
     AclsDescribed(crate::AdminAclsDescription),
     AclsDeleted(crate::AdminAclsDeletion),
+    ClientQuotaAltered(crate::AdminClientQuotaAlteration),
+    ClientQuotaDescribed(crate::AdminClientQuotaDescription),
     /// Public transactional producer initialization completed.
     TransactionalProducerCreated {
         /// Created transactional producer.
@@ -247,9 +249,7 @@ pub enum AdapterEvent {
     },
     /// One public transaction reached an observed terminal disposition.
     TransactionCompleted {
-        /// Stable transaction operation identity.
         transaction_id: OperationId,
-        /// Observed commit or abort outcome.
         disposition: TransactionDisposition,
     },
     /// One public transactional transform and checkpoint transfer completed.

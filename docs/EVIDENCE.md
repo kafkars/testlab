@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v27 records the exact environment identity in `manifest.json`,
-retains protocol-v38 direct and hosted-group consumer controls and shutdown,
+Evidence schema v28 records the exact environment identity in `manifest.json`,
+retains protocol-v39 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -176,10 +176,11 @@ replica topology, or untested offset selectors.
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
 consumer-group existence and member count, one consumer-group committed offset,
-exact partition low and high watermarks, and exact literal wildcard-host ACL
-presence. Each query runs immediately after its exact correlated public admin
-command while later scenario steps are paused. A state query is never emitted
-for a public command that was not actually issued.
+exact partition low and high watermarks, exact literal wildcard-host ACL
+presence, and exact named-user byte-rate quota state. Each query runs
+immediately after its exact correlated public admin command while later
+scenario steps are paused. A state query is never emitted for a public command
+that was not actually issued.
 
 After a topic-configuration mutation, the observer waits for the selected value
 on every broker in the environment's exact metadata topology, using broker-targeted
@@ -189,7 +190,7 @@ value is independently observed; query and validate-only observations remain
 non-polling snapshots and retain mismatches.
 
 Protocol-v36 plural group-offset, batch offset, and classic-group operations
-retain the same broker-state fact shapes in schema v41. Plural offset
+retain the same broker-state fact shapes in schema v42. Plural offset
 operations retain one existing `ConsumerGroupOffset` observation per selected
 key, with contiguous observation ordinals in caller-flattened order. Classic
 batch descriptions retain one existing `ConsumerGroupState` observation per
@@ -240,7 +241,10 @@ ADMIN-030 through ADMIN-032 bind caller-ordered public ACL creation, one exact
 public description, and caller-ordered exact deletion matches to contiguous
 Kafka-CLI observations of presence or absence after each terminal. Public and
 independent ACL facts remain separate; neither stream can substitute for the
-other. ADMIN-015 and ADMIN-016 retain selected
+other. ADMIN-033 and ADMIN-034 bind exact named-user byte-rate description,
+replacement, and removal terminals to immediate Kafka-CLI observations of the
+same user, key, and whole-number value or explicit absence. Public and
+independent client-quota facts remain separate. ADMIN-015 and ADMIN-016 retain selected
 topic-configuration values and require a distinct independent pre-mutation
 baseline. In particular, mutation baselines use distinct preceding list or
 describe operation IDs, so history order preserves precondition and

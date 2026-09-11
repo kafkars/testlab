@@ -1,5 +1,11 @@
 //! Indexed admin values retain public history positions and independent observation ordinals.
 
+use std::collections::BTreeMap;
+
+pub(super) fn push<K: Ord>(map: &mut BTreeMap<K, Vec<u64>>, key: K, sequence: u64) {
+    map.entry(key).or_default().push(sequence);
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedAdminTopicCompletion {
     pub(crate) history_sequence: u64,

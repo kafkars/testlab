@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v38 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v41 and evidence schema v27.
+Protocol v39 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v42 and evidence schema v28.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -94,6 +94,8 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `create_acls`
 - `describe_acls`
 - `delete_acls`
+- `alter_client_quota`
+- `describe_client_quota`
 - `create_transactional_producer`
 - `execute_transaction`
 - `execute_transactional_transform`
@@ -229,6 +231,8 @@ timeouts invalidate evidence.
 - `acls_created`
 - `acls_described`
 - `acls_deleted`
+- `client_quota_altered`
+- `client_quota_described`
 - `transactional_producer_created`
 - `transaction_completed`
 - `transactional_transform_completed`
@@ -513,6 +517,15 @@ presence; deletion requires exact absence. Unsupported public result shapes,
 CLI output, reordering, partial success, or an observation outside the command
 window invalidates the corresponding claim.
 
+Client-quota administration is bounded to producer and consumer byte-rate
+overrides for one exact non-default user entity. Rates are whole numbers from
+one through `u32::MAX`; alteration either replaces one rate or removes it, and
+description selects the same exact user and key. Every successful public
+terminal is followed immediately by a pinned Kafka CLI query whose raw output
+is retained. The verifier requires the public entity or value and independent
+resulting broker state to agree exactly; unknown keys, fractional values,
+ambiguous entities, or malformed CLI output invalidate the claim.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -594,6 +607,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v38 is an exact semantic contract. New capabilities may be declared
+Protocol v39 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

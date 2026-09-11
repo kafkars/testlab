@@ -1,0 +1,79 @@
+schema_version = 42
+id = "kafka.admin-client-quota-lifecycle"
+title = "packaged admin sets, describes, and removes exact client quotas"
+description = "The packaged client's public quota operations set, describe, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."
+timeout_ms = 120000
+requires = ["admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "set-producer-quota"
+kind = "alter_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-producer-set"
+user = "testlab-kafkars-quota-user"
+direction = "producer"
+bytes_per_second = 65536
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-producer-quota"
+kind = "describe_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-producer-describe"
+user = "testlab-kafkars-quota-user"
+direction = "producer"
+expected_bytes_per_second = 65536
+timeout_ms = 20000
+
+[[steps]]
+id = "remove-producer-quota"
+kind = "alter_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-producer-remove"
+user = "testlab-kafkars-quota-user"
+direction = "producer"
+timeout_ms = 20000
+
+[[steps]]
+id = "set-consumer-quota"
+kind = "alter_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-consumer-set"
+user = "testlab-kafkars-quota-user"
+direction = "consumer"
+bytes_per_second = 131072
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-consumer-quota"
+kind = "describe_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-consumer-describe"
+user = "testlab-kafkars-quota-user"
+direction = "consumer"
+expected_bytes_per_second = 131072
+timeout_ms = 20000
+
+[[steps]]
+id = "remove-consumer-quota"
+kind = "alter_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-consumer-remove"
+user = "testlab-kafkars-quota-user"
+direction = "consumer"
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

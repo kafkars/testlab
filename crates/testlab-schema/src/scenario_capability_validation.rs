@@ -87,7 +87,9 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::DescribeClassicGroups(_)
         | ScenarioAction::CreateAcls(_)
         | ScenarioAction::DescribeAcls(_)
-        | ScenarioAction::DeleteAcls(_) => Some(Capability::Admin),
+        | ScenarioAction::DeleteAcls(_)
+        | ScenarioAction::AlterClientQuota(_)
+        | ScenarioAction::DescribeClientQuota(_) => Some(Capability::Admin),
         ScenarioAction::CreateTransactionalProducer { .. }
         | ScenarioAction::ExecuteTransaction { .. }
         | ScenarioAction::ExecuteTransactionalTransform(_)

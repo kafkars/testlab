@@ -148,6 +148,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)
         | AdapterCommand::DeleteAcls(_)
+        | AdapterCommand::AlterClientQuota(_)
+        | AdapterCommand::DescribeClientQuota(_)
         | AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::ExecuteTransactionalTransform(_)

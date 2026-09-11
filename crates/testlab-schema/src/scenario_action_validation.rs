@@ -142,7 +142,9 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeClassicGroups(_)
         | ScenarioAction::CreateAcls(_)
         | ScenarioAction::DescribeAcls(_)
-        | ScenarioAction::DeleteAcls(_)) => {
+        | ScenarioAction::DeleteAcls(_)
+        | ScenarioAction::AlterClientQuota(_)
+        | ScenarioAction::DescribeClientQuota(_)) => {
             crate::admin_action_validation::validate(
                 action,
                 &state.clients,

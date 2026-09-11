@@ -4,6 +4,7 @@ mod admin;
 mod admin_acl;
 mod admin_batch;
 mod admin_classic_groups;
+mod admin_client_quota;
 mod admin_cluster;
 mod admin_config;
 mod admin_discovery;
@@ -68,6 +69,8 @@ mod admin_acl_test;
 mod admin_batch_test;
 #[cfg(test)]
 mod admin_classic_groups_test;
+#[cfg(test)]
+mod admin_client_quota_test;
 #[cfg(test)]
 mod admin_config_test;
 #[cfg(test)]

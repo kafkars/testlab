@@ -3,6 +3,7 @@ id = "kafkars-broker-policy"
 title = "packaged Kafkars broker policy coverage"
 scenarios = [
   "scenarios/kafka/admin-acl-lifecycle.toml",
+  "scenarios/kafka/admin-client-quota-lifecycle.toml",
   "scenarios/kafka/producer-topic-authorization-recovery.toml",
   "scenarios/kafka/classic-group-authorization-recovery.toml",
   "scenarios/kafka/admin-topic-authorization-recovery.toml",

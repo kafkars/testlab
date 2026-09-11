@@ -50,7 +50,9 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)
-        | AdapterCommand::DeleteAcls(_) => "admin capability required",
+        | AdapterCommand::DeleteAcls(_)
+        | AdapterCommand::AlterClientQuota(_)
+        | AdapterCommand::DescribeClientQuota(_) => "admin capability required",
         AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }
         | AdapterCommand::ExecuteTransactionalTransform(_)

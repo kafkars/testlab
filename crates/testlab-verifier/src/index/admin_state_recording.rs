@@ -10,6 +10,9 @@ use super::{
 
 impl HistoryIndex {
     pub(super) fn record_state(&mut self, observation: &BrokerStateObservation, sequence: u64) {
+        if self.admin_client_quotas.record_state(observation, sequence) {
+            return;
+        }
         if self.admin_acls.record_state(observation, sequence) {
             return;
         }
@@ -83,6 +86,9 @@ impl HistoryIndex {
                 }),
             BrokerStateObservation::Acl(_) => {
                 unreachable!("ACL observations are indexed before generic admin state")
+            }
+            BrokerStateObservation::ClientQuota(_) => {
+                unreachable!("client-quota observations are indexed before generic admin state")
             }
         }
     }

@@ -2,12 +2,13 @@
 
 pub(crate) use kafkars::admin::{
     AccessControlEntry, AclBinding, AclBindingFilter, AclOperation, AclPatternType,
-    AclPermissionType, AclResourceType, ClusterBroker, ConfigAlteration,
-    ConsumerGroupOffsetAlteration, CreateAclOutcome, CreateAclResult, DeleteAclFilterOutcome,
-    DeleteAclFilterResult, DeleteAclMatchResult, DeleteRecordsTarget, DescribeTopicPartitionsTopic,
-    ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult, ListOffsetsQuery, NewPartitions,
-    NewTopic, OffsetSpec, ResourcePattern, TopicConfigAlterations, TopicConfigQuery,
-    TopicDescription,
+    AclPermissionType, AclResourceType, ClientQuotaAlteration, ClientQuotaAlterationOperation,
+    ClientQuotaEntity, ClientQuotaEntityComponent, ClientQuotaEntry, ClientQuotaFilterComponent,
+    ClusterBroker, ConfigAlteration, ConsumerGroupOffsetAlteration, CreateAclOutcome,
+    CreateAclResult, DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult,
+    DeleteRecordsTarget, DescribeTopicPartitionsTopic, ListConsumerGroupOffsetsQuery,
+    ListConsumerGroupOffsetsResult, ListOffsetsQuery, NewPartitions, NewTopic, OffsetSpec,
+    ResourcePattern, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

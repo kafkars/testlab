@@ -186,6 +186,8 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::CreateAcls(_)
             | ScenarioAction::DescribeAcls(_)
             | ScenarioAction::DeleteAcls(_)
+            | ScenarioAction::AlterClientQuota(_)
+            | ScenarioAction::DescribeClientQuota(_)
             | ScenarioAction::DescribeTopicConfig(_)
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::ExecuteTransaction { .. }

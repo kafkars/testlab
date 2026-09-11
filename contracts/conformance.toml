@@ -253,6 +253,18 @@ statement = "One public ACL deletion call returns exactly one successful exact m
 category = "admin"
 
 [[contract]]
+id = "ADMIN-033"
+title = "Client-quota descriptions preserve exact public and broker values"
+statement = "One exact named-user byte-rate description returns the requested whole-number public value, and an immediate independent Kafka CLI query confirms the same user, key, and rate."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-034"
+title = "Client-quota alterations preserve exact resulting state"
+statement = "One exact named-user byte-rate set or removal returns the requested public entity, and an immediate independent Kafka CLI query confirms the exact replacement or absence."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

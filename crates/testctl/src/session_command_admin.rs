@@ -11,7 +11,8 @@ use testlab_schema::{
 use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    crate::session_command_admin_acl::translate(action)
+    crate::session_command_admin_client_quota::translate(action)
+        .or_else(|| crate::session_command_admin_acl::translate(action))
         .or_else(|| crate::session_command_admin_batch::translate(action))
         .or_else(|| translate_topic(action))
         .or_else(|| crate::session_command_admin_records::translate(action))

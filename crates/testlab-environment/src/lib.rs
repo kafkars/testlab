@@ -12,10 +12,12 @@ mod adversary_state;
 mod adversary_worker;
 mod broker_policy_command;
 mod broker_policy_observation;
+mod client_quota_cli_observation;
 mod compose;
 mod compose_acl_observe;
 mod compose_broker_policy;
 mod compose_broker_role;
+mod compose_client_quota_observe;
 mod compose_command;
 mod compose_construction;
 mod compose_disruption;
@@ -50,6 +52,7 @@ mod observer_admin;
 mod observer_admin_acl_target;
 mod observer_admin_batch_topic_target;
 mod observer_admin_classic_group;
+mod observer_admin_client_quota_target;
 mod observer_admin_config;
 mod observer_admin_config_target;
 mod observer_admin_group;
@@ -128,6 +131,8 @@ mod observer_admin_acl_test;
 mod observer_admin_batch_topic_target_test;
 #[cfg(test)]
 mod observer_admin_classic_group_test;
+#[cfg(test)]
+mod observer_admin_client_quota_test;
 #[cfg(test)]
 mod observer_admin_config_test;
 #[cfg(test)]

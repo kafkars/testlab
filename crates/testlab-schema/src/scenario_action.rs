@@ -234,6 +234,8 @@ pub enum ScenarioAction {
     CreateAcls(crate::CreateAclsAction),
     DescribeAcls(crate::DescribeAclsAction),
     DeleteAcls(crate::DeleteAclsAction),
+    AlterClientQuota(crate::AlterClientQuotaAction),
+    DescribeClientQuota(crate::DescribeClientQuotaAction),
     /// Initializes one uniquely controlled public transactional producer.
     CreateTransactionalProducer {
         /// Owning client.
@@ -242,9 +244,7 @@ pub enum ScenarioAction {
         producer_id: ProducerId,
         /// Exact transactional identity.
         transactional_id: String,
-        /// Broker transaction timeout.
         transaction_timeout_ms: u64,
-        /// Complete initialization bound.
         initialization_timeout_ms: u64,
         /// Exact normalized public initialization failure.
         #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -4,6 +4,7 @@ use testlab_schema::{BrokerObservation, Scenario, ScenarioAction, Violation};
 
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
+use crate::admin_client_quota::verify_client_quota_action;
 use crate::admin_cluster::verify_cluster_action;
 use crate::admin_config::verify_config_action;
 use crate::admin_discovery::verify_discovery_action;
@@ -76,6 +77,7 @@ pub(crate) fn verify_admin(
         if crate::adversary::verify_admin_failure(scenario, &step.action, index, violations)
             || verify_expected_failure(&step.action, index, violations)
             || verify_acl_action(&step.action, index, violations)
+            || verify_client_quota_action(&step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_validate_only_action(&step.action, index, violations)
@@ -139,6 +141,8 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::CreateAcls(_) => "ADMIN-030",
         ScenarioAction::DescribeAcls(_) => "ADMIN-031",
         ScenarioAction::DeleteAcls(_) => "ADMIN-032",
+        ScenarioAction::DescribeClientQuota(_) => "ADMIN-033",
+        ScenarioAction::AlterClientQuota(_) => "ADMIN-034",
         ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
@@ -188,6 +192,8 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::CreateAcls(value) => &value.operation_id,
         ScenarioAction::DescribeAcls(value) => &value.operation_id,
         ScenarioAction::DeleteAcls(value) => &value.operation_id,
+        ScenarioAction::AlterClientQuota(value) => &value.operation_id,
+        ScenarioAction::DescribeClientQuota(value) => &value.operation_id,
         _ => return None,
     })
 }

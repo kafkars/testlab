@@ -117,7 +117,9 @@ impl HistoryIndex {
             | ScenarioAction::DescribeClassicGroups(_)
             | ScenarioAction::CreateAcls(_)
             | ScenarioAction::DescribeAcls(_)
-            | ScenarioAction::DeleteAcls(_) => {
+            | ScenarioAction::DeleteAcls(_)
+            | ScenarioAction::AlterClientQuota(_)
+            | ScenarioAction::DescribeClientQuota(_) => {
                 unreachable!("admin actions are indexed before generic actions")
             }
             ScenarioAction::CreateTransactionalProducer { .. }

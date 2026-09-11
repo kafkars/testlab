@@ -2,6 +2,7 @@
 
 pub use crate::admin_acl::*;
 pub use crate::admin_classic_group::*;
+pub use crate::admin_client_quota::*;
 pub use crate::admin_cluster::{
     AdminClusterDescription, DescribeClusterAction, DescribeClusterCommand,
 };

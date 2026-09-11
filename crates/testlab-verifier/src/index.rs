@@ -12,7 +12,10 @@ use testlab_schema::{
 pub(crate) mod admin_acl;
 mod admin_acl_command_match;
 mod admin_batch_command_match;
+pub(crate) mod admin_client_quota;
+mod admin_client_quota_command_match;
 mod admin_command_match;
+mod admin_command_router;
 mod admin_config_command_match;
 mod admin_delete_records_command_match;
 pub(crate) mod admin_group_batch;
@@ -29,6 +32,7 @@ mod issued;
 mod recording;
 mod share;
 
+pub(super) use admin_types::push;
 pub(crate) use admin_types::{
     IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion, IndexedAdminTopicCompletion,
     IndexedAdminTopicConfigCompletion, IndexedAdminTopicsCreationBatch, IndexedClusterDescription,
@@ -224,6 +228,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_group_batches: admin_group_batch::AdminGroupBatchIndex,
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
+    pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
     pub(crate) clusters_described: BTreeMap<OperationId, Vec<IndexedClusterDescription>>,
     pub(crate) consumer_groups_listed: BTreeMap<OperationId, Vec<IndexedConsumerGroupsList>>,
     pub(crate) consumer_groups_described:
@@ -292,8 +297,4 @@ impl HistoryIndex {
     pub(crate) fn finish_issued(&self) -> bool {
         !self.has_harness_commands || self.finish_issued
     }
-}
-
-fn push<K: Ord>(map: &mut BTreeMap<K, Vec<u64>>, key: K, sequence: u64) {
-    map.entry(key).or_default().push(sequence);
 }
