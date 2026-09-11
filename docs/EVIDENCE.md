@@ -20,8 +20,9 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v54 records the exact environment identity in `manifest.json`,
-retains protocol-v65 direct and hosted-group consumer controls and shutdown,
+Evidence schema v55 records the exact environment identity in `manifest.json`,
+retains protocol-v66 direct and hosted-group consumer controls, abandonment,
+and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -106,9 +107,14 @@ coordinate. LIFE-003 and LIFE-009 evaluate repeated flushes and legacy
 assignments per command rather than by aggregate resource counts.
 
 Configured-group history retains the requested missing-offset and read-isolation
-policy in the issued protocol command. That adapter-reported configuration is
-not the verdict: exact group receives must still join to independently observed
-records, positive protocol epochs, and aborted-transaction visibility evidence.
+policy plus any static group-instance identity and classic session timeout in
+the issued protocol command. That adapter-reported configuration is not the
+verdict: exact group receives must still join to independently observed records,
+positive protocol epochs, and aborted-transaction visibility evidence.
+ADMIN-068 additionally requires each public consumer owner to be abandoned,
+its owning client to shut down without a group close, and both static identities
+to remain broker-registered inside the configured session window until the
+exact removal command.
 
 Configured-Share history retains the requested `max_records` and `batch_size`
 policy in the issued create command. The adapter reports only the public batch's
@@ -485,6 +491,19 @@ commands must select `legacy_topic` or `legacy_resource`, while their baselines
 must use the matching `topic` or `resource` description surface. An incremental
 completion cannot satisfy either legacy contract.
 
+ADMIN-068 binds configured classic static membership to one explicit Admin
+removal. Two unique `group_instance_id` values first participate in a complete
+public assignment. The adapter then abandons both public owners without a group
+close and shuts down their owning clients. Inside their explicit classic
+session window covering the scenario deadline, the named description baseline
+and its immediate independent group query must still report both members,
+distinguishing retained static registration from an ordinary dynamic leave.
+The later wire command omits that
+scenario-only baseline, retains the nonempty broker reason, and must return both
+selected instance identities successfully in caller order with a throttle
+bounded by the public deadline. One immediate independent group query must then
+report the exact group with zero members.
+
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which
 packaged consumer claimed each partition; independent record observations,
@@ -511,6 +530,10 @@ correlated public event-stream termination before the adapter releases its
 hosted group handle. That terminal does not claim a broker leave: the scenario's
 packaged Admin description and immediate independent group-state query both
 must report zero live members under the ordinary Admin contracts.
+LIFE-016 requires every exact group-consumer abandonment command to emit one
+correlated completion after dropping its public owner without invoking the
+group close or shutdown surface. It does not itself claim retained membership;
+ADMIN-068 requires the later public and independent broker observations.
 
 CONCUR-001 requires one exact ordered start and join boundary for each declared
 concurrent group. CONCUR-002 requires the completion set and order to equal the

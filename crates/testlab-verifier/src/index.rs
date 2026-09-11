@@ -81,10 +81,7 @@ pub(crate) struct IndexedAssignedConsumerControl {
     pub(crate) completion: testlab_schema::AssignedConsumerControlCompletion,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct IndexedGroupConsumerControl {
-    pub(crate) history_sequence: u64,
-    pub(crate) completion: testlab_schema::GroupConsumerControlCompletion,
-}
+pub(crate) use consumer_recording::IndexedGroupConsumerControl;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedCommandFailure {
     pub(crate) history_sequence: u64,
@@ -172,6 +169,7 @@ pub(crate) struct HistoryIndex {
     consumers_close_issued: BTreeSet<ConsumerId>,
     group_consumers_create_issued: BTreeSet<ConsumerId>,
     group_consumers_close_issued: BTreeSet<ConsumerId>,
+    group_consumers_abandon_issued: BTreeSet<ConsumerId>,
     share_consumers_create_issued: BTreeSet<ConsumerId>,
     share_receives_issued: BTreeSet<OperationId>,
     share_acknowledgements_issued: BTreeSet<OperationId>,
@@ -273,6 +271,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) consumers_closed: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) group_consumers_created: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) group_consumers_closed: BTreeMap<ConsumerId, Vec<u64>>,
+    pub(crate) group_consumers_abandoned: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) share_consumers_created: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) share_receives: BTreeMap<OperationId, Vec<IndexedShareReceive>>,
     pub(crate) share_acknowledgements: BTreeMap<OperationId, Vec<IndexedShareAcknowledgement>>,

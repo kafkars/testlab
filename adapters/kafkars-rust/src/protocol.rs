@@ -131,7 +131,8 @@ fn dispatch<W: Write>(
         | AdapterCommand::GroupReceiveSet(_)
         | AdapterCommand::ControlGroupConsumer(_)
         | AdapterCommand::ShutdownGroupConsumer(_)
-        | AdapterCommand::CloseGroupConsumer { .. }) => {
+        | AdapterCommand::CloseGroupConsumer { .. }
+        | AdapterCommand::AbandonGroupConsumer(_)) => {
             protocol_group::dispatch(state, writer, command_id, command)?;
         }
         #[cfg(kafkars_share_candidate)]
@@ -200,6 +201,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::DeleteConsumerGroup(_)
         | AdapterCommand::DeleteConsumerGroups(_)
+        | AdapterCommand::RemoveConsumerGroupMembers(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)
         | AdapterCommand::DeleteAcls(_)
@@ -248,7 +250,6 @@ fn dispatch_hello<W: Write>(
         ),
     )
 }
-
 pub(crate) fn emit<W: Write>(
     writer: &mut W,
     event: &AdapterEventEnvelope,
@@ -258,7 +259,6 @@ pub(crate) fn emit<W: Write>(
     writer.flush()?;
     Ok(())
 }
-
 fn emit_fatal<W: Write>(
     writer: &mut W,
     envelope: CommandEnvelope,

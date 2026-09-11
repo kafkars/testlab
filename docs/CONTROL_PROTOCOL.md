@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v65 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v68 and evidence schema v54.
+Protocol v66 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v69 and evidence schema v55.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -61,6 +61,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `observe_group_assignments`
 - `group_receive_set`
 - `control_group_consumer`
+- `abandon_group_consumer`
 - `shutdown_group_consumer`
 - `close_group_consumer`
 - `create_share_consumer`
@@ -223,6 +224,7 @@ timeouts invalidate evidence.
 - `group_assignments_observed`
 - `group_receive_set_completed`
 - `group_consumer_control_completed`
+- `group_consumer_abandoned`
 - `group_consumer_shutdown_completed`
 - `group_consumer_closed`
 - `share_consumer_created`
@@ -269,6 +271,8 @@ timeouts invalidate evidence.
 - `consumer_group_offset_deleted`
 - `consumer_group_offsets_deleted`
 - `consumer_group_deleted`
+- `consumer_groups_deleted`
+- `consumer_group_members_removed`
 - `classic_groups_described`
 - `acls_created`
 - `acls_described`
@@ -380,12 +384,15 @@ broker topic, partition, offset, key, value, and ordered headers.
 
 Group creation may carry one capability-gated public configuration block.
 Missing-offset reset selects earliest or latest, and read isolation selects
-uncommitted or committed visibility before membership starts. An omitted block
-retains Testlab's established earliest and read-uncommitted behavior. The
-adapter receives no expected record identity: latest reset is proved by a
-stable assignment that skips an independently visible pre-join record, while
-read-committed isolation is proved by returning only a nontransactional
-sentinel after a separately verified aborted transaction.
+uncommitted or committed visibility before membership starts. An optional
+nonempty `group_instance_id` selects static membership. Classic membership may
+also select a session timeout from one through `i32::MAX` milliseconds; this is
+rejected for KIP-848 membership. An omitted block retains Testlab's established
+earliest, read-uncommitted, dynamic-member behavior. The adapter receives no
+expected record identity: latest reset is proved by a stable assignment that
+skips an independently visible pre-join record, while read-committed isolation
+is proved by returning only a nontransactional sentinel after a separately
+verified aborted transaction.
 
 `control_group_consumer` carries a stable operation and consumer identity plus
 one public pause, resume, or seek mutation. Pause and resume preserve the exact
@@ -395,6 +402,14 @@ sole public observer. The completion echoes only the operation, consumer, and
 structural control kind. Scenario record expectations remain harness-only;
 classic and KIP-848 scenarios prove pause isolation, resumption, and seek replay
 through committed public receives joined to independent broker coordinates.
+
+`abandon_group_consumer` carries one exact consumer identity. The adapter drops
+that public consumer owner without invoking its explicit close or shutdown
+surface and emits one correlated `group_consumer_abandoned` event. This is
+adapter-reported lifecycle truth, not proof of broker membership. Static-member
+scenarios shut down the owning client and use a named public Admin description
+plus an immediate independent group query inside the configured session window
+to prove whether the broker still retains the identity.
 
 `shutdown_group_consumer` carries a stable operation and consumer identity, a
 request count from one through eight, and one complete observation bound. The
@@ -613,6 +628,17 @@ expectations. A prior caller-ordered classic-group description and its immediate
 independent snapshot must prove every group exists with zero members. After the
 public deletion, an independent group query polls until every requested group is
 absent and then emits consecutive observations in the same caller order.
+
+`remove_consumer_group_members` carries one exact group, two through 32
+caller-ordered static `group_instance_id` values, a nonempty broker-visible
+reason, and one deadline. Its command omits the scenario-only named description
+baseline. The correlated `consumer_group_members_removed` event retains the
+group, nonnegative throttle, and one normalized outcome per caller position.
+The scenario first abandons each configured classic static consumer owner,
+shuts down each owning client without a group close, and proves that all members
+remain registered through matching public and independent descriptions inside
+an explicit session-timeout window covering the scenario deadline. After
+removal, the independent group observer polls for zero members.
 
 ACL administration is bounded to one through 32 caller-ordered concrete
 bindings over literal topic, group, or transactional-ID resources, exact
@@ -875,6 +901,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v65 is an exact semantic contract. New capabilities may be declared
+Protocol v66 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

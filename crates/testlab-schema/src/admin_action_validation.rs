@@ -10,6 +10,14 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
+    if crate::admin_consumer_group_member_removal::validate_action(
+        action,
+        clients,
+        operation_ids,
+        problems,
+    ) {
+        return;
+    }
     if crate::admin_leader_election::action_validation::validate(
         action,
         clients,

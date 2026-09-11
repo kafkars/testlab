@@ -9,7 +9,7 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v65 over stdin/stdout;
+2. implements protocol v66 over stdin/stdout;
 3. preserves admission rejection separately from accepted delivery;
 4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
@@ -32,6 +32,8 @@ It:
    state, canonical metadata-quorum discovery, canonical transaction listing,
    caller-ordered transaction descriptions, and caller-ordered producer
    fencing with independently matched post-fence identities,
+   classic static membership with explicit session timing and caller-ordered
+   static-member removal after owner abandonment,
    consumer-only and generic all-group listings, plural offset
    mutations, dedicated classic-group descriptions, caller-ordered plural
    empty classic-group deletion, singleton and
@@ -43,8 +45,9 @@ It:
    set/describe/remove operations, and named-user SCRAM-SHA-256/512
    upsert/describe/delete operations as one bounded public call with exact
    non-secret outcomes;
-9. explicitly settles flush, close, client shutdown, and clone-shared hosted
-   group shutdown through public event-stream termination;
+9. explicitly settles flush, close, client shutdown, exact group-owner
+   abandonment, and clone-shared hosted group shutdown through public
+   event-stream termination;
 10. exposes the exact packaged version in its descriptor and subject metadata.
 
 Do not copy the model-broker client into the production adapter. The reference

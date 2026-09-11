@@ -38,7 +38,7 @@ pub enum Capability {
     ConsumerProtocolGroups,
     /// Runtime pause, resume, and seek controls for hosted group consumers.
     GroupConsumerControls,
-    /// Missing-offset and transactional-visibility group configuration.
+    /// Missing-offset, visibility, static identity, and classic timing configuration.
     GroupConsumerConfiguration,
     /// Clone-shared shutdown and public event-stream termination for hosted groups.
     GroupConsumerShutdown,

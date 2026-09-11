@@ -1,0 +1,151 @@
+schema_version = 69
+id = "kafka.admin-remove-static-group-members"
+title = "offline static consumer-group members are removed in caller order"
+description = "Two configured classic static members establish a complete public assignment, abandon their public handles, stop their owning clients without an explicit member close, remain present in matching public and independent descriptions, and are then removed through one caller-ordered public Admin call with an immediate independent zero-member result."
+timeout_ms = 180000
+requires = ["consumer_groups", "group_consumer_configuration", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-admin-client"
+kind = "create_client"
+client_id = "admin-client"
+
+[[steps]]
+id = "ready-admin-client"
+kind = "await_client_ready"
+client_id = "admin-client"
+
+[[steps]]
+id = "create-client-zulu"
+kind = "create_client"
+client_id = "client-zulu"
+
+[[steps]]
+id = "ready-client-zulu"
+kind = "await_client_ready"
+client_id = "client-zulu"
+
+[[steps]]
+id = "create-client-alpha"
+kind = "create_client"
+client_id = "client-alpha"
+
+[[steps]]
+id = "ready-client-alpha"
+kind = "await_client_ready"
+client_id = "client-alpha"
+
+[[steps]]
+id = "create-static-member-topic"
+kind = "create_topic"
+client_id = "admin-client"
+operation_id = "create-static-member-topic"
+topic = "testlab-kafkars-static-member-removal"
+partitions = 2
+replication_factor = 1
+validate_only = false
+timeout_ms = 20000
+
+[[steps]]
+id = "create-static-zulu"
+kind = "create_group_consumer"
+client_id = "client-zulu"
+consumer_id = "consumer-zulu"
+group_id = "testlab-static-member-removal-group"
+topic = "testlab-kafkars-static-member-removal"
+protocol = "classic"
+
+[steps.configuration]
+offset_reset = "earliest"
+read_isolation = "read_uncommitted"
+group_instance_id = "static-zulu"
+classic_session_timeout_ms = 180000
+
+[[steps]]
+id = "create-static-alpha"
+kind = "create_group_consumer"
+client_id = "client-alpha"
+consumer_id = "consumer-alpha"
+group_id = "testlab-static-member-removal-group"
+topic = "testlab-kafkars-static-member-removal"
+protocol = "classic"
+
+[steps.configuration]
+offset_reset = "earliest"
+read_isolation = "read_uncommitted"
+group_instance_id = "static-alpha"
+classic_session_timeout_ms = 180000
+
+[[steps]]
+id = "observe-static-assignment"
+kind = "observe_group_assignments"
+operation_id = "observe-static-assignment"
+consumer_ids = ["consumer-zulu", "consumer-alpha"]
+partitions = [
+  { topic = "testlab-kafkars-static-member-removal", partition = 0 },
+  { topic = "testlab-kafkars-static-member-removal", partition = 1 },
+]
+timeout_ms = 30000
+
+[[steps]]
+id = "describe-live-static-members"
+kind = "describe_consumer_group"
+client_id = "admin-client"
+operation_id = "describe-live-static-members"
+group_id = "testlab-static-member-removal-group"
+expected_member_count = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "abandon-static-zulu"
+kind = "abandon_group_consumer"
+consumer_id = "consumer-zulu"
+
+[[steps]]
+id = "abandon-static-alpha"
+kind = "abandon_group_consumer"
+consumer_id = "consumer-alpha"
+
+[[steps]]
+id = "shutdown-client-zulu"
+kind = "shutdown_client"
+client_id = "client-zulu"
+
+[[steps]]
+id = "shutdown-client-alpha"
+kind = "shutdown_client"
+client_id = "client-alpha"
+
+[[steps]]
+id = "describe-retained-static-members"
+kind = "describe_consumer_group"
+client_id = "admin-client"
+operation_id = "describe-retained-static-members"
+group_id = "testlab-static-member-removal-group"
+expected_member_count = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "remove-static-members"
+kind = "remove_consumer_group_members"
+client_id = "admin-client"
+operation_id = "remove-static-members"
+baseline_operation_id = "describe-retained-static-members"
+group_id = "testlab-static-member-removal-group"
+group_instance_ids = ["static-zulu", "static-alpha"]
+reason = "testlab stable-cut static-member removal"
+timeout_ms = 30000
+
+[[steps]]
+id = "describe-empty-group"
+kind = "describe_consumer_group"
+client_id = "admin-client"
+operation_id = "describe-after-static-removal"
+group_id = "testlab-static-member-removal-group"
+expected_member_count = 0
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-admin-client"
+kind = "shutdown_client"
+client_id = "admin-client"

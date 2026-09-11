@@ -1,8 +1,9 @@
 //! Command-correlated lifecycle verification permits repeated operations on one resource.
 
-use testlab_schema::{
-    AdapterCommand, AdapterEvent, ProducerId, Scenario, ScenarioAction, Violation,
-};
+use testlab_schema::{AdapterCommand, ProducerId, Scenario, ScenarioAction, Violation};
+
+#[path = "lifecycle_command_matches.rs"]
+mod matches;
 
 use crate::index::HistoryIndex;
 use crate::support::violation;
@@ -96,6 +97,7 @@ enum ConsumerEvent {
     AssignedClosed,
     GroupCreated,
     GroupClosed,
+    GroupAbandoned,
 }
 
 impl<'a> ExpectedLifecycle<'a> {
@@ -174,6 +176,12 @@ impl<'a> ExpectedLifecycle<'a> {
                 consumer_id,
                 ConsumerEvent::GroupClosed,
             ),
+            AdapterCommand::AbandonGroupConsumer(action) => Self::consumer(
+                "LIFE-016",
+                "group consumer abandonment",
+                &action.consumer_id,
+                ConsumerEvent::GroupAbandoned,
+            ),
             AdapterCommand::CreateTransactionalProducer { producer_id, .. }
             | AdapterCommand::FenceTransaction {
                 replacement_producer_id: producer_id,
@@ -236,65 +244,6 @@ impl<'a> ExpectedLifecycle<'a> {
             contract,
             operation,
             identity: Identity::Consumer(consumer, event),
-        }
-    }
-
-    fn matches(&self, event: &AdapterEvent) -> bool {
-        match (&self.identity, event) {
-            (
-                Identity::Client(expected, ClientEvent::Created),
-                AdapterEvent::ClientCreated { client_id },
-            )
-            | (
-                Identity::Client(expected, ClientEvent::Ready),
-                AdapterEvent::ClientReady { client_id },
-            )
-            | (
-                Identity::Client(expected, ClientEvent::Shutdown),
-                AdapterEvent::ClientShutdown { client_id },
-            ) => *expected == client_id,
-            (
-                Identity::Producer(expected, ProducerEvent::Created),
-                AdapterEvent::ProducerCreated { producer_id },
-            )
-            | (
-                Identity::Producer(expected, ProducerEvent::Flushed),
-                AdapterEvent::FlushCompleted { producer_id },
-            )
-            | (
-                Identity::Producer(expected, ProducerEvent::Closed),
-                AdapterEvent::ProducerClosed { producer_id },
-            )
-            | (
-                Identity::Producer(expected, ProducerEvent::TransactionalCreated),
-                AdapterEvent::TransactionalProducerCreated { producer_id },
-            )
-            | (
-                Identity::Producer(expected, ProducerEvent::TransactionalClosed),
-                AdapterEvent::TransactionalProducerClosed { producer_id },
-            ) => *expected == producer_id,
-            (
-                Identity::Consumer(expected, ConsumerEvent::AssignedCreated),
-                AdapterEvent::AssignedConsumerCreated { consumer_id },
-            )
-            | (
-                Identity::Consumer(expected, ConsumerEvent::Assigned),
-                AdapterEvent::AssignmentCompleted { consumer_id },
-            )
-            | (
-                Identity::Consumer(expected, ConsumerEvent::AssignedClosed),
-                AdapterEvent::AssignedConsumerClosed { consumer_id },
-            )
-            | (
-                Identity::Consumer(expected, ConsumerEvent::GroupCreated),
-                AdapterEvent::GroupConsumerCreated { consumer_id },
-            )
-            | (
-                Identity::Consumer(expected, ConsumerEvent::GroupClosed),
-                AdapterEvent::GroupConsumerClosed { consumer_id },
-            ) => *expected == consumer_id,
-            (Identity::Finish, AdapterEvent::Finished) => true,
-            _ => false,
         }
     }
 }

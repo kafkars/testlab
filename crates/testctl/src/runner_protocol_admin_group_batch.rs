@@ -44,6 +44,17 @@ pub(super) fn classify(
                     .map(|outcome| outcome.group_id.as_str())
                     .eq(group_ids.iter().map(String::as_str))
         }
+        (
+            ExpectedEvent::ConsumerGroupMembersRemoved(operation_id, group_instance_ids),
+            AdapterEvent::ConsumerGroupMembersRemoved(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| outcome.group_instance_id.as_str())
+                    .eq(group_instance_ids.iter().map(String::as_str))
+        }
         _ => return None,
     };
     Some(if matches {
@@ -69,6 +80,7 @@ fn expected_is_batch_group(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::ConsumerGroupOffsetsDeleted { .. }
             | ExpectedEvent::ClassicGroupsDescribed { .. }
             | ExpectedEvent::ConsumerGroupsDeleted { .. }
+            | ExpectedEvent::ConsumerGroupMembersRemoved(..)
     )
 }
 
@@ -81,5 +93,6 @@ fn event_is_batch_group(event: &AdapterEvent) -> bool {
             | AdapterEvent::ConsumerGroupOffsetsDeleted(_)
             | AdapterEvent::ClassicGroupsDescribed(_)
             | AdapterEvent::ConsumerGroupsDeleted(_)
+            | AdapterEvent::ConsumerGroupMembersRemoved(_)
     )
 }

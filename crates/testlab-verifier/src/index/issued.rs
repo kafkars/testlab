@@ -134,6 +134,7 @@ impl HistoryIndex {
             | ScenarioAction::DeleteConsumerGroupOffset(_)
             | ScenarioAction::DeleteConsumerGroup(_)
             | ScenarioAction::DeleteConsumerGroups(_)
+            | ScenarioAction::RemoveConsumerGroupMembers(_)
             | ScenarioAction::ListConsumerGroupOffsetsBatch(_)
             | ScenarioAction::ListConsumerGroupsOffsets(_)
             | ScenarioAction::AlterConsumerGroupOffsets(_)
@@ -191,7 +192,8 @@ impl HistoryIndex {
             | ScenarioAction::GroupReceiveSet(_)
             | ScenarioAction::ControlGroupConsumer(_)
             | ScenarioAction::ShutdownGroupConsumer(_)
-            | ScenarioAction::CloseGroupConsumer { .. } => {
+            | ScenarioAction::CloseGroupConsumer { .. }
+            | ScenarioAction::AbandonGroupConsumer(_) => {
                 unreachable!("consumer actions are indexed before generic actions")
             }
         }
@@ -238,6 +240,10 @@ impl HistoryIndex {
             ScenarioAction::CloseGroupConsumer { consumer_id } => {
                 Some(self.group_consumers_close_issued.contains(consumer_id))
             }
+            ScenarioAction::AbandonGroupConsumer(action) => Some(
+                self.group_consumers_abandon_issued
+                    .contains(&action.consumer_id),
+            ),
             _ => None,
         }
     }

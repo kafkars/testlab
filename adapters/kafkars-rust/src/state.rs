@@ -200,6 +200,13 @@ impl AdapterState {
         self.group_consumers.close(consumer_id)
     }
 
+    pub(crate) fn abandon_group_consumer(
+        &mut self,
+        consumer_id: &ConsumerId,
+    ) -> Result<(), StateError> {
+        self.group_consumers.abandon(consumer_id)
+    }
+
     pub(crate) fn complete_shutdown_group_consumer(
         &mut self,
         consumer_id: &ConsumerId,

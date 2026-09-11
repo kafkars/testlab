@@ -98,7 +98,6 @@ pub enum ScenarioAction {
         /// Consumer to close.
         consumer_id: ConsumerId,
     },
-    /// Registers one consumer-group member with an explicit protocol.
     CreateGroupConsumer {
         client_id: ClientId,
         consumer_id: ConsumerId,
@@ -131,9 +130,9 @@ pub enum ScenarioAction {
     ControlGroupConsumer(crate::GroupConsumerControlAction),
     ShutdownGroupConsumer(crate::GroupConsumerShutdownAction),
     CloseGroupConsumer {
-        /// Consumer to close.
         consumer_id: ConsumerId,
     },
+    AbandonGroupConsumer(crate::GroupConsumerAbandonment),
     /// Registers one unique KIP-932 share-group member.
     CreateShareConsumer {
         client_id: ClientId,
@@ -237,6 +236,7 @@ pub enum ScenarioAction {
     DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsAction),
     DeleteConsumerGroup(crate::DeleteConsumerGroupAction),
     DeleteConsumerGroups(crate::DeleteConsumerGroupsAction),
+    RemoveConsumerGroupMembers(crate::RemoveConsumerGroupMembersAction),
     DescribeClassicGroups(crate::DescribeClassicGroupsAction),
     CreateAcls(crate::CreateAclsAction),
     DescribeAcls(crate::DescribeAclsAction),

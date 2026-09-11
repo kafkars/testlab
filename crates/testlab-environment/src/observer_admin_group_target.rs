@@ -4,7 +4,7 @@ use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, DeleteConsumerGroupCommand,
     DeleteConsumerGroupOffsetCommand, DescribeClusterCommand, DescribeConsumerGroupCommand,
     DescribeFeaturesCommand, DescribeMetadataQuorumCommand, ListConsumerGroupOffsetsCommand,
-    ListConsumerGroupsCommand, ScenarioAction,
+    ListConsumerGroupsCommand, RemoveConsumerGroupMembersCommand, ScenarioAction,
 };
 
 use crate::observer_admin_target::{
@@ -144,6 +144,23 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 group_id: action.group_id.clone(),
                 expected_member_count: None,
                 expected_exists: false,
+                poll_expected: true,
+            }),
+        ),
+        ScenarioAction::RemoveConsumerGroupMembers(action) => (
+            AdapterCommand::RemoveConsumerGroupMembers(RemoveConsumerGroupMembersCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                group_id: action.group_id.clone(),
+                group_instance_ids: action.group_instance_ids.clone(),
+                reason: action.reason.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            AdminTarget::ConsumerGroup(GroupTarget {
+                operation_id: action.operation_id.clone(),
+                group_id: action.group_id.clone(),
+                expected_member_count: Some(0),
+                expected_exists: true,
                 poll_expected: true,
             }),
         ),

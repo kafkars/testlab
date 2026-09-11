@@ -14,6 +14,7 @@ mod admin_config_batch_mutation;
 mod admin_config_resources;
 mod admin_config_transition_validation;
 mod admin_consumer_group_deletion_batch;
+mod admin_consumer_group_member_removal;
 mod admin_create_topics_batch;
 mod admin_create_topics_batch_validation;
 mod admin_delete_records;

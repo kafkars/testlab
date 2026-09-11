@@ -62,6 +62,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::ControlGroupConsumer(_)
         | ScenarioAction::ShutdownGroupConsumer(_)
         | ScenarioAction::CloseGroupConsumer { .. }
+        | ScenarioAction::AbandonGroupConsumer(_)
         | ScenarioAction::CreateShareConsumer { .. }
         | ScenarioAction::ShareReceive { .. }
         | ScenarioAction::ShareAcknowledge { .. }
@@ -116,6 +117,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DeleteConsumerGroupOffsets(_)
         | ScenarioAction::DeleteConsumerGroup(_)
         | ScenarioAction::DeleteConsumerGroups(_)
+        | ScenarioAction::RemoveConsumerGroupMembers(_)
         | ScenarioAction::DescribeClassicGroups(_)
         | ScenarioAction::CreateAcls(_)
         | ScenarioAction::DescribeAcls(_)

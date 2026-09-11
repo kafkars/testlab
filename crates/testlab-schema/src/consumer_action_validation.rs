@@ -5,6 +5,11 @@ use std::collections::BTreeMap;
 use crate::{ClientId, ConsumerId, GroupProtocol, OperationId};
 use crate::{ScenarioAction, scenario_action_validation::ActionStates};
 
+#[path = "consumer_classic_configuration_validation.rs"]
+mod classic_configuration_validation;
+#[path = "consumer_group_static_validation.rs"]
+mod static_validation;
+
 pub(crate) type ConsumerStates = BTreeMap<ConsumerId, ConsumerState>;
 
 #[derive(Clone, Debug)]
@@ -20,6 +25,7 @@ pub(crate) struct ConsumerGroupState {
     pub(crate) group_id: String,
     pub(crate) topic: String,
     pub(crate) protocol: GroupProtocol,
+    pub(crate) group_instance_id: Option<String>,
 }
 
 #[derive(Clone, Copy)]
@@ -27,6 +33,7 @@ pub(crate) struct ConsumerGroupInput<'a> {
     pub(crate) group_id: &'a str,
     pub(crate) topic: &'a str,
     pub(crate) protocol: Option<GroupProtocol>,
+    pub(crate) group_instance_id: Option<&'a str>,
 }
 
 pub(crate) fn validate(
@@ -93,22 +100,36 @@ pub(crate) fn validate(
             group_id,
             topic,
             protocol,
-            ..
-        } => create_group(
-            client_id,
-            consumer_id,
-            ConsumerGroupInput {
-                group_id,
-                topic,
-                protocol: Some(*protocol),
-            },
-            &state.clients,
-            &mut state.consumers,
-            problems,
-        ),
+            configuration,
+        } => {
+            classic_configuration_validation::validate(
+                consumer_id,
+                *protocol,
+                configuration,
+                problems,
+            );
+            create_group(
+                client_id,
+                consumer_id,
+                ConsumerGroupInput {
+                    group_id,
+                    topic,
+                    protocol: Some(*protocol),
+                    group_instance_id: configuration
+                        .as_ref()
+                        .and_then(|value| value.group_instance_id.as_deref()),
+                },
+                &state.clients,
+                &mut state.consumers,
+                problems,
+            );
+        }
         ScenarioAction::CloseAssignedConsumer { consumer_id }
         | ScenarioAction::CloseGroupConsumer { consumer_id } => {
             close(consumer_id, &mut state.consumers, problems);
+        }
+        ScenarioAction::AbandonGroupConsumer(action) => {
+            close(&action.consumer_id, &mut state.consumers, problems);
         }
         _ => {}
     }
@@ -186,6 +207,7 @@ pub(crate) fn create_group(
     consumers: &mut ConsumerStates,
     problems: &mut Vec<String>,
 ) {
+    static_validation::validate(&group, consumers, consumer_id, problems);
     create(client_id, consumer_id, clients, consumers, problems);
     if let Some(state) = consumers.get_mut(consumer_id) {
         state.assigned = true;
@@ -193,6 +215,7 @@ pub(crate) fn create_group(
             group_id: group.group_id.to_owned(),
             topic: group.topic.to_owned(),
             protocol,
+            group_instance_id: group.group_instance_id.map(str::to_owned),
         });
     }
     validate_name(consumer_id, "group", group.group_id, 255, problems);
@@ -261,7 +284,7 @@ pub(crate) fn open<'a>(
     }
 }
 
-fn validate_name(
+pub(super) fn validate_name(
     consumer_id: &ConsumerId,
     kind: &str,
     value: &str,

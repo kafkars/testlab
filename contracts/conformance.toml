@@ -463,6 +463,12 @@ statement = "One resource-generic public legacy full-snapshot configuration repl
 category = "admin"
 
 [[contract]]
+id = "ADMIN-068"
+title = "Static consumer-group member removal preserves caller order and broker transitions"
+statement = "One public static-member removal follows exact owner-abandonment and member-client shutdown steps plus a named consumer-group description proving every selected static instance remains registered inside its session window, preserves the nonempty reason, valid throttle, and one successful outcome per instance in caller order, and an immediate independent query confirms zero remaining members."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
@@ -916,4 +922,10 @@ category = "consumer"
 id = "LIFE-015"
 title = "Hosted group shutdown observes public termination"
 statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."
+category = "lifecycle"
+
+[[contract]]
+id = "LIFE-016"
+title = "Group consumer abandonment settles exactly once"
+statement = "Each requested group-consumer owner abandonment drops the exact public handle without requesting member leave and emits exactly one matching event."
 category = "lifecycle"

@@ -47,6 +47,7 @@ pub(crate) fn validate(
                     group_id,
                     topic,
                     protocol: None,
+                    group_instance_id: None,
                 },
                 &state.clients,
                 &mut state.consumers,

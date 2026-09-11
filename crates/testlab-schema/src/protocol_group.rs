@@ -35,13 +35,27 @@ pub enum GroupReadIsolation {
 }
 
 /// Portable group-consumer policy fixed before membership starts.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GroupConsumerConfiguration {
     /// Missing committed-offset behavior.
     pub offset_reset: GroupOffsetReset,
     /// Transactional record visibility.
     pub read_isolation: GroupReadIsolation,
+    /// Optional stable broker-visible member identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group_instance_id: Option<String>,
+    /// Optional classic-group session timeout sent with each Join request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_session_timeout_ms: Option<u64>,
+}
+
+/// Exact public group-consumer owner abandoned without member leave.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct GroupConsumerAbandonment {
+    /// Scenario-local consumer identity.
+    pub consumer_id: crate::ConsumerId,
 }
 
 /// Public membership epoch observed after a group receive and commit.

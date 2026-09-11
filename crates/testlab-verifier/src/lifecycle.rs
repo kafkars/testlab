@@ -138,7 +138,6 @@ fn verify_group_lifecycle(
     }
     true
 }
-
 fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
     matches!(
         action,
@@ -162,6 +161,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::GroupReceive { .. }
             | ScenarioAction::ObserveGroupAssignments(_)
             | ScenarioAction::GroupReceiveSet(_)
+            | ScenarioAction::AbandonGroupConsumer(_)
             | ScenarioAction::CreateTopic(_)
             | ScenarioAction::CreateTopicsBatch(_)
             | ScenarioAction::CreatePartitions(_)
@@ -201,6 +201,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DeleteConsumerGroupOffsets(_)
             | ScenarioAction::DeleteConsumerGroup(_)
             | ScenarioAction::DeleteConsumerGroups(_)
+            | ScenarioAction::RemoveConsumerGroupMembers(_)
             | ScenarioAction::DescribeClassicGroups(_)
             | ScenarioAction::CreateAcls(_)
             | ScenarioAction::DescribeAcls(_)
@@ -222,7 +223,6 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::CloseShareConsumer { .. }
     )
 }
-
 fn verify_finish(index: &HistoryIndex, violations: &mut Vec<Violation>) {
     if index.command_failures.is_empty() && index.finish_issued() {
         let evidence = index

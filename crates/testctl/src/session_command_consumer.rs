@@ -61,7 +61,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 group_id: group_id.clone(),
                 topic: topic.clone(),
                 protocol: *protocol,
-                configuration: *configuration,
+                configuration: configuration.clone(),
             },
             ExpectedEvent::GroupConsumerCreated(consumer_id.clone()),
         ),
@@ -83,6 +83,10 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 consumer_id: consumer_id.clone(),
             },
             ExpectedEvent::GroupConsumerClosed(consumer_id.clone()),
+        ),
+        ScenarioAction::AbandonGroupConsumer(action) => (
+            AdapterCommand::AbandonGroupConsumer(action.clone()),
+            ExpectedEvent::GroupConsumerAbandoned(action.consumer_id.clone()),
         ),
         ScenarioAction::ShutdownGroupConsumer(action) => {
             let completion = testlab_schema::GroupConsumerShutdownCompletion {

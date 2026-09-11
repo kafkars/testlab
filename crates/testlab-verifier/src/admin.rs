@@ -1,5 +1,4 @@
 //! Admin verification joins exact commands, public completions, and independent broker facts.
-
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
 use crate::admin_client_quota::verify_client_quota_action;
@@ -31,7 +30,6 @@ use crate::admin_validate_only::verify_validate_only_action;
 use crate::index::HistoryIndex;
 use crate::support::violation;
 use testlab_schema::{BrokerObservation, Scenario, ScenarioAction, Violation};
-
 pub(crate) fn verify_admin(
     scenario: &Scenario,
     index: &HistoryIndex,
@@ -198,6 +196,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeTopics(_) => "ADMIN-044",
         ScenarioAction::DeleteTopics(_) => "ADMIN-045",
         ScenarioAction::DeleteConsumerGroups(_) => "ADMIN-046",
+        ScenarioAction::RemoveConsumerGroupMembers(_) => "ADMIN-068",
         ScenarioAction::ListTopics(_) => "ADMIN-004",
         ScenarioAction::ListConfigResources(_) => "ADMIN-063",
         ScenarioAction::ListOffsets(_) => "ADMIN-005",
@@ -276,6 +275,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::DeleteConsumerGroupOffset(value) => &value.operation_id,
         ScenarioAction::DeleteConsumerGroup(value) => &value.operation_id,
         ScenarioAction::DeleteConsumerGroups(value) => &value.operation_id,
+        ScenarioAction::RemoveConsumerGroupMembers(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroupOffsetsBatch(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroupsOffsets(value) => &value.operation_id,
         ScenarioAction::AlterConsumerGroupOffsets(value) => &value.operation_id,

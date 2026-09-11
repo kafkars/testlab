@@ -34,6 +34,7 @@ pub(crate) enum ExpectedEvent {
     GroupConsumerControlCompleted(testlab_schema::GroupConsumerControlCompletion),
     GroupConsumerShutdownCompleted(testlab_schema::GroupConsumerShutdownCompletion),
     GroupConsumerClosed(ConsumerId),
+    GroupConsumerAbandoned(ConsumerId),
     ShareConsumerCreated(ConsumerId),
     ShareReceiveCompleted(OperationId),
     ShareAcknowledgementCompleted(OperationId),
@@ -206,6 +207,7 @@ pub(crate) enum ExpectedEvent {
         operation_id: OperationId,
         group_ids: Vec<String>,
     },
+    ConsumerGroupMembersRemoved(OperationId, Vec<String>),
     ConsumerGroupOffsetsListed {
         operation_id: OperationId,
     },
@@ -245,7 +247,6 @@ pub(crate) enum ExpectedEvent {
     Finished,
     Aborted,
 }
-
 impl ExpectedEvent {
     pub(crate) fn classify(&self, event: &AdapterEvent) -> Result<EventDisposition, RunFailure> {
         if matches!(event, AdapterEvent::CommandFailed { .. }) {
@@ -292,9 +293,6 @@ impl ExpectedEvent {
         if let Some(disposition) = crate::runner_protocol_cancel::classify(self, event) {
             return disposition;
         }
-        if let Some(disposition) = classify_transaction(self, event) {
-            return disposition;
-        }
-        classify_core(self, event)
+        classify_transaction(self, event).unwrap_or_else(|| classify_core(self, event))
     }
 }

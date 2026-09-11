@@ -120,9 +120,9 @@ pub enum AdapterCommand {
     ControlGroupConsumer(crate::GroupConsumerControlCommand),
     ShutdownGroupConsumer(crate::GroupConsumerShutdownCommand),
     CloseGroupConsumer {
-        /// Consumer to close.
         consumer_id: ConsumerId,
     },
+    AbandonGroupConsumer(crate::GroupConsumerAbandonment),
     /// Registers one unique share-group member.
     CreateShareConsumer {
         /// Existing client that owns the member.
@@ -225,10 +225,10 @@ pub enum AdapterCommand {
     AlterConsumerGroupOffsets(crate::AlterConsumerGroupOffsetsCommand),
     /// Deletes one committed consumer-group offset through the public admin surface.
     DeleteConsumerGroupOffset(crate::DeleteConsumerGroupOffsetCommand),
-    /// Deletes multiple committed offsets through one public admin call.
     DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsCommand),
     DeleteConsumerGroup(crate::DeleteConsumerGroupCommand),
     DeleteConsumerGroups(crate::DeleteConsumerGroupsCommand),
+    RemoveConsumerGroupMembers(crate::RemoveConsumerGroupMembersCommand),
     /// Describes multiple classic consumer groups through one public admin call.
     DescribeClassicGroups(crate::DescribeClassicGroupsCommand),
     CreateAcls(crate::CreateAclsCommand),

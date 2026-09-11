@@ -12,10 +12,12 @@ fn configured_group_policy_round_trips() {
         consumer_id: id(crate::ConsumerId::new("consumer-1")),
         group_id: "workers".to_owned(),
         topic: "orders".to_owned(),
-        protocol: crate::GroupProtocol::Consumer,
+        protocol: crate::GroupProtocol::Classic,
         configuration: Some(GroupConsumerConfiguration {
             offset_reset: GroupOffsetReset::Latest,
             read_isolation: GroupReadIsolation::ReadCommitted,
+            group_instance_id: Some("worker-static-1".to_owned()),
+            classic_session_timeout_ms: Some(120_000),
         }),
     };
     let encoded = serde_json::to_string(&action)
@@ -42,6 +44,8 @@ fn configured_group_requires_its_capability() {
     *configuration = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        group_instance_id: None,
+        classic_session_timeout_ms: None,
     });
     let error = match scenario.validate() {
         Ok(()) => panic!("configured group capability must be required"),
@@ -54,6 +58,63 @@ fn configured_group_requires_its_capability() {
     scenario
         .validate()
         .unwrap_or_else(|error| panic!("validate configured group scenario: {error}"));
+}
+
+#[test]
+fn classic_session_timeout_is_protocol_specific_and_positive() {
+    let mut modern = scenario("../../../scenarios/kafka/consumer-protocol-group-round-trip.toml");
+    modern
+        .requires
+        .insert(Capability::GroupConsumerConfiguration);
+    *group_configuration(&mut modern) = Some(GroupConsumerConfiguration {
+        offset_reset: GroupOffsetReset::Earliest,
+        read_isolation: GroupReadIsolation::ReadUncommitted,
+        group_instance_id: None,
+        classic_session_timeout_ms: Some(10_000),
+    });
+    let error = modern
+        .validate()
+        .expect_err("KIP-848 group must reject classic timing");
+    assert!(error.to_string().contains("non-classic group"));
+
+    let mut classic = scenario("../../../scenarios/kafka/classic-group-round-trip.toml");
+    classic
+        .requires
+        .insert(Capability::GroupConsumerConfiguration);
+    *group_configuration(&mut classic) = Some(GroupConsumerConfiguration {
+        offset_reset: GroupOffsetReset::Earliest,
+        read_isolation: GroupReadIsolation::ReadUncommitted,
+        group_instance_id: None,
+        classic_session_timeout_ms: Some(0),
+    });
+    let error = classic
+        .validate()
+        .expect_err("zero classic session timeout must fail");
+    assert!(error.to_string().contains("must be between 1"));
+}
+
+fn scenario(path: &str) -> Scenario {
+    let source = match path {
+        "../../../scenarios/kafka/consumer-protocol-group-round-trip.toml" => {
+            include_str!("../../../scenarios/kafka/consumer-protocol-group-round-trip.toml")
+        }
+        "../../../scenarios/kafka/classic-group-round-trip.toml" => {
+            include_str!("../../../scenarios/kafka/classic-group-round-trip.toml")
+        }
+        _ => panic!("unknown group fixture"),
+    };
+    toml::from_str(source).unwrap_or_else(|error| panic!("parse group scenario: {error}"))
+}
+
+fn group_configuration(scenario: &mut Scenario) -> &mut Option<GroupConsumerConfiguration> {
+    scenario
+        .steps
+        .iter_mut()
+        .find_map(|step| match &mut step.action {
+            ScenarioAction::CreateGroupConsumer { configuration, .. } => Some(configuration),
+            _ => None,
+        })
+        .unwrap_or_else(|| panic!("group creation missing"))
 }
 
 fn id<T, E>(result: Result<T, E>) -> T

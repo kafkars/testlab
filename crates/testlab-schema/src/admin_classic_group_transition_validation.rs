@@ -36,6 +36,9 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 }
             }
             ScenarioAction::CloseGroupConsumer { consumer_id }
+            | ScenarioAction::AbandonGroupConsumer(crate::GroupConsumerAbandonment {
+                consumer_id,
+            })
             | ScenarioAction::ShutdownGroupConsumer(crate::GroupConsumerShutdownAction {
                 consumer_id,
                 ..

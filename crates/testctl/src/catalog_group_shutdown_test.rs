@@ -23,11 +23,15 @@ fn capable_kafkars_packs_retain_group_shutdown() {
     assert_scenarios(
         &repository,
         "packs/kafkars-classic.toml",
-        &["classic-group-shutdown.toml"],
+        &[
+            "classic-group-shutdown.toml",
+            "admin-remove-static-group-members.toml",
+        ],
     );
 }
 
-const ALL_SCENARIOS: [&str; 2] = [
+const ALL_SCENARIOS: [&str; 3] = [
+    "admin-remove-static-group-members.toml",
     "classic-group-shutdown.toml",
     "consumer-protocol-group-shutdown.toml",
 ];

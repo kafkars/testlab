@@ -27,7 +27,11 @@ pub(super) fn classify_group(
             AdapterEvent::GroupConsumerClosed {
                 consumer_id: actual,
             },
-        ) => expected == actual,
+        )
+        | (
+            ExpectedEvent::GroupConsumerAbandoned(expected),
+            AdapterEvent::GroupConsumerAbandoned(actual),
+        ) => expected == &actual.consumer_id,
         (
             ExpectedEvent::GroupReceiveCompleted(expected),
             AdapterEvent::GroupReceiveCompleted {
@@ -233,6 +237,10 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
             | (
                 ExpectedEvent::GroupConsumerClosed(_),
                 AdapterEvent::GroupConsumerClosed { .. }
+            )
+            | (
+                ExpectedEvent::GroupConsumerAbandoned(_),
+                AdapterEvent::GroupConsumerAbandoned(_)
             )
     )
 }

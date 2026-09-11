@@ -10,9 +10,9 @@ use crate::{
 
 #[test]
 fn resource_listing_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 65);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 68);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 54);
+    assert_eq!(PROTOCOL_VERSION, 66);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 69);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 55);
 }
 
 #[test]

@@ -43,7 +43,8 @@ impl HistoryIndex {
             | AdapterCommand::GroupReceiveSet(_)
             | AdapterCommand::ControlGroupConsumer(_)
             | AdapterCommand::ShutdownGroupConsumer(_)
-            | AdapterCommand::CloseGroupConsumer { .. } => {
+            | AdapterCommand::CloseGroupConsumer { .. }
+            | AdapterCommand::AbandonGroupConsumer(_) => {
                 unreachable!("consumer commands are indexed before generic commands")
             }
             AdapterCommand::CreateTransactionalProducer { producer_id, .. } => {

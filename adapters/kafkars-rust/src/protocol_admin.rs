@@ -73,6 +73,11 @@ pub(crate) fn dispatch<W: Write>(
                 state, writer, command_id, command,
             )
         }
+        AdapterCommand::RemoveConsumerGroupMembers(command) => {
+            crate::protocol_admin_consumer_group_member_removal::remove(
+                state, writer, command_id, command,
+            )
+        }
         AdapterCommand::DescribeCluster(command) => {
             protocol_admin_cluster::describe(state, writer, command_id, command)
         }

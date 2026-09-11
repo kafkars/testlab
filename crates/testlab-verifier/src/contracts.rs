@@ -93,6 +93,7 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "ADMIN-065",
     "ADMIN-066",
     "ADMIN-067",
+    "ADMIN-068",
     "TXN-001",
     "TXN-002",
     "TXN-003",
@@ -154,6 +155,7 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "LIFE-013",
     "LIFE-014",
     "LIFE-015",
+    "LIFE-016",
 ];
 
 /// Returns every contract identifier this repository cut may emit.

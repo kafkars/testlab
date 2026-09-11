@@ -91,6 +91,7 @@ scenarios = [
   "scenarios/kafka/admin-list-consumer-groups-multiple.toml",
   "scenarios/kafka/admin-describe-classic-groups.toml",
   "scenarios/kafka/admin-delete-consumer-groups.toml",
+  "scenarios/kafka/admin-remove-static-group-members.toml",
   "scenarios/kafka/admin-list-consumer-groups-offsets.toml",
   "scenarios/kafka/admin-consumer-group-offsets-batch-lifecycle.toml",
   "scenarios/kafka/admin-describe-consumer-group.toml",

@@ -111,6 +111,16 @@ pub(crate) fn dispatch<W: Write>(
                 ),
             )
         }
+        AdapterCommand::AbandonGroupConsumer(abandonment) => {
+            state.abandon_group_consumer(&abandonment.consumer_id)?;
+            emit(
+                writer,
+                &AdapterEventEnvelope::new(
+                    command_id,
+                    AdapterEvent::GroupConsumerAbandoned(abandonment),
+                ),
+            )
+        }
         _ => Err(AdapterError::ConsumerRecord(
             "non-group command reached group dispatcher".to_owned(),
         )),

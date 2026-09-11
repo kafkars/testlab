@@ -117,6 +117,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ControlGroupConsumer(_)
         | AdapterCommand::ShutdownGroupConsumer(_)
         | AdapterCommand::CloseGroupConsumer { .. }
+        | AdapterCommand::AbandonGroupConsumer(_)
         | AdapterCommand::CreateShareConsumer { .. }
         | AdapterCommand::ShareReceive { .. }
         | AdapterCommand::ShareAcknowledge { .. }
@@ -169,6 +170,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DeleteConsumerGroup(_)
         | AdapterCommand::DeleteConsumerGroups(_)
+        | AdapterCommand::RemoveConsumerGroupMembers(_)
         | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)

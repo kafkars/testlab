@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{
-    Client, Consumer, ConsumerBuildError, ConsumerGroupProtocol, OffsetReset, RetryAdvice,
-    StartPosition, TopicPartition,
+    ClassicGroupConfig, Client, Consumer, ConsumerBuildError, ConsumerGroupProtocol, OffsetReset,
+    RetryAdvice, StartPosition, TopicPartition,
 };
 use testlab_schema::{
     AssignedStartPosition, ClientId, ConsumerId, GroupConsumerConfiguration, GroupConsumerControl,
@@ -47,11 +47,18 @@ impl GroupConsumers {
         if self.contains(&registration.consumer_id) {
             return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
-        let configuration = registration
+        let GroupConsumerConfiguration {
+            offset_reset,
+            read_isolation,
+            group_instance_id,
+            classic_session_timeout_ms,
+        } = registration
             .configuration
             .unwrap_or(GroupConsumerConfiguration {
                 offset_reset: GroupOffsetReset::Earliest,
                 read_isolation: GroupReadIsolation::ReadUncommitted,
+                group_instance_id: None,
+                classic_session_timeout_ms: None,
             });
         let builder = client
             .consumer(registration.group_id)
@@ -60,10 +67,21 @@ impl GroupConsumers {
                 GroupProtocol::Classic => ConsumerGroupProtocol::Classic,
                 GroupProtocol::Consumer => ConsumerGroupProtocol::Consumer,
             })
-            .on_missing_offset(public_offset_reset(configuration.offset_reset))
-            .read_isolation(public_read_isolation(configuration.read_isolation))
+            .on_missing_offset(public_offset_reset(offset_reset))
+            .read_isolation(public_read_isolation(read_isolation))
             .membership_start_timeout(OPERATION_TIMEOUT)
             .close_timeout(OPERATION_TIMEOUT);
+        let builder = match group_instance_id {
+            Some(group_instance_id) => builder.group_instance_id(group_instance_id),
+            None => builder,
+        };
+        let builder = match classic_session_timeout_ms {
+            Some(timeout_ms) => builder.classic_group_config(
+                ClassicGroupConfig::default()
+                    .with_session_timeout(Duration::from_millis(timeout_ms)),
+            ),
+            None => builder,
+        };
         let consumer = retry_owned_safe(builder, |builder| {
             builder.build().map_err(ConsumerBuildError::into_parts)
         })
@@ -127,6 +145,16 @@ impl GroupConsumers {
             consumer_id,
             started.checked_add(OPERATION_TIMEOUT).unwrap_or(started),
         )
+    }
+
+    /// Drops the sole public owner while leaving engine-hosted membership intact.
+    pub(crate) fn abandon(&mut self, consumer_id: &ConsumerId) -> Result<(), StateError> {
+        let owner = self
+            .owners
+            .remove(consumer_id)
+            .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))?;
+        drop(owner);
+        Ok(())
     }
 
     pub(crate) fn close_until(

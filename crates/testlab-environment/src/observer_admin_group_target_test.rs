@@ -4,7 +4,7 @@ use testlab_schema::{
     AlterConsumerGroupOffsetAction, ClientId, DeleteConsumerGroupAction,
     DeleteConsumerGroupOffsetAction, DescribeClusterAction, DescribeConsumerGroupAction,
     GroupListingApi, ListConsumerGroupOffsetsAction, ListConsumerGroupsAction, OperationId,
-    ScenarioAction,
+    RemoveConsumerGroupMembersAction, ScenarioAction,
 };
 
 use crate::observer_admin_target::AdminTarget;
@@ -94,6 +94,25 @@ fn group_deletion_polls_for_independent_absence() {
     };
     assert!(!target.expected_exists);
     assert_eq!(target.expected_member_count, None);
+    assert!(target.poll_expected);
+}
+
+#[test]
+fn static_member_removal_polls_for_independent_zero_member_state() {
+    let action = ScenarioAction::RemoveConsumerGroupMembers(RemoveConsumerGroupMembersAction {
+        client_id: client(),
+        operation_id: operation("remove-static-members"),
+        baseline_operation_id: operation("describe-static-members"),
+        group_id: "orders-group".to_owned(),
+        group_instance_ids: vec!["static-zulu".to_owned(), "static-alpha".to_owned()],
+        reason: "testlab static cleanup".to_owned(),
+        timeout_ms: 500,
+    });
+    let AdminTarget::ConsumerGroup(target) = exact(&action) else {
+        panic!("static-member removal target kind");
+    };
+    assert!(target.expected_exists);
+    assert_eq!(target.expected_member_count, Some(0));
     assert!(target.poll_expected);
 }
 

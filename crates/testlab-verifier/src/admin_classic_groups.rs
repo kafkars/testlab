@@ -143,6 +143,9 @@ fn live_classic_consumers(
             ScenarioAction::CloseGroupConsumer { consumer_id } => {
                 live.remove(consumer_id);
             }
+            ScenarioAction::AbandonGroupConsumer(action) => {
+                live.remove(&action.consumer_id);
+            }
             _ => {}
         }
     }

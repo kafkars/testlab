@@ -3,9 +3,15 @@
 use testlab_schema::AdapterEvent;
 
 use super::{
-    HistoryIndex, IndexedAssignedConsumerControl, IndexedGroupAssignments,
-    IndexedGroupConsumerControl, IndexedGroupReceiveSet, IndexedReceive, push,
+    HistoryIndex, IndexedAssignedConsumerControl, IndexedGroupAssignments, IndexedGroupReceiveSet,
+    IndexedReceive, push,
 };
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedGroupConsumerControl {
+    pub(crate) history_sequence: u64,
+    pub(crate) completion: testlab_schema::GroupConsumerControlCompletion,
+}
 
 impl HistoryIndex {
     pub(super) fn record_consumer_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
@@ -76,6 +82,11 @@ impl HistoryIndex {
             AdapterEvent::GroupConsumerClosed { consumer_id } => push(
                 &mut self.group_consumers_closed,
                 consumer_id.clone(),
+                sequence,
+            ),
+            AdapterEvent::GroupConsumerAbandoned(action) => push(
+                &mut self.group_consumers_abandoned,
+                action.consumer_id.clone(),
                 sequence,
             ),
             _ => return false,

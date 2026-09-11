@@ -19,7 +19,8 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::GroupReceiveSet(_)
         | AdapterCommand::ControlGroupConsumer(_)
         | AdapterCommand::ShutdownGroupConsumer(_)
-        | AdapterCommand::CloseGroupConsumer { .. } => "consumer_groups capability required",
+        | AdapterCommand::CloseGroupConsumer { .. }
+        | AdapterCommand::AbandonGroupConsumer(_) => "consumer_groups capability required",
         AdapterCommand::CreateShareConsumer { .. }
         | AdapterCommand::ShareReceive { .. }
         | AdapterCommand::ShareAcknowledge { .. }
@@ -72,6 +73,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DeleteConsumerGroup(_)
         | AdapterCommand::DeleteConsumerGroups(_)
+        | AdapterCommand::RemoveConsumerGroupMembers(_)
         | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)

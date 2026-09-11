@@ -1,6 +1,5 @@
 pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, ProducerStates};
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
-use std::collections::BTreeSet;
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn validate_action(
     action: &ScenarioAction,
@@ -100,7 +99,8 @@ pub(crate) fn validate_action(
         | ScenarioAction::GroupReceiveSet(_)
         | ScenarioAction::ControlGroupConsumer(_)
         | ScenarioAction::ShutdownGroupConsumer(_)
-        | ScenarioAction::CloseGroupConsumer { .. }) => {
+        | ScenarioAction::CloseGroupConsumer { .. }
+        | ScenarioAction::AbandonGroupConsumer(_)) => {
             crate::consumer_action_validation::validate(action, state, problems);
         }
         action @ (ScenarioAction::CreateShareConsumer { .. }
@@ -157,6 +157,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DeleteConsumerGroupOffsets(_)
         | ScenarioAction::DeleteConsumerGroup(_)
         | ScenarioAction::DeleteConsumerGroups(_)
+        | ScenarioAction::RemoveConsumerGroupMembers(_)
         | ScenarioAction::DescribeClassicGroups(_)
         | ScenarioAction::CreateAcls(_)
         | ScenarioAction::DescribeAcls(_)
@@ -200,8 +201,8 @@ fn create_client(client_id: &ClientId, clients: &mut ClientStates, problems: &mu
 fn validate_batch(
     producer_id: &ProducerId,
     batch: &[crate::BatchRecord],
-    operation_ids: &mut BTreeSet<OperationId>,
-    sends: &mut BTreeSet<OperationId>,
+    operation_ids: &mut std::collections::BTreeSet<OperationId>,
+    sends: &mut std::collections::BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
     if batch.is_empty() {
@@ -226,8 +227,8 @@ fn validate_batch(
 pub(crate) fn validate_operation(
     operation_id: &OperationId,
     record: &crate::RecordSpec,
-    operation_ids: &mut BTreeSet<OperationId>,
-    sends: &mut BTreeSet<OperationId>,
+    operation_ids: &mut std::collections::BTreeSet<OperationId>,
+    sends: &mut std::collections::BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
     if !operation_ids.insert(operation_id.clone()) {
@@ -292,9 +293,7 @@ fn close_producer(
 ) {
     match producers.get_mut(producer_id) {
         Some((_, closed)) if !*closed => *closed = true,
-        Some(_) => {
-            problems.push(format!("producer {producer_id} closed more than once"));
-        }
+        Some(_) => problems.push(format!("producer {producer_id} closed more than once")),
         None => problems.push(format!("missing producer {producer_id} was closed")),
     }
 }

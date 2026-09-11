@@ -51,6 +51,10 @@ impl HistoryIndex {
                 self.group_consumers_close_issued
                     .insert(consumer_id.clone());
             }
+            AdapterCommand::AbandonGroupConsumer(action) => {
+                self.group_consumers_abandon_issued
+                    .insert(action.consumer_id.clone());
+            }
             _ => return false,
         }
         true

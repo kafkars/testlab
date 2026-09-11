@@ -126,9 +126,9 @@ pub enum AdapterEvent {
     GroupConsumerControlCompleted(crate::GroupConsumerControlCompletion),
     GroupConsumerShutdownCompleted(crate::GroupConsumerShutdownCompletion),
     GroupConsumerClosed {
-        /// Closed consumer.
         consumer_id: ConsumerId,
     },
+    GroupConsumerAbandoned(crate::GroupConsumerAbandonment),
     /// One share-group member registered.
     ShareConsumerCreated {
         /// Created share consumer.
@@ -242,7 +242,7 @@ pub enum AdapterEvent {
     ConsumerGroupOffsetsDeleted(crate::AdminConsumerGroupOffsetsMutation),
     ConsumerGroupDeleted(crate::AdminConsumerGroupCompletion),
     ConsumerGroupsDeleted(crate::AdminConsumerGroupsDeletion),
-    /// One public classic-group batch description returned ordered outcomes.
+    ConsumerGroupMembersRemoved(crate::AdminConsumerGroupMembersRemoval),
     ClassicGroupsDescribed(crate::AdminClassicGroupsDescription),
     AclsCreated(crate::AdminAclsCreation),
     AclsDescribed(crate::AdminAclsDescription),

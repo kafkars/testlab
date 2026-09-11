@@ -146,14 +146,16 @@ fn group_creation_preserves_public_configuration() {
     let expected_configuration = GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadCommitted,
+        group_instance_id: Some("worker-static-1".to_owned()),
+        classic_session_timeout_ms: Some(120_000),
     };
     let action = ScenarioAction::CreateGroupConsumer {
         client_id: id(ClientId::new("client-1")),
         consumer_id: id(ConsumerId::new("consumer-1")),
         group_id: "workers".to_owned(),
         topic: "orders".to_owned(),
-        protocol: GroupProtocol::Consumer,
-        configuration: Some(expected_configuration),
+        protocol: GroupProtocol::Classic,
+        configuration: Some(expected_configuration.clone()),
     };
     let Some((AdapterCommand::CreateGroupConsumer { configuration, .. }, expected)) =
         translate(&action)
@@ -162,6 +164,21 @@ fn group_creation_preserves_public_configuration() {
     };
     assert_eq!(configuration, Some(expected_configuration));
     assert!(matches!(expected, ExpectedEvent::GroupConsumerCreated(_)));
+}
+
+#[test]
+fn group_abandonment_preserves_the_exact_consumer_identity() {
+    let consumer_id = id(ConsumerId::new("consumer-static"));
+    let action = ScenarioAction::AbandonGroupConsumer(testlab_schema::GroupConsumerAbandonment {
+        consumer_id: consumer_id.clone(),
+    });
+    let Some((AdapterCommand::AbandonGroupConsumer(actual), expected)) = translate(&action) else {
+        panic!("group abandonment must translate");
+    };
+    assert_eq!(actual.consumer_id, consumer_id);
+    assert!(
+        matches!(expected, ExpectedEvent::GroupConsumerAbandoned(value) if value == actual.consumer_id)
+    );
 }
 
 fn partition(partition: i32) -> TopicPartitionIdentity {
