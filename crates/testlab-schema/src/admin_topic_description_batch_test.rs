@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 49);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 52);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 38);
+    assert_eq!(PROTOCOL_VERSION, 50);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 53);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 39);
 }
 
 #[test]

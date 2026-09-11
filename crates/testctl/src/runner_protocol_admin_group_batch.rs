@@ -1,4 +1,4 @@
-//! Batched group-admin completion matching correlates the public call identity only.
+//! Batched group-admin completion matching retains exact operation and resource identities.
 
 use testlab_schema::AdapterEvent;
 
@@ -30,6 +30,20 @@ pub(super) fn classify(
             ExpectedEvent::ClassicGroupsDescribed { operation_id },
             AdapterEvent::ClassicGroupsDescribed(actual),
         ) => operation_id == &actual.operation_id,
+        (
+            ExpectedEvent::ConsumerGroupsDeleted {
+                operation_id,
+                group_ids,
+            },
+            AdapterEvent::ConsumerGroupsDeleted(actual),
+        ) => {
+            operation_id == &actual.operation_id
+                && actual
+                    .outcomes
+                    .iter()
+                    .map(|outcome| outcome.group_id.as_str())
+                    .eq(group_ids.iter().map(String::as_str))
+        }
         _ => return None,
     };
     Some(if matches {
@@ -54,6 +68,7 @@ fn expected_is_batch_group(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::ConsumerGroupOffsetsAltered { .. }
             | ExpectedEvent::ConsumerGroupOffsetsDeleted { .. }
             | ExpectedEvent::ClassicGroupsDescribed { .. }
+            | ExpectedEvent::ConsumerGroupsDeleted { .. }
     )
 }
 
@@ -65,5 +80,6 @@ fn event_is_batch_group(event: &AdapterEvent) -> bool {
             | AdapterEvent::ConsumerGroupOffsetsAltered(_)
             | AdapterEvent::ConsumerGroupOffsetsDeleted(_)
             | AdapterEvent::ClassicGroupsDescribed(_)
+            | AdapterEvent::ConsumerGroupsDeleted(_)
     )
 }

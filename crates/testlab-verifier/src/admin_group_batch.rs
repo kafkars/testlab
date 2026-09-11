@@ -4,6 +4,7 @@ use testlab_schema::{Scenario, ScenarioAction, Violation};
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::admin_classic_groups::verify_classic_groups;
+use crate::admin_consumer_groups_deletion;
 use crate::admin_group_batch_mutation::verify_group_offsets_mutation;
 use crate::index::admin_group_batch::{
     IndexedConsumerGroupOffsetsListing, IndexedConsumerGroupsOffsetsListing,
@@ -48,6 +49,9 @@ pub(crate) fn verify_group_batch_action(
         }
         ScenarioAction::DescribeClassicGroups(_) => {
             verify_classic_groups(scenario, action, index, violations);
+        }
+        ScenarioAction::DeleteConsumerGroups(expected) => {
+            admin_consumer_groups_deletion::verify(scenario, action, expected, index, violations);
         }
         _ => return false,
     }

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v49 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v52 and evidence schema v38.
+Protocol v50 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v53 and evidence schema v39.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -99,6 +99,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `delete_consumer_group_offset`
 - `delete_consumer_group_offsets`
 - `delete_consumer_group`
+- `delete_consumer_groups`
 - `describe_classic_groups`
 - `create_acls`
 - `describe_acls`
@@ -547,6 +548,14 @@ inferred from that broker fact: every counted live member must be an explicitly
 declared classic consumer with a prior successful committed `group_receive` and
 a positive classic group epoch.
 
+`delete_consumer_groups` carries two through 32 distinct group IDs in caller
+order and invokes one public Admin operation under one deadline. Its completion
+retains one success or normalized error per group without receiving scenario
+expectations. A prior caller-ordered classic-group description and its immediate
+independent snapshot must prove every group exists with zero members. After the
+public deletion, an independent group query polls until every requested group is
+absent and then emits consecutive observations in the same caller order.
+
 ACL administration is bounded to one through 32 caller-ordered concrete
 bindings over literal topic, group, or transactional-ID resources, exact
 `User:` principals, wildcard host `*`, the read, write, or create operation,
@@ -720,6 +729,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v49 is an exact semantic contract. New capabilities may be declared
+Protocol v50 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

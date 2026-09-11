@@ -2,8 +2,8 @@
 
 use testlab_schema::{
     AdapterCommand, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection,
-    DescribeClassicGroupsCommand, ListConsumerGroupOffsetsBatchCommand,
-    ListConsumerGroupsOffsetsCommand, ScenarioAction,
+    DeleteConsumerGroupsCommand, DescribeClassicGroupsCommand,
+    ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupsOffsetsCommand, ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -82,6 +82,18 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             ),
             ExpectedEvent::ConsumerGroupOffsetsDeleted {
                 operation_id: action.operation_id.clone(),
+            },
+        ),
+        ScenarioAction::DeleteConsumerGroups(action) => (
+            AdapterCommand::DeleteConsumerGroups(DeleteConsumerGroupsCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                group_ids: action.group_ids.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::ConsumerGroupsDeleted {
+                operation_id: action.operation_id.clone(),
+                group_ids: action.group_ids.clone(),
             },
         ),
         ScenarioAction::DescribeClassicGroups(action) => (

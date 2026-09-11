@@ -20,7 +20,8 @@
   outcomes, scoped topic, cluster,
   consumer-only, and generic all-group discovery, singleton and caller-ordered batch earliest- and
   latest-offset administration, consumer-group offset listing, alteration, and
-  deletion, record-prefix deletion, empty-group deletion, and selected
+  deletion, record-prefix deletion, singleton and caller-ordered plural
+  empty-group deletion, and selected
   topic-configuration description, replacement, and restoration; caller-ordered
   literal ACL creation, exact description, and exact deletion plus named-user
   producer and consumer quota replacement, description, and removal and

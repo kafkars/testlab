@@ -56,6 +56,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::DeleteConsumerGroupOffset(_)
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DeleteConsumerGroup(_)
+        | AdapterCommand::DeleteConsumerGroups(_)
         | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)

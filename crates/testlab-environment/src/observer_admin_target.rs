@@ -8,6 +8,7 @@ use crate::observer_admin_acl_target;
 use crate::observer_admin_batch_topic_target;
 use crate::observer_admin_client_quota_target;
 use crate::observer_admin_config_target;
+use crate::observer_admin_consumer_group_deletion_batch_target;
 use crate::observer_admin_group_target;
 use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
@@ -33,6 +34,7 @@ pub(super) enum AdminTarget {
     TopicDeletions(ListTarget),
     Cluster(OperationId),
     ConsumerGroups(ListTarget),
+    ConsumerGroupDeletions(ListTarget),
     ConsumerGroup(GroupTarget),
     ShareGroup(ShareGroupTarget),
     ShareGroupDescriptions(ShareGroupsTarget),
@@ -58,14 +60,12 @@ pub(super) struct ClientQuotaTarget {
     pub(super) user: String,
     pub(super) direction: testlab_schema::BrokerQuotaDirection,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct UserScramCredentialTarget {
     pub(super) operation_id: OperationId,
     pub(super) user: String,
     pub(super) mechanism: testlab_schema::ScramCredentialMechanism,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct TopicTarget {
     pub(super) operation_id: OperationId,
@@ -74,13 +74,11 @@ pub(super) struct TopicTarget {
     pub(super) expected_exists: bool,
     pub(super) poll_expected: bool,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct ListTarget {
     pub(super) operation_id: OperationId,
     pub(super) names: Vec<String>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct GroupTarget {
     pub(super) operation_id: OperationId,
@@ -89,7 +87,6 @@ pub(super) struct GroupTarget {
     pub(super) expected_exists: bool,
     pub(super) poll_expected: bool,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct ShareGroupTarget {
     pub(super) operation_id: OperationId,
@@ -198,6 +195,7 @@ impl AdminTarget {
             .or(observer_admin_topic_target::match_action(action)?)
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)
+            .or(observer_admin_consumer_group_deletion_batch_target::match_action(action)?)
         {
             Some(matched) => Some(matched),
             None => observer_admin_plural_group_target::match_action(action)?
@@ -221,9 +219,10 @@ impl AdminTarget {
             Self::ClientQuota(target) => &target.operation_id,
             Self::UserScramCredential(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
-            Self::Topics(target) | Self::TopicDeletions(target) | Self::ConsumerGroups(target) => {
-                &target.operation_id
-            }
+            Self::Topics(target)
+            | Self::TopicDeletions(target)
+            | Self::ConsumerGroups(target)
+            | Self::ConsumerGroupDeletions(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
@@ -246,9 +245,10 @@ impl AdminTarget {
             Self::Acls(target) => target.bindings.len(),
             Self::ClientQuota(_) => 1,
             Self::UserScramCredential(_) => 1,
-            Self::Topics(target) | Self::TopicDeletions(target) | Self::ConsumerGroups(target) => {
-                target.names.len()
-            }
+            Self::Topics(target)
+            | Self::TopicDeletions(target)
+            | Self::ConsumerGroups(target)
+            | Self::ConsumerGroupDeletions(target) => target.names.len(),
             Self::ConsumerGroupOffsets(target) => target.offsets.len(),
             Self::ConsumerGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()

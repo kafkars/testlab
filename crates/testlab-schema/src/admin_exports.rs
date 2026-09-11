@@ -11,6 +11,10 @@ pub use crate::admin_config::{
     AlterTopicConfigCommand, BrokerTopicConfigState, DescribeTopicConfigAction,
     DescribeTopicConfigCommand,
 };
+pub use crate::admin_consumer_group_deletion_batch::{
+    AdminConsumerGroupDeletionOutcome, AdminConsumerGroupsDeletion, DeleteConsumerGroupsAction,
+    DeleteConsumerGroupsCommand,
+};
 pub use crate::admin_create_topics_batch::{
     AdminTopicCreationOutcome, AdminTopicsCreationBatch, CreateTopicBatchActionItem,
     CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,

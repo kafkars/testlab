@@ -65,6 +65,11 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeClassicGroups(command) => {
             protocol_admin_classic_group::describe(state, writer, command_id, command)
         }
+        AdapterCommand::DeleteConsumerGroups(command) => {
+            crate::protocol_admin_consumer_group_deletion_batch::delete(
+                state, writer, command_id, command,
+            )
+        }
         AdapterCommand::DescribeCluster(command) => {
             protocol_admin_cluster::describe(state, writer, command_id, command)
         }

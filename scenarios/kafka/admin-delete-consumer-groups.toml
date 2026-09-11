@@ -1,0 +1,149 @@
+schema_version = 53
+id = "kafka.admin-delete-consumer-groups"
+title = "packaged admin deletes caller-ordered empty consumer groups"
+description = "Two classic groups independently consume and commit exact records, close their only members, and are described empty in caller order before one public batch deletion; an immediate independent group query proves both are absent."
+timeout_ms = 200000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-zulu-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-delete-consumer-groups-zulu"
+
+[steps.record]
+topic = "testlab-kafkars-admin-delete-consumer-groups-zulu"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "group-zulu" }
+value = { encoding = "utf8", data = "caller-order-first" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-delete-consumer-groups-zulu" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-alpha-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-delete-consumer-groups-alpha"
+
+[steps.record]
+topic = "testlab-kafkars-admin-delete-consumer-groups-alpha"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "group-alpha" }
+value = { encoding = "utf8", data = "caller-order-second" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-delete-consumer-groups-alpha" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-zulu-group"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-zulu"
+group_id = "testlab-admin-delete-consumer-group-zulu"
+topic = "testlab-kafkars-admin-delete-consumer-groups-zulu"
+protocol = "classic"
+
+[[steps]]
+id = "receive-zulu-marker"
+kind = "group_receive"
+consumer_id = "consumer-zulu"
+receive_id = "receive-delete-consumer-group-zulu"
+expected_operation_id = "op-delete-consumer-groups-zulu"
+timeout_ms = 30000
+
+[[steps]]
+id = "create-alpha-group"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-alpha"
+group_id = "testlab-admin-delete-consumer-group-alpha"
+topic = "testlab-kafkars-admin-delete-consumer-groups-alpha"
+protocol = "classic"
+
+[[steps]]
+id = "receive-alpha-marker"
+kind = "group_receive"
+consumer_id = "consumer-alpha"
+receive_id = "receive-delete-consumer-group-alpha"
+expected_operation_id = "op-delete-consumer-groups-alpha"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-zulu-group"
+kind = "close_group_consumer"
+consumer_id = "consumer-zulu"
+
+[[steps]]
+id = "close-alpha-group"
+kind = "close_group_consumer"
+consumer_id = "consumer-alpha"
+
+[[steps]]
+id = "describe-empty-groups"
+kind = "describe_classic_groups"
+client_id = "client-1"
+operation_id = "admin-describe-empty-consumer-groups"
+groups = [
+  { group_id = "testlab-admin-delete-consumer-group-zulu", expected_member_count = 0 },
+  { group_id = "testlab-admin-delete-consumer-group-alpha", expected_member_count = 0 },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-consumer-groups"
+kind = "delete_consumer_groups"
+client_id = "client-1"
+operation_id = "admin-delete-consumer-groups"
+group_ids = [
+  "testlab-admin-delete-consumer-group-zulu",
+  "testlab-admin-delete-consumer-group-alpha",
+]
+timeout_ms = 30000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-delete-consumer-groups-zulu"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-delete-consumer-groups-alpha"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -15,9 +15,9 @@ use super::{
 
 #[test]
 fn versions_advance_without_changing_evidence_facts() {
-    assert_eq!(PROTOCOL_VERSION, 49);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 52);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 38);
+    assert_eq!(PROTOCOL_VERSION, 50);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 53);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 39);
 }
 
 #[test]

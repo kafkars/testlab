@@ -1,4 +1,4 @@
-schema_version = 52
+schema_version = 53
 id = "kafka.admin-create-partitions-validate-only"
 title = "packaged admin validates a partition increase without changing topology"
 description = "The packaged client's public admin validates expansion from one to three partitions, independent metadata remains exactly one partition, and a later real expansion reaches the requested three-partition topology."

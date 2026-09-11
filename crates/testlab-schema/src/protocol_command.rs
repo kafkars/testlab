@@ -225,8 +225,8 @@ pub enum AdapterCommand {
     DeleteConsumerGroupOffset(crate::DeleteConsumerGroupOffsetCommand),
     /// Deletes multiple committed offsets through one public admin call.
     DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsCommand),
-    /// Deletes one consumer group through the public admin surface.
     DeleteConsumerGroup(crate::DeleteConsumerGroupCommand),
+    DeleteConsumerGroups(crate::DeleteConsumerGroupsCommand),
     /// Describes multiple classic consumer groups through one public admin call.
     DescribeClassicGroups(crate::DescribeClassicGroupsCommand),
     CreateAcls(crate::CreateAclsCommand),

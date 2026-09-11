@@ -191,6 +191,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DeleteConsumerGroupOffset(_)
             | ScenarioAction::DeleteConsumerGroupOffsets(_)
             | ScenarioAction::DeleteConsumerGroup(_)
+            | ScenarioAction::DeleteConsumerGroups(_)
             | ScenarioAction::DescribeClassicGroups(_)
             | ScenarioAction::CreateAcls(_)
             | ScenarioAction::DescribeAcls(_)

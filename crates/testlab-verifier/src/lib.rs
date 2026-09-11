@@ -7,6 +7,7 @@ mod admin_classic_groups;
 mod admin_client_quota;
 mod admin_cluster;
 mod admin_config;
+mod admin_consumer_groups_deletion;
 mod admin_discovery;
 mod admin_failure;
 mod admin_group;
@@ -82,6 +83,8 @@ mod admin_classic_groups_test;
 mod admin_client_quota_test;
 #[cfg(test)]
 mod admin_config_test;
+#[cfg(test)]
+mod admin_consumer_groups_deletion_test;
 #[cfg(test)]
 mod admin_discovery_test;
 #[cfg(test)]

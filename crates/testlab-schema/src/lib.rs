@@ -12,6 +12,7 @@ mod admin_cluster;
 mod admin_config;
 mod admin_config_action_validation;
 mod admin_config_transition_validation;
+mod admin_consumer_group_deletion_batch;
 mod admin_create_topics_batch;
 mod admin_create_topics_batch_validation;
 mod admin_delete_records;
@@ -111,7 +112,6 @@ mod transaction_offsets;
 mod transaction_state_validation;
 mod transaction_transform_validation;
 mod verdict;
-
 pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_expected_error::expected_admin_error;
 pub use admin_exports::*;

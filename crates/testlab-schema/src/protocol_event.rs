@@ -238,8 +238,8 @@ pub enum AdapterEvent {
     ConsumerGroupOffsetDeleted(crate::AdminConsumerGroupOffsetCompletion),
     /// One public plural offset deletion returned ordered outcomes.
     ConsumerGroupOffsetsDeleted(crate::AdminConsumerGroupOffsetsMutation),
-    /// One public admin consumer-group deletion completed successfully.
     ConsumerGroupDeleted(crate::AdminConsumerGroupCompletion),
+    ConsumerGroupsDeleted(crate::AdminConsumerGroupsDeletion),
     /// One public classic-group batch description returned ordered outcomes.
     ClassicGroupsDescribed(crate::AdminClassicGroupsDescription),
     AclsCreated(crate::AdminAclsCreation),

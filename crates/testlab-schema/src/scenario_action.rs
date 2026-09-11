@@ -23,7 +23,6 @@ pub enum ScenarioAction {
     ArmProtocolFault(crate::ProtocolFaultAction),
     AlterNetworkFault(crate::NetworkFaultAction),
     CutNetworkConnections(crate::NetworkConnectionCutAction),
-    /// Restarts one environment-owned broker and waits for Kafka readiness.
     RestartBroker {
         /// One-based declared broker ordinal.
         broker_ordinal: u16,
@@ -235,6 +234,7 @@ pub enum ScenarioAction {
     DeleteConsumerGroupOffset(crate::DeleteConsumerGroupOffsetAction),
     DeleteConsumerGroupOffsets(crate::DeleteConsumerGroupOffsetsAction),
     DeleteConsumerGroup(crate::DeleteConsumerGroupAction),
+    DeleteConsumerGroups(crate::DeleteConsumerGroupsAction),
     DescribeClassicGroups(crate::DescribeClassicGroupsAction),
     CreateAcls(crate::CreateAclsAction),
     DescribeAcls(crate::DescribeAclsAction),

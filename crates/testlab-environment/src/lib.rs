@@ -60,6 +60,8 @@ mod observer_admin_classic_group;
 mod observer_admin_client_quota_target;
 mod observer_admin_config;
 mod observer_admin_config_target;
+mod observer_admin_consumer_group_deletion_batch;
+mod observer_admin_consumer_group_deletion_batch_target;
 mod observer_admin_group;
 mod observer_admin_group_target;
 mod observer_admin_metadata;
@@ -147,6 +149,8 @@ mod observer_admin_classic_group_test;
 mod observer_admin_client_quota_test;
 #[cfg(test)]
 mod observer_admin_config_test;
+#[cfg(test)]
+mod observer_admin_consumer_groups_deletion_test;
 #[cfg(test)]
 mod observer_admin_group_target_test;
 #[cfg(test)]

@@ -153,6 +153,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DeleteConsumerGroupOffset(_)
         | AdapterCommand::DeleteConsumerGroupOffsets(_)
         | AdapterCommand::DeleteConsumerGroup(_)
+        | AdapterCommand::DeleteConsumerGroups(_)
         | AdapterCommand::DescribeClassicGroups(_)
         | AdapterCommand::CreateAcls(_)
         | AdapterCommand::DescribeAcls(_)

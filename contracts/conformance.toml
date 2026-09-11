@@ -331,6 +331,12 @@ statement = "One public name-based deletion of multiple topics follows an indepe
 category = "admin"
 
 [[contract]]
+id = "ADMIN-046"
+title = "Plural consumer-group deletion preserves caller order and broker absence"
+statement = "One public deletion of multiple empty consumer groups follows an independently corroborated caller-ordered zero-member description, returns one successful outcome per requested group in caller order, and immediate independent polling confirms every selected group absent in the same order."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

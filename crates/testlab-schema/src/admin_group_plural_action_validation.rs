@@ -61,6 +61,17 @@ pub(crate) fn validate(
             selections(&action.operation_id, &action.partitions, problems);
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
+        ScenarioAction::DeleteConsumerGroups(action) => {
+            validate_identity(
+                &action.client_id,
+                &action.operation_id,
+                clients,
+                operation_ids,
+                problems,
+            );
+            group_ids(&action.operation_id, &action.group_ids, problems);
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
         ScenarioAction::DescribeClassicGroups(action) => {
             validate_identity(
                 &action.client_id,
@@ -183,6 +194,18 @@ fn classic_groups(
     let mut group_ids = BTreeSet::new();
     for group in groups {
         unique_group(operation_id, &group.group_id, &mut group_ids, problems);
+    }
+}
+
+fn group_ids(operation_id: &OperationId, groups: &[String], problems: &mut Vec<String>) {
+    if !(2..=MAX_ITEMS).contains(&groups.len()) {
+        problems.push(format!(
+            "admin operation {operation_id} groups must contain 2 to {MAX_ITEMS} entries"
+        ));
+    }
+    let mut group_ids = BTreeSet::new();
+    for group_id in groups {
+        unique_group(operation_id, group_id, &mut group_ids, problems);
     }
 }
 

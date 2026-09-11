@@ -9,6 +9,7 @@ use testlab_schema::{BrokerStateObservation, RunId};
 
 use crate::observer_admin_classic_group;
 use crate::observer_admin_config;
+use crate::observer_admin_consumer_group_deletion_batch;
 use crate::observer_admin_group;
 use crate::observer_admin_metadata;
 use crate::observer_admin_target::AdminTarget;
@@ -70,6 +71,9 @@ pub(super) fn capture(
         )?]),
         AdminTarget::ConsumerGroups(target) => {
             observer_admin_group::capture_groups(request, target)
+        }
+        AdminTarget::ConsumerGroupDeletions(target) => {
+            observer_admin_consumer_group_deletion_batch::capture(request, target)
         }
         AdminTarget::ConsumerGroup(target) => {
             Ok(vec![observer_admin_group::capture_group(request, target)?])
