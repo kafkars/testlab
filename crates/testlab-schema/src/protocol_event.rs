@@ -214,6 +214,7 @@ pub enum AdapterEvent {
     TopicConfigAlterationValidated(crate::AdminTopicConfigCompletion),
     ClusterDescribed(crate::AdminClusterDescription),
     FeaturesDescribed(crate::AdminFeaturesDescription),
+    ProducersDescribed(crate::AdminProducersDescription),
     /// One public admin consumer-group listing completed successfully.
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
@@ -267,7 +268,6 @@ pub enum AdapterEvent {
         /// Normalized public commit error, or none when the old commit unexpectedly succeeded.
         commit_error_code: Option<String>,
     },
-    /// One idle public transactional producer closed.
     TransactionalProducerClosed {
         /// Closed transactional producer.
         producer_id: ProducerId,

@@ -4,9 +4,10 @@ pub use crate::admin_acl::*;
 pub use crate::admin_classic_group::*;
 pub use crate::admin_client_quota::*;
 pub use crate::admin_cluster::{
-    AdminClusterDescription, AdminFeaturesDescription, BrokerFeatureState, BrokerFeaturesState,
-    DescribeClusterAction, DescribeClusterCommand, DescribeFeaturesAction, DescribeFeaturesCommand,
-    FeatureVersionRange,
+    AdminClusterDescription, AdminFeaturesDescription, AdminProducersDescription,
+    BrokerFeatureState, BrokerFeaturesState, BrokerProducersState, DescribeClusterAction,
+    DescribeClusterCommand, DescribeFeaturesAction, DescribeFeaturesCommand,
+    DescribeProducersAction, DescribeProducersCommand, FeatureVersionRange, ProducerStateSnapshot,
 };
 pub use crate::admin_config::{
     AdminTopicConfigCompletion, AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome,

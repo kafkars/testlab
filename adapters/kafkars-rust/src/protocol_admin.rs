@@ -79,6 +79,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::DescribeFeatures(command) => {
             crate::protocol_admin_features::describe(state, writer, command_id, command)
         }
+        AdapterCommand::DescribeProducers(command) => {
+            crate::protocol_admin_producers::describe(state, writer, command_id, command)
+        }
         command @ (AdapterCommand::DescribeTopicConfig(_)
         | AdapterCommand::DescribeTopicConfigs(_)
         | AdapterCommand::AlterTopicConfigs(_)

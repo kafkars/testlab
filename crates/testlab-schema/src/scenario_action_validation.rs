@@ -4,7 +4,6 @@ use crate::transaction_action_validation::TransactionStates;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 use std::collections::BTreeSet;
 const MAX_BATCH_RECORDS: usize = 31;
-
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn validate_action(
     action: &ScenarioAction,
@@ -132,6 +131,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::AlterTopicConfig(_)
         | ScenarioAction::DescribeCluster(_)
         | ScenarioAction::DescribeFeatures(_)
+        | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
         | ScenarioAction::DescribeShareGroup(_)

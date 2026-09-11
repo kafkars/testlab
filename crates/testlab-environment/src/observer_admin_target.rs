@@ -1,5 +1,3 @@
-//! Admin observer targets exist only for an exact scenario-action and wire-command pair.
-
 use std::collections::BTreeSet;
 
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
@@ -14,6 +12,7 @@ use crate::observer_admin_group_target;
 use crate::observer_admin_offset_batch_target;
 use crate::observer_admin_partition_offsets_target;
 use crate::observer_admin_plural_group_target;
+use crate::observer_admin_producer_target;
 pub(super) use crate::observer_admin_share_group_offset_batch_target::{
     ShareGroupOffsetSelectionTarget, ShareGroupOffsetsSelectionTarget, ShareGroupsOffsetsTarget,
 };
@@ -35,6 +34,7 @@ pub(super) enum AdminTarget {
     TopicDeletions(ListTarget),
     Cluster(OperationId),
     Features(OperationId),
+    Producers(observer_admin_producer_target::ProducerTarget),
     ConsumerGroups(ListTarget),
     ConsumerGroupDeletions(ListTarget),
     ConsumerGroup(GroupTarget),
@@ -189,6 +189,7 @@ impl AdminTarget {
             .or(observer_admin_topic_target::match_action(action)?)
             .or_else(|| observer_admin_partition_offsets_target::match_action(action))
             .or(observer_admin_config_target::match_action(action)?)
+            .or(observer_admin_producer_target::match_action(action)?)
             .or(observer_admin_consumer_group_deletion_batch_target::match_action(action)?)
         {
             Some(matched) => Some(matched),
@@ -219,6 +220,7 @@ impl AdminTarget {
             | Self::ConsumerGroupDeletions(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
             Self::Features(operation_id) => operation_id,
+            Self::Producers(target) => &target.operation_id,
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
             Self::ShareGroupDescriptions(target) => &target.operation_id,

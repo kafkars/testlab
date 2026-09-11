@@ -124,107 +124,88 @@ pub struct BrokerFeaturesState {
     pub finalized_features_epoch: Option<i64>,
 }
 
-#[cfg(test)]
-mod tests {
-    use std::collections::{BTreeMap, BTreeSet};
-
-    use super::*;
-    use crate::{
-        AdapterCommand, AdapterEvent, BrokerStateObservation, EVIDENCE_SCHEMA_VERSION,
-        PROTOCOL_VERSION, SCENARIO_SCHEMA_VERSION, ScenarioAction,
-    };
-
-    #[test]
-    fn feature_cut_advances_every_versioned_boundary() {
-        assert_eq!(PROTOCOL_VERSION, 54);
-        assert_eq!(SCENARIO_SCHEMA_VERSION, 57);
-        assert_eq!(EVIDENCE_SCHEMA_VERSION, 43);
-    }
-
-    #[test]
-    fn expectation_stays_off_wire_and_all_results_round_trip() {
-        let action = ScenarioAction::DescribeFeatures(DescribeFeaturesAction {
-            client_id: client(),
-            operation_id: operation(),
-            expected_zk_migration_ready: false,
-            timeout_ms: 1_000,
-        });
-        let command = AdapterCommand::DescribeFeatures(DescribeFeaturesCommand {
-            client_id: client(),
-            operation_id: operation(),
-            timeout_ms: 1_000,
-        });
-        round_trip(&action);
-        round_trip(&command);
-        let encoded = serde_json::to_string(&command)
-            .unwrap_or_else(|error| panic!("encode feature command: {error}"));
-        assert!(!encoded.contains("expected_zk_migration_ready"));
-
-        let ranges = vec![range("metadata.version", 4, 30)];
-        round_trip(&AdapterEvent::FeaturesDescribed(AdminFeaturesDescription {
-            operation_id: operation(),
-            supported_features: ranges.clone(),
-            supported_features_complete: true,
-            finalized_features_epoch: Some(7),
-            finalized_features: vec![range("metadata.version", 30, 30)],
-            zk_migration_ready: false,
-        }));
-        round_trip(&BrokerStateObservation::Features(BrokerFeaturesState {
-            observation: 3,
-            operation_id: operation(),
-            features: vec![BrokerFeatureState {
-                name: "metadata.version".to_owned(),
-                supported_min_version_level: 4,
-                supported_max_version_level: 30,
-                finalized_version_level: 30,
-            }],
-            finalized_features_epoch: Some(7),
-        }));
-    }
-
-    #[test]
-    fn feature_action_requires_a_live_client_and_bounded_unique_operation() {
-        let mut problems = Vec::new();
-        let mut operation_ids = BTreeSet::new();
-        crate::admin_action_validation::validate(
-            &ScenarioAction::DescribeFeatures(DescribeFeaturesAction {
-                client_id: client(),
-                operation_id: operation(),
-                expected_zk_migration_ready: false,
-                timeout_ms: 1_000,
-            }),
-            &BTreeMap::from([(client(), false)]),
-            &mut operation_ids,
-            &mut problems,
-        );
-        assert!(problems.is_empty(), "{problems:?}");
-        assert!(operation_ids.contains(&operation()));
-    }
-
-    fn round_trip<T>(value: &T)
-    where
-        T: serde::Serialize + serde::de::DeserializeOwned + PartialEq + std::fmt::Debug,
-    {
-        let encoded = serde_json::to_vec(value)
-            .unwrap_or_else(|error| panic!("encode feature value: {error}"));
-        let decoded = serde_json::from_slice::<T>(&encoded)
-            .unwrap_or_else(|error| panic!("decode feature value: {error}"));
-        assert_eq!(&decoded, value);
-    }
-
-    fn range(name: &str, min_version_level: i16, max_version_level: i16) -> FeatureVersionRange {
-        FeatureVersionRange {
-            name: name.to_owned(),
-            min_version_level,
-            max_version_level,
-        }
-    }
-
-    fn client() -> ClientId {
-        ClientId::new("client-1").unwrap_or_else(|error| panic!("client id: {error}"))
-    }
-
-    fn operation() -> OperationId {
-        OperationId::new("admin-features").unwrap_or_else(|error| panic!("operation id: {error}"))
-    }
+/// Scenario intent for one bounded active-producer description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeProducersAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact topic whose partition producer state is queried.
+    pub topic: String,
+    /// Exact nonnegative partition whose producer state is queried.
+    pub partition: i32,
+    /// Expected number of active producers in the controlled fixture.
+    pub expected_producer_count: usize,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
 }
+
+/// Wire payload for one bounded active-producer description.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct DescribeProducersCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact topic whose partition producer state is queried.
+    pub topic: String,
+    /// Exact nonnegative partition whose producer state is queried.
+    pub partition: i32,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Exact active-producer fields shared by separately sourced snapshots.
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProducerStateSnapshot {
+    /// Exact nonnegative producer identity.
+    pub producer_id: i64,
+    /// Exact nonnegative producer epoch.
+    pub producer_epoch: i32,
+    /// Last sequence, retaining Kafka's `-1` sentinel.
+    pub last_sequence: i32,
+    /// Last timestamp, retaining Kafka's `-1` sentinel.
+    pub last_timestamp: i64,
+    /// Exact nonnegative coordinator epoch.
+    pub coordinator_epoch: i32,
+    /// Current transaction's first offset, when active.
+    pub current_transaction_start_offset: Option<i64>,
+}
+
+/// Public active-producer result exposed by the packaged client.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminProducersDescription {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact described topic.
+    pub topic: String,
+    /// Exact described partition.
+    pub partition: i32,
+    /// Producer states in canonical producer-ID order.
+    pub producers: Vec<ProducerStateSnapshot>,
+}
+
+/// Independent active-producer snapshot from Kafka's pinned CLI.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrokerProducersState {
+    /// Monotonic observation ordinal from the environment.
+    pub observation: u64,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Exact described topic.
+    pub topic: String,
+    /// Exact described partition.
+    pub partition: i32,
+    /// Producer states in canonical producer-ID order.
+    pub producers: Vec<ProducerStateSnapshot>,
+}
+
+#[cfg(test)]
+#[path = "admin_cluster_test.rs"]
+mod tests;

@@ -9,7 +9,7 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v54 over stdin/stdout;
+2. implements protocol v55 over stdin/stdout;
 3. preserves admission rejection separately from accepted delivery;
 4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
@@ -26,7 +26,8 @@ It:
    incremental replacements,
    caller-ordered topic-partition and consumer-group offset batches, singleton
    and caller-ordered plural record deletion with explicit and high-watermark
-   boundaries,
+   boundaries, cluster feature discovery, and exact partition active-producer
+   state,
    consumer-only and generic all-group listings, plural offset
    mutations, dedicated classic-group descriptions, caller-ordered plural
    empty classic-group deletion, singleton and

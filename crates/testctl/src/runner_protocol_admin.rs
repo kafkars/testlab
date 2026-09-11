@@ -260,6 +260,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::RecordsBatchDeleted { .. }
             | ExpectedEvent::ClusterDescribed { .. }
             | ExpectedEvent::FeaturesDescribed(_)
+            | ExpectedEvent::ProducerStatesDescribed { .. }
             | ExpectedEvent::ConsumerGroupsListed { .. }
             | ExpectedEvent::ConsumerGroupDescribed { .. }
             | ExpectedEvent::ConsumerGroupOffsetListed { .. }
@@ -288,6 +289,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::RecordsBatchDeleted(_)
             | AdapterEvent::ClusterDescribed(_)
             | AdapterEvent::FeaturesDescribed(_)
+            | AdapterEvent::ProducersDescribed(_)
             | AdapterEvent::ConsumerGroupsListed(_)
             | AdapterEvent::ConsumerGroupDescribed(_)
             | AdapterEvent::ConsumerGroupOffsetListed(_)

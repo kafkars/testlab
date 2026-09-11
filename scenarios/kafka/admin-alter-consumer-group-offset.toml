@@ -1,4 +1,4 @@
-schema_version = 57
+schema_version = 58
 id = "kafka.admin-alter-consumer-group-offset"
 title = "packaged admin alters an independently observed consumer-group offset"
 description = "After a classic group publicly commits offset 1 and closes, the packaged client's public admin observes that baseline, alters the exact checkpoint to 0, and observes the new value; independent broker-state queries confirm both offsets."

@@ -1,4 +1,4 @@
-schema_version = 57
+schema_version = 58
 id = "kafka.admin-create-partitions-unknown-topic"
 title = "packaged admin rejects partition creation for an unknown Kafka topic"
 description = "The packaged client's public admin requests a partition-count increase for an absent topic, reports the exact normalized unknown-topic error, and an immediate independent metadata query confirms the topic remains absent."

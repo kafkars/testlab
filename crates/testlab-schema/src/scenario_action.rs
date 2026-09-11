@@ -217,6 +217,7 @@ pub enum ScenarioAction {
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),
     DescribeFeatures(crate::DescribeFeaturesAction),
+    DescribeProducers(crate::DescribeProducersAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
@@ -246,7 +247,6 @@ pub enum ScenarioAction {
     CreateTransactionalProducer {
         client_id: ClientId,
         producer_id: ProducerId,
-        /// Exact transactional identity.
         transactional_id: String,
         transaction_timeout_ms: u64,
         initialization_timeout_ms: u64,

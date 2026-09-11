@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v54 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v57 and evidence schema v43.
+Protocol v55 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v58 and evidence schema v44.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -85,6 +85,8 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `alter_topic_configs`
 - `alter_topic_config`
 - `describe_cluster`
+- `describe_features`
+- `describe_producers`
 - `list_consumer_groups`
 - `describe_consumer_group`
 - `describe_share_group`
@@ -691,6 +693,13 @@ flag stays outside the wire command. An immediate independent
 symbolic `metadata.version` labels are resolved through Testlab's exact pinned
 Apache Kafka stable-level map.
 
+Active-producer description carries one exact topic-partition and complete
+deadline. The scenario-owned expected count stays outside the wire command.
+Its public completion retains producer ID, producer epoch, last sequence, last
+timestamp, coordinator epoch, and optional current-transaction start offset in
+canonical producer-ID order. An immediate independent
+`kafka-transactions.sh describe-producers` snapshot retains the same fields.
+
 Group listing carries an exact `api` selector for the consumer-only compatibility
 view or the generic unfiltered `ListGroups` view, while required group IDs remain
 scenario-only. Either public result must contain the independently listed live
@@ -765,6 +774,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v54 is an exact semantic contract. New capabilities may be declared
+Protocol v55 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

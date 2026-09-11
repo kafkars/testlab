@@ -361,6 +361,12 @@ statement = "Each public cluster feature description preserves canonical support
 category = "admin"
 
 [[contract]]
+id = "ADMIN-051"
+title = "Active-producer descriptions match Kafka CLI state"
+statement = "Each public partition producer-state description returns the scenario-declared nonzero count in canonical producer-ID order, and every producer ID, epoch, sequence, timestamp, coordinator epoch, and current transaction start offset matches one immediate snapshot from Kafka's pinned administration CLI."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

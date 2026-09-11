@@ -14,6 +14,7 @@ use crate::admin_features::verify_features_action;
 use crate::admin_group::verify_group_action;
 use crate::admin_group_batch::verify_group_batch_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
+use crate::admin_producers::verify_producers_action;
 use crate::admin_records::verify_records_action;
 use crate::admin_records_batch::verify_records_batch_action;
 use crate::admin_share_group::verify_share_group_action;
@@ -98,6 +99,7 @@ pub(crate) fn verify_admin(
             || verify_topics_description_action(&step.action, index, violations)
             || verify_cluster_action(&step.action, index, violations)
             || verify_features_action(&step.action, index, violations)
+            || verify_producers_action(&step.action, index, violations)
             || verify_group_action(&step.action, index, violations)
             || verify_records_action(&step.action, index, violations)
             || verify_records_batch_action(&step.action, index, violations)
@@ -181,6 +183,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeTopicConfigs(_) => "ADMIN-048",
         ScenarioAction::AlterTopicConfigs(_) => "ADMIN-049",
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
+        ScenarioAction::DescribeProducers(_) => "ADMIN-051",
         ScenarioAction::AlterTopicConfig(_) => "ADMIN-016",
         ScenarioAction::ListConsumerGroupOffsets(_) => "ADMIN-006",
         ScenarioAction::DeleteTopic(_) => "ADMIN-007",
@@ -214,6 +217,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeCluster(value) => &value.operation_id,
         ScenarioAction::DescribeFeatures(value) => &value.operation_id,
+        ScenarioAction::DescribeProducers(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroups(value) => &value.operation_id,
         ScenarioAction::DescribeConsumerGroup(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroupOffsets(value) => &value.operation_id,

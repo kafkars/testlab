@@ -28,6 +28,7 @@ mod runner_protocol_admin_acl;
 mod runner_protocol_admin_client_quota;
 mod runner_protocol_admin_config;
 mod runner_protocol_admin_group_batch;
+mod runner_protocol_admin_producers;
 mod runner_protocol_admin_share_group;
 mod runner_protocol_admin_user_scram;
 mod runner_protocol_cancel;
@@ -66,6 +67,8 @@ mod admin_client_quota_protocol_test;
 mod admin_consumer_groups_deletion_protocol_test;
 #[cfg(test)]
 mod admin_delete_records_batch_protocol_test;
+#[cfg(test)]
+mod admin_producers_protocol_test;
 #[cfg(test)]
 mod admin_share_group_lifecycle_protocol_test;
 #[cfg(test)]

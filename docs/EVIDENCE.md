@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v43 records the exact environment identity in `manifest.json`,
-retains protocol-v54 direct and hosted-group consumer controls and shutdown,
+Evidence schema v44 records the exact environment identity in `manifest.json`,
+retains protocol-v55 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -176,6 +176,7 @@ replica topology, or untested offset selectors.
 `broker-state-observations.jsonl` retains independently queried broker state
 that is not a record snapshot. It includes exact topic metadata, one selected
 non-sensitive topic-configuration value, cluster identity and broker IDs,
+cluster feature ranges and active partition producer states,
 consumer-group existence and member count, active Share-group state and member
 count, caller-ordered selected Share-group partition start offsets and lags or
 explicit absence, one consumer-group committed offset,
@@ -349,6 +350,14 @@ reported minimum-level-zero features. Every nonzero CLI finalized maximum and
 the shared finalized epoch must match the public result. Symbolic metadata
 versions use Testlab's pinned Apache Kafka stable-level map. Canonical ordering,
 range coherence, and the scenario-declared migration flag remain explicit.
+
+ADMIN-051 binds one public active-producer description to an immediate pinned
+Kafka CLI snapshot for the exact topic-partition. The public result must contain
+the scenario-declared nonzero producer count in canonical producer-ID order,
+and every producer ID, epoch, last sequence, last timestamp, coordinator epoch,
+and optional current-transaction start offset must match exactly. The fixture
+closes its producer after an acknowledged send so the compared broker state is
+not changing between snapshots.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

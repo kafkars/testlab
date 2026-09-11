@@ -1,0 +1,70 @@
+schema_version = 58
+id = "kafka.admin-describe-producers"
+title = "packaged admin describes independently observed active producer state"
+description = "After one acknowledged idempotent send and producer close, the packaged client's public partition producer-state result must preserve every exact field from the pinned Kafka administration CLI."
+timeout_ms = 90000
+requires = ["producer", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-producer-state-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-producer-state-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-producer-state"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "producer-state" }
+value = { encoding = "hex", data = "006163746976652d70726f6475636572ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-producer-state-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "describe-producers"
+kind = "describe_producers"
+client_id = "client-1"
+operation_id = "admin-describe-producers-1"
+topic = "testlab-kafkars-admin-producer-state"
+partition = 0
+expected_producer_count = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-producer-state-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

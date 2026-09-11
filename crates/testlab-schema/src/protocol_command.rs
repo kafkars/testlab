@@ -201,6 +201,7 @@ pub enum AdapterCommand {
     AlterTopicConfig(crate::AlterTopicConfigCommand),
     DescribeCluster(crate::DescribeClusterCommand),
     DescribeFeatures(crate::DescribeFeaturesCommand),
+    DescribeProducers(crate::DescribeProducersCommand),
     /// Lists consumer groups visible through the public admin surface.
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
@@ -239,7 +240,6 @@ pub enum AdapterCommand {
     CreateTransactionalProducer {
         /// Owning client.
         client_id: ClientId,
-        /// Scenario-local transactional producer identity.
         producer_id: ProducerId,
         /// Exact Kafka transactional identity.
         transactional_id: String,

@@ -6,7 +6,6 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::normalize;
-use crate::protocol_admin;
 use crate::protocol_client;
 use crate::protocol_consumer;
 use crate::protocol_descriptor;
@@ -180,6 +179,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
         | AdapterCommand::DescribeFeatures(_)
+        | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)
@@ -206,7 +206,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeClientQuota(_)
         | AdapterCommand::AlterUserScramCredential(_)
         | AdapterCommand::DescribeUserScramCredential(_)) => {
-            protocol_admin::dispatch(state, writer, command_id, command)?;
+            crate::protocol_admin::dispatch(state, writer, command_id, command)?;
         }
         command @ (AdapterCommand::CreateTransactionalProducer { .. }
         | AdapterCommand::ExecuteTransaction { .. }

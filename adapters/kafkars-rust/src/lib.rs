@@ -42,6 +42,7 @@ mod protocol_admin_group_offset_batch_mutation;
 mod protocol_admin_group_offset_mutation;
 mod protocol_admin_list_offsets_batch;
 mod protocol_admin_plural_result;
+mod protocol_admin_producers;
 mod protocol_admin_read;
 mod protocol_admin_result;
 mod protocol_admin_share_group;

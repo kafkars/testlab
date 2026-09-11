@@ -39,6 +39,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::Features(_)) = &target {
             return self.observe_features_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::Producers(_)) = &target {
+            return self.observe_producers_with_cli(target, timeout);
+        }
         if let Ok(target @ AdminTarget::ShareGroupDescriptions(_)) = &target {
             return self.observe_share_group_descriptions_with_cli(target, timeout);
         }
