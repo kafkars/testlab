@@ -5,7 +5,7 @@ use testlab_schema::{
     DescribeShareGroupsCommand, OperationId, ScenarioAction, ShareGroupDescriptionExpectation,
 };
 
-use crate::observer_admin_target::{AdminTarget, ShareGroupsTarget};
+use crate::observer_admin_target::{AdminTarget, GroupIdsTarget};
 
 #[test]
 fn exact_action_and_command_map_to_one_caller_ordered_target() {
@@ -105,7 +105,7 @@ fn command() -> DescribeShareGroupsCommand {
 }
 
 fn expected_target() -> AdminTarget {
-    AdminTarget::ShareGroupDescriptions(ShareGroupsTarget {
+    AdminTarget::ShareGroupDescriptions(GroupIdsTarget {
         operation_id: operation(),
         group_ids: group_ids(),
     })

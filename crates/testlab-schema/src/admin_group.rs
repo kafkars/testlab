@@ -1,5 +1,8 @@
 //! Consumer-group admin payloads normalize discovery and lifecycle operations.
 
+#[path = "admin_consumer_group_description_batch.rs"]
+pub(crate) mod description_batch;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};

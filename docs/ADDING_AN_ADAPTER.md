@@ -36,6 +36,10 @@ runner and not a verifier.
   topic IDs, and partition assignments without replacing them with CLI state.
 - Preserve caller order, exact outer and inner group identities, full detailed
   descriptions, and per-group errors for plural Share-group descriptions.
+- Preserve caller order across one mixed classic and KIP-848 consumer-group
+  description call, including group state, protocol-specific epochs and
+  assignor data, every member identity, subscription, typed assignment, raw
+  classic payload, and per-group error without receiving expected values.
 - Preserve singleton and caller-ordered plural selected Share-group start
   offset, leader epoch, lag, topic identity, group errors, and partition-scoped
   errors without receiving scenario expectations.

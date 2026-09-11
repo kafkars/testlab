@@ -57,6 +57,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::ElectLeaders(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
+        | AdapterCommand::DescribeConsumerGroups(_)
         | AdapterCommand::DescribeShareGroup(_)
         | AdapterCommand::DescribeShareGroups(_)
         | AdapterCommand::ListShareGroupOffsets(_)

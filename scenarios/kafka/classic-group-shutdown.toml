@@ -1,4 +1,4 @@
-schema_version = 69
+schema_version = 70
 id = "kafka.classic-group-shutdown"
 title = "classic group clone-shared shutdown terminates and leaves"
 description = "After a classic member publicly receives and commits an exact record, one clone-shared shutdown request terminates its public event stream; packaged Admin and an immediate independent broker query then both report zero live members."

@@ -83,6 +83,17 @@ pub(crate) fn validate(
             classic_groups(&action.operation_id, &action.groups, problems);
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
+        ScenarioAction::DescribeConsumerGroups(action) => {
+            validate_identity(
+                &action.client_id,
+                &action.operation_id,
+                clients,
+                operation_ids,
+                problems,
+            );
+            crate::admin_group::description_batch::validate_action(action, problems);
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
         _ => return false,
     }
     true

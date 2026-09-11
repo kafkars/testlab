@@ -469,6 +469,12 @@ statement = "One public static-member removal follows exact owner-abandonment an
 category = "admin"
 
 [[contract]]
+id = "ADMIN-069"
+title = "Mixed consumer-group descriptions preserve caller order and protocol facts"
+statement = "One public consumer-group description batch spans live classic and KIP-848 groups in caller order, preserves exact state, protocol, selected assignor, detailed member identity and protocol-specific assignment facts, and positive modern epochs, while prior exact receives prove matching positive membership epochs and contiguous immediate independent observations confirm every member count."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

@@ -179,6 +179,8 @@ mod observer_admin_config_resources_test;
 #[cfg(test)]
 mod observer_admin_config_test;
 #[cfg(test)]
+mod observer_admin_consumer_group_description_target_test;
+#[cfg(test)]
 mod observer_admin_consumer_groups_deletion_test;
 #[cfg(test)]
 mod observer_admin_delete_records_batch_target_test;

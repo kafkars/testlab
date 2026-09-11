@@ -13,7 +13,6 @@ pub enum AdapterCommand {
         /// Non-secret connection policy and secret environment references.
         security: crate::AdapterSecurity,
     },
-    /// Creates one public client handle.
     CreateClient {
         /// Scenario-local client identity.
         client_id: ClientId,
@@ -206,6 +205,7 @@ pub enum AdapterCommand {
     ElectLeaders(crate::ElectLeadersCommand),
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),
+    DescribeConsumerGroups(crate::DescribeConsumerGroupsCommand),
     DescribeShareGroup(crate::DescribeShareGroupCommand),
     DescribeShareGroups(crate::DescribeShareGroupsCommand),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsCommand),

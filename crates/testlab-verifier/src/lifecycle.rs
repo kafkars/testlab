@@ -203,6 +203,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DeleteConsumerGroups(_)
             | ScenarioAction::RemoveConsumerGroupMembers(_)
             | ScenarioAction::DescribeClassicGroups(_)
+            | ScenarioAction::DescribeConsumerGroups(_)
             | ScenarioAction::CreateAcls(_)
             | ScenarioAction::DescribeAcls(_)
             | ScenarioAction::DeleteAcls(_)
@@ -287,14 +288,10 @@ fn verify_transaction_lifecycle(
 
 fn check(contract: &str, operation: &str, evidence: Vec<String>, violations: &mut Vec<Violation>) {
     if evidence.len() != 1 {
-        violations.push(violation(
-            contract,
-            format!(
-                "expected exactly one {operation} event, observed {}",
-                evidence.len()
-            ),
-            None,
-            evidence,
-        ));
+        let message = format!(
+            "expected exactly one {operation} event, observed {}",
+            evidence.len()
+        );
+        violations.push(violation(contract, message, None, evidence));
     }
 }

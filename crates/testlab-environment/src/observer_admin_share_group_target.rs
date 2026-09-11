@@ -8,9 +8,9 @@ use testlab_schema::{
 };
 
 use crate::observer_admin_target::{
-    AdminTarget, ShareGroupOffsetSelectionTarget, ShareGroupOffsetTarget,
-    ShareGroupOffsetsSelectionTarget, ShareGroupTarget, ShareGroupsOffsetsTarget,
-    ShareGroupsTarget, TargetMatch, invalid, unique,
+    AdminTarget, GroupIdsTarget, ShareGroupOffsetSelectionTarget, ShareGroupOffsetTarget,
+    ShareGroupOffsetsSelectionTarget, ShareGroupTarget, ShareGroupsOffsetsTarget, TargetMatch,
+    invalid, unique,
 };
 use crate::observer_error::ObserverError;
 
@@ -42,7 +42,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     group_ids: group_ids.clone(),
                     timeout_ms: action.timeout_ms,
                 }),
-                AdminTarget::ShareGroupDescriptions(ShareGroupsTarget {
+                AdminTarget::ShareGroupDescriptions(GroupIdsTarget {
                     operation_id: action.operation_id.clone(),
                     group_ids,
                 }),
@@ -168,7 +168,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     group_ids: action.group_ids.clone(),
                     timeout_ms: action.timeout_ms,
                 }),
-                AdminTarget::ShareGroups(ShareGroupsTarget {
+                AdminTarget::ShareGroups(GroupIdsTarget {
                     operation_id: action.operation_id.clone(),
                     group_ids: action.group_ids.clone(),
                 }),

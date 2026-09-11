@@ -2,7 +2,7 @@
 
 use testlab_schema::{
     AdapterCommand, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection,
-    DeleteConsumerGroupsCommand, DescribeClassicGroupsCommand,
+    DeleteConsumerGroupsCommand, DescribeClassicGroupsCommand, DescribeConsumerGroupsCommand,
     ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupsOffsetsCommand,
     RemoveConsumerGroupMembersCommand, ScenarioAction,
 };
@@ -125,6 +125,19 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             ExpectedEvent::ClassicGroupsDescribed {
                 operation_id: action.operation_id.clone(),
             },
+        ),
+        ScenarioAction::DescribeConsumerGroups(action) => (
+            AdapterCommand::DescribeConsumerGroups(DescribeConsumerGroupsCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                group_ids: action
+                    .groups
+                    .iter()
+                    .map(|group| group.group_id.clone())
+                    .collect(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::ConsumerGroupsDescribed(action.operation_id.clone()),
         ),
         _ => return None,
     })

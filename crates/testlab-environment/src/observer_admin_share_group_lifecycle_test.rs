@@ -5,7 +5,7 @@ use testlab_schema::{
     DeleteShareGroupsCommand, OperationId, ScenarioAction,
 };
 
-use crate::observer_admin_target::{AdminTarget, ShareGroupsTarget};
+use crate::observer_admin_target::{AdminTarget, GroupIdsTarget};
 
 #[test]
 fn exact_plural_deletion_maps_to_one_ordered_presence_target() {
@@ -108,7 +108,7 @@ fn command() -> DeleteShareGroupsCommand {
 }
 
 fn expected_target() -> AdminTarget {
-    AdminTarget::ShareGroups(ShareGroupsTarget {
+    AdminTarget::ShareGroups(GroupIdsTarget {
         operation_id: operation(),
         group_ids: group_ids(),
     })

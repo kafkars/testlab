@@ -6,25 +6,44 @@ use testlab_schema::{BrokerConsumerGroupState, BrokerStateObservation};
 
 use crate::observer_admin::{AdminObserverRequest, client};
 use crate::observer_admin_group::{OwnedGroup, fetch, validate_group};
-use crate::observer_admin_target::{ClassicGroupsTarget, ordinal};
+use crate::observer_admin_target::{GroupIdsTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 pub(super) fn capture(
     request: AdminObserverRequest<'_>,
-    target: &ClassicGroupsTarget,
+    target: &GroupIdsTarget,
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     let admin = client(request, "classic-groups")?;
     let groups = fetch(&admin, None, request.deadline)?;
-    normalize(request.first_observation, target, groups)
+    normalize(
+        request.first_observation,
+        &target.operation_id,
+        &target.group_ids,
+        groups,
+    )
+}
+
+pub(super) fn capture_consumer_groups(
+    request: AdminObserverRequest<'_>,
+    target: &GroupIdsTarget,
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
+    let admin = client(request, "consumer-group-descriptions")?;
+    let groups = fetch(&admin, None, request.deadline)?;
+    normalize(
+        request.first_observation,
+        &target.operation_id,
+        &target.group_ids,
+        groups,
+    )
 }
 
 fn normalize(
     first_observation: u64,
-    target: &ClassicGroupsTarget,
+    operation_id: &testlab_schema::OperationId,
+    group_ids: &[String],
     groups: Vec<OwnedGroup>,
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
-    let requested = target
-        .group_ids
+    let requested = group_ids
         .iter()
         .map(String::as_str)
         .collect::<BTreeSet<_>>();
@@ -38,8 +57,7 @@ fn normalize(
             return Err(invalid(format!("returned duplicate group {name}")));
         }
     }
-    target
-        .group_ids
+    group_ids
         .iter()
         .enumerate()
         .map(|(index, group_id)| {
@@ -50,7 +68,7 @@ fn normalize(
             Ok(BrokerStateObservation::ConsumerGroup(
                 BrokerConsumerGroupState {
                     observation: ordinal(first_observation, index)?,
-                    operation_id: target.operation_id.clone(),
+                    operation_id: operation_id.clone(),
                     group_id: group.name,
                     exists: true,
                     member_count: Some(group.member_count),
@@ -67,7 +85,7 @@ fn invalid(detail: impl std::fmt::Display) -> ObserverError {
 #[cfg(test)]
 pub(super) fn normalize_fixture(
     first_observation: u64,
-    target: &ClassicGroupsTarget,
+    target: &GroupIdsTarget,
     groups: Vec<(String, u32, &str, &str)>,
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     let groups = groups
@@ -79,5 +97,10 @@ pub(super) fn normalize_fixture(
             protocol_type: protocol_type.to_owned(),
         })
         .collect();
-    normalize(first_observation, target, groups)
+    normalize(
+        first_observation,
+        &target.operation_id,
+        &target.group_ids,
+        groups,
+    )
 }

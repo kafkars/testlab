@@ -1,0 +1,138 @@
+schema_version = 70
+id = "kafka.admin-describe-consumer-groups"
+title = "packaged admin describes caller-ordered mixed consumer groups"
+description = "One classic and one KIP-848 member each consume and commit an exact marker before one packaged public description call returns both groups in reverse creation order with exact protocol, state, assignor, epoch, member, subscription, and assignment facts; an immediate independent query confirms both member counts in the same order."
+timeout_ms = 200000
+requires = ["producer", "consumer_groups", "consumer_protocol_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-classic-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-mixed-description-classic"
+
+[steps.record]
+topic = "testlab-kafkars-admin-mixed-classic"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "classic" }
+value = { encoding = "utf8", data = "live-member" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-mixed-description-classic" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-consumer-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-mixed-description-consumer"
+
+[steps.record]
+topic = "testlab-kafkars-admin-mixed-consumer"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "consumer" }
+value = { encoding = "utf8", data = "live-member" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-mixed-description-consumer" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-classic-group"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-classic"
+group_id = "testlab-admin-mixed-classic"
+topic = "testlab-kafkars-admin-mixed-classic"
+protocol = "classic"
+
+[[steps]]
+id = "receive-classic"
+kind = "group_receive"
+consumer_id = "consumer-classic"
+receive_id = "receive-mixed-description-classic"
+expected_operation_id = "op-mixed-description-classic"
+timeout_ms = 30000
+
+[[steps]]
+id = "create-consumer-group"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-kip848"
+group_id = "testlab-admin-mixed-consumer"
+topic = "testlab-kafkars-admin-mixed-consumer"
+protocol = "consumer"
+
+[[steps]]
+id = "receive-consumer"
+kind = "group_receive"
+consumer_id = "consumer-kip848"
+receive_id = "receive-mixed-description-consumer"
+expected_operation_id = "op-mixed-description-consumer"
+timeout_ms = 30000
+
+[[steps]]
+id = "describe-mixed-groups"
+kind = "describe_consumer_groups"
+client_id = "client-1"
+operation_id = "admin-describe-mixed-consumer-groups"
+groups = [
+  { group_id = "testlab-admin-mixed-consumer", protocol = "consumer", expected_state = "Stable", expected_member_count = 1, expected_assignor_name = "uniform", expected_topic = "testlab-kafkars-admin-mixed-consumer", expected_partition = 0 },
+  { group_id = "testlab-admin-mixed-classic", protocol = "classic", expected_state = "Stable", expected_member_count = 1, expected_assignor_name = "range", expected_topic = "testlab-kafkars-admin-mixed-classic", expected_partition = 0 },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "close-consumer-group"
+kind = "close_group_consumer"
+consumer_id = "consumer-kip848"
+
+[[steps]]
+id = "close-classic-group"
+kind = "close_group_consumer"
+consumer_id = "consumer-classic"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-mixed-description-classic"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-mixed-description-consumer"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

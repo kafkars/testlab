@@ -2,12 +2,14 @@
 
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetsAction, AlterConsumerGroupOffsetsCommand,
-    ClassicGroupExpectation, ClientId, ConsumerGroupOffsetAlteration,
-    ConsumerGroupOffsetExpectation, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsExpectation,
-    ConsumerGroupOffsetsSelection, DeleteConsumerGroupOffsetsAction,
-    DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsAction, DescribeClassicGroupsCommand,
-    ListConsumerGroupOffsetsBatchAction, ListConsumerGroupOffsetsBatchCommand,
-    ListConsumerGroupsOffsetsAction, ListConsumerGroupsOffsetsCommand, OperationId, ScenarioAction,
+    ClassicGroupExpectation, ClientId, ConsumerGroupDescriptionExpectation,
+    ConsumerGroupOffsetAlteration, ConsumerGroupOffsetExpectation, ConsumerGroupOffsetSelection,
+    ConsumerGroupOffsetsExpectation, ConsumerGroupOffsetsSelection,
+    DeleteConsumerGroupOffsetsAction, DeleteConsumerGroupOffsetsCommand,
+    DescribeClassicGroupsAction, DescribeClassicGroupsCommand, DescribeConsumerGroupsAction,
+    DescribeConsumerGroupsCommand, GroupProtocol, ListConsumerGroupOffsetsBatchAction,
+    ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupsOffsetsAction,
+    ListConsumerGroupsOffsetsCommand, OperationId, ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -144,6 +146,36 @@ fn classic_description_strips_expected_member_counts() {
     ));
 }
 
+#[test]
+fn mixed_description_strips_all_expectations_and_preserves_order() {
+    let action = ScenarioAction::DescribeConsumerGroups(DescribeConsumerGroupsAction {
+        client_id: client(),
+        operation_id: operation("describe-mixed"),
+        groups: vec![
+            mixed("group-b", GroupProtocol::Consumer, "uniform"),
+            mixed("group-a", GroupProtocol::Classic, "range"),
+        ],
+        timeout_ms: 2_000,
+    });
+    let Some((command, expected)) = translate(&action) else {
+        panic!("mixed description must translate");
+    };
+    assert_eq!(
+        command,
+        AdapterCommand::DescribeConsumerGroups(DescribeConsumerGroupsCommand {
+            client_id: client(),
+            operation_id: operation("describe-mixed"),
+            group_ids: vec!["group-b".to_owned(), "group-a".to_owned()],
+            timeout_ms: 2_000,
+        })
+    );
+    assert!(matches!(
+        expected,
+        ExpectedEvent::ConsumerGroupsDescribed(operation_id)
+            if operation_id == operation("describe-mixed")
+    ));
+}
+
 fn expectations() -> Vec<ConsumerGroupOffsetExpectation> {
     vec![
         ConsumerGroupOffsetExpectation {
@@ -198,6 +230,22 @@ fn classic(group_id: &str, expected_member_count: u32) -> ClassicGroupExpectatio
     ClassicGroupExpectation {
         group_id: group_id.to_owned(),
         expected_member_count,
+    }
+}
+
+fn mixed(
+    group_id: &str,
+    protocol: GroupProtocol,
+    assignor: &str,
+) -> ConsumerGroupDescriptionExpectation {
+    ConsumerGroupDescriptionExpectation {
+        group_id: group_id.to_owned(),
+        protocol,
+        expected_state: "Stable".to_owned(),
+        expected_member_count: 1,
+        expected_assignor_name: assignor.to_owned(),
+        expected_topic: "records".to_owned(),
+        expected_partition: 0,
     }
 }
 

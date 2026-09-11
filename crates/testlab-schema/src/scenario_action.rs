@@ -220,6 +220,7 @@ pub enum ScenarioAction {
     ElectLeaders(crate::ElectLeadersAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
+    DescribeConsumerGroups(crate::DescribeConsumerGroupsAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
     DescribeShareGroups(crate::DescribeShareGroupsAction),
     ListShareGroupOffsets(crate::ListShareGroupOffsetsAction),
@@ -281,7 +282,6 @@ pub enum ScenarioAction {
         replacement_producer_id: ProducerId,
         /// Shared transactional identity.
         transactional_id: String,
-        /// Broker transaction timeout.
         transaction_timeout_ms: u64,
         /// Complete replacement initialization bound.
         initialization_timeout_ms: u64,

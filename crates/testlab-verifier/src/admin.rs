@@ -45,12 +45,12 @@ pub(crate) fn verify_admin(
         let Some(contract) = contract(&step.action) else {
             continue;
         };
+        let operation_id = operation_id(&step.action).cloned();
         let (exact, count) = index.admin_command_state(&step.action);
         if count == 0 {
             if index.command_failures.is_empty()
                 || expected_failure_step.is_some_and(|failure| step_index < failure)
             {
-                let operation_id = operation_id(&step.action).cloned();
                 violations.push(violation(
                     contract,
                     "admin action expected one exact wire command, observed none".to_owned(),
@@ -61,7 +61,6 @@ pub(crate) fn verify_admin(
             continue;
         }
         if !exact {
-            let operation_id = operation_id(&step.action).cloned();
             violations.push(violation(
                 contract,
                 format!("admin action expected one exact wire command, observed {count} same-operation command(s)"),
@@ -74,7 +73,6 @@ pub(crate) fn verify_admin(
             continue;
         };
         if prior_admin_command.is_some_and(|prior| command_sequence <= prior) {
-            let operation_id = operation_id(&step.action).cloned();
             violations.push(violation(
                 contract,
                 format!(
@@ -137,9 +135,9 @@ pub(crate) fn immediate_after_public(
 }
 
 fn scenario_evidence(operation_id: Option<&testlab_schema::OperationId>) -> Vec<String> {
-    operation_id
-        .map(|value| vec![format!("scenario:operation:{value}")])
-        .unwrap_or_default()
+    operation_id.map_or_else(Vec::new, |value| {
+        vec![format!("scenario:operation:{value}")]
+    })
 }
 
 fn contract(action: &ScenarioAction) -> Option<&'static str> {
@@ -159,6 +157,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterConsumerGroupOffsets(_) => "ADMIN-025",
         ScenarioAction::DeleteConsumerGroupOffsets(_) => "ADMIN-026",
         ScenarioAction::DescribeClassicGroups(_) => "ADMIN-027",
+        ScenarioAction::DescribeConsumerGroups(_) => "ADMIN-069",
         ScenarioAction::ListOffsetsBatch(_) => "ADMIN-028",
         ScenarioAction::ListConsumerGroups(value)
             if value.api == testlab_schema::GroupListingApi::AllGroups =>
@@ -281,6 +280,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::AlterConsumerGroupOffsets(value) => &value.operation_id,
         ScenarioAction::DeleteConsumerGroupOffsets(value) => &value.operation_id,
         ScenarioAction::DescribeClassicGroups(value) => &value.operation_id,
+        ScenarioAction::DescribeConsumerGroups(value) => &value.operation_id,
         ScenarioAction::CreateAcls(value) => &value.operation_id,
         ScenarioAction::DescribeAcls(value) => &value.operation_id,
         ScenarioAction::DeleteAcls(value) => &value.operation_id,

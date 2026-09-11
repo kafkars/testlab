@@ -13,7 +13,6 @@ pub enum AdapterEvent {
     },
     /// Public client construction completed.
     ClientCreated {
-        /// Created client.
         client_id: ClientId,
     },
     /// Public client readiness completed.
@@ -219,6 +218,7 @@ pub enum AdapterEvent {
     LeadersElected(crate::AdminLeaderElection),
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),
+    ConsumerGroupsDescribed(crate::AdminConsumerGroupsDescription),
     ShareGroupDescribed(crate::AdminShareGroupDescription),
     ShareGroupsDescribed(crate::AdminShareGroupsDescription),
     ShareGroupOffsetsListed(crate::AdminShareGroupOffsetListing),

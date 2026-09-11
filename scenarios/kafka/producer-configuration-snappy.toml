@@ -1,4 +1,4 @@
-schema_version = 69
+schema_version = 70
 id = "kafka.producer-configuration-snappy"
 title = "configured producer delivers with snappy compression"
 description = "A client built with the complete explicit public producer policy and snappy record-batch compression delivers one exact independently observed record."

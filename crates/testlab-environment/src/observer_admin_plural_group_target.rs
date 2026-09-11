@@ -6,12 +6,13 @@ use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetsAction, AlterConsumerGroupOffsetsCommand,
     ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection, DeleteConsumerGroupOffsetsAction,
     DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsAction, DescribeClassicGroupsCommand,
+    DescribeConsumerGroupsAction, DescribeConsumerGroupsCommand,
     ListConsumerGroupOffsetsBatchAction, ListConsumerGroupOffsetsBatchCommand,
     ListConsumerGroupsOffsetsAction, ListConsumerGroupsOffsetsCommand, OperationId, ScenarioAction,
 };
 
 use crate::observer_admin_target::{
-    AdminTarget, ClassicGroupsTarget, GroupOffsetTarget, GroupOffsetsSelectionTarget,
+    AdminTarget, GroupIdsTarget, GroupOffsetTarget, GroupOffsetsSelectionTarget,
     GroupOffsetsTarget, GroupsOffsetsTarget, TargetMatch, invalid,
 };
 use crate::observer_error::ObserverError;
@@ -23,6 +24,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
         ScenarioAction::AlterConsumerGroupOffsets(action) => alter_offsets(action)?,
         ScenarioAction::DeleteConsumerGroupOffsets(action) => delete_offsets(action)?,
         ScenarioAction::DescribeClassicGroups(action) => describe_classic_groups(action)?,
+        ScenarioAction::DescribeConsumerGroups(action) => describe_consumer_groups(action)?,
         _ => return Ok(None),
     };
     Ok(Some(matched))
@@ -222,7 +224,33 @@ fn describe_classic_groups(
             group_ids: group_ids.clone(),
             timeout_ms: action.timeout_ms,
         }),
-        AdminTarget::ClassicGroups(ClassicGroupsTarget {
+        AdminTarget::ClassicGroups(GroupIdsTarget {
+            operation_id: action.operation_id.clone(),
+            group_ids,
+        }),
+    ))
+}
+
+fn describe_consumer_groups(
+    action: &DescribeConsumerGroupsAction,
+) -> Result<TargetMatch, ObserverError> {
+    unique_groups(
+        &action.operation_id,
+        action.groups.iter().map(|group| group.group_id.as_str()),
+    )?;
+    let group_ids = action
+        .groups
+        .iter()
+        .map(|group| group.group_id.clone())
+        .collect::<Vec<_>>();
+    Ok((
+        AdapterCommand::DescribeConsumerGroups(DescribeConsumerGroupsCommand {
+            client_id: action.client_id.clone(),
+            operation_id: action.operation_id.clone(),
+            group_ids: group_ids.clone(),
+            timeout_ms: action.timeout_ms,
+        }),
+        AdminTarget::ConsumerGroupDescriptions(GroupIdsTarget {
             operation_id: action.operation_id.clone(),
             group_ids,
         }),

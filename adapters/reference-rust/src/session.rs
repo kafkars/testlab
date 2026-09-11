@@ -154,6 +154,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ElectLeaders(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
+        | AdapterCommand::DescribeConsumerGroups(_)
         | AdapterCommand::DescribeShareGroup(_)
         | AdapterCommand::DescribeShareGroups(_)
         | AdapterCommand::ListShareGroupOffsets(_)

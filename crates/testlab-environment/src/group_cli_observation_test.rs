@@ -3,7 +3,7 @@
 use testlab_schema::{BrokerStateObservation, OperationId};
 
 use crate::group_cli_observation::{normalize, selection, supports};
-use crate::observer_admin_target::{AdminTarget, ClassicGroupsTarget, GroupTarget, ListTarget};
+use crate::observer_admin_target::{AdminTarget, GroupIdsTarget, GroupTarget, ListTarget};
 
 const HEADER: &str = "GROUP COORDINATOR (ID) ASSIGNMENT-STRATEGY STATE #MEMBERS\n";
 
@@ -26,7 +26,7 @@ fn modern_members_and_empty_groups_are_exact_not_legacy_zeroes() {
 
 #[test]
 fn batch_preserves_caller_order_and_rejects_missing_or_extra_groups() {
-    let target = AdminTarget::ClassicGroups(ClassicGroupsTarget {
+    let target = AdminTarget::ClassicGroups(GroupIdsTarget {
         operation_id: operation(),
         group_ids: vec!["zulu".to_owned(), "alpha".to_owned()],
     });

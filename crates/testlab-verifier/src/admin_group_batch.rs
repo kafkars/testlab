@@ -51,6 +51,9 @@ pub(crate) fn verify_group_batch_action(
         ScenarioAction::DescribeClassicGroups(_) => {
             verify_classic_groups(scenario, action, index, violations);
         }
+        ScenarioAction::DescribeConsumerGroups(_) => {
+            crate::admin_consumer_groups_description::verify(scenario, action, index, violations);
+        }
         ScenarioAction::DeleteConsumerGroups(expected) => {
             admin_consumer_groups_deletion::verify(scenario, action, expected, index, violations);
         }

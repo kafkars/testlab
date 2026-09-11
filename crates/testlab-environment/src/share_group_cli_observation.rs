@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use testlab_schema::{BrokerShareGroupOffset, BrokerShareGroupState, BrokerStateObservation};
 
 use crate::observer_admin_target::AdminTarget;
-use crate::observer_admin_target::{ShareGroupsTarget, ordinal};
+use crate::observer_admin_target::{GroupIdsTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 pub(super) fn normalize(
@@ -23,7 +23,7 @@ pub(super) fn normalize(
 
 pub(super) fn normalize_list(
     first: u64,
-    target: &ShareGroupsTarget,
+    target: &GroupIdsTarget,
     stdout: &[u8],
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     let text = std::str::from_utf8(stdout).map_err(|_| invalid("list output is not UTF-8"))?;

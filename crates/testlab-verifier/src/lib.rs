@@ -11,6 +11,7 @@ mod admin_config_batch;
 mod admin_config_resources;
 mod admin_consumer_group_member_removal;
 mod admin_consumer_groups_deletion;
+mod admin_consumer_groups_description;
 mod admin_discovery;
 mod admin_failure;
 mod admin_features;
@@ -106,6 +107,8 @@ mod admin_config_test;
 mod admin_consumer_group_member_removal_test;
 #[cfg(test)]
 mod admin_consumer_groups_deletion_test;
+#[cfg(test)]
+mod admin_consumer_groups_description_test;
 #[cfg(test)]
 mod admin_discovery_test;
 #[cfg(test)]

@@ -140,6 +140,7 @@ impl HistoryIndex {
             | ScenarioAction::AlterConsumerGroupOffsets(_)
             | ScenarioAction::DeleteConsumerGroupOffsets(_)
             | ScenarioAction::DescribeClassicGroups(_)
+            | ScenarioAction::DescribeConsumerGroups(_)
             | ScenarioAction::CreateAcls(_)
             | ScenarioAction::DescribeAcls(_)
             | ScenarioAction::DeleteAcls(_)

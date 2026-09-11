@@ -47,6 +47,12 @@ pub use crate::admin_delete_topics_batch::{
     AdminTopicDeletionOutcome, AdminTopicsDeletion, DeleteTopicExpectation, DeleteTopicsAction,
     DeleteTopicsCommand,
 };
+pub use crate::admin_group::description_batch::{
+    AdminConsumerGroupDescriptionOutcome, AdminConsumerGroupDescriptionValue,
+    AdminConsumerGroupMemberDescription, AdminConsumerGroupTopicAssignment,
+    AdminConsumerGroupsDescription, ConsumerGroupDescriptionExpectation,
+    DescribeConsumerGroupsAction, DescribeConsumerGroupsCommand,
+};
 pub use crate::admin_group::*;
 pub use crate::admin_group_offset::{
     AdminConsumerGroupOffsetListing, ListConsumerGroupOffsetsAction,

@@ -1,5 +1,3 @@
-use crate::AdapterError;
-use crate::normalize;
 use crate::protocol_client;
 use crate::protocol_consumer;
 use crate::protocol_descriptor;
@@ -11,6 +9,7 @@ use crate::protocol_share;
 use crate::state::AdapterState;
 use crate::transaction_execute;
 use crate::transaction_fence;
+use crate::{AdapterError, normalize};
 use std::io::{self, BufRead, Read, Write};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
@@ -184,6 +183,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ElectLeaders(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
+        | AdapterCommand::DescribeConsumerGroups(_)
         | AdapterCommand::DescribeShareGroup(_)
         | AdapterCommand::DescribeShareGroups(_)
         | AdapterCommand::ListShareGroupOffsets(_)

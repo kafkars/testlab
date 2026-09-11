@@ -1,4 +1,4 @@
-schema_version = 69
+schema_version = 70
 id = "kafka.admin-create-topics-batch-partial"
 title = "packaged admin preserves ordered partial topic-creation outcomes"
 description = "One public CreateTopics batch creates a fresh topic first and reports an exact duplicate-topic error for an existing topic second; ordered public outcomes and immediate independent metadata prove both resource results without collapsing the batch into one failure."

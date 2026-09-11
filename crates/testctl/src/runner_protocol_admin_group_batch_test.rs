@@ -2,7 +2,8 @@
 
 use testlab_schema::{
     AdapterEvent, AdminClassicGroupsDescription, AdminConsumerGroupOffsetsListing,
-    AdminConsumerGroupOffsetsMutation, AdminConsumerGroupsOffsetsListing, OperationId,
+    AdminConsumerGroupOffsetsMutation, AdminConsumerGroupsDescription,
+    AdminConsumerGroupsOffsetsListing, OperationId,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -79,6 +80,7 @@ fn expected_events(operation_id: &OperationId) -> Vec<ExpectedEvent> {
         ExpectedEvent::ClassicGroupsDescribed {
             operation_id: operation_id.clone(),
         },
+        ExpectedEvent::ConsumerGroupsDescribed(operation_id.clone()),
     ]
 }
 
@@ -104,6 +106,10 @@ fn adapter_events(operation_id: &OperationId) -> Vec<AdapterEvent> {
             outcomes: Vec::new(),
         }),
         AdapterEvent::ClassicGroupsDescribed(AdminClassicGroupsDescription {
+            operation_id: operation_id.clone(),
+            outcomes: Vec::new(),
+        }),
+        AdapterEvent::ConsumerGroupsDescribed(AdminConsumerGroupsDescription {
             operation_id: operation_id.clone(),
             outcomes: Vec::new(),
         }),

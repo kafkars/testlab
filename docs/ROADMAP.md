@@ -20,7 +20,8 @@
   outcomes, scoped topic, cluster,
   consumer-only, and generic all-group discovery, singleton and caller-ordered batch earliest- and
   latest-offset administration, consumer-group offset listing, alteration, and
-  deletion, singleton record-prefix deletion and caller-ordered plural record
+  deletion, caller-ordered mixed classic/KIP-848 group descriptions, static
+  classic-member removal, singleton record-prefix deletion and caller-ordered plural record
   deletion with explicit and high-watermark boundaries, singleton and caller-ordered plural
   empty-group deletion, and selected
   topic-configuration description, caller-ordered plural selected-configuration

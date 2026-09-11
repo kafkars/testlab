@@ -141,6 +141,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::ElectLeaders(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
+        | ScenarioAction::DescribeConsumerGroups(_)
         | ScenarioAction::DescribeShareGroup(_)
         | ScenarioAction::DescribeShareGroups(_)
         | ScenarioAction::ListShareGroupOffsets(_)

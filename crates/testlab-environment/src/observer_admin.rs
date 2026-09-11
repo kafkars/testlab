@@ -98,6 +98,9 @@ pub(super) fn capture(
         AdminTarget::ConsumerGroups(target) => {
             observer_admin_group::capture_groups(request, target)
         }
+        AdminTarget::ConsumerGroupDescriptions(target) => {
+            observer_admin_classic_group::capture_consumer_groups(request, target)
+        }
         AdminTarget::ConsumerGroupDeletions(target) => {
             observer_admin_consumer_group_deletion_batch::capture(request, target)
         }

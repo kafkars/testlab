@@ -101,6 +101,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::ElectLeaders(_)
         | ScenarioAction::ListConsumerGroups(_)
         | ScenarioAction::DescribeConsumerGroup(_)
+        | ScenarioAction::DescribeConsumerGroups(_)
         | ScenarioAction::DescribeShareGroup(_)
         | ScenarioAction::DescribeShareGroups(_)
         | ScenarioAction::ListShareGroupOffsets(_)
@@ -168,7 +169,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
     })
 }
 fn creation(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    let pair = match action {
+    Some(match action {
         ScenarioAction::CreateClient { client_id } => (
             AdapterCommand::CreateClient {
                 client_id: client_id.clone(),
@@ -196,8 +197,7 @@ fn creation(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> 
             ExpectedEvent::ProducerCreated(producer_id.clone()),
         ),
         _ => return None,
-    };
-    Some(pair)
+    })
 }
 fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     let pair = match action {

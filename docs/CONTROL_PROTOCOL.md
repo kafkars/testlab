@@ -98,6 +98,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `list_partition_reassignments`
 - `list_consumer_groups`
 - `describe_consumer_group`
+- `describe_consumer_groups`
 - `describe_share_group`
 - `describe_share_groups`
 - `list_share_group_offsets`
@@ -114,6 +115,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `delete_consumer_group_offsets`
 - `delete_consumer_group`
 - `delete_consumer_groups`
+- `remove_consumer_group_members`
 - `describe_classic_groups`
 - `create_acls`
 - `describe_acls`
@@ -256,6 +258,7 @@ timeouts invalidate evidence.
 - `producers_fenced`
 - `consumer_groups_listed`
 - `consumer_group_described`
+- `consumer_groups_described`
 - `share_group_described`
 - `share_groups_described`
 - `share_group_offsets_listed`
@@ -620,6 +623,14 @@ independent group-existence and member-count fact. Classic membership is not
 inferred from that broker fact: every counted live member must be an explicitly
 declared classic consumer with a prior successful committed `group_receive` and
 a positive classic group epoch.
+
+`describe_consumer_groups` carries only caller-ordered group IDs and one
+deadline. Its correlated event preserves each classic or KIP-848 public
+description variant, state, assignor, epochs, member identities, subscriptions,
+typed assignments, raw classic payloads, and per-group error. Expected values
+remain scenario-side. Every declared live member requires a prior committed
+receive with a matching positive protocol epoch, and an immediate independent
+query must return the same member counts in the same caller order.
 
 `delete_consumer_groups` carries two through 32 distinct group IDs in caller
 order and invokes one public Admin operation under one deadline. Its completion

@@ -1,5 +1,8 @@
 //! Plural group-admin protocol tests preserve ordered intent and public facts.
 
+#[path = "admin_consumer_group_description_batch_test.rs"]
+mod consumer_group_description_batch;
+
 use super::{
     AdapterCommand, AdapterEvent, AdminClassicGroupDescriptionOutcome,
     AdminClassicGroupsDescription, AdminConsumerGroupOffsetMutationOutcome,
@@ -15,9 +18,9 @@ use super::{
 
 #[test]
 fn versions_advance_without_changing_evidence_facts() {
-    assert_eq!(PROTOCOL_VERSION, 66);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 69);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 55);
+    assert_eq!(PROTOCOL_VERSION, 67);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 70);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 56);
 }
 
 #[test]

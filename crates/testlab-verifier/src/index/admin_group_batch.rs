@@ -31,6 +31,12 @@ pub(crate) struct IndexedClassicGroupsDescription {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedConsumerGroupsDescription {
+    pub(crate) history_sequence: u64,
+    pub(crate) outcomes: Vec<testlab_schema::AdminConsumerGroupDescriptionOutcome>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedConsumerGroupsDeletion {
     pub(crate) history_sequence: u64,
     pub(crate) value: testlab_schema::AdminConsumerGroupsDeletion,
@@ -51,6 +57,8 @@ pub(crate) struct AdminGroupBatchIndex {
     pub(crate) offsets_deleted: BTreeMap<OperationId, Vec<IndexedConsumerGroupOffsetsMutation>>,
     pub(crate) classic_groups_described:
         BTreeMap<OperationId, Vec<IndexedClassicGroupsDescription>>,
+    pub(crate) consumer_groups_described:
+        BTreeMap<OperationId, Vec<IndexedConsumerGroupsDescription>>,
     pub(crate) groups_deleted: BTreeMap<OperationId, Vec<IndexedConsumerGroupsDeletion>>,
     pub(crate) members_removed: BTreeMap<OperationId, Vec<IndexedConsumerGroupMembersRemoval>>,
 }
@@ -93,6 +101,14 @@ impl AdminGroupBatchIndex {
                     history_sequence: sequence,
                     outcomes: value.outcomes.clone(),
                 }),
+            AdapterEvent::ConsumerGroupsDescribed(value) => self
+                .consumer_groups_described
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(IndexedConsumerGroupsDescription {
+                    history_sequence: sequence,
+                    outcomes: value.outcomes.clone(),
+                }),
             AdapterEvent::ConsumerGroupsDeleted(value) => self
                 .groups_deleted
                 .entry(value.operation_id.clone())
@@ -122,6 +138,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
         ScenarioAction::AlterConsumerGroupOffsets(value) => &value.operation_id,
         ScenarioAction::DeleteConsumerGroupOffsets(value) => &value.operation_id,
         ScenarioAction::DescribeClassicGroups(value) => &value.operation_id,
+        ScenarioAction::DescribeConsumerGroups(value) => &value.operation_id,
         ScenarioAction::DeleteConsumerGroups(value) => &value.operation_id,
         ScenarioAction::RemoveConsumerGroupMembers(value) => &value.operation_id,
         _ => return None,
@@ -135,6 +152,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
         AdapterCommand::AlterConsumerGroupOffsets(value) => &value.operation_id,
         AdapterCommand::DeleteConsumerGroupOffsets(value) => &value.operation_id,
         AdapterCommand::DescribeClassicGroups(value) => &value.operation_id,
+        AdapterCommand::DescribeConsumerGroups(value) => &value.operation_id,
         AdapterCommand::DeleteConsumerGroups(value) => &value.operation_id,
         AdapterCommand::RemoveConsumerGroupMembers(value) => &value.operation_id,
         _ => return None,
@@ -192,6 +210,19 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         (
             ScenarioAction::DescribeClassicGroups(action),
             AdapterCommand::DescribeClassicGroups(command),
+        ) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action
+                    .groups
+                    .iter()
+                    .map(|group| &group.group_id)
+                    .eq(command.group_ids.iter())
+                && action.timeout_ms == command.timeout_ms
+        }
+        (
+            ScenarioAction::DescribeConsumerGroups(action),
+            AdapterCommand::DescribeConsumerGroups(command),
         ) => {
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id

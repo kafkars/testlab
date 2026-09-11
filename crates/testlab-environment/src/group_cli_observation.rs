@@ -10,7 +10,9 @@ use crate::observer_error::ObserverError;
 pub(super) fn supports(target: &AdminTarget) -> bool {
     match target {
         AdminTarget::ConsumerGroup(target) => !target.poll_expected,
-        AdminTarget::ConsumerGroups(_) | AdminTarget::ClassicGroups(_) => true,
+        AdminTarget::ConsumerGroups(_)
+        | AdminTarget::ClassicGroups(_)
+        | AdminTarget::ConsumerGroupDescriptions(_) => true,
         _ => false,
     }
 }
@@ -20,6 +22,11 @@ pub(super) fn selection(target: &AdminTarget) -> Vec<String> {
         AdminTarget::ConsumerGroups(_) => vec!["--all-groups".to_owned()],
         AdminTarget::ConsumerGroup(target) => vec!["--group".to_owned(), target.group_id.clone()],
         AdminTarget::ClassicGroups(target) => target
+            .group_ids
+            .iter()
+            .flat_map(|group| ["--group".to_owned(), group.clone()])
+            .collect(),
+        AdminTarget::ConsumerGroupDescriptions(target) => target
             .group_ids
             .iter()
             .flat_map(|group| ["--group".to_owned(), group.clone()])
@@ -38,6 +45,7 @@ pub(super) fn normalize(
         AdminTarget::ConsumerGroups(target) => (target.names.as_slice(), false),
         AdminTarget::ConsumerGroup(target) => (std::slice::from_ref(&target.group_id), true),
         AdminTarget::ClassicGroups(target) => (target.group_ids.as_slice(), true),
+        AdminTarget::ConsumerGroupDescriptions(target) => (target.group_ids.as_slice(), true),
         _ => return Err(invalid("unsupported group snapshot target")),
     };
     if exact && (groups.len() != names.len() || names.iter().any(|name| !groups.contains_key(name)))

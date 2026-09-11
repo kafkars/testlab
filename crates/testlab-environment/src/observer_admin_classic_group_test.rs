@@ -3,7 +3,7 @@
 use testlab_schema::{BrokerStateObservation, OperationId};
 
 use crate::observer_admin_classic_group::normalize_fixture;
-use crate::observer_admin_target::ClassicGroupsTarget;
+use crate::observer_admin_target::GroupIdsTarget;
 
 #[test]
 fn exact_batch_retains_caller_order_and_consecutive_observations() {
@@ -107,8 +107,8 @@ fn facts(observations: &[BrokerStateObservation]) -> Vec<(u64, &str, u32)> {
         .collect()
 }
 
-fn target() -> ClassicGroupsTarget {
-    ClassicGroupsTarget {
+fn target() -> GroupIdsTarget {
+    GroupIdsTarget {
         operation_id: OperationId::new("describe-groups")
             .unwrap_or_else(|error| panic!("operation ID: {error}")),
         group_ids: vec!["group-b".to_owned(), "group-a".to_owned()],

@@ -31,6 +31,10 @@ pub(super) fn classify(
             AdapterEvent::ClassicGroupsDescribed(actual),
         ) => operation_id == &actual.operation_id,
         (
+            ExpectedEvent::ConsumerGroupsDescribed(operation_id),
+            AdapterEvent::ConsumerGroupsDescribed(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::ConsumerGroupsDeleted {
                 operation_id,
                 group_ids,
@@ -79,6 +83,7 @@ fn expected_is_batch_group(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::ConsumerGroupOffsetsAltered { .. }
             | ExpectedEvent::ConsumerGroupOffsetsDeleted { .. }
             | ExpectedEvent::ClassicGroupsDescribed { .. }
+            | ExpectedEvent::ConsumerGroupsDescribed(_)
             | ExpectedEvent::ConsumerGroupsDeleted { .. }
             | ExpectedEvent::ConsumerGroupMembersRemoved(..)
     )
@@ -92,6 +97,7 @@ fn event_is_batch_group(event: &AdapterEvent) -> bool {
             | AdapterEvent::ConsumerGroupOffsetsAltered(_)
             | AdapterEvent::ConsumerGroupOffsetsDeleted(_)
             | AdapterEvent::ClassicGroupsDescribed(_)
+            | AdapterEvent::ConsumerGroupsDescribed(_)
             | AdapterEvent::ConsumerGroupsDeleted(_)
             | AdapterEvent::ConsumerGroupMembersRemoved(_)
     )

@@ -223,6 +223,7 @@ pub(crate) enum ExpectedEvent {
     ClassicGroupsDescribed {
         operation_id: OperationId,
     },
+    ConsumerGroupsDescribed(OperationId),
     AclsCreated(OperationId),
     AclsDescribed(OperationId),
     AclsDeleted(OperationId),

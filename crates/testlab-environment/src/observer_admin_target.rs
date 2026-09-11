@@ -44,17 +44,18 @@ pub(super) enum AdminTarget {
     ReplicaLogDirs(observer_admin_log_dirs_target::LogDirsTarget),
     Transactions(observer_admin_transaction_target::TransactionTarget),
     ConsumerGroups(ListTarget),
+    ConsumerGroupDescriptions(GroupIdsTarget),
     ConsumerGroupDeletions(ListTarget),
     ConsumerGroup(GroupTarget),
     ShareGroup(ShareGroupTarget),
-    ShareGroupDescriptions(ShareGroupsTarget),
-    ShareGroups(ShareGroupsTarget),
+    ShareGroupDescriptions(GroupIdsTarget),
+    ShareGroups(GroupIdsTarget),
     ShareGroupOffset(ShareGroupOffsetTarget),
     ShareGroupsOffsets(ShareGroupsOffsetsTarget),
     ConsumerGroupOffset(OffsetTarget),
     ConsumerGroupOffsets(GroupOffsetsTarget),
     ConsumerGroupsOffsets(GroupsOffsetsTarget),
-    ClassicGroups(ClassicGroupsTarget),
+    ClassicGroups(GroupIdsTarget),
     TopicConfig(ConfigTarget),
     TopicConfigs(ConfigBatchTarget),
     PartitionOffsets(PartitionOffsetsTarget),
@@ -109,7 +110,7 @@ pub(super) struct ShareGroupTarget {
     pub(super) group_id: String,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct ShareGroupsTarget {
+pub(super) struct GroupIdsTarget {
     pub(super) operation_id: OperationId,
     pub(super) group_ids: Vec<String>,
 }
@@ -157,12 +158,6 @@ pub(super) struct GroupOffsetsTarget {
 pub(super) struct GroupsOffsetsTarget {
     pub(super) operation_id: OperationId,
     pub(super) groups: Vec<GroupOffsetsSelectionTarget>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct ClassicGroupsTarget {
-    pub(super) operation_id: OperationId,
-    pub(super) group_ids: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -235,6 +230,10 @@ impl AdminTarget {
             | Self::TopicDeletions(target)
             | Self::ConsumerGroups(target)
             | Self::ConsumerGroupDeletions(target) => &target.operation_id,
+            Self::ConsumerGroupDescriptions(target)
+            | Self::ShareGroupDescriptions(target)
+            | Self::ShareGroups(target)
+            | Self::ClassicGroups(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
             Self::Features(operation_id) => operation_id,
             Self::MetadataQuorum(operation_id) => operation_id,
@@ -244,14 +243,11 @@ impl AdminTarget {
             Self::Transactions(target) => target.operation_id(),
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
-            Self::ShareGroupDescriptions(target) => &target.operation_id,
-            Self::ShareGroups(target) => &target.operation_id,
             Self::ShareGroupOffset(target) => &target.operation_id,
             Self::ShareGroupsOffsets(target) => &target.operation_id,
             Self::ConsumerGroupOffset(target) => &target.operation_id,
             Self::ConsumerGroupOffsets(target) => &target.operation_id,
             Self::ConsumerGroupsOffsets(target) => &target.operation_id,
-            Self::ClassicGroups(target) => &target.operation_id,
             Self::TopicConfig(target) => &target.operation_id,
             Self::TopicConfigs(target) => &target.operation_id,
             Self::PartitionOffsets(target) => &target.operation_id,
@@ -276,9 +272,10 @@ impl AdminTarget {
             Self::ConsumerGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()
             }
-            Self::ClassicGroups(target) => target.group_ids.len(),
-            Self::ShareGroupDescriptions(target) => target.group_ids.len(),
-            Self::ShareGroups(target) => target.group_ids.len(),
+            Self::ClassicGroups(target)
+            | Self::ConsumerGroupDescriptions(target)
+            | Self::ShareGroupDescriptions(target)
+            | Self::ShareGroups(target) => target.group_ids.len(),
             Self::ShareGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()
             }
