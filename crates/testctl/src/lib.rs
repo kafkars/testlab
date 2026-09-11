@@ -142,6 +142,8 @@ mod catalog_producer_configuration_test;
 #[cfg(test)]
 mod catalog_replica_log_dirs_test;
 #[cfg(test)]
+mod catalog_security_matrix_test;
+#[cfg(test)]
 mod catalog_share_batch_test;
 #[cfg(test)]
 mod catalog_share_configuration_test;

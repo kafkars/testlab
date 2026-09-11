@@ -60,6 +60,27 @@ fn tls_requires_and_references_a_ca_path() {
 }
 
 #[test]
+fn sasl_tls_combines_authentication_with_the_custom_root() {
+    let security = must(ClientSecurity::new(
+        SecurityProfile {
+            transport: TransportSecurity::TlsCustom,
+            authentication: Authentication::ScramSha256,
+        },
+        Some(Path::new("/tmp/testlab/ca.pem")),
+    ));
+
+    assert_eq!(security.external_protocol(), "SASL_SSL");
+    assert!(matches!(
+        security.adapter_security(),
+        AdapterSecurity::SaslTls {
+            mechanism: AdapterSaslMechanism::ScramSha256,
+            ..
+        }
+    ));
+    assert_eq!(security.adapter_environment().len(), 3);
+}
+
+#[test]
 fn compose_receives_one_named_host_port_per_broker() {
     let security = must(ClientSecurity::new(profile(Authentication::None), None));
 

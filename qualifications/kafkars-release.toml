@@ -45,6 +45,27 @@ attempts = 1
 gating = true
 
 [[cells]]
+id = "apache-kafka-4-3-1-three-sasl-plain-tls"
+environment = "clusters/apache-kafka/4.3.1/three-sasl-plain-tls.toml"
+pack = "packs/kafkars-three-broker-security.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-three-scram-sha-256-tls"
+environment = "clusters/apache-kafka/4.3.1/three-scram-sha-256-tls.toml"
+pack = "packs/kafkars-three-broker-security.toml"
+attempts = 1
+gating = true
+
+[[cells]]
+id = "apache-kafka-4-3-1-three-scram-sha-512-tls"
+environment = "clusters/apache-kafka/4.3.1/three-scram-sha-512-tls.toml"
+pack = "packs/kafkars-three-broker-security.toml"
+attempts = 1
+gating = true
+
+[[cells]]
 id = "apache-kafka-4-3-1-broker-role-failover"
 environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
 pack = "packs/kafkars-broker-role-failover.toml"

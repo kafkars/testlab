@@ -127,7 +127,7 @@ fn release_cells_use_eight_runners_and_schedule_longest_first() {
         })
         .collect::<Vec<_>>();
     assert_eq!(
-        &ids[..6],
+        &ids[..9],
         [
             "apache-kafka-4-3-1-plaintext",
             "apache-kafka-4-3-1-three-scram-sha-256",
@@ -135,6 +135,9 @@ fn release_cells_use_eight_runners_and_schedule_longest_first() {
             "apache-kafka-4-3-1-three-sasl-plain",
             "apache-kafka-4-3-1-three-tls",
             "apache-kafka-4-3-1-three-scram-sha-512",
+            "apache-kafka-4-3-1-three-sasl-plain-tls",
+            "apache-kafka-4-3-1-three-scram-sha-256-tls",
+            "apache-kafka-4-3-1-three-scram-sha-512-tls",
         ]
     );
     for expected in [
