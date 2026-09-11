@@ -37,6 +37,9 @@
   independent Kafka CLI state; transactions, fencing, broker restart, rolling restart, and independently targeted
   partition-leader, controller, classic and KIP-848 group-coordinator, and
   transaction-coordinator recovery.
+- Public Admin log-directory coverage preserves selected broker and replica
+  placement details, then proves caller-ordered two-directory replica moves
+  through independently polled Kafka CLI state with no remaining future copy.
 - A SASL/PLAIN policy environment and targeted scenarios cover topic produce,
   classic-group consume, admin create, and transactional-ID authorization
   denial with observed permission restoration, plus bounded producer and

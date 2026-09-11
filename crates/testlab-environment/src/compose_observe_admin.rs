@@ -51,6 +51,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::ReplicaLogDirs(_)) = &target {
             return self.observe_log_dirs_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::ReplicaLogDirsAlteration(_)) = &target {
+            return self.observe_log_dirs_with_cli(target, timeout);
+        }
         if let Ok(target @ AdminTarget::Transactions(_)) = &target {
             return self.observe_transactions_with_cli(target, timeout);
         }

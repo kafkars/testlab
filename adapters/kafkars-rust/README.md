@@ -9,7 +9,7 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v69 over stdin/stdout;
+2. implements protocol v70 over stdin/stdout;
 3. preserves admission rejection separately from accepted delivery;
 4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
@@ -31,7 +31,8 @@ It:
    boundaries, cluster feature discovery, exact partition active-producer
    state, canonical metadata-quorum discovery, canonical transaction listing,
    caller-ordered transaction descriptions, and caller-ordered producer
-   fencing with independently matched post-fence identities,
+   fencing with independently matched post-fence identities, selected-replica
+   log-directory description and caller-ordered alteration outcomes,
    classic static membership with explicit session timing and caller-ordered
    static-member removal after owner abandonment,
    consumer-only and generic all-group listings, plural offset

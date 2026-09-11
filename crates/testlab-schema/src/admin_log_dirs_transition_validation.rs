@@ -32,8 +32,44 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 &topics,
                 problems,
             ),
+            ScenarioAction::AlterReplicaLogDirs(action) => {
+                for assignment in &action.assignments {
+                    validate_alteration_target(&action.operation_id, assignment, &topics, problems);
+                }
+                if let Some(first) = action.assignments.first()
+                    && topics.get(&first.topic).is_some_and(|(_, replicas)| {
+                        usize::try_from(*replicas)
+                            .ok()
+                            .is_some_and(|replicas| action.assignments.len() > replicas)
+                    })
+                {
+                    problems.push(format!(
+                        "admin operation {} assigns more brokers than the prior replication factor",
+                        action.operation_id
+                    ));
+                }
+            }
             _ => {}
         }
+    }
+}
+
+fn validate_alteration_target(
+    operation_id: &crate::OperationId,
+    assignment: &crate::ReplicaLogDirAssignmentSpec,
+    topics: &BTreeMap<String, (i32, i16)>,
+    problems: &mut Vec<String>,
+) {
+    let Some((partitions, _)) = topics.get(&assignment.topic) else {
+        problems.push(format!(
+            "admin operation {operation_id} requires a prior successful topic creation"
+        ));
+        return;
+    };
+    if assignment.partition >= *partitions {
+        problems.push(format!(
+            "admin operation {operation_id} selects a partition outside the prior topic"
+        ));
     }
 }
 

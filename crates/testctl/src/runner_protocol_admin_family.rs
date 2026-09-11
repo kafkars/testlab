@@ -32,6 +32,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::ProducerStatesDescribed { .. }
             | ExpectedEvent::LogDirsDescribed { .. }
             | ExpectedEvent::ReplicaLogDirsDescribed(..)
+            | ExpectedEvent::ReplicaLogDirsAltered(_)
             | ExpectedEvent::TransactionsListed(_)
             | ExpectedEvent::TransactionsDescribed(..)
             | ExpectedEvent::ProducersFenced(..)
@@ -71,6 +72,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::ProducersDescribed(_)
             | AdapterEvent::LogDirsDescribed(_)
             | AdapterEvent::ReplicaLogDirsDescribed(_)
+            | AdapterEvent::ReplicaLogDirsAltered(_)
             | AdapterEvent::TransactionsListed(_)
             | AdapterEvent::TransactionsDescribed(_)
             | AdapterEvent::ProducersFenced(_)

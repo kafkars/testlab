@@ -4,6 +4,48 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+/// One caller-positioned replica-to-directory assignment.
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReplicaLogDirAssignmentSpec {
+    /// Exact topic name.
+    pub topic: String,
+    /// Exact nonnegative partition index.
+    pub partition: i32,
+    /// Exact nonnegative broker identity.
+    pub broker_id: i32,
+    /// Exact absolute broker-local destination path.
+    pub target_path: String,
+}
+
+/// Scenario intent for one bounded caller-ordered replica log-directory alteration.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AlterReplicaLogDirsAction {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Caller-ordered exact replica-to-directory assignments.
+    pub assignments: Vec<ReplicaLogDirAssignmentSpec>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
+/// Wire payload for one bounded caller-ordered replica log-directory alteration.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AlterReplicaLogDirsCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Caller-ordered exact replica-to-directory assignments.
+    pub assignments: Vec<ReplicaLogDirAssignmentSpec>,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
+
 /// Scenario intent for one bounded selected-replica log-directory description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -86,6 +128,28 @@ pub struct AdminReplicaLogDirsDescription {
     pub throttle_time_ms: u64,
     /// One result per discovered broker in deliberately descending caller order.
     pub replicas: Vec<AdminReplicaLogDirDescription>,
+}
+
+/// One caller-positioned public replica alteration outcome.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminReplicaLogDirAlterationOutcome {
+    /// Exact requested replica identity.
+    pub replica: ReplicaLogDirIdentity,
+    /// Stable normalized public error, or none on success.
+    pub error_code: Option<String>,
+}
+
+/// Public completion for one replica log-directory alteration batch.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminReplicaLogDirsAlteration {
+    /// Stable admin operation identity.
+    pub operation_id: OperationId,
+    /// Maximum nonnegative throttle observed across broker calls.
+    pub throttle_time_ms: u64,
+    /// One outcome per request in original caller order.
+    pub outcomes: Vec<AdminReplicaLogDirAlterationOutcome>,
 }
 
 #[cfg(test)]

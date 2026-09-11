@@ -475,6 +475,12 @@ statement = "One public consumer-group description batch spans live classic and 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-070"
+title = "Replica log-directory alterations preserve caller order and settle exactly"
+statement = "Each public replica log-directory alteration returns one successful outcome per requested replica in original caller order, and the immediate independently polled Kafka CLI state proves every selected replica settled at its exact requested current directory with no future copy."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

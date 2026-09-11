@@ -28,6 +28,9 @@ impl HistoryIndex {
         {
             return true;
         }
+        if self.admin_replica_log_dirs.record_event(event, sequence) {
+            return true;
+        }
         if self.admin_share_groups.record_event(event, sequence) {
             return true;
         }

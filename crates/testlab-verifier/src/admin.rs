@@ -133,13 +133,11 @@ pub(crate) fn immediate_after_public(
     window
         .is_some_and(|(_, next)| public < observation && next.is_none_or(|next| observation < next))
 }
-
 fn scenario_evidence(operation_id: Option<&testlab_schema::OperationId>) -> Vec<String> {
     operation_id.map_or_else(Vec::new, |value| {
         vec![format!("scenario:operation:{value}")]
     })
 }
-
 fn contract(action: &ScenarioAction) -> Option<&'static str> {
     Some(match action {
         ScenarioAction::CreateTopic(value) if value.expected_error_code.is_some() => "ADMIN-014",
@@ -222,6 +220,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::ElectLeaders(_) => "ADMIN-060",
         ScenarioAction::DescribeLogDirs(_) => "ADMIN-054",
         ScenarioAction::DescribeReplicaLogDirs(_) => "ADMIN-055",
+        ScenarioAction::AlterReplicaLogDirs(_) => "ADMIN-070",
         ScenarioAction::DescribeMetadataQuorum(_) => "ADMIN-056",
         ScenarioAction::AlterTopicConfig(_) => "ADMIN-016",
         ScenarioAction::ListConsumerGroupOffsets(_) => "ADMIN-006",
@@ -266,6 +265,7 @@ fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId>
         ScenarioAction::ElectLeaders(value) => &value.operation_id,
         ScenarioAction::DescribeLogDirs(value) => &value.operation_id,
         ScenarioAction::DescribeReplicaLogDirs(value) => &value.operation_id,
+        ScenarioAction::AlterReplicaLogDirs(value) => &value.operation_id,
         ScenarioAction::DescribeMetadataQuorum(value) => &value.operation_id,
         ScenarioAction::ListConsumerGroups(value) => &value.operation_id,
         ScenarioAction::DescribeConsumerGroup(value) => &value.operation_id,

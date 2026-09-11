@@ -1,4 +1,4 @@
-schema_version = 72
+schema_version = 73
 id = "kafka.producer-null-empty-batch"
 title = "ordered producer batch preserves null and empty fields"
 description = "One public batch sends all null and empty key-value combinations to one partition; independent records preserve each distinction and caller order."

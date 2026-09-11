@@ -16,6 +16,9 @@ terminal process operation are required for a valid run.
 `apache-kafka/` contains real Apache Kafka environments. Every manifest selects
 an immutable image digest and a reviewed Compose topology.
 
+The three-broker Compose fixture exposes two broker log directories so replica
+placement scenarios prove real moves rather than no-op assignments.
+
 `packs/kafkars-broker-role-failover.toml` targets independently discovered
 partition leaders, controllers, classic and KIP-848 group coordinators, and
 transaction coordinators on the three-broker plaintext topology. Partition

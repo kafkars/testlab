@@ -141,3 +141,6 @@ pub(crate) mod transition_validation;
 
 #[path = "admin_replica_log_dirs.rs"]
 pub(crate) mod replica;
+
+#[path = "admin_replica_log_dirs_action_validation.rs"]
+pub(crate) mod replica_action_validation;

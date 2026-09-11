@@ -79,7 +79,6 @@ pub enum ScenarioAction {
         /// Exact partition.
         partition: i32,
     },
-    /// Replaces one direct assignment with multiple partitions at their beginnings.
     AssignBeginningBatch(crate::AssignBeginningBatchAction),
     ControlAssignedConsumer(crate::AssignedConsumerControlAction),
     /// Bounded receive that must expose one previously sent exact record.
@@ -211,6 +210,7 @@ pub enum ScenarioAction {
     DescribeProducers(crate::DescribeProducersAction),
     DescribeLogDirs(crate::DescribeLogDirsAction),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsAction),
+    AlterReplicaLogDirs(crate::AlterReplicaLogDirsAction),
     DescribeMetadataQuorum(crate::DescribeMetadataQuorumAction),
     ListTransactions(crate::ListTransactionsAction),
     DescribeTransactions(crate::DescribeTransactionsAction),

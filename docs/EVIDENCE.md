@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v58 records the exact environment identity in `manifest.json`,
-retains protocol-v69 direct and hosted-group consumer controls, abandonment,
+Evidence schema v59 records the exact environment identity in `manifest.json`,
+retains protocol-v70 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
@@ -522,6 +522,14 @@ state, epochs, member identities, subscriptions, typed assignments, raw classic
 payloads, and per-group errors without receiving those expectations. Matching
 positive membership epochs and contiguous immediate independent member-count
 observations establish the broker-visible live groups in the same caller order.
+
+ADMIN-070 binds each caller-ordered public replica log-directory alteration to
+the exact requested topic, partition, broker, and target path. Every public
+per-replica outcome must retain its caller position and succeed, with throttle
+bounded by the operation deadline. Contiguous pinned `kafka-log-dirs.sh`
+observations then poll until each selected replica has exactly one current
+placement at its requested path and no future placement. The public completion
+must precede that settled independent state and cannot be reconstructed from it.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

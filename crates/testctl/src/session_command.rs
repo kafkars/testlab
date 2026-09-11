@@ -96,6 +96,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::DescribeLogDirs(_)
         | ScenarioAction::DescribeReplicaLogDirs(_)
+        | ScenarioAction::AlterReplicaLogDirs(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)
         | ScenarioAction::FenceProducers(_)

@@ -1,20 +1,93 @@
 //! Replica log-directory discovery preserves every selected broker and placement fact.
 
 use std::io::Write;
+use std::time::Duration;
 
 use testlab_schema::{
-    AdapterEvent, AdapterEventEnvelope, AdminReplicaLogDirDescription,
-    AdminReplicaLogDirsDescription, CommandId, DescribeReplicaLogDirsCommand,
-    ReplicaLogDirIdentity, ReplicaLogDirLocationState,
+    AdapterEvent, AdapterEventEnvelope, AdminReplicaLogDirAlterationOutcome,
+    AdminReplicaLogDirDescription, AdminReplicaLogDirsAlteration, AdminReplicaLogDirsDescription,
+    AlterReplicaLogDirsCommand, CommandId, DescribeReplicaLogDirsCommand, ReplicaLogDirIdentity,
+    ReplicaLogDirLocationState,
 };
 
 use crate::AdapterError;
 use crate::admission_retry::retry_until_with_remaining;
-use crate::kafkars_api::{ClusterBroker, TopicPartitionReplica};
+use crate::kafkars_api::{ClusterBroker, ReplicaLogDirAssignment, TopicPartitionReplica};
 use crate::protocol::emit;
 use crate::protocol_admin_read::{deadline_after, retry_safe};
 use crate::protocol_admin_result::sorted_unique_nonnegative;
 use crate::state::AdapterState;
+
+pub(crate) fn alter<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: AlterReplicaLogDirsCommand,
+) -> Result<(), AdapterError> {
+    let assignments = command.assignments.iter().map(|assignment| {
+        ReplicaLogDirAssignment::new(
+            TopicPartitionReplica::new(
+                assignment.topic.clone(),
+                assignment.partition,
+                assignment.broker_id,
+            ),
+            assignment.target_path.clone(),
+        )
+    });
+    let result = state
+        .client(&command.client_id)?
+        .admin()
+        .alter_replica_log_dirs(assignments)
+        .deadline_after(Duration::from_millis(command.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let throttle_time_ms = u64::try_from(result.throttle_time().as_millis())
+        .map_err(|_| invalid_alteration(&command, "returned an unrepresentable throttle time"))?;
+    let entries = result.into_replicas().into_entries();
+    if entries.len() != command.assignments.len() {
+        return Err(invalid_alteration(
+            &command,
+            "returned a different number of replica outcomes than requested",
+        ));
+    }
+    let outcomes = entries
+        .into_iter()
+        .zip(&command.assignments)
+        .map(|((replica, result), expected)| {
+            if replica.topic() != expected.topic
+                || replica.partition() != expected.partition
+                || replica.broker_id() != expected.broker_id
+            {
+                return Err(invalid_alteration(
+                    &command,
+                    "did not preserve caller replica order",
+                ));
+            }
+            Ok(AdminReplicaLogDirAlterationOutcome {
+                replica: ReplicaLogDirIdentity {
+                    topic: replica.topic().to_owned(),
+                    partition: replica.partition(),
+                    broker_id: replica.broker_id(),
+                },
+                error_code: result
+                    .err()
+                    .map(|error| crate::normalize::error_code(&error)),
+            })
+        })
+        .collect::<Result<Vec<_>, AdapterError>>()?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::ReplicaLogDirsAltered(AdminReplicaLogDirsAlteration {
+                operation_id: command.operation_id,
+                throttle_time_ms,
+                outcomes,
+            }),
+        ),
+    )
+}
 
 pub(crate) fn describe<W: Write>(
     state: &AdapterState,
@@ -124,5 +197,9 @@ pub(crate) fn describe<W: Write>(
 }
 
 fn invalid(command: &DescribeReplicaLogDirsCommand, detail: &str) -> AdapterError {
+    AdapterError::AdminResult(format!("admin operation {} {detail}", command.operation_id))
+}
+
+fn invalid_alteration(command: &AlterReplicaLogDirsCommand, detail: &str) -> AdapterError {
     AdapterError::AdminResult(format!("admin operation {} {detail}", command.operation_id))
 }

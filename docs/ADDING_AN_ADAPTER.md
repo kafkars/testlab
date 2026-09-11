@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v69. It is not a
+An adapter translates one packaged client surface to protocol v70. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -23,6 +23,9 @@ runner and not a verifier.
   without receiving the expected replica count.
 - Preserve selected-replica caller order and every current, absent, or future
   path and signed lag without receiving the expected current-placement count.
+- Preserve replica log-directory alteration caller order, exact targets,
+  throttle, and per-replica failures; never replace the public completion with
+  later CLI placement state.
 - Preserve canonical metadata-quorum leader, watermark, voter, observer,
   directory, timestamp, and optional controller-listener facts without
   substituting later CLI state for the public result.

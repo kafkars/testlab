@@ -135,6 +135,7 @@ pub(crate) enum ExpectedEvent {
         partition: i32,
     },
     ReplicaLogDirsDescribed(OperationId, String, i32),
+    ReplicaLogDirsAltered(OperationId),
     TransactionsListed(OperationId),
     TransactionsDescribed(OperationId, Vec<String>),
     ProducersFenced(OperationId, Vec<String>),

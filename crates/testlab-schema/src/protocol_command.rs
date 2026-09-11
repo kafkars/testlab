@@ -75,7 +75,6 @@ pub enum AdapterCommand {
     },
     /// Assigns multiple partitions at their beginnings through one public call.
     AssignBeginningBatch(crate::AssignBeginningBatchCommand),
-    /// Applies one operation-identified direct-consumer control.
     ControlAssignedConsumer(crate::AssignedConsumerControlCommand),
     /// Observes public consumer batches for a bounded duration.
     Receive {
@@ -196,6 +195,7 @@ pub enum AdapterCommand {
     DescribeProducers(crate::DescribeProducersCommand),
     DescribeLogDirs(crate::DescribeLogDirsCommand),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsCommand),
+    AlterReplicaLogDirs(crate::AlterReplicaLogDirsCommand),
     DescribeMetadataQuorum(crate::DescribeMetadataQuorumCommand),
     ListTransactions(crate::ListTransactionsCommand),
     DescribeTransactions(crate::DescribeTransactionsCommand),

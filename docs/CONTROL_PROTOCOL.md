@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v69 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v72 and evidence schema v58.
+Protocol v70 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v73 and evidence schema v59.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -98,6 +98,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_producers`
 - `describe_log_dirs`
 - `describe_replica_log_dirs`
+- `alter_replica_log_dirs`
 - `describe_metadata_quorum`
 - `list_transactions`
 - `describe_transactions`
@@ -793,6 +794,14 @@ replica identities in descending broker order through
 with exact signed lags. The immediate pinned `kafka-log-dirs.sh` snapshot
 provides the independently canonicalized placement state.
 
+Replica log-directory alteration carries two through 32 selected replicas for
+one topic-partition in caller order, one absolute non-control target path per
+replica, and one complete deadline. Its public completion preserves that order,
+maximum throttle, and one explicit success or per-replica failure per target.
+The environment repeatedly records pinned `kafka-log-dirs.sh` snapshots until
+every selected replica has exactly one current placement at its requested path
+and no future placement; those later snapshots never replace the public result.
+
 Metadata-quorum description carries only client identity, operation identity,
 and one complete deadline. Its public completion retains leader identity,
 epoch, high watermark, canonical voters and observers, optional directory IDs,
@@ -922,6 +931,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v69 is an exact semantic contract. New capabilities may be declared
+Protocol v70 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -52,6 +52,7 @@ mod session_command_admin_group_batch;
 mod session_command_admin_leader_election;
 mod session_command_admin_partition_reassignments;
 mod session_command_admin_records;
+mod session_command_admin_replica_log_dirs;
 mod session_command_admin_share_group;
 mod session_command_admin_transactions;
 mod session_command_admin_user_scram;
@@ -136,6 +137,8 @@ mod catalog_lifecycle_test;
 mod catalog_producer_cancellation_test;
 #[cfg(test)]
 mod catalog_producer_configuration_test;
+#[cfg(test)]
+mod catalog_replica_log_dirs_test;
 #[cfg(test)]
 mod catalog_share_batch_test;
 #[cfg(test)]

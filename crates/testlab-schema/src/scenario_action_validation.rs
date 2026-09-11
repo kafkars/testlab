@@ -135,6 +135,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::DescribeLogDirs(_)
         | ScenarioAction::DescribeReplicaLogDirs(_)
+        | ScenarioAction::AlterReplicaLogDirs(_)
         | ScenarioAction::DescribeMetadataQuorum(_)
         | ScenarioAction::ListTransactions(_)
         | ScenarioAction::DescribeTransactions(_)

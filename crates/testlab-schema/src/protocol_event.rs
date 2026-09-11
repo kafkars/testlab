@@ -187,7 +187,6 @@ pub enum AdapterEvent {
     TopicPartitionsCreated(crate::AdminTopicCompletion),
     /// One public partition-count increase validated without mutation.
     TopicPartitionIncreaseValidated(crate::AdminTopicCompletion),
-    /// One public admin topic deletion completed successfully.
     TopicDeleted(crate::AdminTopicCompletion),
     TopicsDeleted(crate::AdminTopicsDeletion),
     TopicDescribed(crate::AdminTopicDescription),
@@ -209,6 +208,7 @@ pub enum AdapterEvent {
     ProducersDescribed(crate::AdminProducersDescription),
     LogDirsDescribed(crate::AdminLogDirsDescription),
     ReplicaLogDirsDescribed(crate::AdminReplicaLogDirsDescription),
+    ReplicaLogDirsAltered(crate::AdminReplicaLogDirsAlteration),
     MetadataQuorumDescribed(crate::AdminMetadataQuorumDescription),
     TransactionsListed(crate::AdminTransactionsListing),
     TransactionsDescribed(crate::AdminTransactionsDescription),
