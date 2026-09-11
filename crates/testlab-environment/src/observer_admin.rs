@@ -45,6 +45,9 @@ pub(super) fn capture(
         AdminTarget::UserScramCredential(_) => Err(ObserverError::InvalidTarget(
             "user SCRAM target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::ClientMetricsResources(_) => Err(ObserverError::InvalidTarget(
+            "client-metrics resource target requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::ShareGroup(_) => Err(ObserverError::InvalidTarget(
             "Share-group target requires the pinned Kafka CLI observer".to_owned(),
         )),

@@ -1,4 +1,4 @@
-schema_version = 73
+schema_version = 74
 id = "kafka.admin-list-offsets-paired"
 title = "packaged admin lists earliest and latest offsets for the same partition"
 description = "After two acknowledged records reach one isolated partition, consecutive public queries report earliest offset 0 and latest end offset 2 for that exact partition, grounded in the same independent broker record evidence."

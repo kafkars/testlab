@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v70 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v73 and evidence schema v59.
+Protocol v71 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v74 and evidence schema v60.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -585,11 +585,13 @@ type-2 topic resources while preserving the same caller-order and independent
 state requirements. Mutation commands additionally accept `legacy_topic` and
 `legacy_resource`, selecting the corresponding public full-snapshot replacement
 surface while retaining the exact named description baseline and post-state
-requirements. `list_config_resources` sends no expected names over the
-wire, filters the public request to topic resources, and returns Kafka's
-nonnegative throttle plus every exact signed resource type and name in canonical
-order. Scenarios require two through 32 dynamically configured topic names;
-immediate independent metadata must confirm each required topic exists.
+requirements. `list_config_resources` carries an `api` selector but sends no
+expected names over the wire. `resource` filters the generic public request to
+topic resources and requires every dynamically configured topic in the
+canonical type-tagged result plus immediate independent metadata.
+`client_metrics` invokes the dedicated public client-metrics resource listing,
+maps each name to Kafka resource type 16, and requires its exact canonical set
+to match one immediate pinned `kafka-client-metrics.sh --list` snapshot.
 
 Topic creation, partition increase, and incremental topic-configuration
 replacement carry an exact `validate_only` wire flag. Successful validation
@@ -931,6 +933,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v70 is an exact semantic contract. New capabilities may be declared
+Protocol v71 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

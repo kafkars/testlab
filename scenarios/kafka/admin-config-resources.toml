@@ -1,4 +1,4 @@
-schema_version = 73
+schema_version = 74
 id = "kafka.admin-config-resources"
 title = "packaged admin lists dynamically configured topic resources"
 description = "After a resource-generic public mutation creates two dynamic topic configurations, one filtered ListConfigResources call returns canonical type-tagged identities containing both topics and immediate independent metadata confirms both resources exist."
@@ -46,7 +46,8 @@ id = "list-config-resources"
 kind = "list_config_resources"
 client_id = "client-1"
 operation_id = "admin-list-config-resources"
-required_topics = [
+api = "resource"
+required_resources = [
   "testlab-kafkars-config-resource-zulu",
   "testlab-kafkars-config-resource-alpha",
 ]

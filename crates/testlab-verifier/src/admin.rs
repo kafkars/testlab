@@ -118,13 +118,10 @@ pub(crate) fn verify_admin(
         let _ = verify_discovery_action(&step.action, index, observations, violations);
     }
 }
-
 pub(crate) type AdminCommandWindow = (u64, Option<u64>);
-
 pub(crate) fn public_after_command(window: Option<AdminCommandWindow>, public: u64) -> bool {
     window.is_some_and(|(command, _)| command < public)
 }
-
 pub(crate) fn immediate_after_public(
     window: Option<AdminCommandWindow>,
     public: u64,
@@ -195,7 +192,10 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteConsumerGroups(_) => "ADMIN-046",
         ScenarioAction::RemoveConsumerGroupMembers(_) => "ADMIN-068",
         ScenarioAction::ListTopics(_) => "ADMIN-004",
-        ScenarioAction::ListConfigResources(_) => "ADMIN-063",
+        ScenarioAction::ListConfigResources(value) => match value.api {
+            testlab_schema::ConfigResourceListingApi::Resource => "ADMIN-063",
+            testlab_schema::ConfigResourceListingApi::ClientMetrics => "ADMIN-071",
+        },
         ScenarioAction::ListOffsets(_) => "ADMIN-005",
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
         ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",
@@ -234,7 +234,6 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         _ => return None,
     })
 }
-
 fn operation_id(action: &ScenarioAction) -> Option<&testlab_schema::OperationId> {
     Some(match action {
         ScenarioAction::CreateTopic(value) => &value.operation_id,

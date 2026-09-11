@@ -14,6 +14,7 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
+                api: action.api,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::ConfigResourcesListed(action.operation_id.clone()),

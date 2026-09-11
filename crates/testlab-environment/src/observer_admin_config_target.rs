@@ -15,20 +15,29 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
     Ok(Some(match action {
         ScenarioAction::ListConfigResources(action) => {
             unique(
-                &action.required_topics,
+                &action.required_resources,
                 &action.operation_id,
-                "required_topics",
+                "required_resources",
             )?;
+            let target = ListTarget {
+                operation_id: action.operation_id.clone(),
+                names: action.required_resources.clone(),
+            };
             (
                 AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
+                    api: action.api,
                     timeout_ms: action.timeout_ms,
                 }),
-                AdminTarget::Topics(ListTarget {
-                    operation_id: action.operation_id.clone(),
-                    names: action.required_topics.clone(),
-                }),
+                match action.api {
+                    testlab_schema::ConfigResourceListingApi::Resource => {
+                        AdminTarget::Topics(target)
+                    }
+                    testlab_schema::ConfigResourceListingApi::ClientMetrics => {
+                        AdminTarget::ClientMetricsResources(target)
+                    }
+                },
             )
         }
         ScenarioAction::DescribeTopicConfig(action) => (

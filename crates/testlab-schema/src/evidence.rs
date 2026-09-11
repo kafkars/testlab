@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 59;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 60;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -66,6 +66,8 @@ pub enum BrokerStateObservation {
     ConsumerGroupOffset(crate::BrokerConsumerGroupOffset),
     /// One selected non-sensitive topic configuration independently read from Kafka.
     TopicConfig(crate::BrokerTopicConfigState),
+    /// Configuration resources independently read through Kafka's pinned CLI.
+    ConfigResources(crate::BrokerConfigResourcesState),
     /// One partition watermark pair independently read from Kafka.
     PartitionOffsets(crate::BrokerPartitionOffsets),
     /// One exact literal wildcard-host ACL independently read through Kafka's CLI.

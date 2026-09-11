@@ -70,6 +70,9 @@
 - Public client metrics coverage retains every calls, failures, mailbox,
   latency, and producer snapshot getter after independently verified producer
   work, with exact command ownership and deterministic cross-field invariants.
+- Dedicated client-metrics resource discovery retains its exact public
+  throttle and canonical names against a separately provisioned and immediately
+  listed pinned Kafka CLI state.
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
   incremental add/remove with survivor cursors, and read-committed isolation

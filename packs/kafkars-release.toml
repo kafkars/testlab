@@ -5,6 +5,7 @@ scenarios = [
   "scenarios/kafka/producer-round-trip.toml",
   "scenarios/kafka/producer-repeated-readiness-flush.toml",
   "scenarios/kafka/client-metrics-producer.toml",
+  "scenarios/kafka/admin-list-client-metrics-resources.toml",
   "scenarios/kafka/client-shutdown-isolation.toml",
   "scenarios/kafka/producer-null-empty-batch.toml",
   "scenarios/kafka/producer-sequential-ordering.toml",

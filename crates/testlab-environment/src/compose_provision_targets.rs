@@ -1,13 +1,12 @@
 //! Provisioning targets derive only broker state that the packaged client does not create.
 use std::collections::{BTreeMap, BTreeSet};
-use testlab_schema::{RecordSpec, Scenario, ScenarioAction};
+use testlab_schema::{ConfigResourceListingApi, RecordSpec, Scenario, ScenarioAction};
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub(super) struct SeedTarget {
     pub(super) topic: String,
     pub(super) partition: i32,
     pub(super) record_count: i64,
 }
-
 pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     let mut subject_created = BTreeSet::new();
     for step in &scenario.steps {
@@ -28,7 +27,6 @@ pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     }
     topics
 }
-
 pub(super) fn share_groups(scenario: &Scenario) -> BTreeSet<String> {
     scenario
         .steps
@@ -129,8 +127,10 @@ fn admin_targets(
                 require_topic(topics, subject_created, topic, 1);
             }
         }
-        ScenarioAction::ListConfigResources(action) => {
-            for topic in &action.required_topics {
+        ScenarioAction::ListConfigResources(action)
+            if action.api == ConfigResourceListingApi::Resource =>
+        {
+            for topic in &action.required_resources {
                 require_topic(topics, subject_created, topic, 1);
             }
         }

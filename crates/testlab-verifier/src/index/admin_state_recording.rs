@@ -11,6 +11,12 @@ use super::{
 impl HistoryIndex {
     pub(super) fn record_state(&mut self, observation: &BrokerStateObservation, sequence: u64) {
         if self
+            .admin_config_resources
+            .record_state(observation, sequence)
+        {
+            return;
+        }
+        if self
             .admin_leader_elections
             .record_state(observation, sequence)
         {
@@ -104,6 +110,9 @@ impl HistoryIndex {
                     config_name: value.config_name.clone(),
                     value: value.value.clone(),
                 }),
+            BrokerStateObservation::ConfigResources(_) => {
+                unreachable!("configuration resources are indexed before generic admin state")
+            }
             BrokerStateObservation::PartitionOffsets(value) => self
                 .partition_offsets_observed
                 .entry(value.operation_id.clone())

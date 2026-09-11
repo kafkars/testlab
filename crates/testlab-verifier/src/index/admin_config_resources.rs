@@ -2,7 +2,12 @@
 
 use std::collections::BTreeMap;
 
-use testlab_schema::{AdapterCommand, AdapterEvent, OperationId, ScenarioAction};
+use testlab_schema::{
+    AdapterCommand, AdapterEvent, BrokerConfigResourcesState, BrokerStateObservation, OperationId,
+    ScenarioAction,
+};
+
+use super::admin_features::Indexed;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedConfigResourcesListing {
@@ -14,6 +19,7 @@ pub(crate) struct IndexedConfigResourcesListing {
 #[derive(Debug, Default)]
 pub(crate) struct AdminConfigResourcesIndex {
     pub(crate) listings: BTreeMap<OperationId, Vec<IndexedConfigResourcesListing>>,
+    pub(crate) observed: BTreeMap<OperationId, Vec<Indexed<BrokerConfigResourcesState>>>,
 }
 
 impl AdminConfigResourcesIndex {
@@ -28,6 +34,24 @@ impl AdminConfigResourcesIndex {
                 history_sequence: sequence,
                 throttle_time_ms: value.throttle_time_ms,
                 resources: value.resources.clone(),
+            });
+        true
+    }
+
+    pub(crate) fn record_state(
+        &mut self,
+        observation: &BrokerStateObservation,
+        sequence: u64,
+    ) -> bool {
+        let BrokerStateObservation::ConfigResources(value) = observation else {
+            return false;
+        };
+        self.observed
+            .entry(value.operation_id.clone())
+            .or_default()
+            .push(Indexed {
+                history_sequence: sequence,
+                value: value.clone(),
             });
         true
     }
@@ -55,6 +79,7 @@ pub(crate) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         ) => Some(
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
+                && action.api == command.api
                 && action.timeout_ms == command.timeout_ms,
         ),
         _ => None,

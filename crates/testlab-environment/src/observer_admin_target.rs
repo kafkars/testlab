@@ -34,6 +34,7 @@ pub(super) enum AdminTarget {
     UserScramCredential(UserScramCredentialTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
+    ClientMetricsResources(ListTarget),
     TopicIdentities(ListTarget),
     TopicDeletions(ListTarget),
     Cluster(OperationId),
@@ -115,7 +116,6 @@ pub(super) struct GroupIdsTarget {
     pub(super) operation_id: OperationId,
     pub(super) group_ids: Vec<String>,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct ShareGroupOffsetTarget {
     pub(super) operation_id: OperationId,
@@ -123,7 +123,6 @@ pub(super) struct ShareGroupOffsetTarget {
     pub(super) topic: String,
     pub(super) partition: i32,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct OffsetTarget {
     pub(super) operation_id: OperationId,
@@ -227,6 +226,7 @@ impl AdminTarget {
             Self::UserScramCredential(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
             Self::Topics(target)
+            | Self::ClientMetricsResources(target)
             | Self::TopicIdentities(target)
             | Self::TopicDeletions(target)
             | Self::ConsumerGroups(target)
@@ -270,6 +270,7 @@ impl AdminTarget {
             | Self::TopicDeletions(target)
             | Self::ConsumerGroups(target)
             | Self::ConsumerGroupDeletions(target) => target.names.len(),
+            Self::ClientMetricsResources(_) => 1,
             Self::ConsumerGroupOffsets(target) => target.offsets.len(),
             Self::ConsumerGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()

@@ -79,6 +79,7 @@ scenarios = [
   "scenarios/kafka/admin-config-resource-lifecycle.toml",
   "scenarios/kafka/admin-legacy-config-replacement.toml",
   "scenarios/kafka/admin-config-resources.toml",
+  "scenarios/kafka/admin-list-client-metrics-resources.toml",
   "scenarios/kafka/admin-describe-cluster.toml",
   "scenarios/kafka/admin-list-consumer-groups.toml",
   "scenarios/kafka/admin-list-groups.toml",

@@ -481,6 +481,12 @@ statement = "Each public replica log-directory alteration returns one successful
 category = "admin"
 
 [[contract]]
+id = "ADMIN-071"
+title = "Dedicated client-metrics resource listing matches independent Kafka state"
+statement = "One dedicated public client-metrics resource listing returns the exact canonical type-16 set provisioned before adapter startup, and one immediate independently executed pinned Kafka CLI listing reports the same names without those expectations crossing the adapter wire."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

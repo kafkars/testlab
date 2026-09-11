@@ -3,4 +3,5 @@ id = "kafkars-client-metrics"
 title = "packaged Kafkars public client metrics"
 scenarios = [
   "scenarios/kafka/client-metrics-producer.toml",
+  "scenarios/kafka/admin-list-client-metrics-resources.toml",
 ]

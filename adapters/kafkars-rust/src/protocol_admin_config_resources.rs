@@ -1,11 +1,11 @@
-//! Generic configuration-resource calls retain exact public resource identities.
+//! Configuration-resource calls retain exact public surface and resource identities.
 
 use std::io::Write;
 use std::time::Duration;
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminConfigResource, AdminConfigResourcesListing,
-    AdminTopicConfigsDescription, CommandId, DescribeTopicConfigsCommand,
+    AdminTopicConfigsDescription, CommandId, ConfigResourceListingApi, DescribeTopicConfigsCommand,
     ListConfigResourcesCommand,
 };
 
@@ -77,29 +77,51 @@ pub(crate) fn list<W: Write>(
     command_id: CommandId,
     command: ListConfigResourcesCommand,
 ) -> Result<(), AdapterError> {
-    let result = state
-        .client(&command.client_id)?
-        .admin()
-        .list_config_resources()
-        .resource_types(vec![ConfigResourceType::Topic])
-        .deadline_after(Duration::from_millis(command.timeout_ms))
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
-    let (throttle, resources) = result.into_parts();
+    let admin = state.client(&command.client_id)?.admin();
+    let timeout = Duration::from_millis(command.timeout_ms);
+    let (throttle, resources) = match command.api {
+        ConfigResourceListingApi::Resource => {
+            let result = admin
+                .list_config_resources()
+                .resource_types(vec![ConfigResourceType::Topic])
+                .deadline_after(timeout)
+                .submit()
+                .wait()
+                .map_err(AdapterError::Client)?;
+            let (throttle, resources) = result.into_parts();
+            let resources = resources
+                .into_iter()
+                .map(|resource| AdminConfigResource {
+                    resource_type: resource.resource_type().as_raw(),
+                    name: resource.name().to_owned(),
+                })
+                .collect();
+            (throttle, resources)
+        }
+        ConfigResourceListingApi::ClientMetrics => {
+            let result = admin
+                .list_client_metrics_resources()
+                .deadline_after(timeout)
+                .submit()
+                .wait()
+                .map_err(AdapterError::Client)?;
+            let (throttle, names) = result.into_parts();
+            let resources = names
+                .into_iter()
+                .map(|name| AdminConfigResource {
+                    resource_type: ConfigResourceType::ClientMetrics.as_raw(),
+                    name,
+                })
+                .collect();
+            (throttle, resources)
+        }
+    };
     let throttle_time_ms = u64::try_from(throttle.as_millis()).map_err(|_| {
         invalid(
             &command.operation_id,
             "returned unrepresentable throttle time",
         )
     })?;
-    let resources = resources
-        .into_iter()
-        .map(|resource| AdminConfigResource {
-            resource_type: resource.resource_type().as_raw(),
-            name: resource.name().to_owned(),
-        })
-        .collect();
     emit(
         writer,
         &AdapterEventEnvelope::new(

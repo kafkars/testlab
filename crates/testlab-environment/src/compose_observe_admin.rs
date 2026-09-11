@@ -36,6 +36,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::UserScramCredential(_)) = &target {
             return self.observe_user_scram_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::ClientMetricsResources(_)) = &target {
+            return self.observe_client_metrics_resources_with_cli(target, timeout);
+        }
         if let Ok(target @ AdminTarget::Features(_)) = &target {
             return self.observe_features_with_cli(target, timeout);
         }

@@ -1,4 +1,4 @@
-schema_version = 73
+schema_version = 74
 id = "kafka.admin-delete-consumer-group"
 title = "packaged admin deletes an independently observed empty consumer group"
 description = "After a classic group publicly commits offset 1 and closes, the packaged client's public admin describes the empty group, lists its checkpoint, and deletes it; independent broker-state queries confirm the same preconditions and final group absence."

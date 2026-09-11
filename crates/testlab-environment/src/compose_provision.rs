@@ -85,6 +85,17 @@ impl DockerComposeEnvironment {
             stderr_artifact: None,
             diagnostic,
         });
+        if phase.succeeded() {
+            let extra = self.provision_client_metrics_resources(
+                scenario,
+                timeout.saturating_sub(operation_started.elapsed()),
+            );
+            phase.operations.extend(extra.operations);
+            phase.artifacts.extend(extra.artifacts);
+            if let Some(failure) = extra.failure {
+                phase.fail(failure.code, failure.diagnostic);
+            }
+        }
         phase
     }
 }

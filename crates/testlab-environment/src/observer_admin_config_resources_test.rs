@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 
 use testlab_schema::{
-    AdapterCommand, ClientId, ListConfigResourcesAction, ListConfigResourcesCommand, OperationId,
-    Scenario, ScenarioAction,
+    AdapterCommand, ClientId, ConfigResourceListingApi, ListConfigResourcesAction,
+    ListConfigResourcesCommand, OperationId, Scenario, ScenarioAction,
 };
 
 use crate::observer_admin_target::{AdminTarget, ListTarget};
@@ -14,12 +14,14 @@ fn exact_command_maps_to_required_topic_metadata() {
     let action = ScenarioAction::ListConfigResources(ListConfigResourcesAction {
         client_id: client(),
         operation_id: operation(),
-        required_topics: topics(),
+        api: ConfigResourceListingApi::Resource,
+        required_resources: topics(),
         timeout_ms: 20_000,
     });
     let command = AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
         client_id: client(),
         operation_id: operation(),
+        api: ConfigResourceListingApi::Resource,
         timeout_ms: 20_000,
     });
     let target = AdminTarget::from_exact(&action, &command)
@@ -27,6 +29,32 @@ fn exact_command_maps_to_required_topic_metadata() {
     assert_eq!(
         target,
         Some(AdminTarget::Topics(ListTarget {
+            operation_id: operation(),
+            names: topics(),
+        }))
+    );
+}
+
+#[test]
+fn dedicated_command_maps_to_one_client_metrics_cli_snapshot() {
+    let action = ScenarioAction::ListConfigResources(ListConfigResourcesAction {
+        client_id: client(),
+        operation_id: operation(),
+        api: ConfigResourceListingApi::ClientMetrics,
+        required_resources: topics(),
+        timeout_ms: 20_000,
+    });
+    let command = AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
+        client_id: client(),
+        operation_id: operation(),
+        api: ConfigResourceListingApi::ClientMetrics,
+        timeout_ms: 20_000,
+    });
+    let target = AdminTarget::from_exact(&action, &command)
+        .unwrap_or_else(|error| panic!("map client-metrics resources: {error}"));
+    assert_eq!(
+        target,
+        Some(AdminTarget::ClientMetricsResources(ListTarget {
             operation_id: operation(),
             names: topics(),
         }))

@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v59 records the exact environment identity in `manifest.json`,
-retains protocol-v70 direct and hosted-group consumer controls, abandonment,
+Evidence schema v60 records the exact environment identity in `manifest.json`,
+retains protocol-v71 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
@@ -478,7 +478,7 @@ must prove every selected name absent.
 
 ADMIN-063 binds one topic-filtered public `list_config_resources` result to its
 exact command and immediate independent metadata. The result must retain a
-representable nonnegative throttle, contain only type-2 topic identities in
+deadline-bounded nonnegative throttle, contain only type-2 topic identities in
 strict type-code then name order, and include every scenario-required topic.
 The scenario first creates dynamic configurations because Kafka lists resources
 with non-default configuration properties; each required topic must also appear
@@ -530,6 +530,13 @@ bounded by the operation deadline. Contiguous pinned `kafka-log-dirs.sh`
 observations then poll until each selected replica has exactly one current
 placement at its requested path and no future placement. The public completion
 must precede that settled independent state and cannot be reconstructed from it.
+
+ADMIN-071 binds the dedicated public client-metrics resource listing to its
+exact API-selecting command and one immediate independent pinned CLI snapshot.
+Testlab provisions two distinct named configurations before adapter startup;
+the public result and CLI state must both equal that exact set as type-16
+resources in strict UTF-8 byte order. Scenario-required names never cross the
+adapter wire, and later CLI state cannot replace the public completion.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

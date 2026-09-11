@@ -22,8 +22,8 @@ pub use crate::admin_config_batch_mutation::{
     AlterTopicConfigsAction, AlterTopicConfigsCommand, TopicConfigAlteration,
 };
 pub use crate::admin_config_resources::{
-    AdminConfigResource, AdminConfigResourcesListing, ListConfigResourcesAction,
-    ListConfigResourcesCommand,
+    AdminConfigResource, AdminConfigResourcesListing, BrokerConfigResourcesState,
+    ConfigResourceListingApi, ListConfigResourcesAction, ListConfigResourcesCommand,
 };
 pub use crate::admin_consumer_group_deletion_batch::{
     AdminConsumerGroupDeletionOutcome, AdminConsumerGroupsDeletion, DeleteConsumerGroupsAction,

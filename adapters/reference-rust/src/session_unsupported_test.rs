@@ -128,6 +128,7 @@ fn topic_config_commands_require_admin_capability() {
         AdapterCommand::ListConfigResources(ListConfigResourcesCommand {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
+            api: testlab_schema::ConfigResourceListingApi::Resource,
             timeout_ms: 1_000,
         }),
         AdapterCommand::DescribeTopicConfigs(DescribeTopicConfigsCommand {

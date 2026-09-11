@@ -85,20 +85,21 @@ fn validate_resource_listing(
         operation_ids,
         problems,
     );
-    if !(2..=32).contains(&action.required_topics.len()) {
+    if !(2..=32).contains(&action.required_resources.len()) {
         problems.push(format!(
-            "admin operation {} required_topics must contain between 2 and 32 entries",
+            "admin operation {} required_resources must contain between 2 and 32 entries",
             action.operation_id
         ));
     }
-    let mut topics = BTreeSet::new();
-    if action
-        .required_topics
-        .iter()
-        .any(|topic| topic.is_empty() || topic.len() > 249 || !topics.insert(topic.as_str()))
-    {
+    let mut resources = BTreeSet::new();
+    if action.required_resources.iter().any(|name| {
+        name.is_empty()
+            || name.len() > 249
+            || name.chars().any(char::is_whitespace)
+            || !resources.insert(name.as_str())
+    }) {
         problems.push(format!(
-            "admin operation {} required_topics must contain unique valid names",
+            "admin operation {} required_resources must contain unique valid names",
             action.operation_id
         ));
     }

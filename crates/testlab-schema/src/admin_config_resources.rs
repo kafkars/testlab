@@ -4,7 +4,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
-/// Scenario intent for one bounded topic-resource listing.
+/// Public listing surface selected for one configuration-resource call.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ConfigResourceListingApi {
+    /// Kafka API 74 v1 generic resource-type listing.
+    Resource,
+    /// Kafka API 74 v0 dedicated client-metrics resource listing.
+    ClientMetrics,
+}
+
+/// Scenario intent for one bounded configuration-resource listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ListConfigResourcesAction {
@@ -12,13 +22,15 @@ pub struct ListConfigResourcesAction {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
-    /// Exact topic resources required in the public result and independent metadata.
-    pub required_topics: Vec<String>,
+    /// Exact public facade selected by the scenario.
+    pub api: ConfigResourceListingApi,
+    /// Exact resource names required in public and independent results.
+    pub required_resources: Vec<String>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
 
-/// Wire payload for one bounded topic-resource listing.
+/// Wire payload for one bounded configuration-resource listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ListConfigResourcesCommand {
@@ -26,6 +38,8 @@ pub struct ListConfigResourcesCommand {
     pub client_id: ClientId,
     /// Stable identity for the complete public call.
     pub operation_id: OperationId,
+    /// Exact public facade selected by the scenario.
+    pub api: ConfigResourceListingApi,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -40,7 +54,7 @@ pub struct AdminConfigResource {
     pub name: String,
 }
 
-/// Public result for one filtered configuration-resource listing.
+/// Public result for one configuration-resource listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdminConfigResourcesListing {
@@ -49,6 +63,18 @@ pub struct AdminConfigResourcesListing {
     /// Nonnegative Kafka throttle observation in milliseconds.
     pub throttle_time_ms: u64,
     /// Canonical resource identities returned by Kafka.
+    pub resources: Vec<AdminConfigResource>,
+}
+
+/// Independently listed configuration-resource identities.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrokerConfigResourcesState {
+    /// Monotonic observation ordinal from the environment.
+    pub observation: u64,
+    /// Stable identity for the public call being corroborated.
+    pub operation_id: OperationId,
+    /// Canonical exact resource identities returned by Kafka's pinned CLI.
     pub resources: Vec<AdminConfigResource>,
 }
 
