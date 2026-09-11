@@ -1,4 +1,4 @@
-schema_version = 67
+schema_version = 68
 id = "kafka.admin-alter-consumer-group-offset-partition-isolation"
 title = "packaged admin alters one consumer-group partition without changing its neighbor"
 description = "A classic group commits offset 1 on two partitions in separate deterministic receives, then the packaged admin alters only partition 0 to offset 0; independent listings prove partition 0 changed while partition 1 remained at offset 1."

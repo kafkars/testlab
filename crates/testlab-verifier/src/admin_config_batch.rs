@@ -146,7 +146,7 @@ fn baseline_evidence<'a>(
     let ScenarioAction::DescribeTopicConfigs(baseline) = &baseline_step.action else {
         return None;
     };
-    if baseline.api != action.api
+    if baseline.api != action.api.description_api()
         || baseline.topics.len() != action.topics.len()
         || !baseline
             .topics
@@ -281,9 +281,11 @@ fn description_contract(api: testlab_schema::TopicConfigApi) -> &'static str {
     }
 }
 
-fn alteration_contract(api: testlab_schema::TopicConfigApi) -> &'static str {
+fn alteration_contract(api: testlab_schema::TopicConfigMutationApi) -> &'static str {
     match api {
-        testlab_schema::TopicConfigApi::Topic => "ADMIN-049",
-        testlab_schema::TopicConfigApi::Resource => "ADMIN-065",
+        testlab_schema::TopicConfigMutationApi::Topic => "ADMIN-049",
+        testlab_schema::TopicConfigMutationApi::Resource => "ADMIN-065",
+        testlab_schema::TopicConfigMutationApi::LegacyTopic => "ADMIN-066",
+        testlab_schema::TopicConfigMutationApi::LegacyResource => "ADMIN-067",
     }
 }

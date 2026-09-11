@@ -21,6 +21,31 @@ impl TopicConfigApi {
     }
 }
 
+/// Public configuration-mutation API selected for a plural topic-resource request.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TopicConfigMutationApi {
+    /// Uses the topic-specific incremental-alter convenience surface.
+    #[default]
+    Topic,
+    /// Uses the resource-generic incremental-alter surface with topic resources.
+    Resource,
+    /// Uses the legacy topic-specific full-snapshot replacement surface.
+    LegacyTopic,
+    /// Uses the legacy resource-generic full-snapshot replacement surface.
+    LegacyResource,
+}
+
+impl TopicConfigMutationApi {
+    /// Returns the matching public description surface for the mutation baseline.
+    pub const fn description_api(self) -> TopicConfigApi {
+        match self {
+            Self::Topic | Self::LegacyTopic => TopicConfigApi::Topic,
+            Self::Resource | Self::LegacyResource => TopicConfigApi::Resource,
+        }
+    }
+}
+
 /// Scenario intent for one bounded topic-configuration description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

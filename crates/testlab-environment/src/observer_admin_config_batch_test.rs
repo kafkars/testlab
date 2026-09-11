@@ -129,7 +129,7 @@ fn mutation_action() -> AlterTopicConfigsAction {
         client_id: client(),
         operation_id: mutation_operation(),
         baseline_operation_id: operation(),
-        api: testlab_schema::TopicConfigApi::Topic,
+        api: testlab_schema::TopicConfigMutationApi::Topic,
         topics: vec![
             mutation_expectation("topic-z", "cleanup.policy"),
             mutation_expectation("topic-a", "cleanup.policy"),
@@ -142,7 +142,7 @@ fn mutation_command() -> AlterTopicConfigsCommand {
     AlterTopicConfigsCommand {
         client_id: client(),
         operation_id: mutation_operation(),
-        api: testlab_schema::TopicConfigApi::Topic,
+        api: testlab_schema::TopicConfigMutationApi::Topic,
         topics: vec![
             mutation("topic-z", "cleanup.policy"),
             mutation("topic-a", "cleanup.policy"),

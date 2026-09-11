@@ -91,6 +91,8 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "ADMIN-063",
     "ADMIN-064",
     "ADMIN-065",
+    "ADMIN-066",
+    "ADMIN-067",
     "TXN-001",
     "TXN-002",
     "TXN-003",

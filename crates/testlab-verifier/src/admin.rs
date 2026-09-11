@@ -1,7 +1,5 @@
 //! Admin verification joins exact commands, public completions, and independent broker facts.
 
-use testlab_schema::{BrokerObservation, Scenario, ScenarioAction, Violation};
-
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
 use crate::admin_client_quota::verify_client_quota_action;
@@ -32,6 +30,7 @@ use crate::admin_user_scram::verify_user_scram_action;
 use crate::admin_validate_only::verify_validate_only_action;
 use crate::index::HistoryIndex;
 use crate::support::violation;
+use testlab_schema::{BrokerObservation, Scenario, ScenarioAction, Violation};
 
 pub(crate) fn verify_admin(
     scenario: &Scenario,
@@ -210,8 +209,10 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             testlab_schema::TopicConfigApi::Resource => "ADMIN-064",
         },
         ScenarioAction::AlterTopicConfigs(value) => match value.api {
-            testlab_schema::TopicConfigApi::Topic => "ADMIN-049",
-            testlab_schema::TopicConfigApi::Resource => "ADMIN-065",
+            testlab_schema::TopicConfigMutationApi::Topic => "ADMIN-049",
+            testlab_schema::TopicConfigMutationApi::Resource => "ADMIN-065",
+            testlab_schema::TopicConfigMutationApi::LegacyTopic => "ADMIN-066",
+            testlab_schema::TopicConfigMutationApi::LegacyResource => "ADMIN-067",
         },
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",

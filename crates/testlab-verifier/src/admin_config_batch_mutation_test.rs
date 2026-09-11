@@ -129,7 +129,7 @@ fn alter_command() -> AlterTopicConfigsCommand {
     AlterTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(ALTER),
-        api: testlab_schema::TopicConfigApi::Topic,
+        api: testlab_schema::TopicConfigMutationApi::Topic,
         topics: topics()
             .into_iter()
             .map(|topic| TopicConfigAlteration {

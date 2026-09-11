@@ -123,7 +123,7 @@ fn generic_resource_selection_crosses_both_wire_commands() {
     assert_eq!(description.api, testlab_schema::TopicConfigApi::Resource);
 
     let mut mutation = mutation_action();
-    mutation.api = testlab_schema::TopicConfigApi::Resource;
+    mutation.api = testlab_schema::TopicConfigMutationApi::Resource;
     let Some((AdapterCommand::AlterTopicConfigs(mutation), _)) =
         crate::session_command_admin_config::translate(&ScenarioAction::AlterTopicConfigs(
             mutation,
@@ -131,7 +131,29 @@ fn generic_resource_selection_crosses_both_wire_commands() {
     else {
         panic!("generic mutation translation");
     };
-    assert_eq!(mutation.api, testlab_schema::TopicConfigApi::Resource);
+    assert_eq!(
+        mutation.api,
+        testlab_schema::TopicConfigMutationApi::Resource
+    );
+}
+
+#[test]
+fn legacy_mutation_selectors_cross_the_wire_command() {
+    for api in [
+        testlab_schema::TopicConfigMutationApi::LegacyTopic,
+        testlab_schema::TopicConfigMutationApi::LegacyResource,
+    ] {
+        let mut mutation = mutation_action();
+        mutation.api = api;
+        let Some((AdapterCommand::AlterTopicConfigs(command), _)) =
+            crate::session_command_admin_config::translate(&ScenarioAction::AlterTopicConfigs(
+                mutation,
+            ))
+        else {
+            panic!("legacy mutation translation");
+        };
+        assert_eq!(command.api, api);
+    }
 }
 
 fn action() -> DescribeTopicConfigsAction {
@@ -162,7 +184,7 @@ fn mutation_action() -> AlterTopicConfigsAction {
         client_id: client(),
         operation_id: mutation_operation(),
         baseline_operation_id: operation(),
-        api: testlab_schema::TopicConfigApi::Topic,
+        api: testlab_schema::TopicConfigMutationApi::Topic,
         topics: vec![
             mutation("topic-z", "cleanup.policy"),
             mutation("topic-a", "cleanup.policy"),

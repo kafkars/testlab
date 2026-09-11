@@ -9,7 +9,7 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v64 over stdin/stdout;
+2. implements protocol v65 over stdin/stdout;
 3. preserves admission rejection separately from accepted delivery;
 4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
@@ -23,8 +23,8 @@ It:
    topic descriptions, detailed caller-ordered plural topic descriptions and
    caller-ordered plural name-based topic deletion with mixed outcomes,
    caller-ordered plural selected topic-configuration descriptions and
-   incremental replacements through both topic-convenience and generic
-   resource APIs, plus filtered canonical generic configuration-resource
+   incremental and legacy full-snapshot replacements through both
+   topic-convenience and generic resource APIs, plus filtered canonical generic configuration-resource
    listing on compatible brokers,
    caller-ordered topic-partition and consumer-group offset batches, singleton
    and caller-ordered plural record deletion with explicit and high-watermark

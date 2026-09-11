@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v64 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v67 and evidence schema v53.
+Protocol v65 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v68 and evidence schema v54.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -553,7 +553,10 @@ Plural topic-configuration description and alteration carry an `api` selector.
 The default `topic` path exercises the topic-specific convenience methods;
 `resource` exercises the generic configuration-resource methods with exact
 type-2 topic resources while preserving the same caller-order and independent
-state requirements. `list_config_resources` sends no expected names over the
+state requirements. Mutation commands additionally accept `legacy_topic` and
+`legacy_resource`, selecting the corresponding public full-snapshot replacement
+surface while retaining the exact named description baseline and post-state
+requirements. `list_config_resources` sends no expected names over the
 wire, filters the public request to topic resources, and returns Kafka's
 nonnegative throttle plus every exact signed resource type and name in canonical
 order. Scenarios require two through 32 dynamically configured topic names;
@@ -872,6 +875,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v64 is an exact semantic contract. New capabilities may be declared
+Protocol v65 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

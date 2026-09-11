@@ -12,7 +12,8 @@ use testlab_schema::{
 use crate::AdapterError;
 use crate::kafkars_api::{
     ConfigAlteration as PublicAlteration, ConfigResourceAlterations, ConfigResourceType,
-    KafkaError, TopicConfigAlterations,
+    KafkaError, LegacyConfigResourceReplacement, LegacyTopicConfigEntry,
+    LegacyTopicConfigReplacement, TopicConfigAlterations,
 };
 use crate::protocol::emit;
 use crate::state::AdapterState;
@@ -24,9 +25,17 @@ pub(crate) fn alter<W: Write>(
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
     match command.api {
-        testlab_schema::TopicConfigApi::Topic => alter_topics(state, writer, command_id, command),
-        testlab_schema::TopicConfigApi::Resource => {
+        testlab_schema::TopicConfigMutationApi::Topic => {
+            alter_topics(state, writer, command_id, command)
+        }
+        testlab_schema::TopicConfigMutationApi::Resource => {
             alter_resources(state, writer, command_id, command)
+        }
+        testlab_schema::TopicConfigMutationApi::LegacyTopic => {
+            alter_legacy_topics(state, writer, command_id, command)
+        }
+        testlab_schema::TopicConfigMutationApi::LegacyResource => {
+            alter_legacy_resources(state, writer, command_id, command)
         }
     }
 }
@@ -104,6 +113,97 @@ fn alter_resources<W: Write>(
                 return Err(invalid(
                     &command.operation_id,
                     "returned a non-topic configuration resource",
+                ));
+            }
+            Ok((resource.name().to_owned(), result))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let outcomes = outcomes(entries, &command.topics, &command.operation_id)?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::TopicConfigsAltered(AdminTopicConfigsAlteration {
+                operation_id: command.operation_id,
+                outcomes,
+            }),
+        ),
+    )
+}
+
+fn alter_legacy_topics<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: AlterTopicConfigsCommand,
+) -> Result<(), AdapterError> {
+    let replacements = command.topics.iter().map(|selected| {
+        LegacyTopicConfigReplacement::new(
+            selected.topic.clone(),
+            [LegacyTopicConfigEntry::set(
+                selected.config_name.clone(),
+                selected.value.clone(),
+            )],
+        )
+    });
+    let result = state
+        .client(&command.client_id)?
+        .admin()
+        .legacy_replace_topic_configs(replacements)
+        .deadline_after(Duration::from_millis(command.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let outcomes = outcomes(
+        result.into_topics().into_entries(),
+        &command.topics,
+        &command.operation_id,
+    )?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::TopicConfigsAltered(AdminTopicConfigsAlteration {
+                operation_id: command.operation_id,
+                outcomes,
+            }),
+        ),
+    )
+}
+
+fn alter_legacy_resources<W: Write>(
+    state: &AdapterState,
+    writer: &mut W,
+    command_id: CommandId,
+    command: AlterTopicConfigsCommand,
+) -> Result<(), AdapterError> {
+    let replacements = command.topics.iter().map(|selected| {
+        LegacyConfigResourceReplacement::new(
+            ConfigResourceType::Topic,
+            selected.topic.clone(),
+            [LegacyTopicConfigEntry::set(
+                selected.config_name.clone(),
+                selected.value.clone(),
+            )],
+        )
+    });
+    let result = state
+        .client(&command.client_id)?
+        .admin()
+        .legacy_replace_config_resources(replacements)
+        .deadline_after(Duration::from_millis(command.timeout_ms))
+        .submit()
+        .wait()
+        .map_err(AdapterError::Client)?;
+    let entries = result
+        .into_resources()
+        .into_entries()
+        .into_iter()
+        .map(|(resource, result)| {
+            if resource.resource_type() != ConfigResourceType::Topic {
+                return Err(invalid(
+                    &command.operation_id,
+                    "returned a non-topic legacy configuration resource",
                 ));
             }
             Ok((resource.name().to_owned(), result))

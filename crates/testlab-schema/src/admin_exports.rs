@@ -15,7 +15,7 @@ pub use crate::admin_config::{
     AdminTopicConfigsDescription, AlterTopicConfigAction, AlterTopicConfigCommand,
     BrokerTopicConfigState, DescribeTopicConfigAction, DescribeTopicConfigCommand,
     DescribeTopicConfigExpectation, DescribeTopicConfigsAction, DescribeTopicConfigsCommand,
-    TopicConfigApi, TopicConfigSelection,
+    TopicConfigApi, TopicConfigMutationApi, TopicConfigSelection,
 };
 pub use crate::admin_config_batch_mutation::{
     AdminTopicConfigAlterationOutcome, AdminTopicConfigsAlteration, AlterTopicConfigExpectation,

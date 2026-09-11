@@ -1,0 +1,94 @@
+schema_version = 68
+id = "kafka.admin-legacy-config-replacement"
+title = "packaged admin replaces legacy topic and generic configuration snapshots"
+description = "The packaged client's two public legacy full-snapshot configuration surfaces preserve caller order for topic-specific and generic topic-resource batches while immediate independent reads prove distinct prior and final values."
+timeout_ms = 180000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-legacy-topic-configs-before"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-legacy-topic-config-before"
+topics = [
+  { topic = "testlab-kafkars-legacy-topic-config-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-legacy-topic-config-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "replace-legacy-topic-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-legacy-topic-config-alter"
+baseline_operation_id = "admin-legacy-topic-config-before"
+api = "legacy_topic"
+topics = [
+  { topic = "testlab-kafkars-legacy-topic-config-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+  { topic = "testlab-kafkars-legacy-topic-config-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-legacy-topic-configs-after"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-legacy-topic-config-after"
+topics = [
+  { topic = "testlab-kafkars-legacy-topic-config-zulu", config_name = "cleanup.policy", expected_value = "compact" },
+  { topic = "testlab-kafkars-legacy-topic-config-alpha", config_name = "cleanup.policy", expected_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-legacy-resource-configs-before"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-legacy-resource-config-before"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-legacy-resource-config-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-legacy-resource-config-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "replace-legacy-resource-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-legacy-resource-config-alter"
+baseline_operation_id = "admin-legacy-resource-config-before"
+api = "legacy_resource"
+topics = [
+  { topic = "testlab-kafkars-legacy-resource-config-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+  { topic = "testlab-kafkars-legacy-resource-config-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-legacy-resource-configs-after"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-legacy-resource-config-after"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-legacy-resource-config-zulu", config_name = "cleanup.policy", expected_value = "compact" },
+  { topic = "testlab-kafkars-legacy-resource-config-alpha", config_name = "cleanup.policy", expected_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

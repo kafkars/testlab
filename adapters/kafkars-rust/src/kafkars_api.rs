@@ -8,6 +8,7 @@ pub(crate) use kafkars::admin::{
     ConfigResourceType, ConsumerGroupOffsetAlteration, CreateAclOutcome, CreateAclResult,
     DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult, DeleteRecordsTarget,
     DescribeTopicPartitionsTopic, LeaderElectionTarget, LeaderElectionType,
+    LegacyConfigResourceReplacement, LegacyTopicConfigEntry, LegacyTopicConfigReplacement,
     ListConsumerGroupOffsetsQuery, ListConsumerGroupOffsetsResult, ListOffsetsQuery,
     ListShareGroupOffsetsQuery, ListShareGroupOffsetsResult, MetadataQuorumListener,
     MetadataQuorumNode, MetadataQuorumReplica, NewPartitions, NewTopic, OffsetSpec,

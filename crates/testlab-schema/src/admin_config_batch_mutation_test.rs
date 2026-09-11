@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn plural_topic_config_mutation_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 64);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 67);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 53);
+    assert_eq!(PROTOCOL_VERSION, 65);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 68);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 54);
 }
 
 #[test]
@@ -26,8 +26,33 @@ fn action_command_and_completion_round_trip_without_baseline_leakage() {
         .unwrap_or_else(|error| panic!("encode plural configuration mutation: {error}"));
     assert!(!encoded.contains("baseline_operation_id"), "{encoded}");
     assert!(!encoded.contains("expected_previous_value"), "{encoded}");
+    assert!(!encoded.contains("\"api\""), "{encoded}");
     assert_eq!(command().topics[0].topic, "topic-z");
     assert_eq!(completion().outcomes[1].topic, "topic-a");
+}
+
+#[test]
+fn legacy_selectors_round_trip_and_map_to_matching_description_surfaces() {
+    for (api, encoded_name, description_api) in [
+        (
+            crate::TopicConfigMutationApi::LegacyTopic,
+            "legacy_topic",
+            crate::TopicConfigApi::Topic,
+        ),
+        (
+            crate::TopicConfigMutationApi::LegacyResource,
+            "legacy_resource",
+            crate::TopicConfigApi::Resource,
+        ),
+    ] {
+        let mut command = command();
+        command.api = api;
+        round_trip(&command);
+        let encoded = serde_json::to_string(&command)
+            .unwrap_or_else(|error| panic!("encode legacy selector: {error}"));
+        assert!(encoded.contains(encoded_name), "{encoded}");
+        assert_eq!(api.description_api(), description_api);
+    }
 }
 
 #[test]
@@ -122,7 +147,7 @@ fn transition_requires_the_named_exact_distinct_unmodified_baseline() {
     let ScenarioAction::AlterTopicConfigs(alter) = &mut mismatched_api.steps[3].action else {
         panic!("alter action kind");
     };
-    alter.api = crate::TopicConfigApi::Resource;
+    alter.api = crate::TopicConfigMutationApi::Resource;
     problems.clear();
     crate::admin_config_transition_validation::validate(&mismatched_api, &mut problems);
     assert_problem(&problems, "does not exactly match");
@@ -133,7 +158,7 @@ fn action() -> AlterTopicConfigsAction {
         client_id: client(),
         operation_id: operation("alter-topic-configs"),
         baseline_operation_id: operation("describe-topic-configs-before"),
-        api: crate::TopicConfigApi::Topic,
+        api: crate::TopicConfigMutationApi::Topic,
         topics: expectations(),
         timeout_ms: 1_000,
     }
@@ -143,7 +168,7 @@ fn command() -> AlterTopicConfigsCommand {
     AlterTopicConfigsCommand {
         client_id: client(),
         operation_id: operation("alter-topic-configs"),
-        api: crate::TopicConfigApi::Topic,
+        api: crate::TopicConfigMutationApi::Topic,
         topics: vec![
             alteration("topic-z", "cleanup.policy", "compact"),
             alteration("topic-a", "cleanup.policy", "compact"),

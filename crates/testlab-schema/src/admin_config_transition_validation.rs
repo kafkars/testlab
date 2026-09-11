@@ -78,7 +78,7 @@ fn validate_batch(
         ));
         return;
     };
-    if *baseline_api != action.api
+    if *baseline_api != action.api.description_api()
         || baseline.len() != action.topics.len()
         || !baseline.iter().zip(&action.topics).all(|(before, after)| {
             before.topic == after.topic

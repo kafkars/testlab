@@ -113,7 +113,7 @@ fn assert_contract(violations: &[testlab_schema::Violation]) {
 fn scenario() -> Scenario {
     toml::from_str(
         r#"
-schema_version = 67
+schema_version = 68
 id = "config-resources-fixture"
 title = "configuration resources fixture"
 description = "isolated verifier fixture"

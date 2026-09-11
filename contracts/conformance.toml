@@ -451,6 +451,18 @@ statement = "One resource-generic public incremental configuration replacement f
 category = "admin"
 
 [[contract]]
+id = "ADMIN-066"
+title = "Legacy topic configuration replacement preserves caller order and broker transitions"
+statement = "One topic-specific public legacy full-snapshot configuration replacement follows an exact named caller-ordered topic description whose prior values differ from their replacements and have no intervening mutation, preserves every successful topic and selected key in caller order, and contiguous immediate independent polling confirms every replacement."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-067"
+title = "Legacy generic configuration replacement preserves caller order and broker transitions"
+statement = "One resource-generic public legacy full-snapshot configuration replacement follows an exact named caller-ordered generic description whose prior values differ from their replacements and have no intervening mutation, preserves every successful resource and selected key in caller order, and contiguous immediate independent polling confirms every replacement."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

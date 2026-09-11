@@ -22,15 +22,62 @@ fn generic_failures_emit_generic_contracts() {
     assert_contract_id(&violations_for(&scenario, &bad_mutation), "ADMIN-065");
 }
 
+#[test]
+fn exact_legacy_topic_and_resource_mutations_pass() {
+    for (description, mutation) in [
+        (
+            testlab_schema::TopicConfigApi::Topic,
+            testlab_schema::TopicConfigMutationApi::LegacyTopic,
+        ),
+        (
+            testlab_schema::TopicConfigApi::Resource,
+            testlab_schema::TopicConfigMutationApi::LegacyResource,
+        ),
+    ] {
+        let (scenario, history) = selected_fixture(description, mutation);
+        assert!(violations_for(&scenario, &history).is_empty());
+    }
+}
+
+#[test]
+fn legacy_mutation_failures_retain_distinct_contracts() {
+    for (description, mutation, contract) in [
+        (
+            testlab_schema::TopicConfigApi::Topic,
+            testlab_schema::TopicConfigMutationApi::LegacyTopic,
+            "ADMIN-066",
+        ),
+        (
+            testlab_schema::TopicConfigApi::Resource,
+            testlab_schema::TopicConfigMutationApi::LegacyResource,
+            "ADMIN-067",
+        ),
+    ] {
+        let (scenario, mut history) = selected_fixture(description, mutation);
+        mutation_completion(&mut history).outcomes[0].error_code = Some("broker".to_owned());
+        assert_contract_id(&violations_for(&scenario, &history), contract);
+    }
+}
+
 fn resource_fixture() -> (Scenario, Vec<HistoryEntry>) {
+    selected_fixture(
+        testlab_schema::TopicConfigApi::Resource,
+        testlab_schema::TopicConfigMutationApi::Resource,
+    )
+}
+
+fn selected_fixture(
+    description_api: testlab_schema::TopicConfigApi,
+    mutation_api: testlab_schema::TopicConfigMutationApi,
+) -> (Scenario, Vec<HistoryEntry>) {
     let mut scenario = scenario();
     for step in &mut scenario.steps {
         match &mut step.action {
             testlab_schema::ScenarioAction::DescribeTopicConfigs(action) => {
-                action.api = testlab_schema::TopicConfigApi::Resource;
+                action.api = description_api;
             }
             testlab_schema::ScenarioAction::AlterTopicConfigs(action) => {
-                action.api = testlab_schema::TopicConfigApi::Resource;
+                action.api = mutation_api;
             }
             _ => {}
         }
@@ -42,10 +89,10 @@ fn resource_fixture() -> (Scenario, Vec<HistoryEntry>) {
         };
         match &mut command.command {
             AdapterCommand::DescribeTopicConfigs(command) => {
-                command.api = testlab_schema::TopicConfigApi::Resource;
+                command.api = description_api;
             }
             AdapterCommand::AlterTopicConfigs(command) => {
-                command.api = testlab_schema::TopicConfigApi::Resource;
+                command.api = mutation_api;
             }
             _ => {}
         }

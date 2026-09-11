@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v53 records the exact environment identity in `manifest.json`,
-retains protocol-v64 direct and hosted-group consumer controls and shutdown,
+Evidence schema v54 records the exact environment identity in `manifest.json`,
+retains protocol-v65 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -477,6 +477,13 @@ ADMIN-065 applies the ADMIN-049 named-baseline, distinct-transition,
 caller-order, timing, and independent-polling requirements to the
 resource-generic incremental-alter path. Both the baseline and mutation must
 select `resource`; mixed API paths cannot satisfy the contract.
+
+ADMIN-066 and ADMIN-067 apply the same named-baseline, distinct-transition,
+caller-order, timing, and independent-polling requirements to the public legacy
+full-snapshot topic and generic-resource replacement paths. Their mutation
+commands must select `legacy_topic` or `legacy_resource`, while their baselines
+must use the matching `topic` or `resource` description surface. An incremental
+completion cannot satisfy either legacy contract.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which
