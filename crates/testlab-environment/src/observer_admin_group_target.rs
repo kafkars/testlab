@@ -3,7 +3,8 @@
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, DeleteConsumerGroupCommand,
     DeleteConsumerGroupOffsetCommand, DescribeClusterCommand, DescribeConsumerGroupCommand,
-    ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand, ScenarioAction,
+    DescribeFeaturesCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
+    ScenarioAction,
 };
 
 use crate::observer_admin_target::{
@@ -24,6 +25,14 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::Cluster(action.operation_id.clone()),
+        ),
+        ScenarioAction::DescribeFeatures(action) => (
+            AdapterCommand::DescribeFeatures(DescribeFeaturesCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            AdminTarget::Features(action.operation_id.clone()),
         ),
         ScenarioAction::ListConsumerGroups(action) => {
             unique(

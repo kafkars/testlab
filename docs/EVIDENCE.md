@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v42 records the exact environment identity in `manifest.json`,
-retains protocol-v53 direct and hosted-group consumer controls and shutdown,
+Evidence schema v43 records the exact environment identity in `manifest.json`,
+retains protocol-v54 direct and hosted-group consumer controls and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
@@ -341,6 +341,14 @@ an exact named ADMIN-048 baseline with a distinct prior value for every selected
 topic and key and no intervening mutation. Every public per-topic outcome must
 succeed in caller order, and consecutive immediate independent polling must
 confirm every exact replacement before the next command.
+
+ADMIN-050 binds one public feature description to an immediate pinned Kafka CLI
+snapshot. Supported ranges must match every CLI row visible through the
+negotiated response; an incomplete older response may omit only independently
+reported minimum-level-zero features. Every nonzero CLI finalized maximum and
+the shared finalized epoch must match the public result. Symbolic metadata
+versions use Testlab's pinned Apache Kafka stable-level map. Canonical ordering,
+range coherence, and the scenario-declared migration flag remain explicit.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

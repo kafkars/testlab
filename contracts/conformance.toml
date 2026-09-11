@@ -355,6 +355,12 @@ statement = "One public incremental configuration replacement over multiple topi
 category = "admin"
 
 [[contract]]
+id = "ADMIN-050"
+title = "Cluster feature discovery matches Kafka CLI state"
+statement = "Each public cluster feature description preserves canonical supported and finalized ranges, completeness and migration flags, and a finalized epoch; the supported levels, finalized maximums, and epoch match one immediate snapshot from Kafka's pinned administration CLI."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

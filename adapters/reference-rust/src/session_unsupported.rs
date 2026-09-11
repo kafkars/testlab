@@ -42,6 +42,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::AlterTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
+        | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

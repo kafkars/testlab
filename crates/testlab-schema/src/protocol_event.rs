@@ -212,8 +212,8 @@ pub enum AdapterEvent {
     TopicConfigAltered(crate::AdminTopicConfigCompletion),
     /// One selected topic-configuration replacement validated without mutation.
     TopicConfigAlterationValidated(crate::AdminTopicConfigCompletion),
-    /// One public admin cluster description completed successfully.
     ClusterDescribed(crate::AdminClusterDescription),
+    FeaturesDescribed(crate::AdminFeaturesDescription),
     /// One public admin consumer-group listing completed successfully.
     ConsumerGroupsListed(crate::AdminConsumerGroupsListing),
     ConsumerGroupDescribed(crate::AdminConsumerGroupDescription),

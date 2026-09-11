@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v53 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v56 and evidence schema v42.
+Protocol v54 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v57 and evidence schema v43.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -682,6 +682,15 @@ delete completion. Cluster description reports the public cluster identity and
 broker IDs; the environment independently queries the same facts and owns the
 expected broker count through its declared topology.
 
+Cluster feature description carries only client identity, operation identity,
+and one complete deadline. Its public completion retains canonical supported
+and finalized numeric ranges, the supported-range completeness marker, the
+finalized epoch, and ZK-migration readiness. The scenario's expected migration
+flag stays outside the wire command. An immediate independent
+`kafka-features.sh describe` snapshot retains every supported row and epoch;
+symbolic `metadata.version` labels are resolved through Testlab's exact pinned
+Apache Kafka stable-level map.
+
 Group listing carries an exact `api` selector for the consumer-only compatibility
 view or the generic unfiltered `ListGroups` view, while required group IDs remain
 scenario-only. Either public result must contain the independently listed live
@@ -756,6 +765,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v53 is an exact semantic contract. New capabilities may be declared
+Protocol v54 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

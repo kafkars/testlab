@@ -15,6 +15,7 @@ mod admin_command_match;
 mod admin_command_router;
 mod admin_config_command_match;
 mod admin_delete_records_command_match;
+pub(crate) mod admin_features;
 pub(crate) mod admin_group_batch;
 pub(crate) mod admin_offset_batch;
 mod admin_recording;
@@ -81,7 +82,6 @@ pub(crate) struct IndexedGroupConsumerControl {
     pub(crate) history_sequence: u64,
     pub(crate) completion: testlab_schema::GroupConsumerControlCompletion,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedCommandFailure {
     pub(crate) history_sequence: u64,
@@ -89,7 +89,6 @@ pub(crate) struct IndexedCommandFailure {
     pub(crate) code: String,
     pub(crate) diagnostic: String,
 }
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedReceive {
     pub(crate) history_sequence: u64,
@@ -232,6 +231,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_offset_batches: admin_offset_batch::AdminOffsetBatchIndex,
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
+    pub(crate) admin_features: admin_features::AdminFeaturesIndex,
     pub(crate) admin_user_scram: admin_user_scram::AdminUserScramIndex,
     pub(crate) admin_share_groups: admin_share_group::AdminShareGroupIndex,
     pub(crate) clusters_described: BTreeMap<OperationId, Vec<IndexedClusterDescription>>,

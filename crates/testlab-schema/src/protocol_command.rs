@@ -199,8 +199,8 @@ pub enum AdapterCommand {
     DescribeTopicConfigs(crate::DescribeTopicConfigsCommand),
     AlterTopicConfigs(crate::AlterTopicConfigsCommand),
     AlterTopicConfig(crate::AlterTopicConfigCommand),
-    /// Describes the connected Kafka cluster through the public admin surface.
     DescribeCluster(crate::DescribeClusterCommand),
+    DescribeFeatures(crate::DescribeFeaturesCommand),
     /// Lists consumer groups visible through the public admin surface.
     ListConsumerGroups(crate::ListConsumerGroupsCommand),
     DescribeConsumerGroup(crate::DescribeConsumerGroupCommand),

@@ -35,6 +35,7 @@ mod protocol_admin_config_batch_mutation;
 mod protocol_admin_consumer_group_deletion_batch;
 mod protocol_admin_create_topics_batch;
 mod protocol_admin_delete_records_batch;
+mod protocol_admin_features;
 mod protocol_admin_group;
 mod protocol_admin_group_offset_batch;
 mod protocol_admin_group_offset_batch_mutation;

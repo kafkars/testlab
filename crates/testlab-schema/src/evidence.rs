@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 42;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 43;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -36,6 +36,8 @@ pub enum BrokerStateObservation {
     Topic(crate::BrokerTopicState),
     /// One cluster metadata snapshot independently read from Kafka.
     Cluster(crate::BrokerClusterState),
+    /// One cluster feature snapshot independently read through Kafka's pinned CLI.
+    Features(crate::BrokerFeaturesState),
     /// One consumer-group state independently read from Kafka.
     ConsumerGroup(crate::BrokerConsumerGroupState),
     /// One Share-group state independently read through Kafka's CLI.

@@ -1,0 +1,30 @@
+schema_version = 57
+id = "kafka.admin-describe-features"
+title = "packaged admin describes independently observed Kafka features"
+description = "The packaged client's public feature discovery reports canonical supported and finalized ranges whose names, numeric levels, and finalized epoch agree with the pinned Kafka administration CLI."
+timeout_ms = 60000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-features"
+kind = "describe_features"
+client_id = "client-1"
+operation_id = "admin-describe-features-1"
+expected_zk_migration_ready = false
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

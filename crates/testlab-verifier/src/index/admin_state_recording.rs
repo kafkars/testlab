@@ -19,6 +19,9 @@ impl HistoryIndex {
         if self.admin_client_quotas.record_state(observation, sequence) {
             return;
         }
+        if self.admin_features.record_state(observation, sequence) {
+            return;
+        }
         if self.admin_acls.record_state(observation, sequence) {
             return;
         }
@@ -95,6 +98,9 @@ impl HistoryIndex {
             }
             BrokerStateObservation::ClientQuota(_) => {
                 unreachable!("client-quota observations are indexed before generic admin state")
+            }
+            BrokerStateObservation::Features(_) => {
+                unreachable!("feature observations are indexed before generic admin state")
             }
             BrokerStateObservation::UserScramCredential(_) => {
                 unreachable!("user SCRAM observations are indexed before generic admin state")

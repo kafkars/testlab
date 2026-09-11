@@ -109,6 +109,7 @@ impl HistoryIndex {
             | ScenarioAction::AlterTopicConfigs(_)
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::DescribeCluster(_)
+            | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::ListConsumerGroups(_)
             | ScenarioAction::DescribeConsumerGroup(_)
             | ScenarioAction::DescribeShareGroup(_)

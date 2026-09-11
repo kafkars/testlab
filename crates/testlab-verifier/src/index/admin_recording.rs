@@ -25,6 +25,9 @@ impl HistoryIndex {
         if self.admin_client_quotas.record_event(event, sequence) {
             return true;
         }
+        if self.admin_features.record_event(event, sequence) {
+            return true;
+        }
         if self.admin_acls.record_event(event, sequence) {
             return true;
         }

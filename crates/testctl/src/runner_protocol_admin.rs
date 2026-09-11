@@ -139,6 +139,10 @@ pub(super) fn classify_admin(
             AdapterEvent::ClusterDescribed(actual),
         ) => operation_id == &actual.operation_id,
         (
+            ExpectedEvent::FeaturesDescribed(operation_id),
+            AdapterEvent::FeaturesDescribed(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::ConsumerGroupsListed { operation_id },
             AdapterEvent::ConsumerGroupsListed(actual),
         ) => operation_id == &actual.operation_id,
@@ -255,6 +259,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::RecordsDeleted { .. }
             | ExpectedEvent::RecordsBatchDeleted { .. }
             | ExpectedEvent::ClusterDescribed { .. }
+            | ExpectedEvent::FeaturesDescribed(_)
             | ExpectedEvent::ConsumerGroupsListed { .. }
             | ExpectedEvent::ConsumerGroupDescribed { .. }
             | ExpectedEvent::ConsumerGroupOffsetListed { .. }
@@ -282,6 +287,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::RecordsDeleted(_)
             | AdapterEvent::RecordsBatchDeleted(_)
             | AdapterEvent::ClusterDescribed(_)
+            | AdapterEvent::FeaturesDescribed(_)
             | AdapterEvent::ConsumerGroupsListed(_)
             | AdapterEvent::ConsumerGroupDescribed(_)
             | AdapterEvent::ConsumerGroupOffsetListed(_)

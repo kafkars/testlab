@@ -52,6 +52,16 @@ fn validate_singleton(
             );
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
+        ScenarioAction::DescribeFeatures(action) => {
+            validate_identity(
+                &action.client_id,
+                &action.operation_id,
+                clients,
+                operation_ids,
+                problems,
+            );
+            validate_timeout(&action.operation_id, action.timeout_ms, problems);
+        }
         ScenarioAction::ListConsumerGroups(action) => {
             validate_identity(
                 &action.client_id,

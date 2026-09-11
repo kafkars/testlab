@@ -34,6 +34,7 @@ pub(super) enum AdminTarget {
     Topics(ListTarget),
     TopicDeletions(ListTarget),
     Cluster(OperationId),
+    Features(OperationId),
     ConsumerGroups(ListTarget),
     ConsumerGroupDeletions(ListTarget),
     ConsumerGroup(GroupTarget),
@@ -217,6 +218,7 @@ impl AdminTarget {
             | Self::ConsumerGroups(target)
             | Self::ConsumerGroupDeletions(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
+            Self::Features(operation_id) => operation_id,
             Self::ConsumerGroup(target) => &target.operation_id,
             Self::ShareGroup(target) => &target.operation_id,
             Self::ShareGroupDescriptions(target) => &target.operation_id,

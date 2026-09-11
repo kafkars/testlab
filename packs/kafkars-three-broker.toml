@@ -69,6 +69,7 @@ scenarios = [
   "scenarios/kafka/admin-topic-config-validate-only.toml",
   "scenarios/kafka/admin-topic-config-restore.toml",
   "scenarios/kafka/admin-describe-cluster.toml",
+  "scenarios/kafka/admin-describe-features.toml",
   "scenarios/kafka/admin-list-consumer-groups.toml",
   "scenarios/kafka/admin-list-groups.toml",
   "scenarios/kafka/admin-list-consumer-groups-multiple.toml",

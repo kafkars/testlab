@@ -3,9 +3,9 @@
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
     DeleteConsumerGroupCommand, DeleteConsumerGroupOffsetCommand, DeleteTopicCommand,
-    DescribeClusterCommand, DescribeConsumerGroupCommand, DescribeTopicCommand,
-    ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand, ListOffsetsCommand,
-    ListTopicsCommand, ScenarioAction,
+    DescribeClusterCommand, DescribeConsumerGroupCommand, DescribeFeaturesCommand,
+    DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
+    ListOffsetsCommand, ListTopicsCommand, ScenarioAction,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -108,6 +108,14 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
             ExpectedEvent::ClusterDescribed {
                 operation_id: action.operation_id.clone(),
             },
+        ),
+        ScenarioAction::DescribeFeatures(action) => (
+            AdapterCommand::DescribeFeatures(DescribeFeaturesCommand {
+                client_id: action.client_id.clone(),
+                operation_id: action.operation_id.clone(),
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::FeaturesDescribed(action.operation_id.clone()),
         ),
         _ => return None,
     })

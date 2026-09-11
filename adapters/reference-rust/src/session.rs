@@ -139,6 +139,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::AlterTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
+        | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::ListConsumerGroups(_)
         | AdapterCommand::DescribeConsumerGroup(_)
         | AdapterCommand::DescribeShareGroup(_)

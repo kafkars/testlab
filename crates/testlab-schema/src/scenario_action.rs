@@ -24,7 +24,6 @@ pub enum ScenarioAction {
     CutNetworkConnections(crate::NetworkConnectionCutAction),
     RestartBroker {
         broker_ordinal: u16,
-        /// Complete disruption bound.
         timeout_ms: u64,
     },
     /// Stops one declared broker without restoring it in the same action.
@@ -217,6 +216,7 @@ pub enum ScenarioAction {
     AlterTopicConfigs(crate::AlterTopicConfigsAction),
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),
+    DescribeFeatures(crate::DescribeFeaturesAction),
     ListConsumerGroups(crate::ListConsumerGroupsAction),
     DescribeConsumerGroup(crate::DescribeConsumerGroupAction),
     DescribeShareGroup(crate::DescribeShareGroupAction),
