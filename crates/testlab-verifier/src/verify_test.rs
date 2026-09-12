@@ -166,7 +166,7 @@ fn classic_group_exact_round_trip_requires_commit() {
                 client_id: id(testlab_schema::ClientId::new("client-1")),
                 consumer_id: consumer.clone(),
                 group_id: "group-1".to_owned(),
-                topic: "records".to_owned(),
+                topics: vec!["records".to_owned()],
                 protocol: GroupProtocol::Classic,
                 configuration: None,
             },

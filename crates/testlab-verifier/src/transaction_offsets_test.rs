@@ -159,17 +159,17 @@ fn completion(
     action: &TransactionalTransformAction,
     record: &ConsumedRecord,
 ) -> TransactionalTransformCompletion {
-    let (group_id, topic, protocol) = scenario
+    let (group_id, topics, protocol) = scenario
         .steps
         .iter()
         .find_map(|step| match &step.action {
             ScenarioAction::CreateGroupConsumer {
                 consumer_id,
                 group_id,
-                topic,
+                topics,
                 protocol,
                 ..
-            } if consumer_id == &action.consumer_id => Some((group_id, topic, protocol)),
+            } if consumer_id == &action.consumer_id => Some((group_id, topics, protocol)),
             _ => None,
         })
         .unwrap_or_else(|| panic!("group definition missing"));
@@ -187,7 +187,10 @@ fn completion(
         consumer_id: action.consumer_id.clone(),
         records: vec![record.clone()],
         group_id: group_id.clone(),
-        topic: topic.clone(),
+        topic: topics
+            .first()
+            .unwrap_or_else(|| panic!("group subscription missing"))
+            .clone(),
         partition: record.partition,
         next_offset: record.offset + 1,
         group_epoch,

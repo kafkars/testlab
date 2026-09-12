@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.consumer-protocol-group-read-committed"
 title = "KIP-848 group read committed hides an aborted record"
 description = "A configured KIP-848 member starts at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."
@@ -64,7 +64,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-consumer-protocol-read-committed-group"
-topic = "testlab-consumer-protocol-read-committed"
+topics = ["testlab-consumer-protocol-read-committed"]
 protocol = "consumer"
 
 [steps.configuration]

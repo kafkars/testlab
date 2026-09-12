@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-describe-classic-groups"
 title = "packaged admin describes multiple live classic consumer groups"
 description = "Two live classic members each receive and commit an exact marker, then the dedicated packaged classic-group API returns both groups in caller order while one independent broker snapshot confirms their member counts."
@@ -71,7 +71,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-alpha"
 group_id = "testlab-admin-classic-alpha"
-topic = "testlab-kafkars-admin-classic-alpha"
+topics = ["testlab-kafkars-admin-classic-alpha"]
 protocol = "classic"
 
 [[steps]]
@@ -88,7 +88,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-zulu"
 group_id = "testlab-admin-classic-zulu"
-topic = "testlab-kafkars-admin-classic-zulu"
+topics = ["testlab-kafkars-admin-classic-zulu"]
 protocol = "classic"
 
 [[steps]]

@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-describe-consumer-groups"
 title = "packaged admin describes caller-ordered mixed consumer groups and selected assignors"
 description = "One explicitly cooperative-sticky classic member and one KIP-848 member each consume and commit an exact marker before one packaged public description call returns both groups in reverse creation order with exact protocol, state, selected assignor, epoch, member, subscription, and assignment facts; an immediate independent query confirms both member counts in the same order."
@@ -71,7 +71,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-classic"
 group_id = "testlab-admin-mixed-classic"
-topic = "testlab-kafkars-admin-mixed-classic"
+topics = ["testlab-kafkars-admin-mixed-classic"]
 protocol = "classic"
 
 [steps.configuration]
@@ -93,7 +93,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-kip848"
 group_id = "testlab-admin-mixed-consumer"
-topic = "testlab-kafkars-admin-mixed-consumer"
+topics = ["testlab-kafkars-admin-mixed-consumer"]
 protocol = "consumer"
 
 [[steps]]

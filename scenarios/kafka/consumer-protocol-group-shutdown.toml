@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.consumer-protocol-group-shutdown"
 title = "KIP-848 repeated shutdown requests terminate and leave"
 description = "After a KIP-848 member publicly receives and commits an exact record, two clone-shared shutdown requests preserve idempotence and terminate its public event stream; packaged Admin and an immediate independent broker query then both report zero live members."
@@ -51,7 +51,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-consumer-shutdown-group"
-topic = "testlab-kafkars-consumer-shutdown"
+topics = ["testlab-kafkars-consumer-shutdown"]
 protocol = "consumer"
 
 [[steps]]

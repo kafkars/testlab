@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.consumer-protocol-group-latest-offset-reset"
 title = "KIP-848 group latest reset skips an existing record"
 description = "A configured KIP-848 member stabilizes after one broker-visible record already exists, then latest-offset reset returns and commits only the exact later record."
@@ -43,7 +43,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-consumer-protocol-latest-reset-group"
-topic = "testlab-consumer-protocol-latest-reset"
+topics = ["testlab-consumer-protocol-latest-reset"]
 protocol = "consumer"
 
 [steps.configuration]

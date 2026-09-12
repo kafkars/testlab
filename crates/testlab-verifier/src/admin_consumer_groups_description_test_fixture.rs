@@ -113,7 +113,7 @@ fn create_group(
         client_id: client(),
         consumer_id: consumer(consumer_id),
         group_id: group_id.to_owned(),
-        topic: topic.to_owned(),
+        topics: vec![topic.to_owned()],
         protocol,
         configuration: None,
     }

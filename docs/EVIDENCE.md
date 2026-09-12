@@ -28,7 +28,7 @@ completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
 independently selected broker-role disruption, broker-policy facts, and
 network-proxy controls and effect observations.
-Protocol v77 and record digest v2 retain an optional caller-selected timestamp
+Protocol v78 and record digest v2 retain an optional caller-selected timestamp
 in commands, public producer terminals, public consumer records, and independent
 broker observations.
 Every effectful environment terminal operation carries a stable identity in
@@ -64,7 +64,8 @@ an explicit scenario timestamp to equal both the public producer receipt and
 the independent Kafka record. Digest v2 covers the observed timestamp; when a
 scenario omits one, only that field remains unconstrained so existing records
 may retain their client-generated time. CONS-012 directly binds assigned,
-ordinary group, and every multi-member group receive-set record to the
+ordinary group, and every group receive-set record, including records from
+multi-topic subscriptions, to the
 independent topic, partition, offset, timestamp, key, value, and ordered headers.
 SHARE-006 applies that same independent comparison to each exact Share
 acquisition without replacing delivery-count or membership-fence checks.
@@ -81,7 +82,7 @@ declarations do not claim an execution order.
 PROD-014 binds the partition returned by every successful public producer
 receipt to its independent Kafka observation and forbids partition claims on
 failed or uncertain terminals. PROD-015 additionally proves that a keyed send
-crossed protocol v77 as `java_keyed`, that the adapter selected the public
+crossed protocol v78 as `java_keyed`, that the adapter selected the public
 automatic path, and that both receipt and broker record match the independent
 positive-Murmur2 oracle over the serialized key and declared logical partition
 count. The scenario's expected partition is retained for provisioning and
@@ -136,6 +137,9 @@ policy plus any static group-instance identity and classic session timeout in
 the issued protocol command. That adapter-reported configuration is not the
 verdict: exact group receives must still join to independently observed records,
 positive protocol epochs, and aborted-transaction visibility evidence.
+The issued group-create command also retains the complete caller-ordered
+subscription, while assignment and record evidence prove that every declared
+topic reached the public consumer.
 ADMIN-068 additionally requires each public consumer owner to be abandoned,
 its owning client to shut down without a group close, and both static identities
 to remain broker-registered inside the configured session window until the

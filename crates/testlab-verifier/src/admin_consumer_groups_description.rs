@@ -13,7 +13,7 @@ use crate::support::violation;
 struct LiveConsumer {
     group_id: String,
     protocol: GroupProtocol,
-    topic: String,
+    topics: Vec<String>,
     receive_id: Option<OperationId>,
 }
 
@@ -211,7 +211,7 @@ fn exact_live_epochs(
             .filter(|consumer| {
                 consumer.group_id == group.group_id
                     && consumer.protocol == group.protocol
-                    && consumer.topic == group.expected_topic
+                    && consumer.topics.contains(&group.expected_topic)
             })
             .collect::<Vec<_>>();
         usize::try_from(group.expected_member_count) == Ok(matching.len())
@@ -252,7 +252,7 @@ fn live_consumers(
                 consumer_id,
                 group_id,
                 protocol,
-                topic,
+                topics,
                 ..
             } => {
                 live.insert(
@@ -260,7 +260,7 @@ fn live_consumers(
                     LiveConsumer {
                         group_id: group_id.clone(),
                         protocol: *protocol,
-                        topic: topic.clone(),
+                        topics: topics.clone(),
                         receive_id: None,
                     },
                 );

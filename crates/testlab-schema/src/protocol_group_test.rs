@@ -11,7 +11,7 @@ fn configured_group_policy_round_trips() {
         client_id: id(crate::ClientId::new("client-1")),
         consumer_id: id(crate::ConsumerId::new("consumer-1")),
         group_id: "workers".to_owned(),
-        topic: "orders".to_owned(),
+        topics: vec!["orders".to_owned(), "returns".to_owned()],
         protocol: crate::GroupProtocol::Classic,
         configuration: Some(GroupConsumerConfiguration {
             offset_reset: GroupOffsetReset::Latest,

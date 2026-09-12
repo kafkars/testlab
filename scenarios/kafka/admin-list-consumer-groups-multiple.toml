@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-list-consumer-groups-multiple"
 title = "packaged admin lists multiple independently observed live consumer groups"
 description = "Two distinct classic groups publicly consume and commit the same exact record while both members remain open; one expectation-free public listing must be byte-sorted and contain both independently observed group identities."
@@ -54,7 +54,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-alpha"
 group_id = "testlab-admin-multi-group-alpha"
-topic = "testlab-kafkars-admin-multi-groups"
+topics = ["testlab-kafkars-admin-multi-groups"]
 protocol = "classic"
 
 [[steps]]
@@ -71,7 +71,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-zulu"
 group_id = "testlab-admin-multi-group-zulu"
-topic = "testlab-kafkars-admin-multi-groups"
+topics = ["testlab-kafkars-admin-multi-groups"]
 protocol = "classic"
 
 [[steps]]

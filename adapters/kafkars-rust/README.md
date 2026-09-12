@@ -14,10 +14,11 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v77 over stdin/stdout;
+2. implements protocol v78 over stdin/stdout;
 3. preserves caller-selected record timestamps and returned partitions through
    public delivery receipts, omits explicit partitions for Java-keyed sends,
-   and preserves consumer records;
+   preserves consumer records, and passes caller-ordered multi-topic classic
+   and KIP-848 subscriptions through the public builder;
 4. preserves admission rejection separately from accepted delivery;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;

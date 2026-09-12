@@ -100,8 +100,8 @@ pub enum ScenarioAction {
         client_id: ClientId,
         consumer_id: ConsumerId,
         group_id: String,
-        /// Subscribed topic.
-        topic: String,
+        /// Caller-ordered distinct subscribed topics.
+        topics: Vec<String>,
         /// Group protocol.
         protocol: crate::GroupProtocol,
         #[serde(default, skip_serializing_if = "Option::is_none")]

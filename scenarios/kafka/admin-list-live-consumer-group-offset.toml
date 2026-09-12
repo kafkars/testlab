@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-list-live-consumer-group-offset"
 title = "packaged admin lists an independently observed live-group offset without stability fencing"
 description = "A classic group publicly consumes and commits one exact record, then remains open while the packaged admin lists its offset with require_stable disabled and an immediate independent query confirms offset 1."
@@ -54,7 +54,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-admin-live-offset-group"
-topic = "testlab-kafkars-admin-live-group-offset"
+topics = ["testlab-kafkars-admin-live-group-offset"]
 protocol = "classic"
 
 [[steps]]

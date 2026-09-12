@@ -33,7 +33,7 @@ pub(crate) fn dispatch<W: Write>(
             client_id,
             consumer_id,
             group_id,
-            topic,
+            topics,
             protocol,
             configuration,
         } => {
@@ -41,7 +41,7 @@ pub(crate) fn dispatch<W: Write>(
                 client_id,
                 consumer_id: consumer_id.clone(),
                 group_id,
-                topic,
+                topics,
                 protocol,
                 configuration,
             })?;

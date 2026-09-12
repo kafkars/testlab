@@ -9,6 +9,8 @@ use crate::{ScenarioAction, scenario_action_validation::ActionStates};
 mod classic_configuration_validation;
 #[path = "consumer_group_static_validation.rs"]
 mod static_validation;
+#[path = "consumer_subscription_validation.rs"]
+mod subscription_validation;
 
 pub(crate) type ConsumerStates = BTreeMap<ConsumerId, ConsumerState>;
 
@@ -23,7 +25,7 @@ pub(crate) struct ConsumerState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ConsumerGroupState {
     pub(crate) group_id: String,
-    pub(crate) topic: String,
+    pub(crate) topics: Vec<String>,
     pub(crate) protocol: GroupProtocol,
     pub(crate) group_instance_id: Option<String>,
 }
@@ -31,7 +33,7 @@ pub(crate) struct ConsumerGroupState {
 #[derive(Clone, Copy)]
 pub(crate) struct ConsumerGroupInput<'a> {
     pub(crate) group_id: &'a str,
-    pub(crate) topic: &'a str,
+    pub(crate) topics: &'a [String],
     pub(crate) protocol: Option<GroupProtocol>,
     pub(crate) group_instance_id: Option<&'a str>,
 }
@@ -99,7 +101,7 @@ pub(crate) fn validate(
             client_id,
             consumer_id,
             group_id,
-            topic,
+            topics,
             protocol,
             configuration,
         } => {
@@ -114,7 +116,7 @@ pub(crate) fn validate(
                 consumer_id,
                 ConsumerGroupInput {
                     group_id,
-                    topic,
+                    topics,
                     protocol: Some(*protocol),
                     group_instance_id: configuration
                         .as_ref()
@@ -214,13 +216,13 @@ pub(crate) fn create_group(
         state.assigned = true;
         state.group = group.protocol.map(|protocol| ConsumerGroupState {
             group_id: group.group_id.to_owned(),
-            topic: group.topic.to_owned(),
+            topics: group.topics.to_owned(),
             protocol,
             group_instance_id: group.group_instance_id.map(str::to_owned),
         });
     }
     validate_name(consumer_id, "group", group.group_id, 255, problems);
-    validate_name(consumer_id, "topic", group.topic, 249, problems);
+    subscription_validation::validate(consumer_id, group.topics, problems);
 }
 
 pub(crate) fn receive(

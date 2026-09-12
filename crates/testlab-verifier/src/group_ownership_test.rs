@@ -212,7 +212,7 @@ fn group_step(id: &str, consumer_id: &ConsumerId) -> testlab_schema::ScenarioSte
                 .unwrap_or_else(|error| panic!("client id: {error}")),
             consumer_id: consumer_id.clone(),
             group_id: "group-1".to_owned(),
-            topic: "records".to_owned(),
+            topics: vec!["records".to_owned()],
             protocol: GroupProtocol::Classic,
             configuration: None,
         },

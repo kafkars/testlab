@@ -99,6 +99,9 @@
 - Classic and KIP-848 group consumers cover public pause/resume partition
   isolation and assignment-fenced seek replay, with committed public outcomes
   joined to positive protocol epochs and independent broker coordinates.
+- Classic and KIP-848 group consumers preserve caller-ordered multi-topic
+  subscriptions, expose an assignment for every subscribed topic, and commit
+  exact records from both topics against independent broker observations.
 - Classic and KIP-848 configured groups cover latest missing-offset reset and
   read-committed isolation against pre-membership records and independently
   verified aborted transactions; classic membership also proves explicit

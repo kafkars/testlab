@@ -39,6 +39,8 @@ scenarios = [
   "scenarios/kafka/consumer-protocol-group-pause-resume.toml",
   "scenarios/kafka/classic-group-latest-offset-reset.toml",
   "scenarios/kafka/consumer-protocol-group-latest-offset-reset.toml",
+  "scenarios/kafka/classic-group-multi-topic-subscription.toml",
+  "scenarios/kafka/consumer-protocol-group-multi-topic-subscription.toml",
   "scenarios/kafka/classic-group-read-committed.toml",
   "scenarios/kafka/consumer-protocol-group-read-committed.toml",
   "scenarios/kafka/classic-group-shutdown.toml",

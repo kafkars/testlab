@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-describe-consumer-group"
 title = "packaged admin describes an independently observed live consumer group"
 description = "After one classic member publicly consumes and commits an exact record, the packaged client's public group description reports one member while that consumer remains open and an immediate independent query confirms the same membership count."
@@ -54,7 +54,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-admin-described-group"
-topic = "testlab-kafkars-admin-group-described"
+topics = ["testlab-kafkars-admin-group-described"]
 protocol = "classic"
 
 [[steps]]

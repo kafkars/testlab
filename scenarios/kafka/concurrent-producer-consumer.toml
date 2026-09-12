@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.concurrent-producer-consumer"
 title = "one packaged client produces while its assigned consumer receives"
 description = "One harness-owned barrier releases an assigned-consumer receive and a producer send from the same packaged client; join evidence preserves both identities and the exact broker-visible record."

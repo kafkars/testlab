@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.consumer-protocol-group-offset-resume"
 title = "a replacement KIP-848 member resumes from the committed offset"
 description = "A first KIP-848 member commits offset 1, independent broker evidence confirms it, and a new client and broker member in the same group receives only the next exact record before independently confirmed offset 2."
@@ -40,7 +40,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-consumer-protocol-offset-resume-group"
-topic = "testlab-kafkars-consumer-protocol-offset-resume"
+topics = ["testlab-kafkars-consumer-protocol-offset-resume"]
 protocol = "consumer"
 
 [[steps]]
@@ -108,7 +108,7 @@ kind = "create_group_consumer"
 client_id = "client-2"
 consumer_id = "consumer-2"
 group_id = "testlab-consumer-protocol-offset-resume-group"
-topic = "testlab-kafkars-consumer-protocol-offset-resume"
+topics = ["testlab-kafkars-consumer-protocol-offset-resume"]
 protocol = "consumer"
 
 [[steps]]

@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-remove-static-group-members"
 title = "offline static consumer-group members are removed in caller order"
 description = "Two configured classic static members establish a complete public assignment, abandon their public handles, stop their owning clients without an explicit member close, remain present in matching public and independent descriptions, and are then removed through one caller-ordered public Admin call with an immediate independent zero-member result."
@@ -52,7 +52,7 @@ kind = "create_group_consumer"
 client_id = "client-zulu"
 consumer_id = "consumer-zulu"
 group_id = "testlab-static-member-removal-group"
-topic = "testlab-kafkars-static-member-removal"
+topics = ["testlab-kafkars-static-member-removal"]
 protocol = "classic"
 
 [steps.configuration]
@@ -67,7 +67,7 @@ kind = "create_group_consumer"
 client_id = "client-alpha"
 consumer_id = "consumer-alpha"
 group_id = "testlab-static-member-removal-group"
-topic = "testlab-kafkars-static-member-removal"
+topics = ["testlab-kafkars-static-member-removal"]
 protocol = "classic"
 
 [steps.configuration]

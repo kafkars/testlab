@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-list-consumer-groups"
 title = "packaged admin lists an independently observed consumer group"
 description = "After a classic group publicly consumes and commits one exact record, the packaged client's public group listing contains that group and an independent librdkafka query confirms the same required identity."
@@ -54,7 +54,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-admin-listed-group"
-topic = "testlab-kafkars-admin-groups-listed"
+topics = ["testlab-kafkars-admin-groups-listed"]
 protocol = "classic"
 
 [[steps]]

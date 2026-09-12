@@ -124,7 +124,7 @@ fn create_group(consumer_id: &str, group_id: &str) -> ScenarioAction {
         client_id: client(),
         consumer_id: consumer(consumer_id),
         group_id: group_id.to_owned(),
-        topic: format!("{group_id}-topic"),
+        topics: vec![format!("{group_id}-topic")],
         protocol: GroupProtocol::Classic,
         configuration: None,
     }

@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.classic-group-membership-ownership"
 title = "two classic members redistribute one complete disjoint assignment"
 description = "Public assignment snapshots prove complete pairwise-disjoint ownership before and after a second classic member joins and leaves, while exact committed records and independent group descriptions corroborate live progress."
@@ -37,7 +37,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-classic-ownership-group"
-topic = "testlab-kafkars-classic-ownership"
+topics = ["testlab-kafkars-classic-ownership"]
 protocol = "classic"
 
 [[steps]]
@@ -59,7 +59,7 @@ kind = "create_group_consumer"
 client_id = "client-2"
 consumer_id = "consumer-2"
 group_id = "testlab-classic-ownership-group"
-topic = "testlab-kafkars-classic-ownership"
+topics = ["testlab-kafkars-classic-ownership"]
 protocol = "classic"
 
 [[steps]]

@@ -7,7 +7,7 @@ use crate::{ConsumerId, GroupProtocol, Scenario, ScenarioAction};
 #[derive(Clone)]
 struct LiveConsumer {
     group_id: String,
-    topic: String,
+    topics: Vec<String>,
     protocol: GroupProtocol,
     received: bool,
 }
@@ -19,7 +19,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             ScenarioAction::CreateGroupConsumer {
                 consumer_id,
                 group_id,
-                topic,
+                topics,
                 protocol,
                 ..
             } => {
@@ -27,7 +27,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     consumer_id.clone(),
                     LiveConsumer {
                         group_id: group_id.clone(),
-                        topic: topic.clone(),
+                        topics: topics.clone(),
                         protocol: *protocol,
                         received: false,
                     },
@@ -110,7 +110,7 @@ fn validate_live_group(
     }
     if matching
         .iter()
-        .any(|consumer| consumer.topic != group.expected_topic)
+        .any(|consumer| !consumer.topics.contains(&group.expected_topic))
     {
         problems.push(format!(
             "admin operation {} group {} expected_topic does not match its live members",

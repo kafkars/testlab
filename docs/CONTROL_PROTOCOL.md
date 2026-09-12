@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v77 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v80 and evidence schema v66.
+Protocol v78 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v81 and evidence schema v67.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -988,11 +988,15 @@ command ID, or timeout invalidates the run.
 ## Evolution
 
 Group creation explicitly selects classic or KIP-848 consumer membership. A
-successful group receive reports the public membership epoch observed after its
+create command carries 1 to 32 distinct topics in caller order, and the adapter
+passes the complete list to the public subscription builder. Multi-topic
+scenarios require public assignments and exact independently observed records
+from every subscribed topic. A successful group receive reports the public
+membership epoch observed after its
 assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v77 is an exact semantic contract. New capabilities may be declared
+Protocol v78 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

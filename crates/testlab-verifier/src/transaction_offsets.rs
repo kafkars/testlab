@@ -56,11 +56,11 @@ fn verify_public_input(
         .map(|values| values[0]);
     let group = group_definition(scenario, &action.consumer_id);
     let exact = matches!((expected, observation, completion.records.as_slice(), group),
-        (Some(expected), Some(observation), [record], Some((group_id, topic, protocol)))
+        (Some(expected), Some(observation), [record], Some((group_id, topics, protocol)))
             if completion.disposition == action.disposition
                 && completion.consumer_id == action.consumer_id
                 && completion.group_id == group_id
-                && completion.topic == topic
+                && topics.contains(&completion.topic)
                 && completion.topic == record.topic
                 && completion.partition == record.partition
                 && completion.next_offset == record.offset + 1
@@ -156,8 +156,9 @@ fn verify_aborted(
             expected_error_code: None,
             ..
         } if expected_operation_id == &action.expected_input_operation_id
-            && group_definition(scenario, consumer_id).is_some_and(|(group_id, topic, _)| {
-                group_id == transform.completion.group_id && topic == transform.completion.topic
+            && group_definition(scenario, consumer_id).is_some_and(|(group_id, topics, _)| {
+                group_id == transform.completion.group_id
+                    && topics.contains(&transform.completion.topic)
             })
             && index.action_issued(&step.action) =>
         {
@@ -183,15 +184,15 @@ fn verify_aborted(
 fn group_definition<'a>(
     scenario: &'a Scenario,
     consumer_id: &testlab_schema::ConsumerId,
-) -> Option<(&'a str, &'a str, GroupProtocol)> {
+) -> Option<(&'a str, &'a [String], GroupProtocol)> {
     scenario.steps.iter().find_map(|step| match &step.action {
         ScenarioAction::CreateGroupConsumer {
             consumer_id: created,
             group_id,
-            topic,
+            topics,
             protocol,
             ..
-        } if created == consumer_id => Some((group_id.as_str(), topic.as_str(), *protocol)),
+        } if created == consumer_id => Some((group_id.as_str(), topics.as_slice(), *protocol)),
         _ => None,
     })
 }

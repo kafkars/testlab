@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-alter-consumer-group-offset-forward"
 title = "packaged admin advances an independently observed consumer-group offset"
 description = "A classic group commits offset 1 after the first record, a second record advances the log end to 2, and the packaged admin moves the inactive group's checkpoint forward to 2; independent listings confirm both offsets."
@@ -49,7 +49,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-admin-forward-offset-group"
-topic = "testlab-kafkars-admin-offset-forward"
+topics = ["testlab-kafkars-admin-offset-forward"]
 protocol = "classic"
 
 [[steps]]

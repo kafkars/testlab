@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.admin-topic-config-lifecycle"
 title = "packaged admin changes an independently observed Kafka topic configuration"
 description = "The packaged client's public admin describes cleanup.policy as delete, replaces it with compact through an incremental SET operation, and describes the new value; immediate independent configuration queries confirm every public result and transition."

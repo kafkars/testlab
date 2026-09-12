@@ -27,17 +27,20 @@ fn capable_kafkars_packs_retain_group_configuration() {
     );
 }
 
-const ALL_SCENARIOS: [&str; 5] = [
+const ALL_SCENARIOS: [&str; 7] = [
     "admin-remove-static-group-members.toml",
     "classic-group-latest-offset-reset.toml",
     "consumer-protocol-group-latest-offset-reset.toml",
+    "classic-group-multi-topic-subscription.toml",
+    "consumer-protocol-group-multi-topic-subscription.toml",
     "classic-group-read-committed.toml",
     "consumer-protocol-group-read-committed.toml",
 ];
 
-const CLASSIC_SCENARIOS: [&str; 3] = [
+const CLASSIC_SCENARIOS: [&str; 4] = [
     "admin-remove-static-group-members.toml",
     "classic-group-latest-offset-reset.toml",
+    "classic-group-multi-topic-subscription.toml",
     "classic-group-read-committed.toml",
 ];
 

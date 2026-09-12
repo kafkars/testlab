@@ -37,6 +37,7 @@ scenarios = [
   "scenarios/kafka/classic-group-seek-replay.toml",
   "scenarios/kafka/classic-group-pause-resume.toml",
   "scenarios/kafka/classic-group-latest-offset-reset.toml",
+  "scenarios/kafka/classic-group-multi-topic-subscription.toml",
   "scenarios/kafka/classic-group-read-committed.toml",
   "scenarios/kafka/classic-group-shutdown.toml",
   "scenarios/kafka/classic-group-record-fidelity.toml",

@@ -34,7 +34,7 @@ pub(crate) struct GroupConsumerRegistration {
     pub(crate) client_id: ClientId,
     pub(crate) consumer_id: ConsumerId,
     pub(crate) group_id: String,
-    pub(crate) topic: String,
+    pub(crate) topics: Vec<String>,
     pub(crate) protocol: GroupProtocol,
     pub(crate) configuration: Option<GroupConsumerConfiguration>,
 }
@@ -65,7 +65,7 @@ impl GroupConsumers {
             });
         let builder = client
             .consumer(registration.group_id)
-            .subscribe([registration.topic])
+            .subscribe(registration.topics)
             .group_protocol(match registration.protocol {
                 GroupProtocol::Classic => ConsumerGroupProtocol::Classic,
                 GroupProtocol::Consumer => ConsumerGroupProtocol::Consumer,

@@ -53,7 +53,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             client_id,
             consumer_id,
             group_id,
-            topic,
+            topics,
             protocol,
             configuration,
         } => (
@@ -61,7 +61,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 client_id: client_id.clone(),
                 consumer_id: consumer_id.clone(),
                 group_id: group_id.clone(),
-                topic: topic.clone(),
+                topics: topics.clone(),
                 protocol: *protocol,
                 configuration: configuration.clone(),
             },

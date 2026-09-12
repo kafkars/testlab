@@ -154,16 +154,23 @@ fn group_creation_preserves_public_configuration() {
         client_id: id(ClientId::new("client-1")),
         consumer_id: id(ConsumerId::new("consumer-1")),
         group_id: "workers".to_owned(),
-        topic: "orders".to_owned(),
+        topics: vec!["orders".to_owned(), "returns".to_owned()],
         protocol: GroupProtocol::Classic,
         configuration: Some(expected_configuration.clone()),
     };
-    let Some((AdapterCommand::CreateGroupConsumer { configuration, .. }, expected)) =
-        translate(&action)
+    let Some((
+        AdapterCommand::CreateGroupConsumer {
+            configuration,
+            topics,
+            ..
+        },
+        expected,
+    )) = translate(&action)
     else {
         panic!("configured group creation must translate");
     };
     assert_eq!(configuration, Some(expected_configuration));
+    assert_eq!(topics, vec!["orders".to_owned(), "returns".to_owned()]);
     assert!(matches!(expected, ExpectedEvent::GroupConsumerCreated(_)));
 }
 

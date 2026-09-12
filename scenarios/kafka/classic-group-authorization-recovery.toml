@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.classic-group-authorization-recovery"
 title = "packaged classic group reports denial and recovers after permission restoration"
 description = "An independently observed group READ deny ACL forces the exact public group error, then its observed removal permits a new member of the same group to receive and commit the seeded record."
@@ -65,7 +65,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-denied"
 group_id = "testlab-policy-classic-group"
-topic = "testlab-kafkars-policy-group"
+topics = ["testlab-kafkars-policy-group"]
 protocol = "classic"
 
 [[steps]]
@@ -102,7 +102,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-recovered"
 group_id = "testlab-policy-classic-group"
-topic = "testlab-kafkars-policy-group"
+topics = ["testlab-kafkars-policy-group"]
 protocol = "classic"
 
 [[steps]]

@@ -215,7 +215,7 @@ fn create_group(consumer_id: &str, group_id: &str, protocol: GroupProtocol) -> S
         client_id: client(),
         consumer_id: consumer(consumer_id),
         group_id: group_id.to_owned(),
-        topic: "records".to_owned(),
+        topics: vec!["records".to_owned()],
         protocol,
         configuration: None,
     }

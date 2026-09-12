@@ -1,0 +1,116 @@
+schema_version = 81
+id = "kafka.consumer-protocol-group-multi-topic-subscription"
+title = "KIP-848 group consumer receives across an exact multi-topic subscription"
+description = "One packaged consumer-protocol member subscribes to two caller-ordered topics, exposes both assignments, receives one exact record from each topic, and commits both checkpoints."
+timeout_ms = 150000
+requires = ["producer", "consumer_protocol_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-alpha"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-kip848-alpha"
+
+[steps.record]
+topic = "testlab-kip848-multi-topic-alpha"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "alpha-key" }
+value = { encoding = "utf8", data = "alpha-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-kip848-alpha" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-zulu"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-kip848-zulu"
+
+[steps.record]
+topic = "testlab-kip848-multi-topic-zulu"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "zulu-key" }
+value = { encoding = "utf8", data = "zulu-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-kip848-zulu" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer-protocol-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-kip848-multi-topic-group"
+topics = ["testlab-kip848-multi-topic-alpha", "testlab-kip848-multi-topic-zulu"]
+protocol = "consumer"
+
+[[steps]]
+id = "observe-both-topic-assignments"
+kind = "observe_group_assignments"
+operation_id = "observe-kip848-multi-topic"
+consumer_ids = ["consumer-1"]
+partitions = [
+  { topic = "testlab-kip848-multi-topic-alpha", partition = 0 },
+  { topic = "testlab-kip848-multi-topic-zulu", partition = 0 },
+]
+timeout_ms = 30000
+
+[[steps]]
+id = "receive-both-topic-records"
+kind = "group_receive_set"
+receive_id = "receive-kip848-multi-topic"
+consumer_ids = ["consumer-1"]
+expected_operation_ids = ["op-kip848-alpha", "op-kip848-zulu"]
+timeout_ms = 60000
+
+[[steps]]
+id = "close-consumer-protocol-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-kip848-alpha"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-kip848-zulu"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

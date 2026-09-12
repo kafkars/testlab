@@ -42,10 +42,10 @@ pub(crate) fn validate(
             );
             if let Some(group) = group {
                 for partition in &action.partitions {
-                    if partition.topic != group.topic {
+                    if !group.topics.contains(&partition.topic) {
                         problems.push(format!(
-                            "assignment observation {} expected topic {}, group subscribes to {}",
-                            action.operation_id, partition.topic, group.topic
+                            "assignment observation {} expected unsubscribed topic {}",
+                            action.operation_id, partition.topic
                         ));
                     }
                 }
@@ -102,7 +102,7 @@ fn member_set(
         };
         match &expected {
             Some(first) if first != &group => problems.push(format!(
-                "consumer {consumer_id} does not share the member set group, topic, and protocol"
+                "consumer {consumer_id} does not share the member set group, topics, and protocol"
             )),
             None => expected = Some(group),
             _ => {}

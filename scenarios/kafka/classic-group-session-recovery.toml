@@ -1,4 +1,4 @@
-schema_version = 80
+schema_version = 81
 id = "kafka.classic-group-session-recovery"
 title = "one classic member recovers while every broker is disrupted"
 description = "Testlab stops each broker in turn while one classic member remains live, observes a valid public assignment after every disruption, and proves committed forward progress after the stop that necessarily disrupts its original group coordinator."
@@ -27,7 +27,7 @@ kind = "create_group_consumer"
 client_id = "client-1"
 consumer_id = "consumer-1"
 group_id = "testlab-classic-session-group"
-topic = "testlab-kafkars-classic-session"
+topics = ["testlab-kafkars-classic-session"]
 protocol = "classic"
 
 [[steps]]

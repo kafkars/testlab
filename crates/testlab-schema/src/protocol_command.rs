@@ -93,8 +93,8 @@ pub enum AdapterCommand {
         client_id: ClientId,
         consumer_id: ConsumerId,
         group_id: String,
-        /// Subscribed topic.
-        topic: String,
+        /// Caller-ordered distinct subscribed topics.
+        topics: Vec<String>,
         /// Classic or KIP-848 group protocol.
         protocol: crate::GroupProtocol,
         #[serde(default, skip_serializing_if = "Option::is_none")]
