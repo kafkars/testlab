@@ -46,6 +46,7 @@ pub fn verify(
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_timestamp::verify(&sends, &index, &observed, &mut violations);
+    crate::producer_partitioning::verify(scenario, &index, observations, &mut violations);
     crate::record_offsets::verify(scenario, &index, observations, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
     crate::group_ownership::verify(scenario, &index, &mut violations);

@@ -63,6 +63,9 @@
   A dedicated producer scenario carries one explicit timestamp through the
   public delivery receipt, independent Kafka observation, and public assigned
   consumer record.
+  A second scenario omits the public explicit partition for a keyed record and
+  binds Kafkars's receipt and broker placement to an independent Java-compatible
+  positive-Murmur2 partition oracle.
   Share batches cover ordered multi-record acquisition, record-specific accept,
   release, and reject decisions, and complete dropped-batch redelivery.
 - Producer cancellation retains one public delivery observer across two

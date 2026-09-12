@@ -75,6 +75,7 @@ fn verify(
                 operation_id: action.operation_id.clone(),
                 status,
                 code: code.map(str::to_owned),
+                partition: (status == TerminalStatus::Acknowledged).then_some(0),
                 offset: (status == TerminalStatus::Acknowledged).then_some(0),
                 timestamp_millis: None,
             },

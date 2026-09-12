@@ -1,4 +1,4 @@
-schema_version = 78
+schema_version = 79
 id = "kafka.admin-list-offsets-batch"
 title = "packaged admin lists a caller-ordered offset batch"
 description = "One public ListOffsets call preserves a deliberately non-partition-sorted query order while reporting exact earliest and latest offsets independently confirmed from broker watermarks."

@@ -196,6 +196,7 @@ fn fixture() -> (
     let send = ScenarioAction::Send {
         producer_id: id(testlab_schema::ProducerId::new("producer-1")),
         operation_id: operation.clone(),
+        partitioning: testlab_schema::ProducerPartitioning::Explicit,
         record: expected.clone(),
     };
     let action = ScenarioAction::ShareReceive {

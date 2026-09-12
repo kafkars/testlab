@@ -895,6 +895,18 @@ statement = "An acknowledged or transaction-staged record with a caller-selected
 category = "producer"
 
 [[contract]]
+id = "PROD-014"
+title = "Producer terminal partitions match independent broker observations"
+statement = "Every acknowledged or transaction-staged producer terminal reports the exact independently observed Kafka partition, while uncertain or failed terminals report no partition."
+category = "producer"
+
+[[contract]]
+id = "PROD-015"
+title = "Automatic keyed producer routing matches Kafka's Java partitioning"
+statement = "A Java-keyed send preserves automatic selection in the adapter command and its public terminal and independent broker record match the partition calculated from serialized key bytes and the declared logical partition count."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
 statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."

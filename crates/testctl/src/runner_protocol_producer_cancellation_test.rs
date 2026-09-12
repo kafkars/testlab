@@ -19,6 +19,7 @@ fn cancellation_waits_through_terminal_for_exact_completion() {
             operation_id: operation_id.clone(),
             status: TerminalStatus::DefinitelyNotSent,
             code: Some("cancelled".to_owned()),
+            partition: None,
             offset: None,
             timestamp_millis: None,
         },

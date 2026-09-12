@@ -178,6 +178,7 @@ fn receive_set_scenario() -> (testlab_schema::Scenario, OperationId) {
                 producer_id: testlab_schema::ProducerId::new("producer-1")
                     .unwrap_or_else(|error| panic!("producer id: {error}")),
                 operation_id: operation("op-2"),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("second"),
             },
         ),

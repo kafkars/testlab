@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::ClientId;
 
+#[path = "producer_partitioning.rs"]
+pub(crate) mod partitioning;
+pub use partitioning::{ProducerPartitioning, ProducerPartitioningError};
+
 /// Public Kafka record-batch compression selection.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "snake_case")]

@@ -34,6 +34,13 @@ fn record() -> RecordSpec {
     }
 }
 
+fn automatic_record() -> RecordSpec {
+    let mut record = record();
+    record.partition = 2;
+    record.key = Some(ByteString::utf8("kafkars"));
+    record
+}
+
 #[test]
 fn full_session_reports_acknowledgment_and_clean_lifecycle() {
     let broker = RunningBroker::start().unwrap_or_else(|error| panic!("start broker: {error}"));
@@ -73,7 +80,10 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             AdapterCommand::Send {
                 producer_id: producer.clone(),
                 operation_id: id(OperationId::new("op-1")),
-                record: record(),
+                partitioning: testlab_schema::ProducerPartitioning::JavaKeyed {
+                    partition_count: 3,
+                },
+                record: automatic_record(),
             },
         ),
         command(
@@ -123,11 +133,17 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
         matches!(
             &event.event,
             AdapterEvent::OperationTerminal {
+                operation_id,
                 status: TerminalStatus::Acknowledged,
+                partition: Some(2),
                 ..
-            }
+            } if operation_id.as_str() == "op-1"
         )
     }));
+    let observations = broker
+        .observations()
+        .unwrap_or_else(|error| panic!("read broker observations: {error}"));
+    assert_eq!(observations[0].record.partition, 2);
     assert!(events.iter().any(|event| {
         matches!(
             &event.event,

@@ -18,6 +18,9 @@ pub enum AdapterError {
     /// One stable identifier was invalid.
     #[error("adapter identity failed: {0}")]
     Id(#[from] testlab_schema::IdError),
+    /// One producer partition-selection command was invalid.
+    #[error("adapter producer partitioning failed: {0}")]
+    ProducerPartitioning(#[from] testlab_schema::ProducerPartitioningError),
     /// Public fixture lifecycle was invalid.
     #[error("adapter state failed: {0}")]
     State(String),
@@ -47,6 +50,7 @@ impl AdapterError {
             Self::Io(_) => "adapter_io",
             Self::Json(_) => "adapter_json",
             Self::Id(_) => "adapter_identity",
+            Self::ProducerPartitioning(_) => "adapter_producer_partitioning",
             Self::State(_) => "adapter_state",
             Self::Batch(_) => "adapter_batch",
             Self::Unsupported(_) => "adapter_unsupported",

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v75 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v78 and evidence schema v64.
+Protocol v76 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v79 and evidence schema v65.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -29,6 +29,15 @@ builder before the client host starts. The adapter receives no expected record;
 read-committed behavior is proved by a direct assignment from the beginning
 returning only a nontransactional sentinel after an independently verified
 aborted transaction.
+
+An ordinary `send` carries an explicit partition by default. A `java_keyed`
+selection instead carries the logical topic partition count and a keyed record;
+the adapter must omit the record's scenario-only expected partition from the
+public producer call. The expected partition remains available to provisioning,
+independent observation, and verification and must equal Kafka's positive
+Murmur2 result over the serialized key. Successful operation terminals report
+the partition returned by the public producer receipt; failed or uncertain
+terminals report no partition.
 
 Client metrics observation carries only stable client and operation identities
 to the adapter. Scenario-only record floors and required idle, accepting, or
@@ -973,6 +982,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v75 is an exact semantic contract. New capabilities may be declared
+Protocol v76 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

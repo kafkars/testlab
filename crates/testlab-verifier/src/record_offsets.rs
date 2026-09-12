@@ -18,8 +18,46 @@ pub(crate) fn verify(
 ) {
     let observed = observations_by_operation(observations);
     verify_terminal_offsets(index, &observed, violations);
+    verify_terminal_partitions(index, &observed, violations);
     crate::record_consumers::verify(scenario, index, &observed, violations);
     verify_partition_order(scenario, index, &observed, violations);
+}
+
+fn verify_terminal_partitions(
+    index: &HistoryIndex,
+    observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
+    violations: &mut Vec<Violation>,
+) {
+    for (operation_id, terminals) in &index.terminals {
+        let [terminal] = terminals.as_slice() else {
+            continue;
+        };
+        let expected = match terminal.status {
+            TerminalStatus::Acknowledged | TerminalStatus::TransactionStaged => {
+                let Some([observation]) = observed.get(operation_id).map(Vec::as_slice) else {
+                    continue;
+                };
+                Some(observation.record.partition)
+            }
+            TerminalStatus::DefinitelyNotSent | TerminalStatus::PossiblySent => None,
+        };
+        if terminal.partition == expected {
+            continue;
+        }
+        let mut evidence = vec![format!("history:{}", terminal.history_sequence)];
+        evidence.extend(observation_references(
+            observed.get(operation_id).map(Vec::as_slice),
+        ));
+        violations.push(violation(
+            "PROD-014",
+            format!(
+                "public terminal partition {:?} did not match independently observed partition {expected:?}",
+                terminal.partition
+            ),
+            Some(operation_id.clone()),
+            evidence,
+        ));
+    }
 }
 
 fn verify_terminal_offsets(

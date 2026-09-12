@@ -9,9 +9,10 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v75 over stdin/stdout;
-3. preserves caller-selected record timestamps through public delivery receipts
-   and consumer records;
+2. implements protocol v76 over stdin/stdout;
+3. preserves caller-selected record timestamps and returned partitions through
+   public delivery receipts, omits explicit partitions for Java-keyed sends,
+   and preserves consumer records;
 4. preserves admission rejection separately from accepted delivery;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;

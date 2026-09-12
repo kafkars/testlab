@@ -74,6 +74,7 @@ mod network_proxy_progress;
 mod observations;
 mod producer_cancellation;
 mod producer_error;
+mod producer_partitioning;
 mod producer_records;
 mod producer_timestamp;
 mod protocol;
@@ -236,6 +237,8 @@ mod network_proxy_modes_test;
 mod network_proxy_test;
 #[cfg(test)]
 mod producer_cancellation_test;
+#[cfg(test)]
+mod producer_partitioning_test;
 #[cfg(test)]
 mod producer_timestamp_test;
 #[cfg(test)]

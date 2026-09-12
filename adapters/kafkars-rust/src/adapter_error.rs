@@ -19,6 +19,9 @@ pub enum AdapterError {
     /// One portable byte value could not be decoded.
     #[error("adapter record bytes failed: {0}")]
     Bytes(#[from] testlab_schema::ByteStringError),
+    /// One producer partition-selection command was invalid.
+    #[error("adapter producer partitioning failed: {0}")]
+    ProducerPartitioning(#[from] testlab_schema::ProducerPartitioningError),
     /// Public adapter lifecycle was invalid.
     #[error("adapter state failed: {0}")]
     State(String),
@@ -74,6 +77,7 @@ impl AdapterError {
             Self::Json(_) => "adapter_json",
             Self::Id(_) => "adapter_identity",
             Self::Bytes(_) => "adapter_record_bytes",
+            Self::ProducerPartitioning(_) => "adapter_producer_partitioning",
             Self::State(_) => "adapter_state",
             Self::Client(_) => "kafkars_operation",
             Self::BatchResult(_) => "kafkars_batch_result",

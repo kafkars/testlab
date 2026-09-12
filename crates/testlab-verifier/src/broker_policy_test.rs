@@ -74,6 +74,7 @@ fn scenario(policy: BrokerPolicy) -> Scenario {
                 ScenarioAction::Send {
                     producer_id: producer(),
                     operation_id: operation(),
+                    partitioning: testlab_schema::ProducerPartitioning::Explicit,
                     record: record("quota"),
                 },
             ),
@@ -124,6 +125,7 @@ fn history(policy: &BrokerPolicy, removal_started_ms: u64) -> Vec<HistoryEntry> 
             AdapterCommand::Send {
                 producer_id: producer(),
                 operation_id: operation(),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("quota"),
             },
         ),
@@ -133,6 +135,7 @@ fn history(policy: &BrokerPolicy, removal_started_ms: u64) -> Vec<HistoryEntry> 
                 operation_id: operation(),
                 status: TerminalStatus::Acknowledged,
                 code: None,
+                partition: Some(0),
                 offset: Some(0),
                 timestamp_millis: None,
             },

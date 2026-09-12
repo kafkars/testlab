@@ -1,7 +1,7 @@
 //! Public Kafkars normalization tests preserve bytes and delivery uncertainty.
 
 use crate::kafkars_api::{DeliveryStatus, ErrorKind, KafkaError};
-use testlab_schema::{ByteString, HeaderSpec, RecordSpec, TerminalStatus};
+use testlab_schema::{ByteString, HeaderSpec, ProducerPartitioning, RecordSpec, TerminalStatus};
 
 use super::normalize::error_code;
 use super::normalize::{delivery_failure, record};
@@ -34,6 +34,25 @@ fn record_conversion_preserves_nullable_and_binary_fields() {
     );
     assert!(converted.value_bytes().is_none());
     assert!(converted.headers()[0].value().is_none());
+}
+
+#[test]
+fn java_keyed_conversion_omits_the_expected_partition() {
+    let converted = super::normalize::producer_record(
+        RecordSpec {
+            topic: "records".to_owned(),
+            partition: 2,
+            sequence: 1,
+            timestamp_millis: None,
+            key: Some(ByteString::utf8("kafkars")),
+            value: None,
+            headers: Vec::new(),
+        },
+        ProducerPartitioning::JavaKeyed { partition_count: 3 },
+    )
+    .unwrap_or_else(|error| panic!("convert automatic record: {error}"));
+
+    assert_eq!(converted.explicit_partition(), None);
 }
 
 #[test]

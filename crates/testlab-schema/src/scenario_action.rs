@@ -51,12 +51,12 @@ pub enum ScenarioAction {
     Send {
         producer_id: ProducerId,
         operation_id: OperationId,
-        /// Exact record.
+        #[serde(default)]
+        partitioning: crate::ProducerPartitioning,
         record: crate::RecordSpec,
     },
     CancelProducerSend(crate::CancelProducerSendCommand),
     SendBatch {
-        /// Existing producer.
         producer_id: ProducerId,
         /// Ordered operations.
         operations: Vec<crate::BatchRecord>,

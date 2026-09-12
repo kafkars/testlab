@@ -40,6 +40,7 @@ mod compose_ports;
 mod compose_producers_observe;
 mod compose_provision;
 mod compose_provision_delete_records;
+mod compose_provision_record_targets;
 mod compose_provision_targets;
 mod compose_provision_topic_descriptions;
 mod compose_readiness;
@@ -153,6 +154,8 @@ mod compose_observe_admin_test;
 mod compose_plural_group_provision_test;
 #[cfg(test)]
 mod compose_ports_test;
+#[cfg(test)]
+mod compose_provision_partitioning_test;
 #[cfg(test)]
 mod compose_provision_test;
 #[cfg(test)]

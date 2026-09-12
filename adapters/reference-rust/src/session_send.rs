@@ -3,7 +3,8 @@
 use std::io::Write;
 
 use testlab_schema::{
-    AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId, ProducerId, RecordSpec,
+    AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId, ProducerId,
+    ProducerPartitioning, RecordSpec,
 };
 
 use crate::AdapterError;
@@ -17,9 +18,13 @@ pub(crate) fn dispatch_send<W: Write>(
     command_id: CommandId,
     producer_id: &ProducerId,
     operation_id: OperationId,
+    partitioning: ProducerPartitioning,
     record: RecordSpec,
 ) -> Result<(), AdapterError> {
     state.require_producer(producer_id)?;
+    let mut record = record;
+    let partition = partitioning.expected_partition(&record)?;
+    record.partition = partition;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -38,6 +43,7 @@ pub(crate) fn dispatch_send<W: Write>(
                 operation_id,
                 status: terminal.status,
                 code: terminal.code,
+                partition: terminal.partition,
                 offset: terminal.offset,
                 timestamp_millis: None,
             },
@@ -83,6 +89,7 @@ pub(crate) fn dispatch_batch<W: Write>(
                     operation_id,
                     status: terminal.status,
                     code: terminal.code,
+                    partition: terminal.partition,
                     offset: terminal.offset,
                     timestamp_millis: None,
                 },

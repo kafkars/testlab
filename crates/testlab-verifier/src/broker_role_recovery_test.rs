@@ -105,6 +105,7 @@ pub(super) fn history(replacement: i32, progress: bool) -> Vec<HistoryEntry> {
         operation_id: operation_id("op-after-election"),
         status: testlab_schema::TerminalStatus::Acknowledged,
         code: None,
+        partition: Some(0),
         offset: Some(1),
         timestamp_millis: None,
     });

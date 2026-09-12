@@ -4,7 +4,7 @@ use std::io::Write;
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId, ProducerId,
-    RecordSpec, TerminalStatus,
+    ProducerPartitioning, RecordSpec, TerminalStatus,
 };
 
 use crate::AdapterError;
@@ -20,10 +20,11 @@ pub(crate) fn dispatch_send<W: Write>(
     command_id: CommandId,
     producer_id: &ProducerId,
     operation_id: OperationId,
+    partitioning: ProducerPartitioning,
     record: RecordSpec,
 ) -> Result<(), AdapterError> {
     let producer = state.producer(producer_id)?;
-    let outcome = execute_send(producer, &operation_id, record)?;
+    let outcome = execute_send(producer, &operation_id, partitioning, record)?;
     emit_send_outcome(writer, command_id, operation_id, outcome)
 }
 
@@ -35,6 +36,7 @@ pub(crate) enum SendOutcome {
     Accepted {
         status: TerminalStatus,
         code: Option<String>,
+        partition: Option<i32>,
         offset: Option<i64>,
         timestamp_millis: Option<i64>,
     },
@@ -43,9 +45,10 @@ pub(crate) enum SendOutcome {
 pub(crate) fn execute_send(
     producer: &Producer,
     operation_id: &OperationId,
+    partitioning: ProducerPartitioning,
     record: RecordSpec,
 ) -> Result<SendOutcome, AdapterError> {
-    let record = normalize::record(record)?;
+    let record = normalize::producer_record(record, partitioning)?;
     let delivery = match retry_owned_safe(record, |record| {
         producer.try_send(record).map_err(TrySendError::into_parts)
     }) {
@@ -57,22 +60,24 @@ pub(crate) fn execute_send(
             });
         }
     };
-    let (status, code, offset, timestamp_millis) = match delivery.wait() {
+    let (status, code, partition, offset, timestamp_millis) = match delivery.wait() {
         Ok(metadata) => (
             TerminalStatus::Acknowledged,
             None,
+            Some(metadata.partition()),
             Some(metadata.offset()),
             metadata.timestamp_milliseconds(),
         ),
         Err(error) => {
             eprintln!("Kafkars delivery failed for {operation_id}: {error}");
             let failure = normalize::delivery_failure(&error);
-            (failure.status, Some(failure.code), None, None)
+            (failure.status, Some(failure.code), None, None, None)
         }
     };
     Ok(SendOutcome::Accepted {
         status,
         code,
+        partition,
         offset,
         timestamp_millis,
     })
@@ -95,6 +100,7 @@ pub(crate) fn emit_send_outcome<W: Write>(
         SendOutcome::Accepted {
             status,
             code,
+            partition,
             offset,
             timestamp_millis,
         } => {
@@ -115,6 +121,7 @@ pub(crate) fn emit_send_outcome<W: Write>(
                         operation_id,
                         status,
                         code,
+                        partition,
                         offset,
                         timestamp_millis,
                     },
@@ -222,17 +229,18 @@ fn emit_batch_terminals<W: Write>(
     deliveries: Vec<Result<RecordMetadata, KafkaError>>,
 ) -> Result<(), AdapterError> {
     for (operation_id, delivery) in operation_ids.iter().zip(deliveries) {
-        let (status, code, offset, timestamp_millis) = match delivery {
+        let (status, code, partition, offset, timestamp_millis) = match delivery {
             Ok(metadata) => (
                 TerminalStatus::Acknowledged,
                 None,
+                Some(metadata.partition()),
                 Some(metadata.offset()),
                 metadata.timestamp_milliseconds(),
             ),
             Err(error) => {
                 eprintln!("Kafkars batch delivery failed for {operation_id}: {error}");
                 let failure = normalize::delivery_failure(&error);
-                (failure.status, Some(failure.code), None, None)
+                (failure.status, Some(failure.code), None, None, None)
             }
         };
         emit(
@@ -243,6 +251,7 @@ fn emit_batch_terminals<W: Write>(
                     operation_id: operation_id.clone(),
                     status,
                     code,
+                    partition,
                     offset,
                     timestamp_millis,
                 },

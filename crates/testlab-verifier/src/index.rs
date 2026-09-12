@@ -57,6 +57,7 @@ pub(crate) struct IndexedTerminal {
     pub(crate) history_sequence: u64,
     pub(crate) status: TerminalStatus,
     pub(crate) code: Option<String>,
+    pub(crate) partition: Option<i32>,
     pub(crate) offset: Option<i64>,
     pub(crate) timestamp_millis: Option<i64>,
 }

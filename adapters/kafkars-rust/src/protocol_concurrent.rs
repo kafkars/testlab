@@ -123,8 +123,12 @@ fn spawn_actor(
                 .name(format!("testlab-concurrent-{actor_id}"))
                 .spawn(move || {
                     barrier.wait();
-                    let result =
-                        crate::protocol_send::execute_send(&producer, &operation_id, record);
+                    let result = crate::protocol_send::execute_send(
+                        &producer,
+                        &operation_id,
+                        testlab_schema::ProducerPartitioning::Explicit,
+                        record,
+                    );
                     let _ = sender.send(WorkerResult::Send(result));
                 })
         }

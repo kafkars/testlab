@@ -75,6 +75,7 @@ fn public_client_failure_is_valid_semantic_evidence() {
             AdapterCommand::Send {
                 producer_id: producer.clone(),
                 operation_id: operation_id("op-1"),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("value"),
             },
         ),

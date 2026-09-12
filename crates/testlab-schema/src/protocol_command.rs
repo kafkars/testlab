@@ -32,10 +32,10 @@ pub enum AdapterCommand {
     },
     /// Offers one record through the public producer surface.
     Send {
-        /// Producer receiving the record.
         producer_id: ProducerId,
-        /// Stable operation identity.
         operation_id: OperationId,
+        /// Exact public partition-selection path.
+        partitioning: crate::ProducerPartitioning,
         /// Exact logical record.
         record: crate::RecordSpec,
     },

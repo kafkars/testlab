@@ -1,0 +1,87 @@
+schema_version = 79
+id = "kafka.producer-automatic-keyed-partition"
+title = "automatic keyed producer routing matches Kafka partitioning"
+description = "One packaged producer omits an explicit partition for a keyed record; its public receipt, an independent broker observation, and a directly assigned public consumer must agree with the Java-compatible partition oracle."
+timeout_ms = 90000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-automatically-partitioned-record"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-automatic-keyed"
+partitioning = { kind = "java_keyed", partition_count = 3 }
+
+[steps.record]
+topic = "testlab-kafkars-producer-automatic-keyed-partition"
+partition = 2
+sequence = 1
+key = { encoding = "utf8", data = "kafkars" }
+value = { encoding = "utf8", data = "automatic-keyed-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-automatic-keyed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-selected-partition"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-producer-automatic-keyed-partition"
+partition = 2
+
+[[steps]]
+id = "receive-automatically-partitioned-record"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "receive-automatic-keyed"
+expected_operation_id = "op-automatic-keyed"
+timeout_ms = 20000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-automatic-keyed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

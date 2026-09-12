@@ -197,6 +197,7 @@ fn fence_history(
                 operation_id: ids.operation.clone(),
                 status: TerminalStatus::TransactionStaged,
                 code: None,
+                partition: Some(0),
                 offset: Some(1),
                 timestamp_millis: None,
             },

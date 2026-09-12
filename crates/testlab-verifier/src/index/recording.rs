@@ -68,6 +68,7 @@ impl HistoryIndex {
                 operation_id,
                 status,
                 code,
+                partition,
                 offset,
                 timestamp_millis,
             } => {
@@ -78,6 +79,7 @@ impl HistoryIndex {
                         history_sequence: sequence,
                         status: *status,
                         code: code.clone(),
+                        partition: *partition,
                         offset: *offset,
                         timestamp_millis: *timestamp_millis,
                     });

@@ -1,6 +1,6 @@
 //! Provisioning targets derive only broker state that the packaged client does not create.
 use std::collections::{BTreeMap, BTreeSet};
-use testlab_schema::{ConfigResourceListingApi, RecordSpec, Scenario, ScenarioAction};
+use testlab_schema::{ConfigResourceListingApi, Scenario, ScenarioAction};
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub(super) struct SeedTarget {
     pub(super) topic: String,
@@ -22,7 +22,11 @@ pub(super) fn topics(scenario: &Scenario) -> BTreeMap<String, i32> {
     }
     let mut topics = BTreeMap::new();
     for step in &scenario.steps {
-        record_targets(&mut topics, &subject_created, &step.action);
+        crate::compose_provision_record_targets::record(
+            &mut topics,
+            &subject_created,
+            &step.action,
+        );
         admin_targets(&mut topics, &subject_created, &step.action);
     }
     topics
@@ -44,38 +48,6 @@ pub(super) fn seed_targets(scenario: &Scenario) -> BTreeSet<SeedTarget> {
         .iter()
         .flat_map(|step| crate::compose_provision_delete_records::seed_targets(&step.action))
         .collect()
-}
-
-fn record_targets(
-    topics: &mut BTreeMap<String, i32>,
-    subject_created: &BTreeSet<String>,
-    action: &ScenarioAction,
-) {
-    match action {
-        ScenarioAction::Send { record, .. } => record_topic(topics, subject_created, record),
-        ScenarioAction::SendBatch { operations, .. }
-        | ScenarioAction::ExecuteTransaction { operations, .. } => {
-            for operation in operations {
-                record_topic(topics, subject_created, &operation.record);
-            }
-        }
-        ScenarioAction::ExecuteTransactionalTransform(action) => {
-            for operation in &action.operations {
-                record_topic(topics, subject_created, &operation.record);
-            }
-        }
-        ScenarioAction::FenceTransaction { operation, .. } => {
-            record_topic(topics, subject_created, &operation.record);
-        }
-        ScenarioAction::StartConcurrentActors(action) => {
-            for actor in &action.actors {
-                if let testlab_schema::ConcurrentActor::ProducerSend { record, .. } = actor {
-                    record_topic(topics, subject_created, record);
-                }
-            }
-        }
-        _ => {}
-    }
 }
 
 fn admin_targets(
@@ -259,19 +231,6 @@ fn plural_admin_targets(
         _ => return false,
     }
     true
-}
-
-fn record_topic(
-    topics: &mut BTreeMap<String, i32>,
-    subject_created: &BTreeSet<String>,
-    record: &RecordSpec,
-) {
-    require_topic(
-        topics,
-        subject_created,
-        &record.topic,
-        record.partition.saturating_add(1),
-    );
 }
 
 pub(super) fn require_topic(

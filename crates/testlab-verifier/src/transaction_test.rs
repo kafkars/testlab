@@ -195,6 +195,7 @@ fn transaction_history(
                 operation_id,
                 status: TerminalStatus::TransactionStaged,
                 code: None,
+                partition: Some(0),
                 offset: Some(1),
                 timestamp_millis: None,
             },

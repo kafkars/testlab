@@ -102,10 +102,11 @@ fn emit_terminal<W: Write>(
     operation_id: testlab_schema::OperationId,
     delivery: Delivery,
 ) -> Result<(), AdapterError> {
-    let (status, code, offset, timestamp_millis) = match delivery.wait() {
+    let (status, code, partition, offset, timestamp_millis) = match delivery.wait() {
         Ok(metadata) => (
             TerminalStatus::Acknowledged,
             None,
+            Some(metadata.partition()),
             Some(metadata.offset()),
             metadata.timestamp_milliseconds(),
         ),
@@ -119,6 +120,7 @@ fn emit_terminal<W: Write>(
                 operation_id,
                 status,
                 code,
+                partition,
                 offset,
                 timestamp_millis,
             },
@@ -128,7 +130,13 @@ fn emit_terminal<W: Write>(
 
 fn terminal_failure(
     error: &KafkaError,
-) -> (TerminalStatus, Option<String>, Option<i64>, Option<i64>) {
+) -> (
+    TerminalStatus,
+    Option<String>,
+    Option<i32>,
+    Option<i64>,
+    Option<i64>,
+) {
     let failure = normalize::delivery_failure(error);
-    (failure.status, Some(failure.code), None, None)
+    (failure.status, Some(failure.code), None, None, None)
 }

@@ -4,6 +4,7 @@ title = "packaged Kafkars directly assigned consumer cursor coverage"
 scenarios = [
   "scenarios/kafka/assigned-consumer-round-trip.toml",
   "scenarios/kafka/producer-explicit-timestamp.toml",
+  "scenarios/kafka/producer-automatic-keyed-partition.toml",
   "scenarios/kafka/assigned-consumer-read-committed.toml",
   "scenarios/kafka/assigned-consumer-end-position.toml",
   "scenarios/kafka/assigned-consumer-exact-offset.toml",

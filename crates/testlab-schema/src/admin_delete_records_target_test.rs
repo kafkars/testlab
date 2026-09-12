@@ -44,6 +44,7 @@ fn delete_records_rejects_scenario_writes_to_the_seeded_partition() {
                 producer_id: ProducerId::new("producer-1")
                     .unwrap_or_else(|error| panic!("producer id: {error}")),
                 operation_id: operation("target-write"),
+                partitioning: super::ProducerPartitioning::Explicit,
                 record: RecordSpec {
                     topic: action.topic.clone(),
                     partition: action.partition,

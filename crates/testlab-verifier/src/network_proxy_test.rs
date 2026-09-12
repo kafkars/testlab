@@ -143,6 +143,7 @@ fn history() -> Vec<HistoryEntry> {
             AdapterCommand::Send {
                 producer_id: producer(),
                 operation_id: operation("during-blackhole"),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("during"),
             },
         ),
@@ -157,6 +158,7 @@ fn history() -> Vec<HistoryEntry> {
             AdapterCommand::Send {
                 producer_id: producer(),
                 operation_id: operation("after-blackhole"),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("after"),
             },
         ),
@@ -179,10 +181,10 @@ fn send(id: &str) -> ScenarioAction {
     ScenarioAction::Send {
         producer_id: producer(),
         operation_id: operation(id),
+        partitioning: testlab_schema::ProducerPartitioning::Explicit,
         record: record(id),
     }
 }
-
 fn control(sequence: u64, control: NetworkProxyControl) -> HistoryEntry {
     HistoryEntry {
         sequence,
@@ -215,7 +217,6 @@ fn observation(sequence: u64) -> HistoryEntry {
         },
     }
 }
-
 fn terminal(sequence: u64, id: &str, status: TerminalStatus) -> HistoryEntry {
     event(
         sequence,
@@ -223,6 +224,7 @@ fn terminal(sequence: u64, id: &str, status: TerminalStatus) -> HistoryEntry {
             operation_id: operation(id),
             status,
             code: None,
+            partition: (status == TerminalStatus::Acknowledged).then_some(0),
             offset: None,
             timestamp_millis: None,
         },

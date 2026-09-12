@@ -46,6 +46,7 @@ fn batch_waits_for_explicit_completion_after_known_operation_events() {
                 operation_id: operation,
                 status: TerminalStatus::Acknowledged,
                 code: None,
+                partition: Some(0),
                 offset: Some(0),
                 timestamp_millis: None,
             })
@@ -207,6 +208,7 @@ fn transaction_waits_for_exact_disposition_identity() {
                 operation_id,
                 status: TerminalStatus::TransactionStaged,
                 code: None,
+                partition: Some(0),
                 offset: Some(0),
                 timestamp_millis: None,
             })

@@ -14,9 +14,9 @@ use crate::{
 
 #[test]
 fn versions_cover_mixed_description_protocol_and_evidence() {
-    assert_eq!(PROTOCOL_VERSION, 75);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 78);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 64);
+    assert_eq!(PROTOCOL_VERSION, 76);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 79);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 65);
 }
 
 #[test]

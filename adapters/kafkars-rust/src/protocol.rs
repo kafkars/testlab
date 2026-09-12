@@ -98,6 +98,7 @@ fn dispatch<W: Write>(
         AdapterCommand::Send {
             producer_id,
             operation_id,
+            partitioning,
             record,
         } => protocol_send::dispatch_send(
             state,
@@ -105,6 +106,7 @@ fn dispatch<W: Write>(
             command_id,
             &producer_id,
             operation_id,
+            partitioning,
             record,
         )?,
         AdapterCommand::CancelProducerSend(command) => {

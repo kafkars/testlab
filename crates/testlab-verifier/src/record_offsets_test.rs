@@ -37,6 +37,50 @@ fn mismatched_terminal_offset_fails_public_offset_contract() {
 }
 
 #[test]
+fn mismatched_terminal_partition_fails_public_partition_contract() {
+    let scenario = scenario(
+        TerminalStatus::Acknowledged,
+        VisibilityExpectation::ExactlyOnce,
+    );
+    let mut history = history(TerminalStatus::Acknowledged);
+    for entry in &mut history {
+        if let testlab_schema::HistoryPayload::AdapterEvent { event } = &mut entry.payload
+            && let AdapterEvent::OperationTerminal { partition, .. } = &mut event.event
+        {
+            *partition = Some(1);
+        }
+    }
+    let observations = [observation(0, "value")];
+
+    let violations = verify_offsets(&scenario, &history, &observations);
+
+    assert!(violates(&violations, "PROD-014"));
+}
+
+#[test]
+fn uncertain_terminal_with_partition_fails_public_partition_contract() {
+    let scenario = scenario(
+        TerminalStatus::PossiblySent,
+        VisibilityExpectation::ZeroOrOne,
+    );
+    let history = [event(
+        0,
+        AdapterEvent::OperationTerminal {
+            operation_id: id(OperationId::new("op-1")),
+            status: TerminalStatus::PossiblySent,
+            code: None,
+            partition: Some(0),
+            offset: None,
+            timestamp_millis: None,
+        },
+    )];
+
+    let violations = verify_offsets(&scenario, &history, &[]);
+
+    assert!(violates(&violations, "PROD-014"));
+}
+
+#[test]
 fn uncertain_terminal_with_offset_fails_public_offset_contract() {
     let scenario = scenario(
         TerminalStatus::PossiblySent,
@@ -48,6 +92,7 @@ fn uncertain_terminal_with_offset_fails_public_offset_contract() {
             operation_id: id(OperationId::new("op-1")),
             status: TerminalStatus::PossiblySent,
             code: None,
+            partition: None,
             offset: Some(3),
             timestamp_millis: None,
         },
@@ -71,6 +116,7 @@ fn reversed_same_partition_offsets_fail_declared_order() {
             ScenarioAction::Send {
                 producer_id: id(testlab_schema::ProducerId::new("producer-1")),
                 operation_id: id(OperationId::new("op-2")),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("second"),
             },
         ),

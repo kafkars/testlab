@@ -18,6 +18,7 @@ fn recorded_commands_retain_every_observed_operation() {
             AdapterCommand::Send {
                 producer_id: id(ProducerId::new("producer-1")),
                 operation_id: id(OperationId::new("send-1")),
+                partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record_spec(2),
             },
         ),

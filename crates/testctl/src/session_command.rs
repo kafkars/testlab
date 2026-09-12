@@ -23,11 +23,13 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ScenarioAction::Send {
             producer_id,
             operation_id,
+            partitioning,
             record,
         } => (
             AdapterCommand::Send {
                 producer_id: producer_id.clone(),
                 operation_id: operation_id.clone(),
+                partitioning: *partitioning,
                 record: record.clone(),
             },
             ExpectedEvent::SendSettled(operation_id.clone()),

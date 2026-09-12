@@ -1,7 +1,7 @@
 //! Public Kafkars values map to protocol records without inferred certainty.
 
 use crate::kafkars_api::{DeliveryStatus, ErrorKind, Header, KafkaError, Record};
-use testlab_schema::{RecordSpec, TerminalStatus};
+use testlab_schema::{ProducerPartitioning, RecordSpec, TerminalStatus};
 
 use crate::AdapterError;
 
@@ -12,7 +12,18 @@ pub(crate) struct DeliveryFailure {
 }
 
 pub(crate) fn record(spec: RecordSpec) -> Result<Record, AdapterError> {
-    let mut record = Record::to(spec.topic).partition(spec.partition);
+    producer_record(spec, ProducerPartitioning::Explicit)
+}
+
+pub(crate) fn producer_record(
+    spec: RecordSpec,
+    partitioning: ProducerPartitioning,
+) -> Result<Record, AdapterError> {
+    partitioning.expected_partition(&spec)?;
+    let mut record = Record::to(spec.topic);
+    if partitioning.is_explicit() {
+        record = record.partition(spec.partition);
+    }
     if let Some(timestamp) = spec.timestamp_millis {
         record = record.timestamp_milliseconds(timestamp);
     }

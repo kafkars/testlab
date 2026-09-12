@@ -224,6 +224,7 @@ fn staged_history(
                     operation_id: operation.operation_id.clone(),
                     status: TerminalStatus::TransactionStaged,
                     code: None,
+                    partition: Some(operation.record.partition),
                     offset: Some(*offset),
                     timestamp_millis: None,
                 },

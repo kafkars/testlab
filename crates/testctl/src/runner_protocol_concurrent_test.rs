@@ -54,6 +54,7 @@ fn join_accepts_only_declared_actor_operations() {
                 operation_id: send,
                 status: TerminalStatus::Acknowledged,
                 code: None,
+                partition: Some(0),
                 offset: Some(1),
                 timestamp_millis: None,
             })

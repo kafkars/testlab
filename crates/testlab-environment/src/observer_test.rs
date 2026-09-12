@@ -28,6 +28,23 @@ fn issued_partition_send_is_included_in_observation_targets() {
 }
 
 #[test]
+fn automatic_keyed_send_observes_only_the_oracle_partition() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/producer-automatic-keyed-partition.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse automatic partition scenario: {error}"));
+    let issued = BTreeSet::from([id(OperationId::new("op-automatic-keyed"))]);
+
+    assert_eq!(
+        targets(&scenario, &issued),
+        BTreeSet::from([(
+            "testlab-kafkars-producer-automatic-keyed-partition".to_owned(),
+            2,
+        )])
+    );
+}
+
+#[test]
 fn issued_concurrent_sends_are_independent_observation_targets() {
     let scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/concurrent-multi-producer.toml"

@@ -15,6 +15,7 @@ const MAX_RESPONSE_READ: u64 = 1024 * 1024 + 1;
 pub(crate) struct BrokerTerminal {
     pub(crate) status: TerminalStatus,
     pub(crate) code: Option<String>,
+    pub(crate) partition: Option<i32>,
     pub(crate) offset: Option<i64>,
 }
 
@@ -23,6 +24,7 @@ pub(crate) fn send(
     operation_id: OperationId,
     record: RecordSpec,
 ) -> BrokerTerminal {
+    let partition = record.partition;
     let mut stream = match TcpStream::connect(endpoint) {
         Ok(stream) => stream,
         Err(error) => {
@@ -40,7 +42,7 @@ pub(crate) fn send(
         return possibly_sent("request_write_failed", &error.to_string());
     }
     let _ = stream.shutdown(Shutdown::Write);
-    read_response(stream)
+    read_response(stream, partition)
 }
 
 fn configure(stream: &TcpStream) -> Result<(), std::io::Error> {
@@ -59,7 +61,7 @@ fn write_request(
     Ok(())
 }
 
-fn read_response(stream: TcpStream) -> BrokerTerminal {
+fn read_response(stream: TcpStream, partition: i32) -> BrokerTerminal {
     let mut reader = BufReader::new(stream).take(MAX_RESPONSE_READ);
     let mut line = String::new();
     let bytes = match reader.read_line(&mut line) {
@@ -87,19 +89,21 @@ fn read_response(stream: TcpStream) -> BrokerTerminal {
         Ok(response) => response,
         Err(error) => return possibly_sent("invalid_response", &error.to_string()),
     };
-    normalize(response)
+    normalize(response, partition)
 }
 
-fn normalize(response: ModelBrokerResponse) -> BrokerTerminal {
+fn normalize(response: ModelBrokerResponse, partition: i32) -> BrokerTerminal {
     match response.status {
         ModelBrokerResponseStatus::Acknowledged => BrokerTerminal {
             status: TerminalStatus::Acknowledged,
             code: response.code,
+            partition: Some(partition),
             offset: response.offset,
         },
         ModelBrokerResponseStatus::Rejected => BrokerTerminal {
             status: TerminalStatus::DefinitelyNotSent,
             code: response.code,
+            partition: None,
             offset: None,
         },
     }
@@ -110,6 +114,7 @@ fn definitely_not_sent(code: &str, diagnostic: &str) -> BrokerTerminal {
     BrokerTerminal {
         status: TerminalStatus::DefinitelyNotSent,
         code: Some(code.to_owned()),
+        partition: None,
         offset: None,
     }
 }
@@ -119,6 +124,7 @@ fn possibly_sent(code: &str, diagnostic: &str) -> BrokerTerminal {
     BrokerTerminal {
         status: TerminalStatus::PossiblySent,
         code: Some(code.to_owned()),
+        partition: None,
         offset: None,
     }
 }

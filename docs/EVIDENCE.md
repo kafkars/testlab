@@ -20,15 +20,15 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v64 records the exact environment identity in `manifest.json`,
-retains protocol-v75 direct and hosted-group consumer controls, abandonment,
+Evidence schema v65 records the exact environment identity in `manifest.json`,
+retains protocol-v76 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
 independently selected broker-role disruption, broker-policy facts, and
 network-proxy controls and effect observations.
-Protocol v75 and record digest v2 retain an optional caller-selected timestamp
+Protocol v76 and record digest v2 retain an optional caller-selected timestamp
 in commands, public producer terminals, public consumer records, and independent
 broker observations.
 Every effectful environment terminal operation carries a stable identity in
@@ -78,6 +78,14 @@ in that batch to independent broker coordinates and bytes.
 PROD-011 requires strictly increasing independent offsets for sequential sends
 and caller-ordered batch records targeting one partition; concurrent actor
 declarations do not claim an execution order.
+PROD-014 binds the partition returned by every successful public producer
+receipt to its independent Kafka observation and forbids partition claims on
+failed or uncertain terminals. PROD-015 additionally proves that a keyed send
+crossed protocol v76 as `java_keyed`, that the adapter selected the public
+automatic path, and that both receipt and broker record match the independent
+positive-Murmur2 oracle over the serialized key and declared logical partition
+count. The scenario's expected partition is retained for provisioning and
+observation but is not passed to Kafkars as an explicit partition.
 
 Configured-client history retains the complete requested public producer
 policy under its stable command identity, and lifecycle evidence requires the

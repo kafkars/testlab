@@ -193,6 +193,7 @@ fn joined_events(
             operation_id: operation.clone(),
             status: TerminalStatus::Acknowledged,
             code: None,
+            partition: Some(record.partition),
             offset: Some(0),
             timestamp_millis: None,
         },

@@ -1,14 +1,12 @@
 //! Session interpreter translates protocol commands to one fixture state machine.
 
-use std::io::{self, BufRead, Read, Write};
-
-use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
-};
-
 use crate::AdapterError;
 use crate::session_send;
 use crate::state::AdapterState;
+use std::io::{self, BufRead, Read, Write};
+use testlab_schema::{
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
+};
 
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
 const MAX_COMMAND_READ: u64 = 4 * 1024 * 1024 + 1;
@@ -86,6 +84,7 @@ fn dispatch<W: Write>(
         AdapterCommand::Send {
             producer_id,
             operation_id,
+            partitioning,
             record,
         } => session_send::dispatch_send(
             state,
@@ -93,6 +92,7 @@ fn dispatch<W: Write>(
             command_id,
             &producer_id,
             operation_id,
+            partitioning,
             record,
         )?,
         AdapterCommand::SendBatch {

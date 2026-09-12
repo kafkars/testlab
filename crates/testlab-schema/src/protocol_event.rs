@@ -38,12 +38,12 @@ pub enum AdapterEvent {
     },
     /// One accepted operation reached its only terminal outcome.
     OperationTerminal {
-        /// Settled operation.
         operation_id: OperationId,
-        /// Delivery certainty.
         status: TerminalStatus,
         /// Stable normalized outcome code.
         code: Option<String>,
+        /// Broker partition when exposed by the public surface.
+        partition: Option<i32>,
         /// Broker offset when exposed by the public surface.
         offset: Option<i64>,
         /// Broker record timestamp when exposed by the public surface.

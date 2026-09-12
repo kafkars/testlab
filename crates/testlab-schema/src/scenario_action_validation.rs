@@ -57,18 +57,9 @@ pub(crate) fn validate_action(
         | ScenarioAction::AlterBrokerPolicy(_)) => {
             crate::scenario_environment_action_validation::validate(action, state, problems);
         }
-        ScenarioAction::Send {
-            producer_id,
-            operation_id,
-            record,
-        } => {
-            require_open_producer(producer_id, &state.producers, problems);
-            validate_operation(
-                operation_id,
-                record,
-                &mut state.operation_ids,
-                &mut state.sends,
-                problems,
+        action @ ScenarioAction::Send { .. } => {
+            crate::producer_configuration::partitioning::validation::validate(
+                action, state, problems,
             );
         }
         ScenarioAction::CancelProducerSend(action) => {
