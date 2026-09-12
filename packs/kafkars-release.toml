@@ -15,6 +15,7 @@ scenarios = [
   "scenarios/kafka/producer-batch.toml",
   "scenarios/kafka/producer-broker-restart.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/assigned-consumer-immediate-batch.toml",
   "scenarios/kafka/producer-explicit-timestamp.toml",
   "scenarios/kafka/producer-automatic-keyed-partition.toml",
   "scenarios/kafka/assigned-consumer-read-committed.toml",

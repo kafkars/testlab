@@ -75,9 +75,9 @@ pub enum AdapterCommand {
     ControlAssignedConsumer(crate::AssignedConsumerControlCommand),
     /// Observes public consumer batches for a bounded duration.
     Receive {
-        /// Existing assigned consumer.
         consumer_id: ConsumerId,
-        /// Stable receive operation identity.
+        /// Exact public retained-batch observation method.
+        method: crate::AssignedConsumerReceiveMethod,
         receive_id: OperationId,
         /// Maximum public observation duration.
         timeout_ms: u64,

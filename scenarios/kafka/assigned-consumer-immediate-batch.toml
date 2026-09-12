@@ -1,9 +1,9 @@
 schema_version = 94
-id = "kafka.producer-explicit-timestamp"
-title = "an explicit producer timestamp survives broker and consumer boundaries"
-description = "One packaged producer submits a caller-selected timestamp; its public receipt, an independent broker observation, and a directly assigned public consumer must all retain the exact millisecond value."
+id = "kafka.assigned-consumer-immediate-batch"
+title = "packaged assigned consumer exposes an immediate retained batch"
+description = "The packaged client produces one exact record, directly assigns from the beginning, and returns that record through repeated public try_take_batch calls without substituting the waiting recv observer."
 timeout_ms = 90000
-requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+requires = ["producer", "assigned_consumer", "assigned_consumer_immediate_batch", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -22,20 +22,19 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-timestamped-record"
+id = "send-record"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "op-timestamped"
+operation_id = "op-immediate-batch"
 
 [steps.record]
-topic = "testlab-kafkars-producer-explicit-timestamp"
+topic = "testlab-kafkars-assigned-immediate-batch"
 partition = 0
 sequence = 1
-timestamp_millis = 1700000000123
-key = { encoding = "utf8", data = "timestamp-key" }
-value = { encoding = "utf8", data = "timestamp-value" }
+key = { encoding = "utf8", data = "immediate" }
+value = { encoding = "utf8", data = "retained-batch" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-timestamped" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-immediate-batch" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
@@ -59,15 +58,16 @@ consumer_id = "consumer-1"
 id = "assign-consumer"
 kind = "assign_beginning"
 consumer_id = "consumer-1"
-topic = "testlab-kafkars-producer-explicit-timestamp"
+topic = "testlab-kafkars-assigned-immediate-batch"
 partition = 0
 
 [[steps]]
-id = "receive-timestamped-record"
+id = "take-immediate-batch"
 kind = "receive"
 consumer_id = "consumer-1"
-receive_id = "receive-timestamped"
-expected_operation_id = "op-timestamped"
+method = "try_take_batch"
+receive_id = "receive-immediate-batch"
+expected_operation_id = "op-immediate-batch"
 timeout_ms = 20000
 
 [[steps]]
@@ -81,7 +81,7 @@ kind = "shutdown_client"
 client_id = "client-1"
 
 [[assertions]]
-operation_id = "op-timestamped"
+operation_id = "op-immediate-batch"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"

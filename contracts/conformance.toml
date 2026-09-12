@@ -949,6 +949,12 @@ statement = "Every issued hosted group-consumer pause, resume, or seek command h
 category = "consumer"
 
 [[contract]]
+id = "CONS-015"
+title = "Immediate assigned receives preserve their public method"
+statement = "A scenario-selected assigned receive emits exactly one command retaining try_take_batch, the consumer identity, receive identity, and observation timeout rather than substituting the waiting recv observer."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

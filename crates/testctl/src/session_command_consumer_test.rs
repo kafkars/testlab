@@ -1,11 +1,12 @@
 //! Consumer command translation keeps semantic expectations in the scenario.
 
 use testlab_schema::{
-    AdapterCommand, AssignedConsumerControl, AssignedConsumerControlAction, AssignedStartPosition,
-    ClientId, ConsumerId, GroupConsumerConfiguration, GroupConsumerControl,
-    GroupConsumerControlAction, GroupConsumerShutdownAction, GroupOffsetReset, GroupProtocol,
-    GroupReadIsolation, GroupReceiveSetAction, ObserveGroupAssignmentsAction, OperationId,
-    ScenarioAction, TopicPartitionIdentity,
+    AdapterCommand, AssignedConsumerControl, AssignedConsumerControlAction,
+    AssignedConsumerReceiveMethod, AssignedStartPosition, ClientId, ConsumerId,
+    GroupConsumerConfiguration, GroupConsumerControl, GroupConsumerControlAction,
+    GroupConsumerShutdownAction, GroupOffsetReset, GroupProtocol, GroupReadIsolation,
+    GroupReceiveSetAction, ObserveGroupAssignmentsAction, OperationId, ScenarioAction,
+    TopicPartitionIdentity,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -60,6 +61,27 @@ fn receive_set_sends_only_the_structural_record_count() {
     assert!(matches!(
         expected,
         ExpectedEvent::GroupReceiveSetCompleted(_)
+    ));
+}
+
+#[test]
+fn assigned_receive_preserves_the_selected_public_method() {
+    let receive_id = id(OperationId::new("receive-immediate"));
+    let action = ScenarioAction::Receive {
+        consumer_id: id(ConsumerId::new("consumer-1")),
+        method: AssignedConsumerReceiveMethod::TryTakeBatch,
+        receive_id: receive_id.clone(),
+        expected_operation_id: id(OperationId::new("send-1")),
+        timeout_ms: 20_000,
+    };
+
+    let Some((AdapterCommand::Receive { method, .. }, expected)) = translate(&action) else {
+        panic!("assigned receive must translate");
+    };
+    assert_eq!(method, AssignedConsumerReceiveMethod::TryTakeBatch);
+    assert!(matches!(
+        expected,
+        ExpectedEvent::ReceiveCompleted(operation_id) if operation_id == receive_id
     ));
 }
 

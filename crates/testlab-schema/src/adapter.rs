@@ -36,6 +36,8 @@ pub enum Capability {
     ModelBroker,
     /// Assigned-partition consumer operations.
     AssignedConsumer,
+    /// Immediate retained-batch observation through `try_take_batch`.
+    AssignedConsumerImmediateBatch,
     /// Client-wide immutable assigned-consumer configuration.
     AssignedConsumerConfiguration,
     /// Positioning and mutation controls for assigned-partition consumers.

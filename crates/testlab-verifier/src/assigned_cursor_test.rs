@@ -64,6 +64,7 @@ fn receive_step(id: &str, expected: &str) -> testlab_schema::ScenarioStep {
         id,
         ScenarioAction::Receive {
             consumer_id: consumer("assigned-1"),
+            method: Default::default(),
             receive_id: operation(id),
             expected_operation_id: operation(expected),
             timeout_ms: 1_000,

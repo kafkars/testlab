@@ -71,6 +71,10 @@ its ordinary terminal and independent-record evidence still applies.
 Protocol v90, scenario schema v93, and evidence schema v79 carry the same method
 selection through producer cancellation. PROD-017 prevents `Delivery::cancel`
 and `Send::cancel` from being substituted for one another in retained history.
+Protocol v91, scenario schema v94, and evidence schema v80 retain the selected
+direct-consumer batch observer. CONS-015 distinguishes immediate
+`try_take_batch` from waiting `recv` without sending the expected record to the
+adapter.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -172,10 +176,13 @@ the ordinary independent broker visibility, byte, and offset contracts.
 Direct-consumer scenarios retain every assignment, operation-identified
 replacement, incremental add/remove, seek, pause/resume, receive, and completion
 under its originating command identity. CONS-013 requires one exact issued
-control and one matching public completion. Successive receives are joined to
-their declared independently observed records in order. Exact offset and end
-starts, seek replay, paused-partition isolation, and survivor cursors after
-incremental mutation are therefore broker-backed outcomes rather than adapter
+control and one matching public completion. CONS-015 separately requires an
+immediate-batch scenario to retain the exact consumer, method, receive identity,
+and timeout in its issued command; the ordinary receive and independent-record
+contracts still establish the returned batch truth. Successive receives are
+joined to their declared independently observed records in order. Exact offset
+and end starts, seek replay, paused-partition isolation, and survivor cursors
+after incremental mutation are therefore broker-backed outcomes rather than adapter
 success claims. Two direct consumers may still independently expose the same
 coordinate. LIFE-003 and LIFE-009 evaluate repeated flushes and legacy
 assignments per command rather than by aggregate resource counts.

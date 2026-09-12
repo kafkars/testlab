@@ -28,7 +28,8 @@ pub(crate) use kafkars::consumer::{
     ClassicGroupConfig, Consumer, ConsumerAssignment, ConsumerBatch, ConsumerBuildError,
     ConsumerBuilder, ConsumerCommitAdmissionError, ConsumerEvent, ConsumerFetchConfig,
     ConsumerGroupProtocol, ConsumerLimits, ConsumerRecord, GroupConsumerRecord,
-    GroupMembershipEpoch, GroupMetadata, OffsetReset, ReadIsolation, StartPosition, TopicPartition,
+    GroupMembershipEpoch, GroupMetadata, OffsetReset, ReadIsolation, RecordBatch, StartPosition,
+    TopicPartition,
 };
 #[cfg(kafkars_share_candidate)]
 pub(crate) use kafkars::consumer::{

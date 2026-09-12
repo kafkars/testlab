@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v90 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v93 and evidence schema v79.
+Protocol v91 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v94 and evidence schema v80.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -50,6 +50,12 @@ total retained-byte capacity. The adapter receives no expected record;
 read-committed behavior and the configured Fetch path are proved by a direct
 assignment from the beginning returning only a nontransactional sentinel after
 an independently verified aborted transaction.
+
+A directly assigned `receive` names its exact public retained-batch observer.
+`recv` is the default waiting path; `try_take_batch` selects repeated immediate
+observation and requires the `assigned_consumer_immediate_batch` capability.
+The command retains that selection, consumer identity, receive identity, and
+bound while the expected producer operation remains scenario-only.
 
 An ordinary `send` names its exact public producer method. `try_send` is the
 default immediate-admission path; `send` selects bounded FIFO waiting admission
@@ -1061,6 +1067,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v90 is an exact semantic contract. New capabilities may be declared
+Protocol v91 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

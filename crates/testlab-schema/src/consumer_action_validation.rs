@@ -2,8 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::{ClientId, ConsumerId, GroupProtocol, OperationId};
-use crate::{ScenarioAction, scenario_action_validation::ActionStates};
+use crate::{ClientId, ConsumerId, GroupProtocol, OperationId, ScenarioAction};
 
 #[path = "consumer_group_configuration_validation.rs"]
 mod group_configuration_validation;
@@ -40,7 +39,7 @@ pub(crate) struct ConsumerGroupInput<'a> {
 
 pub(crate) fn validate(
     action: &ScenarioAction,
-    state: &mut ActionStates,
+    state: &mut crate::scenario_action_validation::ActionStates,
     problems: &mut Vec<String>,
 ) {
     match action {
@@ -81,6 +80,7 @@ pub(crate) fn validate(
             receive_id,
             expected_operation_id,
             timeout_ms,
+            ..
         }
         | ScenarioAction::GroupReceive {
             consumer_id,

@@ -79,11 +79,11 @@ pub enum ScenarioAction {
     ControlAssignedConsumer(crate::AssignedConsumerControlAction),
     /// Bounded receive that must expose one previously sent exact record.
     Receive {
-        /// Existing assigned consumer.
         consumer_id: ConsumerId,
-        /// Stable receive identity.
+        /// Exact public retained-batch observation method.
+        #[serde(default)]
+        method: crate::AssignedConsumerReceiveMethod,
         receive_id: OperationId,
-        /// Expected producer operation.
         expected_operation_id: OperationId,
         /// Complete receive bound.
         timeout_ms: u64,

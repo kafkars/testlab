@@ -10,9 +10,9 @@ use crate::{
 
 #[test]
 fn producer_state_cut_advances_every_versioned_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 90);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 93);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 79);
+    assert_eq!(PROTOCOL_VERSION, 91);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 94);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 80);
 }
 
 #[test]

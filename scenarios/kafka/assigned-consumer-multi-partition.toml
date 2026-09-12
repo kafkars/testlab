@@ -1,4 +1,4 @@
-schema_version = 93
+schema_version = 94
 id = "kafka.assigned-consumer-multi-partition"
 title = "one assigned consumer receives exact records from multiple partitions"
 description = "The packaged client replaces one direct assignment with three partitions in one public call and receives one exact record from each without replacing that assignment again."

@@ -175,6 +175,7 @@ fn mismatched_consumer_offset_fails_public_receive_contract() {
         "receive",
         ScenarioAction::Receive {
             consumer_id: id(ConsumerId::new("consumer-1")),
+            method: Default::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: id(OperationId::new("op-1")),
             timeout_ms: 1_000,

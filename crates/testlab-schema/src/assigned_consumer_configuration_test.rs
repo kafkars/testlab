@@ -1,8 +1,8 @@
 //! Assigned-consumer configuration retains policy and capability ownership.
 
 use crate::{
-    AssignedConsumerReadIsolation, Capability, ConsumerFetchConfiguration,
-    ConsumerLimitsConfiguration, Scenario, ScenarioAction,
+    AssignedConsumerReadIsolation, AssignedConsumerReceiveMethod, Capability,
+    ConsumerFetchConfiguration, ConsumerLimitsConfiguration, Scenario, ScenarioAction,
 };
 
 #[test]
@@ -96,6 +96,54 @@ fn assigned_consumer_fetch_and_limits_must_be_coherent() {
     ] {
         assert!(message.contains(problem), "{message}");
     }
+}
+
+#[test]
+fn immediate_batch_receive_requires_its_exact_capability() {
+    let mut scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/assigned-consumer-immediate-batch.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse immediate-batch scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate immediate-batch scenario: {error}"));
+    assert!(scenario.steps.iter().any(|step| matches!(
+        &step.action,
+        ScenarioAction::Receive {
+            method: AssignedConsumerReceiveMethod::TryTakeBatch,
+            ..
+        }
+    )));
+
+    scenario
+        .requires
+        .remove(&Capability::AssignedConsumerImmediateBatch);
+    let error = scenario
+        .validate()
+        .expect_err("immediate batch capability must be required");
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem.contains("assigned_consumer_immediate_batch")),
+        "{:?}",
+        error.problems
+    );
+}
+
+#[test]
+fn ordinary_assigned_receive_defaults_to_waiting_recv() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/assigned-consumer-round-trip.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse assigned round trip: {error}"));
+    assert!(scenario.steps.iter().any(|step| matches!(
+        &step.action,
+        ScenarioAction::Receive {
+            method: AssignedConsumerReceiveMethod::Recv,
+            ..
+        }
+    )));
 }
 
 fn scenario() -> Scenario {

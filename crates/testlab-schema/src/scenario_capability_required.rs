@@ -70,6 +70,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "assigned-consumer steps require the assigned_consumer capability",
     ),
     (
+        Capability::AssignedConsumerImmediateBatch,
+        "immediate assigned-consumer receives require the assigned_consumer_immediate_batch capability",
+    ),
+    (
         Capability::AssignedConsumerConfiguration,
         "configured assigned-consumer clients require the assigned_consumer_configuration capability",
     ),

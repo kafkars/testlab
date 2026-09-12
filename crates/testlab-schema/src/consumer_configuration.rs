@@ -19,6 +19,17 @@ pub enum AssignedConsumerReadIsolation {
     ReadCommitted,
 }
 
+/// Public batch observation selected for one directly assigned receive.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AssignedConsumerReceiveMethod {
+    /// Wait on the named retained-delivery observer.
+    #[default]
+    Recv,
+    /// Repeatedly attempt the immediate retained-batch take operation.
+    TryTakeBatch,
+}
+
 /// Broker long-poll and byte policy fixed before a consumer starts.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

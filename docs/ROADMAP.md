@@ -59,6 +59,9 @@
 - Deterministic concurrent actor groups cover multiple public producers and
   assigned producer/consumer pipelines with exact start/join boundaries,
   stable actor identities, and independent broker truth.
+- Direct assigned-consumer records are observed through both the waiting
+  `recv` object and repeated immediate `try_take_batch` calls, with the selected
+  public method retained in command evidence.
 - Producer, assigned, classic, KIP-848, and Share scenarios preserve null versus
   empty keys and values, tombstones, duplicate nullable binary headers, public
   coordinates, and multi-record receive sets against independent broker records;

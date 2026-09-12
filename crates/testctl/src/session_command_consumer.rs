@@ -32,12 +32,14 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ),
         ScenarioAction::Receive {
             consumer_id,
+            method,
             receive_id,
             timeout_ms,
             ..
         } => (
             AdapterCommand::Receive {
                 consumer_id: consumer_id.clone(),
+                method: *method,
                 receive_id: receive_id.clone(),
                 timeout_ms: *timeout_ms,
             },

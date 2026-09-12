@@ -142,8 +142,11 @@ fn spawn_actor(
                 .name(format!("testlab-concurrent-{actor_id}"))
                 .spawn(move || {
                     barrier.wait();
-                    let result =
-                        crate::protocol_consumer::receive_records(&mut owner.consumer, timeout_ms);
+                    let result = crate::protocol_consumer::receive_records(
+                        &mut owner.consumer,
+                        testlab_schema::AssignedConsumerReceiveMethod::Recv,
+                        timeout_ms,
+                    );
                     let _ = sender.send(WorkerResult::Receive {
                         consumer_id,
                         owner,
