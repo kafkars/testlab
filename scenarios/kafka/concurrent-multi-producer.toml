@@ -1,4 +1,4 @@
-schema_version = 112
+schema_version = 113
 id = "kafka.concurrent-multi-producer"
 title = "multiple packaged producers send through one concurrent boundary"
 description = "Two packaged clients release four identified sends across two public producers through one harness-owned start barrier; every joined outcome and independently observed record remains exact."

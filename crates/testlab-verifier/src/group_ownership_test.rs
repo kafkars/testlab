@@ -4,9 +4,10 @@ use std::collections::BTreeSet;
 
 use testlab_schema::{
     AdapterEvent, ByteString, ConsumedRecord, ConsumerId, GroupAssignmentsObservation,
-    GroupConsumerAssignment, GroupMembershipEpoch, GroupProtocol, GroupReceiveMemberCompletion,
-    GroupReceiveSetAction, GroupReceiveSetCompletion, ObserveGroupAssignmentsAction, OperationId,
-    RecordSpec, Scenario, ScenarioAction, ScenarioId, TopicPartitionIdentity,
+    GroupConsumerAssignment, GroupConsumerEventMethod, GroupMembershipEpoch, GroupProtocol,
+    GroupReceiveMemberCompletion, GroupReceiveSetAction, GroupReceiveSetCompletion,
+    ObserveGroupAssignmentsAction, OperationId, RecordSpec, Scenario, ScenarioAction, ScenarioId,
+    TopicPartitionIdentity,
 };
 
 use crate::group_ownership::verify;
@@ -168,6 +169,7 @@ fn fixture() -> (Scenario, Vec<testlab_schema::HistoryEntry>) {
                 ScenarioAction::ObserveGroupAssignments(ObserveGroupAssignmentsAction {
                     operation_id: observe.clone(),
                     consumer_ids: vec![first.clone(), second.clone()],
+                    method: GroupConsumerEventMethod::TryTakeEvent,
                     partitions: vec![partition(0), partition(1)],
                     timeout_ms: 1_000,
                 }),
@@ -190,6 +192,7 @@ fn fixture() -> (Scenario, Vec<testlab_schema::HistoryEntry>) {
             0,
             AdapterEvent::GroupAssignmentsObserved(GroupAssignmentsObservation {
                 operation_id: observe,
+                method: GroupConsumerEventMethod::TryTakeEvent,
                 transitions: Vec::new(),
                 assignments,
             }),

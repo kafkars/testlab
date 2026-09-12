@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v109 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v112 and evidence schema v98.
+Protocol v110 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v113 and evidence schema v99.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -482,7 +482,10 @@ Neither event handling nor receive observation extends background Fetch work.
 A batch direct assignment replaces the complete caller-ordered partition set
 through one public call. Stable group assignment observation drains public
 assigned, revoking, and lost transitions, explicitly completes current revocation
-leases, and requires two identical complete assignment snapshots. A state-error
+leases, and requires two identical complete assignment snapshots. Each
+observation selects either repeated immediate `try_take_event` calls or bounded
+polling of the runtime-neutral `next_event` future; the command and completion
+retain that exact public method. A state-error
 response for an old revocation is superseded only when the same public consumer
 exposes a strictly newer assignment fence; it is not reported as a successful
 acknowledgment. Observation may await that newer fence only within its original
@@ -1177,6 +1180,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v109 is an exact semantic contract. New capabilities may be declared
+Protocol v110 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

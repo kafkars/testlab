@@ -1,5 +1,9 @@
 //! Group ownership verification binds stable public assignments to exact committed records.
 
+#[path = "group_consumer_event_method.rs"]
+mod event_method;
+pub(crate) use event_method::verify as verify_event_method;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::{

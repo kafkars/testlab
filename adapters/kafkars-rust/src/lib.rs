@@ -14,6 +14,7 @@ mod assigned_record_transfer;
 mod client_metrics;
 mod connection_security;
 mod consumer_configuration;
+mod group_assignment_normalize;
 mod group_assignment_observe;
 #[cfg(test)]
 mod group_assignment_observe_test;
@@ -23,6 +24,7 @@ mod group_consumer_shutdown;
 mod group_consumers;
 #[cfg(test)]
 mod group_consumers_test;
+mod group_event_observe;
 mod group_receive_events;
 #[cfg(test)]
 mod group_receive_events_test;

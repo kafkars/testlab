@@ -4,6 +4,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId};
 
+/// Public group-transition observer selected for stable assignment evidence.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupConsumerEventMethod {
+    /// Repeatedly attempt the immediate retained-event take operation.
+    #[default]
+    TryTakeEvent,
+    /// Poll the named retained-event future without an async runtime.
+    NextEvent,
+}
+
 /// One exact Kafka topic-partition identity.
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -46,6 +57,9 @@ pub struct ObserveGroupAssignmentsAction {
     pub operation_id: OperationId,
     /// Ordered unique live consumers expected in the result.
     pub consumer_ids: Vec<ConsumerId>,
+    /// Exact public event observer used while assignments settle.
+    #[serde(default)]
+    pub method: GroupConsumerEventMethod,
     /// Complete expected assignment retained only in the scenario.
     pub partitions: Vec<TopicPartitionIdentity>,
     /// Complete observation bound.
@@ -60,6 +74,8 @@ pub struct ObserveGroupAssignmentsCommand {
     pub operation_id: OperationId,
     /// Ordered unique live consumers to observe.
     pub consumer_ids: Vec<ConsumerId>,
+    /// Exact public event observer used while assignments settle.
+    pub method: GroupConsumerEventMethod,
     /// Complete observation bound.
     pub timeout_ms: u64,
 }
@@ -70,6 +86,8 @@ pub struct ObserveGroupAssignmentsCommand {
 pub struct GroupAssignmentsObservation {
     /// Stable observation identity.
     pub operation_id: OperationId,
+    /// Public event observer used while assignments settled.
+    pub method: GroupConsumerEventMethod,
     /// Public transitions drained while reaching the stable snapshot.
     pub transitions: Vec<GroupAssignmentTransition>,
     /// Stable snapshots in caller consumer order.

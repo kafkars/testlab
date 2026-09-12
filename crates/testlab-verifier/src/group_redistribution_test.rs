@@ -4,9 +4,9 @@ use std::collections::BTreeSet;
 
 use testlab_schema::{
     AdapterEvent, ConsumerId, GroupAssignmentTransition, GroupAssignmentTransitionKind,
-    GroupAssignmentsObservation, GroupConsumerAssignment, GroupMembershipEpoch,
-    ObserveGroupAssignmentsAction, OperationId, Scenario, ScenarioAction, ScenarioId,
-    TopicPartitionIdentity,
+    GroupAssignmentsObservation, GroupConsumerAssignment, GroupConsumerEventMethod,
+    GroupMembershipEpoch, ObserveGroupAssignmentsAction, OperationId, Scenario, ScenarioAction,
+    ScenarioId, TopicPartitionIdentity,
 };
 
 use crate::group_redistribution::verify;
@@ -106,6 +106,7 @@ fn observation_step(
         ScenarioAction::ObserveGroupAssignments(ObserveGroupAssignmentsAction {
             operation_id: operation_id.clone(),
             consumer_ids,
+            method: GroupConsumerEventMethod::TryTakeEvent,
             partitions,
             timeout_ms: 1_000,
         }),
@@ -131,6 +132,7 @@ fn assignment_event(
         sequence,
         AdapterEvent::GroupAssignmentsObserved(GroupAssignmentsObservation {
             operation_id,
+            method: GroupConsumerEventMethod::TryTakeEvent,
             transitions,
             assignments,
         }),

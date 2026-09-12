@@ -80,6 +80,7 @@ pub(crate) fn drive(
     let result = drain_transitions(
         state,
         std::slice::from_ref(consumer_id),
+        testlab_schema::GroupConsumerEventMethod::TryTakeEvent,
         deadline,
         &mut pending,
     );

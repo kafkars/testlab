@@ -3,9 +3,9 @@
 use crate::{
     AdapterCommand, AdapterEvent, AssignBeginningBatchAction, AssignBeginningBatchCommand,
     ConsumerId, GroupAssignmentTransition, GroupAssignmentTransitionKind,
-    GroupAssignmentsObservation, GroupConsumerAssignment, GroupMembershipEpoch,
-    ObserveGroupAssignmentsAction, ObserveGroupAssignmentsCommand, OperationId, ScenarioAction,
-    TopicPartitionIdentity,
+    GroupAssignmentsObservation, GroupConsumerAssignment, GroupConsumerEventMethod,
+    GroupMembershipEpoch, ObserveGroupAssignmentsAction, ObserveGroupAssignmentsCommand,
+    OperationId, ScenarioAction, TopicPartitionIdentity,
 };
 
 #[test]
@@ -16,12 +16,14 @@ fn observation_expectations_do_not_cross_the_wire_boundary() {
     let action = ScenarioAction::ObserveGroupAssignments(ObserveGroupAssignmentsAction {
         operation_id: operation_id.clone(),
         consumer_ids: consumer_ids.clone(),
+        method: GroupConsumerEventMethod::NextEvent,
         partitions,
         timeout_ms: 30_000,
     });
     let command = AdapterCommand::ObserveGroupAssignments(ObserveGroupAssignmentsCommand {
         operation_id,
         consumer_ids,
+        method: GroupConsumerEventMethod::NextEvent,
         timeout_ms: 30_000,
     });
 
@@ -32,6 +34,7 @@ fn observation_expectations_do_not_cross_the_wire_boundary() {
 
     assert!(action_json.get("partitions").is_some());
     assert!(command_json.get("partitions").is_none());
+    assert_eq!(command_json["method"], "next_event");
 }
 
 #[test]
@@ -65,6 +68,7 @@ fn assignment_evidence_retains_member_and_transition_fences() {
     let operation_id = id(OperationId::new("assignment-observation-1"));
     let observation = GroupAssignmentsObservation {
         operation_id,
+        method: GroupConsumerEventMethod::NextEvent,
         transitions: vec![GroupAssignmentTransition {
             consumer_id: consumer_id.clone(),
             kind: GroupAssignmentTransitionKind::Assigned,
@@ -105,6 +109,27 @@ fn all_seven_ownership_and_recovery_scenarios_validate() {
         scenario
             .validate()
             .unwrap_or_else(|error| panic!("validate ownership scenario: {error}"));
+    }
+}
+
+#[test]
+fn classic_and_consumer_ownership_select_both_event_observers() {
+    for source in [
+        include_str!("../../../scenarios/kafka/classic-group-membership-ownership.toml"),
+        include_str!("../../../scenarios/kafka/consumer-protocol-group-membership-ownership.toml"),
+    ] {
+        let scenario: crate::Scenario = toml::from_str(source)
+            .unwrap_or_else(|error| panic!("parse ownership scenario: {error}"));
+        let methods = scenario
+            .steps
+            .iter()
+            .filter_map(|step| match &step.action {
+                ScenarioAction::ObserveGroupAssignments(action) => Some(action.method),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert!(methods.contains(&GroupConsumerEventMethod::NextEvent));
+        assert!(methods.contains(&GroupConsumerEventMethod::TryTakeEvent));
     }
 }
 

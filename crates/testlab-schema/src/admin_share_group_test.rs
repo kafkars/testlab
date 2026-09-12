@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_share_group_offset_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 109);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 112);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 98);
+    assert_eq!(PROTOCOL_VERSION, 110);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 113);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 99);
 }
 
 #[test]

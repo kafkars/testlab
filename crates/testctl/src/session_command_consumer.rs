@@ -179,6 +179,7 @@ fn translate_ownership(action: &ScenarioAction) -> Option<(AdapterCommand, Expec
                 testlab_schema::ObserveGroupAssignmentsCommand {
                     operation_id: action.operation_id.clone(),
                     consumer_ids: action.consumer_ids.clone(),
+                    method: action.method,
                     timeout_ms: action.timeout_ms,
                 },
             ),

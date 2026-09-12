@@ -68,6 +68,9 @@
   public method retained in command evidence. Retained direct-consumer failures
   are likewise observed through both `next_event` and `try_take_event`, with
   exact public fences and broker codes joined to independent policy evidence.
+- Classic and KIP-848 assignment transitions are observed through both the
+  public `next_event` future and immediate `try_take_event` method, with the
+  exact selection retained beside stable assignment and broker-visible proof.
 - Direct-consumer batches reach owned records through both the owned-batch
   chain and direct `into_owned_records` conversion before transfer through an
   ordinary producer. Exact source coordinates and bytes are read again after

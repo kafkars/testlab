@@ -115,6 +115,7 @@ fn group_ownership_completions_require_exact_operation_identity() {
             .classify(&AdapterEvent::GroupAssignmentsObserved(
                 GroupAssignmentsObservation {
                     operation_id: observation,
+                    method: Default::default(),
                     transitions: Vec::new(),
                     assignments: Vec::new(),
                 }
@@ -139,6 +140,7 @@ fn group_ownership_completions_require_exact_operation_identity() {
             .classify(&AdapterEvent::GroupAssignmentsObserved(
                 GroupAssignmentsObservation {
                     operation_id: id(OperationId::new("observe-1")),
+                    method: Default::default(),
                     transitions: Vec::new(),
                     assignments: Vec::new(),
                 }

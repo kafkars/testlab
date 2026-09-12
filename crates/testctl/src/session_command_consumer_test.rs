@@ -4,9 +4,9 @@ use testlab_schema::{
     AdapterCommand, AssignedConsumerControl, AssignedConsumerControlAction,
     AssignedConsumerReceiveMethod, AssignedStartPosition, ClientId, ConsumerId,
     GroupConsumerConfiguration, GroupConsumerControl, GroupConsumerControlAction,
-    GroupConsumerShutdownAction, GroupOffsetReset, GroupProtocol, GroupReadIsolation,
-    GroupReceiveSetAction, ObserveGroupAssignmentsAction, OperationId, ScenarioAction,
-    TopicPartitionIdentity,
+    GroupConsumerEventMethod, GroupConsumerShutdownAction, GroupOffsetReset, GroupProtocol,
+    GroupReadIsolation, GroupReceiveSetAction, ObserveGroupAssignmentsAction, OperationId,
+    ScenarioAction, TopicPartitionIdentity,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -19,6 +19,7 @@ fn assignment_observation_strips_expected_partitions() {
     let action = ScenarioAction::ObserveGroupAssignments(ObserveGroupAssignmentsAction {
         operation_id: operation_id.clone(),
         consumer_ids: vec![consumer_id.clone()],
+        method: GroupConsumerEventMethod::NextEvent,
         partitions: vec![partition(0), partition(1)],
         timeout_ms: 30_000,
     });
@@ -30,6 +31,7 @@ fn assignment_observation_strips_expected_partitions() {
 
     assert_eq!(command.operation_id, operation_id);
     assert_eq!(command.consumer_ids, vec![consumer_id]);
+    assert_eq!(command.method, GroupConsumerEventMethod::NextEvent);
     assert!(matches!(
         expected,
         ExpectedEvent::GroupAssignmentsObserved(_)

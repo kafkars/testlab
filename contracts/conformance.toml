@@ -1057,6 +1057,12 @@ statement = "One scenario-selected hosted group receive preserves the public Con
 category = "consumer"
 
 [[contract]]
+id = "CONS-026"
+title = "Group transition observer remains exact"
+statement = "Every stable group assignment observation preserves its selected public Consumer next_event or try_take_event method in one ordered exact command and public completion."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

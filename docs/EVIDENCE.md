@@ -161,6 +161,11 @@ non-Set configuration method and operation operand from independently expected
 final state. ADMIN-080 exercises exact public Delete, Append, and Subtract
 constructors through topic-specific and generic-resource surfaces; only the two
 list operations carry operands across the adapter boundary.
+Protocol v110, scenario schema v113, and evidence schema v99 retain the exact
+public group-transition observer. CONS-026 binds every assignment observation's
+selected `next_event` or `try_take_event` method across its ordered command and
+completion; classic and KIP-848 ownership scenarios exercise both methods while
+the existing assignment and independent broker contracts retain state truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -843,6 +848,11 @@ packaged consumer claimed each partition; independent record observations,
 committed-offset queries, and consumer-group member counts separately
 corroborate the broker-visible effects. Testlab does not parse private assignment
 state or infer a definite owner from an adapter success string.
+
+CONS-026 additionally requires each assignment observation's exact selected
+public `next_event` or `try_take_event` method in one preceding command and one
+completion. It does not replace the assignment-state or broker-visible truth
+required by CONS-005 through CONS-011.
 
 Assignment observation cannot settle on a fence that a drained revoking or lost
 event invalidated; it waits for a newer public assignment under the original

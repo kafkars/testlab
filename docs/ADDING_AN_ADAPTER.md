@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v109. It is not a
+An adapter translates one packaged client surface to protocol v110. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -141,6 +141,9 @@ runner and not a verifier.
 - Advertise group-consumer immediate batches only when a selected
   `try_take_batch` receive repeatedly calls that exact hosted-consumer method
   and never substitutes the waiting `recv` observer.
+- Preserve each stable group-assignment observer exactly: `next_event` polls
+  the public future and `try_take_event` calls the immediate public method.
+  Retain the selection in both command and completion evidence.
 - Preserve the selected full-batch group checkpoint conversion exactly; do not
   substitute `checkpoint` for `into_checkpoint` or use either for a partial
   checkpoint that requires the builder.

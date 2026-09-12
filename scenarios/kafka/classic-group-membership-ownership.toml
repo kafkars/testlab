@@ -1,4 +1,4 @@
-schema_version = 112
+schema_version = 113
 id = "kafka.classic-group-membership-ownership"
 title = "two classic members redistribute one complete disjoint assignment"
 description = "Public assignment snapshots prove complete pairwise-disjoint ownership before and after a second classic member joins and leaves, while exact committed records and independent group descriptions corroborate live progress."
@@ -45,6 +45,7 @@ id = "observe-single-member"
 kind = "observe_group_assignments"
 operation_id = "observe-single-member"
 consumer_ids = ["consumer-1"]
+method = "next_event"
 partitions = [
   { topic = "testlab-kafkars-classic-ownership", partition = 0 },
   { topic = "testlab-kafkars-classic-ownership", partition = 1 },
@@ -67,6 +68,7 @@ id = "observe-two-members"
 kind = "observe_group_assignments"
 operation_id = "observe-two-members"
 consumer_ids = ["consumer-1", "consumer-2"]
+method = "try_take_event"
 partitions = [
   { topic = "testlab-kafkars-classic-ownership", partition = 0 },
   { topic = "testlab-kafkars-classic-ownership", partition = 1 },

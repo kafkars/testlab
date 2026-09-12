@@ -8,11 +8,12 @@ use crate::kafkars_api::{ConsumerAssignment, ConsumerEvent, ErrorKind, RetryAdvi
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, CommandId, ConsumerId, GroupAssignmentTransition,
     GroupAssignmentTransitionKind, GroupAssignmentsObservation, GroupConsumerAssignment,
-    ObserveGroupAssignmentsCommand, TopicPartitionIdentity,
+    ObserveGroupAssignmentsCommand,
 };
 
 use crate::AdapterError;
 use crate::admission_retry::retry_until;
+use crate::group_assignment_normalize::{partitions as normalize_partitions, transition};
 use crate::protocol::emit;
 use crate::state::AdapterState;
 
@@ -72,7 +73,13 @@ pub(crate) fn observe<W: Write>(
     let mut transitions = take_pending_transitions(&mut state.pending_group_transitions, &members);
     let mut previous = None;
     let assignments = loop {
-        let drained = drain_transitions(state, &command.consumer_ids, deadline, &mut transitions)?;
+        let drained = drain_transitions(
+            state,
+            &command.consumer_ids,
+            command.method,
+            deadline,
+            &mut transitions,
+        )?;
         let current = if drained {
             snapshots(state, &command.consumer_ids)?
         } else {
@@ -100,6 +107,7 @@ pub(crate) fn observe<W: Write>(
             command_id,
             AdapterEvent::GroupAssignmentsObserved(GroupAssignmentsObservation {
                 operation_id: command.operation_id,
+                method: command.method,
                 transitions,
                 assignments,
             }),
@@ -150,12 +158,16 @@ pub(super) fn stable_assignment_candidate(
 pub(crate) fn drain_transitions(
     state: &mut AdapterState,
     consumer_ids: &[ConsumerId],
+    method: testlab_schema::GroupConsumerEventMethod,
     deadline: Instant,
     transitions: &mut Vec<GroupAssignmentTransition>,
 ) -> Result<bool, AdapterError> {
     for consumer_id in consumer_ids {
         loop {
-            let event = match state.group_consumer_mut(consumer_id)?.try_take_event() {
+            let event = match crate::group_event_observe::take(
+                state.group_consumer_mut(consumer_id)?,
+                method,
+            ) {
                 Ok(event) => event,
                 Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => return Ok(false),
                 Err(error) => return Err(AdapterError::Client(error)),
@@ -270,28 +282,4 @@ fn snapshots(
         });
     }
     Ok(Some(snapshots))
-}
-
-fn transition(
-    consumer_id: &ConsumerId,
-    kind: GroupAssignmentTransitionKind,
-    assignment: &ConsumerAssignment,
-) -> GroupAssignmentTransition {
-    GroupAssignmentTransition {
-        consumer_id: consumer_id.clone(),
-        kind,
-        assignment_epoch: assignment.assignment_epoch(),
-        partitions: normalize_partitions(assignment),
-    }
-}
-
-fn normalize_partitions(assignment: &ConsumerAssignment) -> Vec<TopicPartitionIdentity> {
-    assignment
-        .partitions()
-        .iter()
-        .map(|partition| TopicPartitionIdentity {
-            topic: partition.topic().to_owned(),
-            partition: partition.partition(),
-        })
-        .collect()
 }
