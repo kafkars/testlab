@@ -124,6 +124,7 @@ fn send(id: &str) -> ScenarioAction {
     ScenarioAction::Send {
         producer_id: producer(),
         operation_id: operation(id),
+        method: Default::default(),
         partitioning: testlab_schema::ProducerPartitioning::Explicit,
         record: record(id),
     }
@@ -135,6 +136,7 @@ fn send_command(sequence: u64, id: &str) -> HistoryEntry {
         AdapterCommand::Send {
             producer_id: producer(),
             operation_id: operation(id),
+            method: Default::default(),
             partitioning: testlab_schema::ProducerPartitioning::Explicit,
             record: record(id),
         },

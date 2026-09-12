@@ -13,6 +13,7 @@ pub(crate) fn validate(
         operation_id,
         partitioning,
         record,
+        ..
     } = action
     else {
         unreachable!("producer partitioning validator requires one send");

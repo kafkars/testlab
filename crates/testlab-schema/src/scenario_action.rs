@@ -50,6 +50,9 @@ pub enum ScenarioAction {
     Send {
         producer_id: ProducerId,
         operation_id: OperationId,
+        /// Exact public single-record producer method.
+        #[serde(default)]
+        method: crate::ProducerSendMethod,
         #[serde(default)]
         partitioning: crate::ProducerPartitioning,
         record: crate::RecordSpec,
@@ -57,7 +60,6 @@ pub enum ScenarioAction {
     CancelProducerSend(crate::CancelProducerSendCommand),
     SendBatch {
         producer_id: ProducerId,
-        /// Ordered operations.
         operations: Vec<crate::BatchRecord>,
     },
     StartConcurrentActors(crate::StartConcurrentActorsAction),
@@ -70,9 +72,7 @@ pub enum ScenarioAction {
     },
     AssignBeginning {
         consumer_id: ConsumerId,
-        /// Exact topic.
         topic: String,
-        /// Exact partition.
         partition: i32,
     },
     AssignBeginningBatch(crate::AssignBeginningBatchAction),

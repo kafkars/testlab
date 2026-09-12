@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v88 over stdin/stdout;
+2. implements protocol v89 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -26,7 +26,9 @@ It:
    caller-selected Fetch policy, retained-delivery capacities, and processing,
    membership-start, seek, and close deadlines, while configured assigned
    clients preserve the same Fetch and capacity envelope;
-4. preserves admission rejection separately from accepted delivery;
+4. preserves immediate `try_send` rejection separately from accepted delivery,
+   and maps an explicit `send` selection to Kafkars's bounded FIFO waiting
+   operation without an adapter retry loop;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
 6. preserves caller order and exact per-resource public outcomes for admin

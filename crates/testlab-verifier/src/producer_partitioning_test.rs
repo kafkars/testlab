@@ -79,6 +79,7 @@ fn fixture() -> (
                 operation_id,
                 partitioning,
                 record,
+                ..
             } => {
                 record.partition = 2;
                 record.key = Some(ByteString::utf8("kafkars"));
@@ -99,6 +100,7 @@ fn fixture() -> (
             AdapterCommand::Send {
                 producer_id,
                 operation_id: operation_id.clone(),
+                method: Default::default(),
                 partitioning,
                 record,
             },

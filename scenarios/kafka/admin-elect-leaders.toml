@@ -1,4 +1,4 @@
-schema_version = 91
+schema_version = 92
 id = "kafka.admin-elect-leaders"
 title = "packaged admin restores preferred leaders through selected and cluster-wide paths"
 description = "Testlab independently disrupts two exact leaders on separate three-replica partitions, proves public progress through distinct replacements, restores each original replica into the full ISR, and requires the selected and cluster-wide preferred-election paths to move both leaders back to their independently observed preferred replicas."

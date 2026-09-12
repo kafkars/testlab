@@ -82,6 +82,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             AdapterCommand::Send {
                 producer_id: producer.clone(),
                 operation_id: id(OperationId::new("op-1")),
+                method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::JavaKeyed {
                     partition_count: 3,
                 },

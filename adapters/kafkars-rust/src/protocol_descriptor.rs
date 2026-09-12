@@ -9,6 +9,7 @@ use crate::AdapterError;
 pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
     let capabilities = BTreeSet::from([
         Capability::Producer,
+        Capability::ProducerWaitingSend,
         Capability::ProducerCancellation,
         Capability::ProducerConfiguration,
         Capability::ProducerBatch,

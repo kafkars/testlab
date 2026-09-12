@@ -64,6 +64,10 @@ state before and after the mutation.
 Protocol v88, scenario schema v91, and evidence schema v77 add reversible
 broker-unregistration evidence: the public completion, exact immediate
 independent remaining broker set, and same-cluster restoration after restart.
+Protocol v89, scenario schema v92, and evidence schema v78 retain the exact
+single-record producer method. PROD-016 requires a scenario-selected
+`Producer::send` to remain distinct from default immediate `try_send` admission;
+its ordinary terminal and independent-record evidence still applies.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -121,6 +125,11 @@ automatic path, and that both receipt and broker record match the independent
 positive-Murmur2 oracle over the serialized key and declared logical partition
 count. The scenario's expected partition is retained for provisioning and
 observation but is not passed to Kafkars as an explicit partition.
+PROD-016 additionally requires the issued command to preserve a selected
+`Producer::send`, its producer, partitioning mode, and complete record. The
+packaged adapter invokes that exact bounded FIFO waiting method; the normal
+receipt and independent Kafka observation remain governed by PROD-001 through
+PROD-010 and PROD-014.
 
 Configured-client history retains the complete requested public producer
 policy under its stable command identity, and lifecycle evidence requires the

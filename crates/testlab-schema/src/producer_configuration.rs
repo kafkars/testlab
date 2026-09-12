@@ -24,6 +24,17 @@ pub enum ProducerCompression {
     Zstd,
 }
 
+/// Public single-record producer method selected by one scenario send.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProducerSendMethod {
+    /// Attempts immediate admission and returns the record on rejection.
+    #[default]
+    TrySend,
+    /// Enters the client's bounded FIFO waiting-admission path.
+    Send,
+}
+
 /// Portable active, waiting, batching, and request ownership limits.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

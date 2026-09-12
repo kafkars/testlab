@@ -55,6 +55,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
                 ScenarioAction::Send {
                     producer_id: producer.clone(),
                     operation_id: operation.clone(),
+                    method: Default::default(),
                     partitioning: testlab_schema::ProducerPartitioning::Explicit,
                     record: record("value"),
                 },

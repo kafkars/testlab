@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use crate::{Capability, Scenario, ScenarioAction};
+use crate::{Capability, ProducerSendMethod, Scenario, ScenarioAction};
 
 #[test]
 fn checked_in_scenarios_cover_every_public_compression() {
@@ -49,6 +49,40 @@ fn configuration_capability_and_limit_relationships_are_required() {
     };
     action.configuration.limits.batch_bytes = 2_000_000;
     assert_problem(&scenario, "batch_bytes <= request_bytes");
+}
+
+#[test]
+fn waiting_send_is_explicit_and_requires_its_capability() {
+    let mut scenario = scenario(include_str!(
+        "../../../scenarios/kafka/producer-waiting-send.toml"
+    ));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate waiting send: {error}"));
+    assert!(scenario.steps.iter().any(|step| matches!(
+        &step.action,
+        ScenarioAction::Send {
+            method: ProducerSendMethod::Send,
+            ..
+        }
+    )));
+
+    scenario.requires.remove(&Capability::ProducerWaitingSend);
+    assert_problem(&scenario, "producer_waiting_send capability");
+}
+
+#[test]
+fn ordinary_send_defaults_to_try_send() {
+    let scenario = scenario(include_str!(
+        "../../../scenarios/kafka/producer-configuration-none.toml"
+    ));
+    assert!(scenario.steps.iter().any(|step| matches!(
+        &step.action,
+        ScenarioAction::Send {
+            method: ProducerSendMethod::TrySend,
+            ..
+        }
+    )));
 }
 
 fn scenario(source: &str) -> Scenario {

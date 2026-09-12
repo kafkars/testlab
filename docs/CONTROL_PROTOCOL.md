@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v88 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v91 and evidence schema v77.
+Protocol v89 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v92 and evidence schema v78.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -50,6 +50,13 @@ total retained-byte capacity. The adapter receives no expected record;
 read-committed behavior and the configured Fetch path are proved by a direct
 assignment from the beginning returning only a nontransactional sentinel after
 an independently verified aborted transaction.
+
+An ordinary `send` names its exact public producer method. `try_send` is the
+default immediate-admission path; `send` selects bounded FIFO waiting admission
+and requires the `producer_waiting_send` capability. The command retains that
+selection so an adapter cannot silently substitute one public method for the
+other. Cancellation continues to use `try_send` and its retained delivery
+observer.
 
 An ordinary `send` carries an explicit partition by default. A `java_keyed`
 selection instead carries the logical topic partition count and a keyed record;
@@ -1053,6 +1060,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v88 is an exact semantic contract. New capabilities may be declared
+Protocol v89 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -176,7 +176,7 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
 #[test]
 fn broker_and_role_stops_require_exact_restoration() {
     let source = r#"
-schema_version = 91
+schema_version = 92
 id = "environment.paired-control"
 title = "paired control"
 description = "every retained broker control is restored"
@@ -250,6 +250,7 @@ fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
             ScenarioAction::Send {
                 producer_id: producer.clone(),
                 operation_id,
+                method: Default::default(),
                 partitioning: super::ProducerPartitioning::Explicit,
                 record: super::RecordSpec {
                     topic: "records".to_owned(),

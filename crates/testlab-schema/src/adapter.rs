@@ -12,6 +12,8 @@ use crate::AdapterId;
 pub enum Capability {
     /// Public producer operations.
     Producer,
+    /// Bounded FIFO admission through the public producer `send` method.
+    ProducerWaitingSend,
     /// Stage-aware public producer cancellation.
     ProducerCancellation,
     /// Client-wide public producer configuration.

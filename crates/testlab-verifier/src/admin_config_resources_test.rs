@@ -201,7 +201,7 @@ fn assert_client_metrics_contract(violations: &[testlab_schema::Violation]) {
 fn scenario() -> Scenario {
     toml::from_str(
         r#"
-schema_version = 91
+schema_version = 92
 id = "config-resources-fixture"
 title = "configuration resources fixture"
 description = "isolated verifier fixture"
@@ -228,7 +228,7 @@ timeout_ms = 20000
 fn client_metrics_scenario() -> Scenario {
     toml::from_str(
         r#"
-schema_version = 91
+schema_version = 92
 id = "client-metrics-resources-fixture"
 title = "client metrics resources fixture"
 description = "isolated verifier fixture"

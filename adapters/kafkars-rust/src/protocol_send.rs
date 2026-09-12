@@ -4,7 +4,7 @@ use std::io::Write;
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId, ProducerId,
-    ProducerPartitioning, RecordSpec, TerminalStatus,
+    ProducerPartitioning, ProducerSendMethod, RecordSpec, TerminalStatus,
 };
 
 use crate::AdapterError;
@@ -20,11 +20,15 @@ pub(crate) fn dispatch_send<W: Write>(
     command_id: CommandId,
     producer_id: &ProducerId,
     operation_id: OperationId,
+    method: ProducerSendMethod,
     partitioning: ProducerPartitioning,
     record: RecordSpec,
 ) -> Result<(), AdapterError> {
     let producer = state.producer(producer_id)?;
-    let outcome = execute_send(producer, &operation_id, partitioning, record)?;
+    let outcome = match method {
+        ProducerSendMethod::TrySend => execute_send(producer, &operation_id, partitioning, record)?,
+        ProducerSendMethod::Send => execute_waiting_send(producer, partitioning, record)?,
+    };
     emit_send_outcome(writer, command_id, operation_id, outcome)
 }
 
@@ -70,6 +74,34 @@ pub(crate) fn execute_send(
         ),
         Err(error) => {
             eprintln!("Kafkars delivery failed for {operation_id}: {error}");
+            let failure = normalize::delivery_failure(&error);
+            (failure.status, Some(failure.code), None, None, None)
+        }
+    };
+    Ok(SendOutcome::Accepted {
+        status,
+        code,
+        partition,
+        offset,
+        timestamp_millis,
+    })
+}
+
+fn execute_waiting_send(
+    producer: &Producer,
+    partitioning: ProducerPartitioning,
+    record: RecordSpec,
+) -> Result<SendOutcome, AdapterError> {
+    let record = normalize::producer_record(record, partitioning)?;
+    let (status, code, partition, offset, timestamp_millis) = match producer.send(record).wait() {
+        Ok(metadata) => (
+            TerminalStatus::Acknowledged,
+            None,
+            Some(metadata.partition()),
+            Some(metadata.offset()),
+            metadata.timestamp_milliseconds(),
+        ),
+        Err(error) => {
             let failure = normalize::delivery_failure(&error);
             (failure.status, Some(failure.code), None, None, None)
         }

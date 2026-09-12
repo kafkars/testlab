@@ -1,4 +1,4 @@
-schema_version = 91
+schema_version = 92
 id = "kafka.admin-delete-records"
 title = "packaged admin deletes one independently seeded record prefix"
 description = "The harness seeds a fresh partition through an independent producer, the packaged admin deletes records before offset 2, and immediate independent watermark queries prove that only the low watermark advances from 0 to 2 while the high watermark remains 3."

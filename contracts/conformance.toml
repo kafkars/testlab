@@ -919,6 +919,12 @@ statement = "A Java-keyed send preserves automatic selection in the adapter comm
 category = "producer"
 
 [[contract]]
+id = "PROD-016"
+title = "Waiting sends preserve the exact public producer method"
+statement = "A scenario-selected bounded waiting send emits exactly one command retaining Producer::send, the producer identity, partitioning mode, and complete logical record rather than silently falling back to immediate try_send admission."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
 statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."

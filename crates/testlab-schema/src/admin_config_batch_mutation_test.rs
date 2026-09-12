@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn plural_topic_config_mutation_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 88);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 91);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 77);
+    assert_eq!(PROTOCOL_VERSION, 89);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 92);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 78);
 }
 
 #[test]

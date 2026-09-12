@@ -31,6 +31,8 @@ pub enum AdapterCommand {
     Send {
         producer_id: ProducerId,
         operation_id: OperationId,
+        /// Exact public single-record producer method.
+        method: crate::ProducerSendMethod,
         /// Exact public partition-selection path.
         partitioning: crate::ProducerPartitioning,
         /// Exact logical record.

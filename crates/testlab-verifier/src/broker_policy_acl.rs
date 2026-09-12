@@ -205,18 +205,21 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
             ScenarioAction::Send {
                 producer_id,
                 operation_id,
+                method,
                 partitioning,
                 record,
             },
             AdapterCommand::Send {
                 producer_id: actual_producer,
                 operation_id: actual_operation,
+                method: actual_method,
                 partitioning: actual_partitioning,
                 record: actual_record,
             },
         ) => {
             producer_id == actual_producer
                 && operation_id == actual_operation
+                && method == actual_method
                 && partitioning == actual_partitioning
                 && record == actual_record
         }

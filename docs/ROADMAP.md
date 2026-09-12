@@ -77,6 +77,9 @@
 - Independent producer-configuration scenarios cover explicit client-wide
   delivery timeout, retry, ownership limits, request concurrency, linger, and
   none, gzip, snappy, LZ4, and zstd public compression selections.
+- A dedicated producer scenario selects public `Producer::send` rather than
+  `try_send`, retaining its bounded waiting-admission choice in evidence while
+  proving the resulting receipt against an independent Kafka record.
 - Public client metrics coverage retains every calls, failures, mailbox,
   latency, and producer snapshot getter after independently verified producer
   work, with exact command ownership and deterministic cross-field invariants.

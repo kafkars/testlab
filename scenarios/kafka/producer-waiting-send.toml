@@ -1,0 +1,78 @@
+schema_version = 92
+id = "kafka.producer-waiting-send"
+title = "bounded waiting producer send reaches Kafka exactly once"
+description = "One configured packaged producer enters Kafkars's public send waiting path under explicit one-record and bounded-byte capacity, then reports the exact receipt independently observed from Kafka."
+timeout_ms = 60000
+requires = ["producer", "producer_waiting_send", "producer_configuration", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-configured-client"
+kind = "create_configured_client"
+client_id = "client-waiting-send"
+
+[steps.configuration]
+delivery_timeout_ms = 20000
+compression = "none"
+max_retries = 2
+retry_backoff_ms = 10
+
+[steps.configuration.limits]
+retained_bytes = 1048576
+in_flight_records = 1
+waiting_records = 1
+waiting_bytes = 4096
+batch_records = 1
+batch_bytes = 262144
+request_bytes = 524288
+max_in_flight_requests_per_broker = 1
+linger_ms = 0
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-waiting-send"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-waiting-send"
+producer_id = "producer-waiting-send"
+
+[[steps]]
+id = "send-through-waiting-admission"
+kind = "send"
+producer_id = "producer-waiting-send"
+operation_id = "op-waiting-send"
+method = "send"
+
+[steps.record]
+topic = "testlab-kafkars-producer-waiting-send"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "waiting-key" }
+value = { encoding = "utf8", data = "bounded-waiting-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-waiting-send" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-waiting-send"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-waiting-send"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-waiting-send"
+
+[[assertions]]
+operation_id = "op-waiting-send"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

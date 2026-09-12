@@ -138,30 +138,14 @@ fn history() -> Vec<HistoryEntry> {
             0,
             NetworkProxyControl::AlterFault(fault("blackhole-apply", NetworkFaultState::Present)),
         ),
-        command(
-            1,
-            AdapterCommand::Send {
-                producer_id: producer(),
-                operation_id: operation("during-blackhole"),
-                partitioning: testlab_schema::ProducerPartitioning::Explicit,
-                record: record("during"),
-            },
-        ),
+        command(1, send_command("during-blackhole", "during")),
         terminal(2, "during-blackhole", TerminalStatus::PossiblySent),
         control(
             3,
             NetworkProxyControl::AlterFault(fault("blackhole-remove", NetworkFaultState::Absent)),
         ),
         observation(4),
-        command(
-            5,
-            AdapterCommand::Send {
-                producer_id: producer(),
-                operation_id: operation("after-blackhole"),
-                partitioning: testlab_schema::ProducerPartitioning::Explicit,
-                record: record("after"),
-            },
-        ),
+        command(5, send_command("after-blackhole", "after")),
         terminal(6, "after-blackhole", TerminalStatus::Acknowledged),
         proxy_process(7),
     ]
@@ -181,10 +165,22 @@ fn send(id: &str) -> ScenarioAction {
     ScenarioAction::Send {
         producer_id: producer(),
         operation_id: operation(id),
+        method: Default::default(),
         partitioning: testlab_schema::ProducerPartitioning::Explicit,
         record: record(id),
     }
 }
+
+fn send_command(id: &str, value: &str) -> AdapterCommand {
+    AdapterCommand::Send {
+        producer_id: producer(),
+        operation_id: operation(id),
+        method: Default::default(),
+        partitioning: testlab_schema::ProducerPartitioning::Explicit,
+        record: record(value),
+    }
+}
+
 fn control(sequence: u64, control: NetworkProxyControl) -> HistoryEntry {
     HistoryEntry {
         sequence,

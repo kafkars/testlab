@@ -116,6 +116,7 @@ fn reversed_same_partition_offsets_fail_declared_order() {
             ScenarioAction::Send {
                 producer_id: id(testlab_schema::ProducerId::new("producer-1")),
                 operation_id: id(OperationId::new("op-2")),
+                method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 record: record("second"),
             },
