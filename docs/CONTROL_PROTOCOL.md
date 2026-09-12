@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v78 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v81 and evidence schema v67.
+Protocol v79 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v82 and evidence schema v68.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -470,6 +470,13 @@ the same accepted leave and original deadline; it does not start a second
 shutdown. Only then does Testlab release its owned handle. This completion is adapter-reported
 lifecycle truth only; a following packaged Admin description and immediate
 independent consumer-group query must both report zero members.
+
+A Share create command carries 1 to 32 distinct topics in caller order, and the
+adapter passes the complete list to the public subscription builder. Creation
+completes only after the public assignment contains every requested topic;
+assignments outside that list invalidate the run. Multi-topic scenarios require
+exact publicly acquired records from every topic, each joined to independent
+broker observation.
 
 A share receive retains the exact ordered linear acquisition batch behind its
 receive identity until one later acknowledgement, explicit drop, or consumer
@@ -997,6 +1004,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v78 is an exact semantic contract. New capabilities may be declared
+Protocol v79 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

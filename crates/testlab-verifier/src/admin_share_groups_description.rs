@@ -15,7 +15,7 @@ use crate::support::violation;
 #[derive(Clone)]
 struct LiveShare {
     group_id: String,
-    topic: String,
+    topics: Vec<String>,
     retained: BTreeSet<OperationId>,
 }
 
@@ -120,7 +120,8 @@ fn exact_live_share_batches(
         let matching = live
             .iter()
             .filter(|(_, consumer)| {
-                consumer.group_id == group.group_id && consumer.topic == group.expected_topic
+                consumer.group_id == group.group_id
+                    && consumer.topics.contains(&group.expected_topic)
             })
             .collect::<Vec<_>>();
         usize::try_from(group.expected_member_count) == Ok(matching.len())
@@ -162,14 +163,14 @@ fn live_share_consumers(
             ScenarioAction::CreateShareConsumer {
                 consumer_id,
                 group_id,
-                topic,
+                topics,
                 ..
             } => {
                 live.insert(
                     consumer_id.clone(),
                     LiveShare {
                         group_id: group_id.clone(),
-                        topic: topic.clone(),
+                        topics: topics.clone(),
                         retained: BTreeSet::new(),
                     },
                 );

@@ -175,6 +175,27 @@ fn group_creation_preserves_public_configuration() {
 }
 
 #[test]
+fn share_creation_preserves_caller_topic_order() {
+    let action = ScenarioAction::CreateShareConsumer {
+        client_id: id(ClientId::new("client-1")),
+        consumer_id: id(ConsumerId::new("share-1")),
+        group_id: "share-workers".to_owned(),
+        topics: vec!["orders".to_owned(), "returns".to_owned()],
+        membership_timeout_ms: 30_000,
+        close_timeout_ms: 30_000,
+        configuration: None,
+    };
+
+    let Some((AdapterCommand::CreateShareConsumer { topics, .. }, expected)) = translate(&action)
+    else {
+        panic!("Share creation must translate");
+    };
+
+    assert_eq!(topics, vec!["orders".to_owned(), "returns".to_owned()]);
+    assert!(matches!(expected, ExpectedEvent::ShareConsumerCreated(_)));
+}
+
+#[test]
 fn group_abandonment_preserves_the_exact_consumer_identity() {
     let consumer_id = id(ConsumerId::new("consumer-static"));
     let action = ScenarioAction::AbandonGroupConsumer(testlab_schema::GroupConsumerAbandonment {

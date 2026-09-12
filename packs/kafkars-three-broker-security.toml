@@ -47,6 +47,7 @@ scenarios = [
   "scenarios/kafka/classic-group-session-recovery.toml",
   "scenarios/kafka/consumer-protocol-group-session-recovery.toml",
   "scenarios/kafka/share-group-lifecycle.toml",
+  "scenarios/kafka/share-group-multi-topic-subscription.toml",
   "scenarios/kafka/share-group-mixed-release.toml",
   "scenarios/kafka/share-group-mixed-reject.toml",
   "scenarios/kafka/share-group-batch-drop.toml",

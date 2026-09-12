@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.share-group-close-uncertainty"
 title = "share close reports truthful certainty during broker loss"
 description = "A share member closes with an unfinished acquisition while its sole broker is stopped and must expose an explicit non-success terminal with delivery certainty."
@@ -27,7 +27,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-close"
-topic = "testlab-kafkars-share-close"
+topics = ["testlab-kafkars-share-close"]
 membership_timeout_ms = 30000
 close_timeout_ms = 500
 

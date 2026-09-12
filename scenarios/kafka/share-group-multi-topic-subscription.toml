@@ -1,0 +1,145 @@
+schema_version = 82
+id = "kafka.share-group-multi-topic-subscription"
+title = "Share subscription preserves two caller-ordered topics"
+description = "One Share member subscribes to two topics and publicly acquires and accepts one independently observed exact record from each topic."
+timeout_ms = 180000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "client-1"
+consumer_id = "share-1"
+group_id = "testlab-share-multi-topic"
+topics = [
+  "testlab-kafkars-share-multi-topic-alpha",
+  "testlab-kafkars-share-multi-topic-zulu",
+]
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "send-alpha"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-alpha"
+
+[steps.record]
+topic = "testlab-kafkars-share-multi-topic-alpha"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "alpha" }
+value = { encoding = "utf8", data = "first-topic" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-alpha" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-alpha"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-alpha"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-alpha"
+expected_operation_ids = ["op-share-alpha"]
+minimum_delivery_count = 1
+expected_acquisition_count = 1
+timeout_ms = 60000
+
+[[steps]]
+id = "acknowledge-alpha"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-alpha"
+acknowledgement_id = "ack-alpha"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "send-zulu"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-share-zulu"
+
+[steps.record]
+topic = "testlab-kafkars-share-multi-topic-zulu"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "zulu" }
+value = { encoding = "utf8", data = "second-topic" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-share-zulu" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-zulu"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "receive-zulu"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "receive-zulu"
+expected_operation_ids = ["op-share-zulu"]
+minimum_delivery_count = 1
+expected_acquisition_count = 1
+timeout_ms = 60000
+
+[[steps]]
+id = "acknowledge-zulu"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "receive-zulu"
+acknowledgement_id = "ack-zulu"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-share-alpha"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-share-zulu"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

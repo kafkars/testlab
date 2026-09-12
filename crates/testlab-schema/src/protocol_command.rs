@@ -127,8 +127,8 @@ pub enum AdapterCommand {
         consumer_id: ConsumerId,
         /// Exact Kafka share-group identity.
         group_id: String,
-        /// Sole subscribed topic.
-        topic: String,
+        /// Caller-ordered distinct subscribed topics.
+        topics: Vec<String>,
         /// Complete first-heartbeat bound.
         membership_timeout_ms: u64,
         /// Complete graceful-close bound.

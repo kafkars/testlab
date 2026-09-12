@@ -7,7 +7,7 @@ use crate::{ConsumerId, OperationId, Scenario, ScenarioAction};
 #[derive(Clone)]
 struct LiveShare {
     group_id: String,
-    topic: String,
+    topics: Vec<String>,
     retained: BTreeSet<OperationId>,
 }
 
@@ -19,14 +19,14 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             ScenarioAction::CreateShareConsumer {
                 consumer_id,
                 group_id,
-                topic,
+                topics,
                 ..
             } => {
                 consumers.insert(
                     consumer_id.clone(),
                     LiveShare {
                         group_id: group_id.clone(),
-                        topic: topic.clone(),
+                        topics: topics.clone(),
                         retained: BTreeSet::new(),
                     },
                 );
@@ -97,7 +97,7 @@ fn validate_group(
         .values()
         .filter(|consumer| {
             consumer.group_id == group_id
-                && consumer.topic == topic
+                && consumer.topics.iter().any(|candidate| candidate == topic)
                 && !consumer.retained.is_empty()
         })
         .count();

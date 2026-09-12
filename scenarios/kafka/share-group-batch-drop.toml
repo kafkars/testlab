@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.share-group-batch-drop"
 title = "dropping a Share batch redelivers its complete record set"
 description = "One public three-record Share batch is dropped without acknowledgement and the complete ordered set must return with increased delivery counts before being accepted."
@@ -44,7 +44,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-batch-drop"
-topic = "testlab-share-batch-drop"
+topics = ["testlab-share-batch-drop"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 

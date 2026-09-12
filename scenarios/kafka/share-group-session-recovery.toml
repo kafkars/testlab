@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.share-group-session-recovery"
 title = "one share member recovers while every broker is disrupted"
 description = "Testlab stops each broker in turn while one unique share member remains live and proves forward progress after the stop that necessarily disrupts its original group coordinator."
@@ -27,7 +27,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-session"
-topic = "testlab-kafkars-share-session"
+topics = ["testlab-kafkars-share-session"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 

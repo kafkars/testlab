@@ -32,8 +32,8 @@ pub(crate) use kafkars::consumer::{
 };
 #[cfg(kafkars_share_candidate)]
 pub(crate) use kafkars::consumer::{
-    CloseShareConsumer, ShareConsumer, ShareConsumerBatch, ShareConsumerFetchConfig,
-    ShareConsumerRecord, ShareDisposition,
+    CloseShareConsumer, ShareConsumer, ShareConsumerAssignment, ShareConsumerBatch,
+    ShareConsumerFetchConfig, ShareConsumerRecord, ShareDisposition,
 };
 pub(crate) use kafkars::error::{DeliveryStatus, Error as KafkaError, ErrorKind, RetryAdvice};
 pub(crate) use kafkars::metrics::{

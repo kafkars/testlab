@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.admin-delete-share-groups"
 title = "packaged admin deletes two independently observed empty Share groups"
 description = "Two Share groups independently accept the same record and close their only modeled members before one caller-ordered public deletion; an immediate read-only Kafka CLI listing confirms both groups are absent."
@@ -59,7 +59,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-z"
 group_id = "testlab-admin-share-group-delete-z"
-topic = "testlab-kafkars-admin-share-groups-delete"
+topics = ["testlab-kafkars-admin-share-groups-delete"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 
@@ -93,7 +93,7 @@ kind = "create_share_consumer"
 client_id = "client-2"
 consumer_id = "share-a"
 group_id = "testlab-admin-share-group-delete-a"
-topic = "testlab-kafkars-admin-share-groups-delete"
+topics = ["testlab-kafkars-admin-share-groups-delete"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 

@@ -102,6 +102,9 @@
 - Classic and KIP-848 group consumers preserve caller-ordered multi-topic
   subscriptions, expose an assignment for every subscribed topic, and commit
   exact records from both topics against independent broker observations.
+- Share consumers preserve caller-ordered multi-topic subscriptions, expose an
+  assignment for every subscribed topic, and acquire and accept exact records
+  from both topics against independent broker observations.
 - Classic and KIP-848 configured groups cover latest missing-offset reset and
   read-committed isolation against pre-membership records and independently
   verified aborted transactions; classic membership also proves explicit

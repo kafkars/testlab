@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.client-shutdown-isolation"
 title = "shutting down one client preserves another client"
 description = "Two independent public clients produce successfully; after the first client shuts down, the second remains ready and makes exact broker-visible progress."

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v78. It is not a
+An adapter translates one packaged client surface to protocol v79. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -92,6 +92,9 @@ runner and not a verifier.
 - Pass every group-create topic to the public subscription builder in caller
   order. Do not select only the first topic or infer topics from expected
   records.
+- Pass every Share-create topic to the public subscription builder in caller
+  order. Do not select only the first topic or infer topics from expected
+  acquisitions.
 - Advertise group-consumer configuration only when missing-offset reset, read
   isolation, and an optional classic assignor are fixed through public builder
   calls before membership starts; reject a classic assignor for KIP-848 and

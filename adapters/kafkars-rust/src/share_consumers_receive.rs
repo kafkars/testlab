@@ -22,7 +22,7 @@ pub(crate) struct ShareReceiveFacts {
 
 pub(crate) fn await_assignment(
     consumer: &ShareConsumer,
-    topic: &str,
+    topics: &[String],
     deadline: Instant,
 ) -> Result<(), StateError> {
     loop {
@@ -30,19 +30,17 @@ pub(crate) fn await_assignment(
             return Err(StateError::Client(error));
         }
         match consumer.assignment() {
-            Ok(Some(assignment))
-                if !assignment.partitions().is_empty()
-                    && assignment
-                        .partitions()
-                        .iter()
-                        .all(|partition| partition.topic() == topic) =>
-            {
-                return Ok(());
-            }
+            Ok(Some(assignment)) if complete_assignment(&assignment, topics) => return Ok(()),
             Ok(Some(assignment)) if !assignment.partitions().is_empty() => {
-                return Err(StateError::ShareSurface(format!(
-                    "share member received an assignment outside {topic}: {assignment:?}"
-                )));
+                if assignment
+                    .partitions()
+                    .iter()
+                    .any(|partition| !topics.iter().any(|topic| topic == partition.topic()))
+                {
+                    return Err(StateError::ShareSurface(format!(
+                        "share member received an assignment outside {topics:?}: {assignment:?}"
+                    )));
+                }
             }
             Ok(Some(_)) | Ok(None) => {}
             Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => {}
@@ -50,11 +48,28 @@ pub(crate) fn await_assignment(
         }
         if Instant::now() >= deadline {
             return Err(StateError::ShareSurface(format!(
-                "share assignment for {topic} did not materialize before the membership deadline"
+                "share assignment for {topics:?} did not materialize before the membership deadline"
             )));
         }
         thread::sleep(POLL_SLICE.min(deadline.saturating_duration_since(Instant::now())));
     }
+}
+
+fn complete_assignment(
+    assignment: &crate::kafkars_api::ShareConsumerAssignment,
+    topics: &[String],
+) -> bool {
+    !assignment.partitions().is_empty()
+        && assignment
+            .partitions()
+            .iter()
+            .all(|partition| topics.iter().any(|topic| topic == partition.topic()))
+        && topics.iter().all(|topic| {
+            assignment
+                .partitions()
+                .iter()
+                .any(|partition| partition.topic() == topic)
+        })
 }
 
 pub(crate) fn receive(

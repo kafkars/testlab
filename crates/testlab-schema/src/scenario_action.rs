@@ -100,7 +100,6 @@ pub enum ScenarioAction {
         client_id: ClientId,
         consumer_id: ConsumerId,
         group_id: String,
-        /// Caller-ordered distinct subscribed topics.
         topics: Vec<String>,
         /// Group protocol.
         protocol: crate::GroupProtocol,
@@ -136,7 +135,8 @@ pub enum ScenarioAction {
         client_id: ClientId,
         consumer_id: ConsumerId,
         group_id: String,
-        topic: String,
+        /// Caller-ordered distinct subscribed topics.
+        topics: Vec<String>,
         /// Complete membership-start bound.
         membership_timeout_ms: u64,
         /// Complete close bound.

@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.share-group-record-fidelity"
 title = "Share acquisitions preserve exact record fidelity"
 description = "One Share member acquires and accepts a tombstone, distinct empty fields, and duplicate nullable binary headers while retaining delivery counts, membership fences, and independent Kafka coordinates."
@@ -27,7 +27,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-record-fidelity"
-topic = "testlab-share-record-fidelity"
+topics = ["testlab-share-record-fidelity"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 

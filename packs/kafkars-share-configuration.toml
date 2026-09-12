@@ -1,7 +1,8 @@
 schema_version = 1
 id = "kafkars-share-configuration"
-title = "packaged Kafkars Share fetch configuration"
+title = "packaged Kafkars Share subscription and fetch configuration"
 scenarios = [
+  "scenarios/kafka/share-group-multi-topic-subscription.toml",
   "scenarios/kafka/share-group-fetch-max-records.toml",
   "scenarios/kafka/share-group-fetch-batch-size.toml",
 ]

@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.share-group-mixed-release"
 title = "Share batches apply record-specific accept and release decisions"
 description = "One public Share batch acquires three ordered records, acknowledges them with mixed decisions, and independently proves that only the released record returns with an increased delivery count."
@@ -44,7 +44,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-mixed-release"
-topic = "testlab-share-mixed-release"
+topics = ["testlab-share-mixed-release"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 

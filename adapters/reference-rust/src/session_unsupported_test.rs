@@ -60,7 +60,7 @@ fn plural_admin_commands_require_admin_capability() {
     let client_id = client_id();
     let operation_id = operation_id();
     let partition = ConsumerGroupOffsetSelection {
-        topic: "orders".to_owned(),
+        topics: vec!["orders".to_owned()],
         partition: 0,
     };
     let commands = [

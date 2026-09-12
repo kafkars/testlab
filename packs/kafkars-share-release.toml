@@ -54,6 +54,7 @@ scenarios = [
   "scenarios/kafka/classic-group-offset-resume.toml",
   "scenarios/kafka/consumer-protocol-group-offset-resume.toml",
   "scenarios/kafka/share-group-lifecycle.toml",
+  "scenarios/kafka/share-group-multi-topic-subscription.toml",
   "scenarios/kafka/share-group-record-fidelity.toml",
   "scenarios/kafka/share-group-mixed-release.toml",
   "scenarios/kafka/share-group-mixed-reject.toml",

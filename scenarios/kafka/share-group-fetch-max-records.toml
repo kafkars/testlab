@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.share-group-fetch-max-records"
 title = "configured Share fetches bound each public delivery to one record"
 description = "Three separately produced records enter one configured Share group, whose public max-records policy must expose and acknowledge exactly one independently observed record per retained batch."
@@ -48,7 +48,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-fetch-max-records"
-topic = "testlab-share-fetch-max-records"
+topics = ["testlab-share-fetch-max-records"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 configuration = { max_records = 1, batch_size = 1 }

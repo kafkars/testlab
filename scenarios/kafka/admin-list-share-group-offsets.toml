@@ -1,4 +1,4 @@
-schema_version = 81
+schema_version = 82
 id = "kafka.admin-list-share-group-offsets"
 title = "packaged admin lists independently observed Share-group offsets"
 description = "After one record is accepted from a two-record Share partition, the packaged client's selected public Share-group offset listing preserves topic identity, start offset, leader epoch, and lag, and an immediate Kafka CLI query confirms the same start offset and lag."
@@ -46,7 +46,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-admin-share-group-offsets"
-topic = "testlab-kafkars-admin-share-group-offsets"
+topics = ["testlab-kafkars-admin-share-group-offsets"]
 membership_timeout_ms = 30000
 close_timeout_ms = 30000
 configuration = { max_records = 1, batch_size = 1 }

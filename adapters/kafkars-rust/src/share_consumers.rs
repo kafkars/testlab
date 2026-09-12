@@ -40,7 +40,7 @@ pub(crate) struct ShareConsumerRegistration {
     pub(crate) client_id: ClientId,
     pub(crate) consumer_id: ConsumerId,
     pub(crate) group_id: String,
-    pub(crate) topic: String,
+    pub(crate) topics: Vec<String>,
     pub(crate) membership_timeout: Duration,
     pub(crate) close_timeout: Duration,
     pub(crate) configuration: Option<ShareConsumerFetchConfiguration>,
@@ -66,7 +66,7 @@ impl ShareConsumers {
         let fetch = public_fetch_configuration(registration.configuration)?;
         let mut builder = client
             .share_consumer(registration.group_id)
-            .subscribe([registration.topic.as_str()])
+            .subscribe(registration.topics.iter().map(String::as_str))
             .fetch_config(fetch)
             .close_timeout(registration.close_timeout);
         let consumer = loop {
@@ -84,7 +84,7 @@ impl ShareConsumers {
                 }
             }
         };
-        share_consumers_receive::await_assignment(&consumer, &registration.topic, deadline)?;
+        share_consumers_receive::await_assignment(&consumer, &registration.topics, deadline)?;
         self.owners.insert(
             registration.consumer_id,
             ShareOwner {

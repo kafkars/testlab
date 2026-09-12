@@ -35,7 +35,7 @@ pub(crate) fn validate(
             client_id,
             consumer_id,
             group_id,
-            topic,
+            topics,
             membership_timeout_ms,
             close_timeout_ms,
             configuration,
@@ -45,7 +45,7 @@ pub(crate) fn validate(
                 consumer_id,
                 ConsumerGroupInput {
                     group_id,
-                    topic,
+                    topics,
                     protocol: None,
                     group_instance_id: None,
                 },

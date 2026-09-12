@@ -31,6 +31,10 @@ network-proxy controls and effect observations.
 Protocol v78 and record digest v2 retain an optional caller-selected timestamp
 in commands, public producer terminals, public consumer records, and independent
 broker observations.
+Protocol v79 and evidence schema v68 retain every caller-ordered Share
+subscription topic at creation. The two-topic scenario requires public
+assignment coverage and one exact accepted acquisition from each topic, with
+both records joined to independent broker observations.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -68,7 +72,8 @@ ordinary group, and every group receive-set record, including records from
 multi-topic subscriptions, to the
 independent topic, partition, offset, timestamp, key, value, and ordered headers.
 SHARE-006 applies that same independent comparison to each exact Share
-acquisition without replacing delivery-count or membership-fence checks.
+acquisition, including every topic in a multi-topic subscription, without
+replacing delivery-count or membership-fence checks.
 SHARE-007 binds a multi-record acquisition to the complete caller-declared
 ordered record set. SHARE-008 retains the exact record-ordered public
 disposition vector, and SHARE-009 requires released or dropped records to
