@@ -41,10 +41,15 @@ fn execute_owned<W: Write>(
     let deadline = Instant::now()
         .checked_add(Duration::from_millis(command.timeout_ms))
         .ok_or_else(|| AdapterError::ConsumerRecord("transform deadline overflow".to_owned()))?;
-    let batch = crate::protocol_group::receive_batch(state, &command.consumer_id, deadline)?
-        .ok_or_else(|| {
-            AdapterError::ConsumerRecord("transactional transform receive timed out".to_owned())
-        })?;
+    let batch = crate::protocol_group::receive_batch(
+        state,
+        &command.consumer_id,
+        testlab_schema::GroupConsumerReceiveMethod::Recv,
+        deadline,
+    )?
+    .ok_or_else(|| {
+        AdapterError::ConsumerRecord("transactional transform receive timed out".to_owned())
+    })?;
     let records = batch
         .records()
         .map(|record| crate::protocol_group::normalize_record(&record))

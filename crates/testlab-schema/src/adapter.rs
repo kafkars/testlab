@@ -48,6 +48,8 @@ pub enum Capability {
     ConsumerGroups,
     /// KIP-848 consumer group operations.
     ConsumerProtocolGroups,
+    /// Immediate retained-batch observation through hosted `try_take_batch`.
+    GroupConsumerImmediateBatch,
     /// Runtime pause, resume, and seek controls for hosted group consumers.
     GroupConsumerControls,
     /// Missing-offset, visibility, static identity, and classic timing configuration.

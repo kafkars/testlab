@@ -229,17 +229,20 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
         (
             ScenarioAction::GroupReceive {
                 consumer_id,
+                method,
                 receive_id,
                 timeout_ms,
                 ..
             },
             AdapterCommand::GroupReceive {
                 consumer_id: actual_consumer,
+                method: actual_method,
                 receive_id: actual_receive,
                 timeout_ms: actual_timeout,
             },
         ) => {
             consumer_id == actual_consumer
+                && method == actual_method
                 && receive_id == actual_receive
                 && timeout_ms == actual_timeout
         }

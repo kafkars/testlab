@@ -101,9 +101,9 @@ pub enum AdapterCommand {
     },
     /// Receives one group batch and commits its checkpoint.
     GroupReceive {
-        /// Existing group consumer.
         consumer_id: ConsumerId,
-        /// Stable receive operation identity.
+        /// Exact public retained-batch observation method.
+        method: crate::GroupConsumerReceiveMethod,
         receive_id: OperationId,
         /// Maximum public observation duration.
         timeout_ms: u64,

@@ -55,6 +55,7 @@ pub(crate) fn dispatch<W: Write>(
         }
         AdapterCommand::GroupReceive {
             consumer_id,
+            method,
             receive_id,
             timeout_ms,
         } => receive(
@@ -62,6 +63,7 @@ pub(crate) fn dispatch<W: Write>(
             writer,
             command_id,
             &consumer_id,
+            method,
             receive_id,
             timeout_ms,
         ),
@@ -132,6 +134,7 @@ fn receive<W: Write>(
     writer: &mut W,
     command_id: CommandId,
     consumer_id: &ConsumerId,
+    method: testlab_schema::GroupConsumerReceiveMethod,
     receive_id: OperationId,
     timeout_ms: u64,
 ) -> Result<(), AdapterError> {
@@ -139,7 +142,7 @@ fn receive<W: Write>(
     let deadline = Instant::now()
         .checked_add(timeout)
         .ok_or_else(|| AdapterError::ConsumerRecord("receive deadline overflow".to_owned()))?;
-    let (records, committed) = match receive_batch(state, consumer_id, deadline)? {
+    let (records, committed) = match receive_batch(state, consumer_id, method, deadline)? {
         Some(batch) => (commit_batch(state, consumer_id, batch, deadline)?, true),
         None => (Vec::new(), false),
     };

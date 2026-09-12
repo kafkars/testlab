@@ -25,6 +25,7 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         Capability::AssignedConsumerControls,
         Capability::ConsumerGroups,
         Capability::ConsumerProtocolGroups,
+        Capability::GroupConsumerImmediateBatch,
         Capability::GroupConsumerControls,
         Capability::GroupConsumerConfiguration,
         Capability::GroupConsumerShutdown,

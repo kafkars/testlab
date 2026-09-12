@@ -17,6 +17,7 @@ fn ordinary_group_bytes_must_match_independent_observation() {
         "receive-group",
         ScenarioAction::GroupReceive {
             consumer_id: consumer("group-1"),
+            method: Default::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: operation("op-1"),
             expected_error_code: None,
@@ -110,6 +111,7 @@ fn public_consumer_timestamp_must_match_independent_record() {
         "receive-timestamp",
         ScenarioAction::GroupReceive {
             consumer_id: consumer("group-1"),
+            method: Default::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: operation("op-1"),
             expected_error_code: None,

@@ -64,17 +64,20 @@ fn command_matches(
         (
             testlab_schema::ScenarioAction::GroupReceive {
                 consumer_id,
+                method,
                 receive_id,
                 timeout_ms,
                 ..
             },
             testlab_schema::AdapterCommand::GroupReceive {
                 consumer_id: actual_consumer,
+                method: actual_method,
                 receive_id: actual_receive,
                 timeout_ms: actual_timeout,
             },
         ) => {
             consumer_id == actual_consumer
+                && method == actual_method
                 && receive_id == actual_receive
                 && timeout_ms == actual_timeout
         }

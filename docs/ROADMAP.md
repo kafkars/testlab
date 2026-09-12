@@ -112,6 +112,9 @@
 - Classic and KIP-848 group consumers cover public pause/resume partition
   isolation and assignment-fenced seek replay, with committed public outcomes
   joined to positive protocol epochs and independent broker coordinates.
+- Classic and KIP-848 group records are observed through both the waiting
+  `recv` object and repeated immediate `try_take_batch` calls, with the selected
+  public method retained in command evidence.
 - Classic and KIP-848 group consumers preserve caller-ordered multi-topic
   subscriptions, expose an assignment for every subscribed topic, and commit
   exact records from both topics against independent broker observations.

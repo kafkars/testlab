@@ -105,11 +105,11 @@ pub enum ScenarioAction {
     },
     /// Receives one group batch and commits its assignment-fenced checkpoint.
     GroupReceive {
-        /// Existing group consumer.
         consumer_id: ConsumerId,
-        /// Stable receive identity.
+        /// Exact public retained-batch observation method.
+        #[serde(default)]
+        method: crate::GroupConsumerReceiveMethod,
         receive_id: OperationId,
-        /// Expected producer operation.
         expected_operation_id: OperationId,
         /// Exact normalized public failure expected instead of a completion.
         #[serde(default, skip_serializing_if = "Option::is_none")]

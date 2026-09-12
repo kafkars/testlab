@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v93 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v96 and evidence schema v82.
+Protocol v94 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v97 and evidence schema v83.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -425,11 +425,14 @@ requires both observers to expose `PositionResolutionFailed(Broker(29))`, then
 removes that same policy before an independent consumer receives the seeded
 record.
 
-A group receive additionally consumes the exact public batch into its
-assignment-fenced checkpoint and attempts a bounded public commit. Its
-completion reports both the exact records and whether that checkpoint committed;
-the deterministic verifier requires both the expected record and a successful
-commit.
+A group receive names its exact public retained-batch observer. `recv` is the
+default waiting path; `try_take_batch` selects repeated immediate observation
+and requires `group_consumer_immediate_batch`. The command retains that method,
+consumer, receive identity, and bound while the expected producer operation
+remains scenario-only. It consumes the exact public batch into its
+assignment-fenced checkpoint and attempts a bounded public commit. Its completion
+reports both the exact records and whether that checkpoint committed; the
+deterministic verifier requires both the expected record and a successful commit.
 
 Single-member and multi-member group receives also drain public assignment
 events and complete revocation leases within the receive's original deadline.
@@ -1087,6 +1090,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v93 is an exact semantic contract. New capabilities may be declared
+Protocol v94 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

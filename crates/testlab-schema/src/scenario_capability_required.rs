@@ -94,6 +94,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "KIP-848 group-consumer steps require the consumer_protocol_groups capability",
     ),
     (
+        Capability::GroupConsumerImmediateBatch,
+        "immediate group receives require the group_consumer_immediate_batch capability",
+    ),
+    (
         Capability::GroupConsumerControls,
         "group-consumer controls require the group_consumer_controls capability",
     ),

@@ -14,9 +14,9 @@ use crate::{
 
 #[test]
 fn versions_cover_mixed_description_protocol_and_evidence() {
-    assert_eq!(PROTOCOL_VERSION, 93);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 96);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 82);
+    assert_eq!(PROTOCOL_VERSION, 94);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 97);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 83);
 }
 
 #[test]
@@ -217,6 +217,7 @@ fn create_group(id: &str, group_id: &str, protocol: GroupProtocol) -> ScenarioAc
 fn receive(id: &str, receive_id: &str) -> ScenarioAction {
     ScenarioAction::GroupReceive {
         consumer_id: consumer(id),
+        method: Default::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("record"),
         timeout_ms: 1_000,

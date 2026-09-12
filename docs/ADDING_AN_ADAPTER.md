@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v93. It is not a
+An adapter translates one packaged client surface to protocol v94. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -109,6 +109,9 @@ runner and not a verifier.
 - Advertise group-consumer controls only when pause, resume, and seek use public
   hosted-consumer calls and retain exact operation, consumer, partition, and
   position identity without receiving later record expectations.
+- Advertise group-consumer immediate batches only when a selected
+  `try_take_batch` receive repeatedly calls that exact hosted-consumer method
+  and never substitutes the waiting `recv` observer.
 - Pass every group-create topic to the public subscription builder in caller
   order. Do not select only the first topic or infer topics from expected
   records.

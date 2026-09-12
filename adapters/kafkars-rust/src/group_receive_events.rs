@@ -5,7 +5,7 @@ use std::pin::pin;
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
-use testlab_schema::ConsumerId;
+use testlab_schema::{ConsumerId, GroupConsumerReceiveMethod};
 
 use crate::AdapterError;
 use crate::group_assignment_observe::drain_transitions;
@@ -17,6 +17,7 @@ const POLL_SLICE: Duration = Duration::from_millis(10);
 pub(crate) fn receive_batch(
     state: &mut AdapterState,
     consumer_id: &ConsumerId,
+    method: GroupConsumerReceiveMethod,
     deadline: Instant,
 ) -> Result<Option<ConsumerBatch>, AdapterError> {
     if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
@@ -24,31 +25,43 @@ pub(crate) fn receive_batch(
     }
     loop {
         if drive(state, consumer_id, deadline)? {
-            // Dropping this observer starts or cancels no Fetch work. Release
-            // its mutable borrow between probes to service revocation events.
-            let result = {
-                let mut receive = pin!(state.group_consumer_mut(consumer_id)?.recv());
-                receive
-                    .as_mut()
-                    .poll(&mut Context::from_waker(Waker::noop()))
-            };
-            match result {
-                Poll::Ready(Ok(None)) => {
-                    if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
-                        return Err(AdapterError::Client(error));
+            if method == GroupConsumerReceiveMethod::TryTakeBatch {
+                match state.group_consumer_mut(consumer_id)?.try_take_batch() {
+                    Ok(Some(batch)) => return Ok(Some(batch)),
+                    Ok(None) => {}
+                    Err(error)
+                        if error.retry_advice() == RetryAdvice::RetrySafe
+                            && Instant::now() < deadline => {}
+                    Err(error) => return Err(AdapterError::Client(error)),
+                }
+            } else {
+                // Dropping this observer starts or cancels no Fetch work. Release
+                // its mutable borrow between probes to service revocation events.
+                let result = {
+                    let mut receive = pin!(state.group_consumer_mut(consumer_id)?.recv());
+                    receive
+                        .as_mut()
+                        .poll(&mut Context::from_waker(Waker::noop()))
+                };
+                match result {
+                    Poll::Ready(Ok(None)) => {
+                        if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error()
+                        {
+                            return Err(AdapterError::Client(error));
+                        }
+                        return Ok(None);
                     }
-                    return Ok(None);
+                    Poll::Ready(Ok(batch)) => return Ok(batch),
+                    Poll::Ready(Err(error))
+                        if error.retry_advice() == RetryAdvice::RetrySafe
+                            && Instant::now() < deadline =>
+                    {
+                        // No batch crossed the adapter boundary; reconstruct the
+                        // public observation without extending its deadline.
+                    }
+                    Poll::Ready(Err(error)) => return Err(AdapterError::Client(error)),
+                    Poll::Pending => {}
                 }
-                Poll::Ready(Ok(batch)) => return Ok(batch),
-                Poll::Ready(Err(error))
-                    if error.retry_advice() == RetryAdvice::RetrySafe
-                        && Instant::now() < deadline =>
-                {
-                    // No batch crossed the adapter boundary; reconstruct the
-                    // public observation without extending its deadline.
-                }
-                Poll::Ready(Err(error)) => return Err(AdapterError::Client(error)),
-                Poll::Pending => {}
             }
         }
         if Instant::now() >= deadline {

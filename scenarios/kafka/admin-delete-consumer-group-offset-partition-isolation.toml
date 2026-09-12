@@ -1,4 +1,4 @@
-schema_version = 96
+schema_version = 97
 id = "kafka.admin-delete-consumer-group-offset-partition-isolation"
 title = "packaged admin deletes one consumer-group partition offset without changing its neighbor"
 description = "A classic group commits offset 1 on two partitions in separate deterministic receives, then the packaged admin deletes only partition 0; independent state proves that target absent while partition 1 remains at offset 1."

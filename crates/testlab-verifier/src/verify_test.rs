@@ -176,6 +176,7 @@ fn classic_group_exact_round_trip_requires_commit() {
             "group-receive",
             ScenarioAction::GroupReceive {
                 consumer_id: consumer.clone(),
+                method: Default::default(),
                 receive_id: receive.clone(),
                 expected_operation_id: id(OperationId::new("op-1")),
                 timeout_ms: 1_000,

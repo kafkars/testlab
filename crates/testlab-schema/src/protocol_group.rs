@@ -15,6 +15,17 @@ pub enum GroupProtocol {
     Consumer,
 }
 
+/// Public batch observation selected for one hosted group receive.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupConsumerReceiveMethod {
+    /// Wait on the named retained-delivery observer.
+    #[default]
+    Recv,
+    /// Repeatedly attempt the immediate retained-batch take operation.
+    TryTakeBatch,
+}
+
 /// Public policy used when a group has no committed offset.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]

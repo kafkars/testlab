@@ -1,4 +1,4 @@
-schema_version = 96
+schema_version = 97
 id = "kafka.admin-delete-topics"
 title = "packaged admin deletes caller-ordered topics with mixed outcomes"
 description = "A prior caller-ordered description proves two topics present and one absent; one public plural deletion preserves exact mixed outcomes while polling independent metadata proves every selected topic absent."

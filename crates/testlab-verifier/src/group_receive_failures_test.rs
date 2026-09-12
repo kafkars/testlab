@@ -68,11 +68,13 @@ fn fixture() -> (Scenario, Vec<HistoryEntry>) {
             }),
             ScenarioAction::GroupReceive {
                 consumer_id,
+                method,
                 receive_id,
                 timeout_ms,
                 ..
             } => Some(AdapterCommand::GroupReceive {
                 consumer_id: consumer_id.clone(),
+                method: *method,
                 receive_id: receive_id.clone(),
                 timeout_ms: *timeout_ms,
             }),

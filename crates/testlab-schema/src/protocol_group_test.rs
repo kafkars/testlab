@@ -1,8 +1,8 @@
 //! Group protocol tests retain configured policy and its capability boundary.
 
 use crate::{
-    Capability, GroupClassicAssignor, GroupConsumerConfiguration, GroupOffsetReset,
-    GroupReadIsolation, Scenario, ScenarioAction,
+    Capability, GroupClassicAssignor, GroupConsumerConfiguration, GroupConsumerReceiveMethod,
+    GroupOffsetReset, GroupReadIsolation, Scenario, ScenarioAction,
 };
 
 #[test]
@@ -74,6 +74,31 @@ fn missing_offset_failure_requires_fail_closed_policy() {
         .validate()
         .expect_err("missing-offset failure without fail-closed reset must fail");
     assert!(error.to_string().contains("offset_reset=error"));
+}
+
+#[test]
+fn immediate_group_receive_requires_its_exact_capability() {
+    let mut scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/classic-group-immediate-batch.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse immediate group scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate immediate group scenario: {error}"));
+    assert!(scenario.steps.iter().any(|step| matches!(
+        &step.action,
+        ScenarioAction::GroupReceive {
+            method: GroupConsumerReceiveMethod::TryTakeBatch,
+            ..
+        }
+    )));
+    scenario
+        .requires
+        .remove(&Capability::GroupConsumerImmediateBatch);
+    let error = scenario
+        .validate()
+        .expect_err("immediate group capability must be required");
+    assert!(error.to_string().contains("group_consumer_immediate_batch"));
 }
 
 #[test]

@@ -9,6 +9,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     for step in &scenario.steps {
         let ScenarioAction::GroupReceive {
             consumer_id,
+            method,
             receive_id,
             expected_error_code: Some(expected),
             timeout_ms,
@@ -45,12 +46,14 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             .filter_map(|(sequence, command_id, command)| match command {
                 AdapterCommand::GroupReceive {
                     consumer_id: actual_consumer,
+                    method: actual_method,
                     receive_id: actual_receive,
                     timeout_ms: actual_timeout,
                 } if actual_receive == receive_id => Some((
                     *sequence,
                     command_id.clone(),
                     actual_consumer.clone(),
+                    *actual_method,
                     actual_receive.clone(),
                     *actual_timeout,
                 )),
@@ -62,10 +65,19 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             ([action], [(_, command)]) if creation_matches(action, command)
         );
         let receive = match receive_commands.as_slice() {
-            [(sequence, command_id, actual_consumer, actual_receive, actual_timeout)]
-                if actual_consumer == consumer_id
-                    && actual_receive == receive_id
-                    && actual_timeout == timeout_ms =>
+            [
+                (
+                    sequence,
+                    command_id,
+                    actual_consumer,
+                    actual_method,
+                    actual_receive,
+                    actual_timeout,
+                ),
+            ] if actual_consumer == consumer_id
+                && actual_method == method
+                && actual_receive == receive_id
+                && actual_timeout == timeout_ms =>
             {
                 Some((*sequence, command_id))
             }

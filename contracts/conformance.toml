@@ -967,6 +967,12 @@ statement = "Every group receive expected to fail retains one exact configured g
 category = "consumer"
 
 [[contract]]
+id = "CONS-018"
+title = "Immediate group receives preserve their public method"
+statement = "A scenario-selected hosted group receive emits exactly one command retaining try_take_batch, the consumer identity, receive identity, and observation timeout rather than substituting the waiting recv observer."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

@@ -85,6 +85,11 @@ group missing-offset policy. CONS-017 binds each expected group receive failure
 to one exact configured creation, one correlated command and public error, and
 the absence of a successful receive. Classic and KIP-848 scenarios require the
 normalized public `state` error from new groups rather than an inferred offset.
+Protocol v94, scenario schema v97, and evidence schema v83 retain the selected
+hosted group batch observer. CONS-018 distinguishes repeated immediate
+`try_take_batch` from waiting `recv` for classic and KIP-848 consumers while
+ordinary checkpoint, epoch, record, and independent broker evidence still
+applies.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
