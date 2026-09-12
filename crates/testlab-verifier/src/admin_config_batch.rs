@@ -4,6 +4,9 @@ use testlab_schema::{
     AlterTopicConfigsAction, DescribeTopicConfigsAction, Scenario, ScenarioAction, Violation,
 };
 
+#[path = "admin_config_batch_contract.rs"]
+mod contract;
+
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{
     HistoryIndex, IndexedAdminTopicConfigsDescription, IndexedTopicConfigObservation,
@@ -105,7 +108,7 @@ fn verify_alteration(
         .flat_map(|evidence| evidence.independent.iter())
         .map(|value| format!("broker-state-observation:{}", value.observation));
     violations.push(violation(
-        alteration_contract(action),
+        contract::alteration(action),
         format!(
             "admin operation {} expected one caller-ordered successful plural configuration mutation, immediate independent post-state, and exact distinct baseline {}",
             action.operation_id, action.baseline_operation_id
@@ -278,17 +281,5 @@ fn description_contract(api: testlab_schema::TopicConfigApi) -> &'static str {
     match api {
         testlab_schema::TopicConfigApi::Topic => "ADMIN-048",
         testlab_schema::TopicConfigApi::Resource => "ADMIN-064",
-    }
-}
-
-fn alteration_contract(action: &AlterTopicConfigsAction) -> &'static str {
-    if action.topics.iter().any(|topic| topic.restore_default) {
-        return "ADMIN-079";
-    }
-    match action.api {
-        testlab_schema::TopicConfigMutationApi::Topic => "ADMIN-049",
-        testlab_schema::TopicConfigMutationApi::Resource => "ADMIN-065",
-        testlab_schema::TopicConfigMutationApi::LegacyTopic => "ADMIN-066",
-        testlab_schema::TopicConfigMutationApi::LegacyResource => "ADMIN-067",
     }
 }

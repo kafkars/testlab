@@ -535,6 +535,12 @@ statement = "Each selected topic-specific or generic-resource legacy configurati
 category = "admin"
 
 [[contract]]
+id = "ADMIN-080"
+title = "Incremental configuration methods preserve exact operands"
+statement = "Topic-specific and generic-resource incremental Delete, Append, and Subtract calls preserve every exact public method and only its required operand in caller order, succeed publicly, and are bound to distinct named baselines and immediate independent final values."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

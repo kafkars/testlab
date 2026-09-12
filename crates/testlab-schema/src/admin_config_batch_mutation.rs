@@ -4,6 +4,23 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId, TopicConfigMutationApi};
 
+/// Exact public configuration-mutation constructor selected for one key.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TopicConfigMutationMethod {
+    /// Replaces the current value.
+    #[default]
+    Set,
+    /// Removes the explicit value and restores the effective default.
+    Delete,
+    /// Appends one operand using Kafka's list-configuration semantics.
+    Append,
+    /// Subtracts one operand using Kafka's list-configuration semantics.
+    Subtract,
+    /// Restores a default through the legacy full-snapshot API.
+    RestoreDefault,
+}
+
 /// One scenario-side topic-configuration transition.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -16,9 +33,25 @@ pub struct AlterTopicConfigExpectation {
     pub expected_previous_value: String,
     /// Exact final value required from independent broker observation.
     pub value: String,
-    /// Restore the broker default without sending the expected final value.
-    #[serde(default)]
-    pub restore_default: bool,
+    /// Exact public mutation constructor selected by the scenario.
+    #[serde(default, skip_serializing_if = "is_set_method")]
+    pub method: TopicConfigMutationMethod,
+    /// Exact Append or Subtract operand, never the expected final value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub operation_value: Option<String>,
+}
+
+impl AlterTopicConfigExpectation {
+    /// Returns only the value allowed to cross the adapter boundary.
+    pub fn command_value(&self) -> Option<&str> {
+        match self.method {
+            TopicConfigMutationMethod::Set => Some(&self.value),
+            TopicConfigMutationMethod::Append | TopicConfigMutationMethod::Subtract => {
+                self.operation_value.as_deref()
+            }
+            TopicConfigMutationMethod::Delete | TopicConfigMutationMethod::RestoreDefault => None,
+        }
+    }
 }
 
 /// Scenario intent for one caller-ordered plural configuration mutation.
@@ -48,7 +81,10 @@ pub struct TopicConfigAlteration {
     pub topic: String,
     /// Exact configuration key changed through the public API.
     pub config_name: String,
-    /// Exact replacement value, absent when restoring the broker default.
+    /// Exact public mutation constructor selected by the harness.
+    #[serde(default, skip_serializing_if = "is_set_method")]
+    pub method: TopicConfigMutationMethod,
+    /// Exact replacement or list operand, absent for deletion or restoration.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
 }
@@ -98,4 +134,8 @@ mod test;
 
 fn is_topic_api(api: &TopicConfigMutationApi) -> bool {
     *api == TopicConfigMutationApi::Topic
+}
+
+fn is_set_method(method: &TopicConfigMutationMethod) -> bool {
+    *method == TopicConfigMutationMethod::Set
 }

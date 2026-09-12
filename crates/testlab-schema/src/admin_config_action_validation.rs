@@ -204,15 +204,41 @@ fn validate_alteration_batch(
                 ));
             }
         }
-        if selected.restore_default
-            && !matches!(
-                action.api,
-                crate::TopicConfigMutationApi::LegacyTopic
-                    | crate::TopicConfigMutationApi::LegacyResource
-            )
+        if selected
+            .operation_value
+            .as_ref()
+            .is_some_and(|value| value.is_empty() || value.len() > MAX_CONFIG_VALUE_BYTES)
         {
             problems.push(format!(
-                "admin operation {} restore_default requires a legacy configuration API",
+                "admin operation {} operation_value must contain 1 to {MAX_CONFIG_VALUE_BYTES} bytes",
+                action.operation_id
+            ));
+        }
+        let legacy = matches!(
+            action.api,
+            crate::TopicConfigMutationApi::LegacyTopic
+                | crate::TopicConfigMutationApi::LegacyResource
+        );
+        let compatible = match selected.method {
+            crate::TopicConfigMutationMethod::Set => true,
+            crate::TopicConfigMutationMethod::RestoreDefault => legacy,
+            crate::TopicConfigMutationMethod::Delete
+            | crate::TopicConfigMutationMethod::Append
+            | crate::TopicConfigMutationMethod::Subtract => !legacy,
+        };
+        if !compatible {
+            problems.push(format!(
+                "admin operation {} configuration method is incompatible with its API",
+                action.operation_id
+            ));
+        }
+        let requires_value = matches!(
+            selected.method,
+            crate::TopicConfigMutationMethod::Append | crate::TopicConfigMutationMethod::Subtract
+        );
+        if requires_value != selected.operation_value.is_some() {
+            problems.push(format!(
+                "admin operation {} operation_value is required only for append or subtract",
                 action.operation_id
             ));
         }

@@ -1,4 +1,4 @@
-schema_version = 111
+schema_version = 112
 id = "kafka.admin-describe-topic-unknown-topic"
 title = "packaged admin rejects description of an unknown Kafka topic"
 description = "The packaged client's public admin describes an absent topic, reports the exact normalized unknown-topic error, and an immediate independent metadata query confirms the topic remains absent."

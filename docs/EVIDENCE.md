@@ -156,6 +156,11 @@ configuration default restoration. ADMIN-079 keeps the expected broker default
 scenario-side, requires an absent wire value and exact public restoration call,
 and binds the completion to distinct prior and independently observed final
 values for every selected topic through both legacy public surfaces.
+Protocol v109, scenario schema v112, and evidence schema v98 separate each
+non-Set configuration method and operation operand from independently expected
+final state. ADMIN-080 exercises exact public Delete, Append, and Subtract
+constructors through topic-specific and generic-resource surfaces; only the two
+list operations carry operands across the adapter boundary.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -723,6 +728,13 @@ retains each expected final value for independent comparison, but the exact
 adapter command must omit every replacement value. The selected public legacy
 restoration constructor must therefore establish each distinct final value
 without receiving that expected broker state.
+
+ADMIN-080 binds non-Set incremental configuration methods to their exact wire
+method, allowed operand, caller order, named baseline, public completion, and
+immediate independent post-state through both public surfaces. Delete carries
+no value and must restore the effective default. Append and Subtract carry only
+their exact list operand; the independently required combined or reduced value
+never crosses the adapter boundary.
 
 ADMIN-068 binds configured classic static membership to one explicit Admin
 removal. Two unique `group_instance_id` values first participate in a complete

@@ -41,6 +41,7 @@ mod protocol_admin_classic_group;
 mod protocol_admin_client_quota;
 mod protocol_admin_cluster;
 mod protocol_admin_config;
+mod protocol_admin_config_alteration;
 mod protocol_admin_config_batch_mutation;
 mod protocol_admin_config_resources;
 mod protocol_admin_consumer_group_deletion_batch;

@@ -1,8 +1,8 @@
-schema_version = 111
+schema_version = 112
 id = "kafka.admin-alter-topic-configs"
 title = "packaged admin alters caller-ordered topic configurations"
-description = "A named caller-ordered plural description proves both prior values before one public plural incremental alteration returns every successful topic outcome and polling independent reads confirm both replacements."
-timeout_ms = 120000
+description = "Named caller-ordered plural descriptions prove every prior value while the topic-convenience incremental surface sets, deletes, appends, and subtracts through exact public methods and independent reads confirm every transition."
+timeout_ms = 240000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
 
@@ -36,6 +36,75 @@ baseline_operation_id = "admin-alter-topic-configs-before"
 topics = [
   { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
   { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-set-topic-configs"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-alter-topic-configs-set"
+topics = [
+  { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_value = "compact" },
+  { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-topic-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-alter-topic-configs-delete"
+baseline_operation_id = "admin-alter-topic-configs-set"
+topics = [
+  { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_previous_value = "compact", value = "delete", method = "delete" },
+  { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_previous_value = "compact", value = "delete", method = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-deleted-topic-configs"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-alter-topic-configs-deleted"
+topics = [
+  { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "append-topic-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-alter-topic-configs-append"
+baseline_operation_id = "admin-alter-topic-configs-deleted"
+topics = [
+  { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "delete,compact", method = "append", operation_value = "compact" },
+  { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "delete,compact", method = "append", operation_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-appended-topic-configs"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-alter-topic-configs-appended"
+topics = [
+  { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_value = "delete,compact" },
+  { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_value = "delete,compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "subtract-topic-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-alter-topic-configs-subtract"
+baseline_operation_id = "admin-alter-topic-configs-appended"
+topics = [
+  { topic = "testlab-kafkars-admin-alter-topic-configs-zulu", config_name = "cleanup.policy", expected_previous_value = "delete,compact", value = "compact", method = "subtract", operation_value = "delete" },
+  { topic = "testlab-kafkars-admin-alter-topic-configs-alpha", config_name = "cleanup.policy", expected_previous_value = "delete,compact", value = "compact", method = "subtract", operation_value = "delete" },
 ]
 timeout_ms = 20000
 

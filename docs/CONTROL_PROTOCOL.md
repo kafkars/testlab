@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v108 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v111 and evidence schema v97.
+Protocol v109 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v112 and evidence schema v98.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -743,9 +743,12 @@ then establish the requested value. Sensitive or unavailable values invalidate
 the evidence instead of being converted into a definite result.
 
 `alter_topic_configs` carries two through 32 distinct topics with one exact
-`SET` replacement each into one public call. Its named prior
+mutation method each into one public call. `set` carries the requested final
+value; `append` and `subtract` carry only their list operand; `delete` and
+`restore_default` carry no value. Only `set` carries its expected final value;
+every other expected final value remains scenario-side. Its named prior
 `describe_topic_configs` baseline must match every topic, key, and previous value
-in caller order, each replacement must differ, and no selected key may be
+in caller order, each final value must differ, and no selected key may be
 mutated between baseline observation and submission. The single completion
 retains every public per-topic success or normalized error in caller order;
 contiguous immediate independent polling must confirm all requested values.
@@ -757,10 +760,11 @@ type-2 topic resources while preserving the same caller-order and independent
 state requirements. Mutation commands additionally accept `legacy_topic` and
 `legacy_resource`, selecting the corresponding public full-snapshot replacement
 surface while retaining the exact named description baseline and post-state
-requirements. A scenario entry may set `restore_default = true` only for a
-legacy selector. Its `value` remains the expected final broker value, while the
-wire command omits that value and requires the adapter to use the public default
-restoration constructor. `list_config_resources` carries an `api` selector but
+requirements. Legacy selectors accept only `set` and `restore_default`, while
+incremental selectors accept `set`, `delete`, `append`, and `subtract`. A
+restoration's expected final broker value remains scenario-side, and the wire
+command requires the adapter to use the public default-restoration constructor.
+`list_config_resources` carries an `api` selector but
 sends no expected names over the wire. `resource` filters the generic public
 request to topic resources and requires every dynamically configured topic in
 the canonical type-tagged result plus immediate independent metadata.
@@ -1173,6 +1177,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v108 is an exact semantic contract. New capabilities may be declared
+Protocol v109 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

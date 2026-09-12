@@ -135,6 +135,7 @@ fn alter_command() -> AlterTopicConfigsCommand {
             .map(|topic| TopicConfigAlteration {
                 topic,
                 config_name: config().to_owned(),
+                method: testlab_schema::TopicConfigMutationMethod::Set,
                 value: Some("compact".to_owned()),
             })
             .collect(),
@@ -279,6 +280,8 @@ fn config() -> &'static str {
     "cleanup.policy"
 }
 
+#[path = "admin_config_incremental_method_test.rs"]
+mod incremental_method_test;
 #[path = "admin_config_resource_mutation_test.rs"]
 mod resource_test;
 #[path = "admin_config_restore_default_test.rs"]

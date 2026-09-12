@@ -1,4 +1,4 @@
-schema_version = 111
+schema_version = 112
 id = "kafka.consumer-protocol-group-processing-acknowledgement"
 title = "KIP-848 processing acknowledgement renews the commit window"
 description = "A KIP-848 member processes one exact record for longer than its configured processing window, acknowledges the assignment-fenced checkpoint midway, and still commits the same batch with independent broker truth."

@@ -215,9 +215,19 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             testlab_schema::TopicConfigApi::Resource => "ADMIN-064",
         },
         ScenarioAction::AlterTopicConfigs(value)
-            if value.topics.iter().any(|topic| topic.restore_default) =>
+            if value.topics.iter().any(|topic| {
+                topic.method == testlab_schema::TopicConfigMutationMethod::RestoreDefault
+            }) =>
         {
             "ADMIN-079"
+        }
+        ScenarioAction::AlterTopicConfigs(value)
+            if value
+                .topics
+                .iter()
+                .any(|topic| topic.method != testlab_schema::TopicConfigMutationMethod::Set) =>
+        {
+            "ADMIN-080"
         }
         ScenarioAction::AlterTopicConfigs(value) => match value.api {
             testlab_schema::TopicConfigMutationApi::Topic => "ADMIN-049",

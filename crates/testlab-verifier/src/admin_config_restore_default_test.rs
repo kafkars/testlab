@@ -68,6 +68,7 @@ fn history() -> Vec<HistoryEntry> {
                     .map(|topic| TopicConfigAlteration {
                         topic: topic.clone(),
                         config_name: CONFIG.to_owned(),
+                        method: testlab_schema::TopicConfigMutationMethod::RestoreDefault,
                         value: None,
                     })
                     .collect(),

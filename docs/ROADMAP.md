@@ -28,7 +28,8 @@
   deletion with explicit and high-watermark boundaries, singleton and caller-ordered plural
   empty-group deletion, and selected
   topic-configuration description, caller-ordered plural selected-configuration
-  description and replacement, legacy full-snapshot default restoration, plus
+  description and exact incremental Set, Delete, Append, and Subtract methods,
+  legacy full-snapshot replacement and default restoration, plus
   singleton replacement and restoration;
   caller-ordered
   literal ACL creation, exact description, and exact deletion plus named-user

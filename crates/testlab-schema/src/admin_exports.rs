@@ -23,6 +23,7 @@ pub use crate::admin_config::{
 pub use crate::admin_config_batch_mutation::{
     AdminTopicConfigAlterationOutcome, AdminTopicConfigsAlteration, AlterTopicConfigExpectation,
     AlterTopicConfigsAction, AlterTopicConfigsCommand, TopicConfigAlteration,
+    TopicConfigMutationMethod,
 };
 pub use crate::admin_config_resources::{
     AdminConfigResource, AdminConfigResourcesListing, BrokerConfigResourcesState,

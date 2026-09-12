@@ -1,4 +1,4 @@
-schema_version = 111
+schema_version = 112
 id = "kafka.assigned-consumer-incremental-assignments"
 title = "incremental assignments preserve surviving direct-consumer cursors"
 description = "The packaged client adds partition one without replaying partition zero, then removes partition zero while partition one remains usable."

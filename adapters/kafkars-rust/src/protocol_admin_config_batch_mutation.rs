@@ -11,11 +11,11 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::kafkars_api::{
-    ConfigAlteration as PublicAlteration, ConfigResourceAlterations, ConfigResourceType,
-    KafkaError, LegacyConfigResourceReplacement, LegacyTopicConfigEntry,
+    ConfigResourceAlterations, ConfigResourceType, KafkaError, LegacyConfigResourceReplacement,
     LegacyTopicConfigReplacement, TopicConfigAlterations,
 };
 use crate::protocol::emit;
+use crate::protocol_admin_config_alteration::{incremental_alteration, legacy_entry};
 use crate::state::AdapterState;
 
 pub(crate) fn alter<W: Write>(
@@ -46,9 +46,14 @@ fn alter_topics<W: Write>(
     command_id: CommandId,
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
-    let changes = command.topics.iter().map(|selected| {
-        TopicConfigAlterations::new(selected.topic.clone(), [incremental_alteration(selected)])
-    });
+    let changes = command
+        .topics
+        .iter()
+        .map(|selected| {
+            incremental_alteration(selected, &command.operation_id)
+                .map(|alteration| TopicConfigAlterations::new(selected.topic.clone(), [alteration]))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let result = state
         .client(&command.client_id)?
         .admin()
@@ -80,13 +85,19 @@ fn alter_resources<W: Write>(
     command_id: CommandId,
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
-    let changes = command.topics.iter().map(|selected| {
-        ConfigResourceAlterations::new(
-            ConfigResourceType::Topic,
-            selected.topic.clone(),
-            [incremental_alteration(selected)],
-        )
-    });
+    let changes = command
+        .topics
+        .iter()
+        .map(|selected| {
+            incremental_alteration(selected, &command.operation_id).map(|alteration| {
+                ConfigResourceAlterations::new(
+                    ConfigResourceType::Topic,
+                    selected.topic.clone(),
+                    [alteration],
+                )
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let result = state
         .client(&command.client_id)?
         .admin()
@@ -128,9 +139,14 @@ fn alter_legacy_topics<W: Write>(
     command_id: CommandId,
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
-    let replacements = command.topics.iter().map(|selected| {
-        LegacyTopicConfigReplacement::new(selected.topic.clone(), [legacy_entry(selected)])
-    });
+    let replacements = command
+        .topics
+        .iter()
+        .map(|selected| {
+            legacy_entry(selected, &command.operation_id)
+                .map(|entry| LegacyTopicConfigReplacement::new(selected.topic.clone(), [entry]))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let result = state
         .client(&command.client_id)?
         .admin()
@@ -162,13 +178,19 @@ fn alter_legacy_resources<W: Write>(
     command_id: CommandId,
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
-    let replacements = command.topics.iter().map(|selected| {
-        LegacyConfigResourceReplacement::new(
-            ConfigResourceType::Topic,
-            selected.topic.clone(),
-            [legacy_entry(selected)],
-        )
-    });
+    let replacements = command
+        .topics
+        .iter()
+        .map(|selected| {
+            legacy_entry(selected, &command.operation_id).map(|entry| {
+                LegacyConfigResourceReplacement::new(
+                    ConfigResourceType::Topic,
+                    selected.topic.clone(),
+                    [entry],
+                )
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let result = state
         .client(&command.client_id)?
         .admin()
@@ -234,20 +256,6 @@ pub(crate) fn outcomes(
             })
         })
         .collect()
-}
-
-pub(crate) fn incremental_alteration(selected: &TopicConfigAlteration) -> PublicAlteration {
-    match &selected.value {
-        Some(value) => PublicAlteration::set(selected.config_name.clone(), value.clone()),
-        None => PublicAlteration::delete(selected.config_name.clone()),
-    }
-}
-
-pub(crate) fn legacy_entry(selected: &TopicConfigAlteration) -> LegacyTopicConfigEntry {
-    match &selected.value {
-        Some(value) => LegacyTopicConfigEntry::set(selected.config_name.clone(), value.clone()),
-        None => LegacyTopicConfigEntry::restore_default(selected.config_name.clone()),
-    }
 }
 
 fn invalid(operation_id: &OperationId, detail: &str) -> AdapterError {

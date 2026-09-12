@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn plural_topic_config_mutation_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 108);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 111);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 97);
+    assert_eq!(PROTOCOL_VERSION, 109);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 112);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 98);
 }
 
 #[test]
@@ -53,42 +53,6 @@ fn legacy_selectors_round_trip_and_map_to_matching_description_surfaces() {
         assert!(encoded.contains(encoded_name), "{encoded}");
         assert_eq!(api.description_api(), description_api);
     }
-}
-
-#[test]
-fn checked_in_legacy_restore_is_exact_and_rejected_for_incremental_apis() {
-    let restored: Scenario = toml::from_str(include_str!(
-        "../../../scenarios/kafka/admin-legacy-config-replacement.toml"
-    ))
-    .unwrap_or_else(|error| panic!("parse legacy restoration: {error}"));
-    restored
-        .validate()
-        .unwrap_or_else(|error| panic!("validate legacy restoration: {error}"));
-    for api in [
-        crate::TopicConfigMutationApi::LegacyTopic,
-        crate::TopicConfigMutationApi::LegacyResource,
-    ] {
-        assert!(restored.steps.iter().any(|step| matches!(
-            &step.action,
-            ScenarioAction::AlterTopicConfigs(action)
-                if action.api == api
-                    && action.topics.iter().all(|topic| topic.restore_default)
-        )));
-    }
-
-    let mut action = action();
-    action.topics[0].restore_default = true;
-    let mut problems = Vec::new();
-    crate::admin_config_action_validation::validate(
-        &ScenarioAction::AlterTopicConfigs(action),
-        &BTreeMap::from([(client(), false)]),
-        &mut BTreeSet::new(),
-        &mut problems,
-    );
-    assert_problem(
-        &problems,
-        "restore_default requires a legacy configuration API",
-    );
 }
 
 #[test]
@@ -241,7 +205,8 @@ fn expectation(
         config_name: config_name.to_owned(),
         expected_previous_value: expected_previous_value.to_owned(),
         value: value.to_owned(),
-        restore_default: false,
+        method: crate::TopicConfigMutationMethod::Set,
+        operation_value: None,
     }
 }
 
@@ -249,6 +214,7 @@ fn alteration(topic: &str, config_name: &str, value: &str) -> TopicConfigAlterat
     TopicConfigAlteration {
         topic: topic.to_owned(),
         config_name: config_name.to_owned(),
+        method: crate::TopicConfigMutationMethod::Set,
         value: Some(value.to_owned()),
     }
 }
@@ -293,3 +259,6 @@ fn client() -> ClientId {
 fn operation(value: &str) -> OperationId {
     OperationId::new(value).unwrap_or_else(|error| panic!("operation: {error}"))
 }
+
+#[path = "admin_config_mutation_method_test.rs"]
+mod mutation_method_test;

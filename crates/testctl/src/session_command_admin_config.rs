@@ -66,7 +66,8 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 .map(|selected| TopicConfigAlteration {
                     topic: selected.topic.clone(),
                     config_name: selected.config_name.clone(),
-                    value: (!selected.restore_default).then(|| selected.value.clone()),
+                    method: selected.method,
+                    value: selected.command_value().map(str::to_owned),
                 })
                 .collect::<Vec<_>>();
             (

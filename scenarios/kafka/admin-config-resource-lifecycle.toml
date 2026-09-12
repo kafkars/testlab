@@ -1,8 +1,8 @@
-schema_version = 111
+schema_version = 112
 id = "kafka.admin-config-resource-lifecycle"
 title = "packaged admin manages caller-ordered generic configuration resources"
-description = "The resource-generic public describe and incremental-alter surfaces preserve caller order for two topic resources while immediate independent librdkafka reads prove the exact prior values, replacements, and final values."
-timeout_ms = 120000
+description = "The resource-generic public describe and incremental-alter surfaces preserve caller order while exact Set, Delete, Append, and Subtract methods change two topic resources and immediate independent reads prove every transition."
+timeout_ms = 240000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
 
@@ -50,6 +50,69 @@ api = "resource"
 topics = [
   { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_value = "compact" },
   { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "delete-resource-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-delete"
+baseline_operation_id = "admin-config-resource-after"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_previous_value = "compact", value = "delete", method = "delete" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_previous_value = "compact", value = "delete", method = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-deleted-resource-configs"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-deleted"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_value = "delete" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_value = "delete" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "append-resource-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-append"
+baseline_operation_id = "admin-config-resource-deleted"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_previous_value = "delete", value = "delete,compact", method = "append", operation_value = "compact" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_previous_value = "delete", value = "delete,compact", method = "append", operation_value = "compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-appended-resource-configs"
+kind = "describe_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-appended"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_value = "delete,compact" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_value = "delete,compact" },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "subtract-resource-configs"
+kind = "alter_topic_configs"
+client_id = "client-1"
+operation_id = "admin-config-resource-subtract"
+baseline_operation_id = "admin-config-resource-appended"
+api = "resource"
+topics = [
+  { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_previous_value = "delete,compact", value = "compact", method = "subtract", operation_value = "delete" },
+  { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_previous_value = "delete,compact", value = "compact", method = "subtract", operation_value = "delete" },
 ]
 timeout_ms = 20000
 

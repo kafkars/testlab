@@ -1,21 +1,82 @@
 //! Plural configuration-mutation normalization rejects lossy or reordered results.
 
-use testlab_schema::{OperationId, TopicConfigAlteration};
+use testlab_schema::{OperationId, TopicConfigAlteration, TopicConfigMutationMethod};
 
-use crate::kafkars_api::{ErrorKind, KafkaError};
-use crate::protocol_admin_config_batch_mutation::{incremental_alteration, legacy_entry, outcomes};
+use crate::kafkars_api::{ConfigAlterationOperation, ErrorKind, KafkaError};
+use crate::protocol_admin_config_alteration::{incremental_alteration, legacy_entry};
+use crate::protocol_admin_config_batch_mutation::outcomes;
 
 #[test]
-fn absent_command_value_maps_to_exact_public_default_restoration() {
-    let mut selected = alteration("topic-z", "cleanup.policy", "compact");
-    selected.value = None;
+fn every_incremental_method_maps_to_its_exact_public_constructor() {
+    for (method, value, expected) in [
+        (
+            TopicConfigMutationMethod::Set,
+            Some("compact"),
+            ConfigAlterationOperation::Set("compact".to_owned()),
+        ),
+        (
+            TopicConfigMutationMethod::Delete,
+            None,
+            ConfigAlterationOperation::Delete,
+        ),
+        (
+            TopicConfigMutationMethod::Append,
+            Some("compact"),
+            ConfigAlterationOperation::Append("compact".to_owned()),
+        ),
+        (
+            TopicConfigMutationMethod::Subtract,
+            Some("delete"),
+            ConfigAlterationOperation::Subtract("delete".to_owned()),
+        ),
+    ] {
+        let selected = alteration("topic-z", "cleanup.policy", method, value);
+        let mapped = incremental_alteration(&selected, &operation())
+            .unwrap_or_else(|error| panic!("map incremental alteration: {error}"));
+        assert_eq!(mapped.key(), "cleanup.policy");
+        assert_eq!(mapped.operation(), &expected);
+    }
+}
 
-    let incremental = incremental_alteration(&selected);
-    let legacy = legacy_entry(&selected);
-    assert_eq!(incremental.key(), "cleanup.policy");
-    assert_eq!(incremental.operation().value(), None);
-    assert_eq!(legacy.key(), "cleanup.policy");
-    assert_eq!(legacy.value(), None);
+#[test]
+fn legacy_set_and_restoration_map_without_incremental_substitution() {
+    let set = alteration(
+        "topic-z",
+        "cleanup.policy",
+        TopicConfigMutationMethod::Set,
+        Some("compact"),
+    );
+    let restore = alteration(
+        "topic-z",
+        "cleanup.policy",
+        TopicConfigMutationMethod::RestoreDefault,
+        None,
+    );
+    let set =
+        legacy_entry(&set, &operation()).unwrap_or_else(|error| panic!("map legacy set: {error}"));
+    let restore = legacy_entry(&restore, &operation())
+        .unwrap_or_else(|error| panic!("map legacy restoration: {error}"));
+    assert_eq!(set.value(), Some("compact"));
+    assert_eq!(restore.value(), None);
+    assert!(incremental_alteration(&restore, &operation()).is_err());
+}
+
+#[test]
+fn missing_or_extra_operands_are_rejected_before_public_submission() {
+    for (method, value) in [
+        (TopicConfigMutationMethod::Append, None),
+        (TopicConfigMutationMethod::Delete, Some("delete")),
+    ] {
+        let selected = alteration("topic-z", "cleanup.policy", method, value);
+        assert!(incremental_alteration(&selected, &operation()).is_err());
+    }
+    for (method, value) in [
+        (TopicConfigMutationMethod::Set, None),
+        (TopicConfigMutationMethod::RestoreDefault, Some("delete")),
+    ] {
+        let selected = alteration("topic-z", "cleanup.policy", method, value);
+        assert!(legacy_entry(&selected, &operation()).is_err());
+    }
 }
 
 #[test]
@@ -62,16 +123,32 @@ fn reordered_missing_and_extra_topic_results_are_rejected() {
 
 fn alterations() -> Vec<TopicConfigAlteration> {
     vec![
-        alteration("topic-z", "cleanup.policy", "compact"),
-        alteration("topic-a", "cleanup.policy", "compact"),
+        alteration(
+            "topic-z",
+            "cleanup.policy",
+            TopicConfigMutationMethod::Set,
+            Some("compact"),
+        ),
+        alteration(
+            "topic-a",
+            "cleanup.policy",
+            TopicConfigMutationMethod::Set,
+            Some("compact"),
+        ),
     ]
 }
 
-fn alteration(topic: &str, config_name: &str, value: &str) -> TopicConfigAlteration {
+fn alteration(
+    topic: &str,
+    config_name: &str,
+    method: TopicConfigMutationMethod,
+    value: Option<&str>,
+) -> TopicConfigAlteration {
     TopicConfigAlteration {
         topic: topic.to_owned(),
         config_name: config_name.to_owned(),
-        value: Some(value.to_owned()),
+        method,
+        value: value.map(str::to_owned),
     }
 }
 
