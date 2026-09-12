@@ -7,8 +7,12 @@ use crate::kafkars_api::Client;
 use crate::state::{AdapterState, StateError};
 
 impl AdapterState {
-    pub(crate) fn create_client(&mut self, client_id: ClientId) -> Result<(), StateError> {
-        self.create_client_with_configuration(client_id, None, None)
+    pub(crate) fn create_client(
+        &mut self,
+        client_id: ClientId,
+        expected_cluster_id: Option<String>,
+    ) -> Result<(), StateError> {
+        self.create_client_with_configuration(client_id, expected_cluster_id, None, None)
     }
 
     pub(crate) fn create_configured_client(
@@ -16,7 +20,7 @@ impl AdapterState {
         client_id: ClientId,
         configuration: ProducerConfiguration,
     ) -> Result<(), StateError> {
-        self.create_client_with_configuration(client_id, Some(configuration), None)
+        self.create_client_with_configuration(client_id, None, Some(configuration), None)
     }
 
     pub(crate) fn create_assigned_consumer_client(
@@ -24,12 +28,13 @@ impl AdapterState {
         client_id: ClientId,
         configuration: AssignedConsumerConfiguration,
     ) -> Result<(), StateError> {
-        self.create_client_with_configuration(client_id, None, Some(configuration))
+        self.create_client_with_configuration(client_id, None, None, Some(configuration))
     }
 
     fn create_client_with_configuration(
         &mut self,
         client_id: ClientId,
+        expected_cluster_id: Option<String>,
         producer_configuration: Option<ProducerConfiguration>,
         assigned_consumer_configuration: Option<AssignedConsumerConfiguration>,
     ) -> Result<(), StateError> {
@@ -45,6 +50,10 @@ impl AdapterState {
             .bootstrap_servers(endpoints.iter().map(String::as_str))
             .client_id(client_id.as_str())
             .security(security);
+        let builder = match expected_cluster_id.as_deref() {
+            Some(cluster_id) => builder.expected_cluster_id(cluster_id),
+            None => builder,
+        };
         let builder = match producer_configuration {
             Some(configuration) => crate::producer_configuration::apply(builder, configuration)?,
             None => builder,
@@ -56,6 +65,11 @@ impl AdapterState {
             None => builder,
         };
         let client = builder.build().map_err(StateError::Client)?;
+        if client.expected_cluster_id() != expected_cluster_id.as_deref() {
+            return Err(StateError::ClientSurface(
+                "expected cluster ID was not retained".to_owned(),
+            ));
+        }
         self.clients.insert(client_id, client);
         Ok(())
     }

@@ -38,6 +38,9 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     }
     let capability = match action {
         ScenarioAction::SetBrokerBehavior { .. } => Some(Capability::ModelBroker),
+        ScenarioAction::CreateClient(action) if action.expected_cluster_id.is_some() => {
+            Some(Capability::ExpectedClusterIdentity)
+        }
         ScenarioAction::AwaitClientReady { .. } => Some(Capability::ClientReadiness),
         ScenarioAction::ObserveClientMetrics(_) => Some(Capability::ClientMetrics),
         ScenarioAction::CreateConfiguredClient(_) => Some(Capability::ProducerConfiguration),
@@ -255,6 +258,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
     (
         Capability::ModelBroker,
         "broker-control steps require the model_broker capability",
+    ),
+    (
+        Capability::ExpectedClusterIdentity,
+        "expected cluster IDs require the expected_cluster_identity capability",
     ),
     (
         Capability::ClientReadiness,

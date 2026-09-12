@@ -27,9 +27,10 @@ fn public_client_and_producer_lifecycle_settles() {
         ),
         command(
             "client",
-            AdapterCommand::CreateClient {
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
                 client_id: client.clone(),
-            },
+                expected_cluster_id: None,
+            }),
         ),
         command(
             "shutdown",
@@ -121,7 +122,13 @@ fn abort_exits_without_claiming_open_resources_were_settled() {
                 security: AdapterSecurity::Plaintext,
             },
         ),
-        command("client", AdapterCommand::CreateClient { client_id: client }),
+        command(
+            "client",
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
+                client_id: client,
+                expected_cluster_id: None,
+            }),
+        ),
         command("abort", AdapterCommand::Abort),
     ];
     let input = commands

@@ -7,6 +7,7 @@ pub fn expected_client_error(action: &ScenarioAction) -> Option<&str> {
     crate::expected_admin_error(action)
         .map(|(_, code)| code)
         .or(match action {
+            ScenarioAction::CreateClient(action) => action.expected_error_code.as_deref(),
             ScenarioAction::GroupReceive {
                 expected_error_code,
                 ..

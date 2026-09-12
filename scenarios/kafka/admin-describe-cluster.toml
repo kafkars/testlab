@@ -1,15 +1,23 @@
-schema_version = 87
+schema_version = 88
 id = "kafka.admin-describe-cluster"
-title = "packaged admin describes the independently observed Kafka cluster"
-description = "The packaged client's public cluster description reports the cluster identity and broker IDs that an independent librdkafka query observes in the declared environment topology."
-timeout_ms = 60000
-requires = ["admin", "lifecycle", "client_readiness"]
+title = "packaged client enforces and describes the independently observed Kafka cluster"
+description = "The packaged client rejects a mismatched expected cluster ID without retaining a handle, accepts the environment's exact ID during construction and readiness, and publicly describes the cluster identity and broker IDs that an independent librdkafka query observes."
+timeout_ms = 150000
+requires = ["admin", "lifecycle", "client_readiness", "expected_cluster_identity"]
 assertions = []
+
+[[steps]]
+id = "reject-mismatched-cluster"
+kind = "create_client"
+client_id = "client-1"
+expected_cluster_id = "4L6g3nShT-eMCtK--X86sx"
+expected_error_code = "identity"
 
 [[steps]]
 id = "create-client"
 kind = "create_client"
 client_id = "client-1"
+expected_cluster_id = "4L6g3nShT-eMCtK--X86sw"
 
 [[steps]]
 id = "await-client-ready"

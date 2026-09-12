@@ -53,9 +53,10 @@ fn public_client_failure_is_valid_semantic_evidence() {
     events.extend([
         command(
             10,
-            AdapterCommand::CreateClient {
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
                 client_id: client.clone(),
-            },
+                expected_cluster_id: None,
+            }),
         ),
         command(
             11,

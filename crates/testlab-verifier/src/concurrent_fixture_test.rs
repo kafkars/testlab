@@ -76,9 +76,11 @@ fn scenario_steps(record: &RecordSpec) -> Vec<ScenarioStep> {
     vec![
         step(
             "create-client",
-            ScenarioAction::CreateClient {
+            ScenarioAction::CreateClient(testlab_schema::CreateClientAction {
                 client_id: client.clone(),
-            },
+                expected_cluster_id: None,
+                expected_error_code: None,
+            }),
         ),
         step(
             "ready-client",

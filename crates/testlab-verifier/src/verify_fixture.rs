@@ -30,9 +30,11 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
         steps: vec![
             step(
                 "client",
-                ScenarioAction::CreateClient {
+                ScenarioAction::CreateClient(testlab_schema::CreateClientAction {
                     client_id: client.clone(),
-                },
+                    expected_cluster_id: None,
+                    expected_error_code: None,
+                }),
             ),
             step(
                 "ready",

@@ -13,7 +13,7 @@ impl HistoryIndex {
             return;
         }
         match command {
-            AdapterCommand::CreateClient { .. }
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand { .. })
             | AdapterCommand::CreateConfiguredClient(_)
             | AdapterCommand::CreateAssignedConsumerClient(_)
             | AdapterCommand::AwaitClientReady { .. }
@@ -94,7 +94,9 @@ impl HistoryIndex {
 
     fn record_client_command(&mut self, command: &AdapterCommand) -> bool {
         match command {
-            AdapterCommand::CreateClient { client_id } => {
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
+                client_id, ..
+            }) => {
                 self.clients_create_issued.insert(client_id.clone());
             }
             AdapterCommand::CreateConfiguredClient(action) => {

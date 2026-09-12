@@ -3,9 +3,7 @@ use crate::{ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScenarioAction {
-    CreateClient {
-        client_id: ClientId,
-    },
+    CreateClient(crate::CreateClientAction),
     CreateConfiguredClient(crate::CreateConfiguredClientAction),
     CreateAssignedConsumerClient(crate::CreateAssignedConsumerClientAction),
     AwaitClientReady {

@@ -15,6 +15,7 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         Capability::ConcurrentActors,
         Capability::Lifecycle,
         Capability::ClientReadiness,
+        Capability::ExpectedClusterIdentity,
         Capability::ClientMetrics,
         Capability::AssignedConsumer,
         Capability::AssignedConsumerConfiguration,

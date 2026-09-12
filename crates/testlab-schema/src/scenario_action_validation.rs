@@ -15,22 +15,14 @@ pub(crate) fn validate_action(
         return;
     }
     match action {
-        ScenarioAction::CreateClient { client_id } => {
-            create_client(client_id, &mut state.clients, problems);
-        }
-        ScenarioAction::CreateConfiguredClient(action) => {
-            crate::producer_configuration_validation::validate(&action.configuration, problems);
-            create_client(&action.client_id, &mut state.clients, problems);
-        }
-        ScenarioAction::CreateAssignedConsumerClient(action) => {
-            let owner = format!("assigned-consumer client {}", action.client_id);
-            crate::consumer_configuration::validate(
-                &owner,
-                action.configuration.fetch,
-                action.configuration.limits,
+        action @ (ScenarioAction::CreateClient(_)
+        | ScenarioAction::CreateConfiguredClient(_)
+        | ScenarioAction::CreateAssignedConsumerClient(_)) => {
+            crate::client_creation_validation::validate_action(
+                action,
+                &mut state.clients,
                 problems,
             );
-            create_client(&action.client_id, &mut state.clients, problems);
         }
         ScenarioAction::AwaitClientReady { client_id } => {
             require_live_client(client_id, &state.clients, problems);
@@ -202,11 +194,6 @@ pub(crate) fn validate_action(
                 client_id, state, problems,
             );
         }
-    }
-}
-fn create_client(client_id: &ClientId, clients: &mut ClientStates, problems: &mut Vec<String>) {
-    if clients.insert(client_id.clone(), false).is_some() {
-        problems.push(format!("duplicate client id {client_id}"));
     }
 }
 fn validate_batch(

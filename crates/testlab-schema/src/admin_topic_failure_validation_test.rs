@@ -70,9 +70,11 @@ fn scenario(actions: Vec<ScenarioAction>) -> Scenario {
     let client_id = client();
     let mut steps = vec![step(
         "create-client",
-        ScenarioAction::CreateClient {
+        ScenarioAction::CreateClient(crate::CreateClientAction {
             client_id: client_id.clone(),
-        },
+            expected_cluster_id: None,
+            expected_error_code: None,
+        }),
     )];
     steps.extend(
         actions

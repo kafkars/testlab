@@ -1,4 +1,4 @@
-schema_version = 87
+schema_version = 88
 id = "kafka.admin-list-offsets-invalid-partition"
 title = "packaged admin rejects offset listing for an absent Kafka partition"
 description = "The packaged client's public admin requests the latest offset for absent partition 1 of an independently provisioned one-partition topic, reports the exact normalized routing failure before ListOffsets transport, and an immediate independent metadata query confirms only partition 0 exists."

@@ -4,6 +4,9 @@ use testlab_schema::AdapterCommand;
 
 pub(super) fn reason(command: &AdapterCommand) -> &'static str {
     match command {
+        AdapterCommand::CreateClient(command) if command.expected_cluster_id.is_some() => {
+            "expected_cluster_identity capability required"
+        }
         AdapterCommand::CancelProducerSend(_) => "producer_cancellation capability required",
         AdapterCommand::CreateConfiguredClient(_) => "producer_configuration capability required",
         AdapterCommand::CreateAssignedConsumerClient(_) => {
@@ -99,7 +102,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
             "concurrent_actors capability required"
         }
         AdapterCommand::Hello { .. }
-        | AdapterCommand::CreateClient { .. }
+        | AdapterCommand::CreateClient(_)
         | AdapterCommand::AwaitClientReady { .. }
         | AdapterCommand::CreateProducer { .. }
         | AdapterCommand::Send { .. }

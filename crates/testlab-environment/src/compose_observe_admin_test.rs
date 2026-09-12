@@ -14,12 +14,15 @@ use crate::observer_admin_target::AdminTarget;
 fn unsupported_action_produces_no_environment_operation() {
     let fixture = Fixture::new(false);
     let mut environment = fixture.environment();
-    let action = ScenarioAction::CreateClient {
+    let action = ScenarioAction::CreateClient(testlab_schema::CreateClientAction {
         client_id: client("client-1"),
-    };
-    let command = AdapterCommand::CreateClient {
+        expected_cluster_id: None,
+        expected_error_code: None,
+    });
+    let command = AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
         client_id: client("client-1"),
-    };
+        expected_cluster_id: None,
+    });
 
     let observed = environment.observe_admin(&action, &command, Duration::from_millis(1));
 

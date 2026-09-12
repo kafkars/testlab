@@ -56,9 +56,11 @@ fn fixture() -> Scenario {
         steps: vec![
             step(
                 "create-client",
-                ScenarioAction::CreateClient {
+                ScenarioAction::CreateClient(crate::CreateClientAction {
                     client_id: client(),
-                },
+                    expected_cluster_id: None,
+                    expected_error_code: None,
+                }),
             ),
             step(
                 "create-topic",

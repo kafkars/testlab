@@ -58,9 +58,10 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
         ),
         command(
             "cmd-client",
-            AdapterCommand::CreateClient {
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
                 client_id: client.clone(),
-            },
+                expected_cluster_id: None,
+            }),
         ),
         command(
             "cmd-ready",
@@ -172,7 +173,10 @@ fn abort_exits_with_open_resources() {
         ),
         command(
             "cmd-client",
-            AdapterCommand::CreateClient { client_id: client },
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
+                client_id: client,
+                expected_cluster_id: None,
+            }),
         ),
         command("cmd-abort", AdapterCommand::Abort),
     ];

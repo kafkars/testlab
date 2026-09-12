@@ -8,25 +8,40 @@ mod matches;
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+pub(crate) fn successful_client_creation_id(
+    action: &ScenarioAction,
+) -> Option<&testlab_schema::ClientId> {
+    match action {
+        ScenarioAction::CreateClient(action) if action.expected_error_code.is_none() => {
+            Some(&action.client_id)
+        }
+        ScenarioAction::CreateConfiguredClient(action) => Some(&action.client_id),
+        ScenarioAction::CreateAssignedConsumerClient(action) => Some(&action.client_id),
+        _ => None,
+    }
+}
+
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     let expected_failures = scenario
         .steps
         .iter()
         .filter_map(|step| match &step.action {
+            ScenarioAction::CreateClient(action) if action.expected_error_code.is_some() => {
+                Some(ExpectedFailure::Client(action))
+            }
             ScenarioAction::CreateTransactionalProducer {
                 producer_id,
                 expected_error_code: Some(_),
                 ..
-            } => Some(producer_id),
+            } => Some(ExpectedFailure::Producer(producer_id)),
             _ => None,
         })
         .collect::<Vec<_>>();
     for (command_sequence, command_id, command) in &index.commands {
-        if matches!(
-            command,
-            AdapterCommand::CreateTransactionalProducer { producer_id, .. }
-                if expected_failures.contains(&producer_id)
-        ) {
+        if expected_failures
+            .iter()
+            .any(|failure| failure.matches(command))
+        {
             continue;
         }
         let Some(expected) = ExpectedLifecycle::for_command(command) else {
@@ -58,6 +73,30 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     .collect(),
             ));
         }
+    }
+}
+
+enum ExpectedFailure<'a> {
+    Client(&'a testlab_schema::CreateClientAction),
+    Producer(&'a ProducerId),
+}
+
+impl ExpectedFailure<'_> {
+    fn matches(&self, command: &AdapterCommand) -> bool {
+        matches!(
+            (self, command),
+            (
+                Self::Client(expected),
+                AdapterCommand::CreateClient(command)
+            ) if expected.client_id == command.client_id
+                && expected.expected_cluster_id == command.expected_cluster_id
+        ) || matches!(
+            (self, command),
+            (
+                Self::Producer(expected),
+                AdapterCommand::CreateTransactionalProducer { producer_id, .. }
+            ) if *expected == producer_id
+        )
     }
 }
 
@@ -103,7 +142,9 @@ enum ConsumerEvent {
 impl<'a> ExpectedLifecycle<'a> {
     fn for_command(command: &'a AdapterCommand) -> Option<Self> {
         let expected = match command {
-            AdapterCommand::CreateClient { client_id }
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
+                client_id, ..
+            })
             | AdapterCommand::CreateConfiguredClient(
                 testlab_schema::CreateConfiguredClientAction { client_id, .. },
             )

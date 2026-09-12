@@ -202,6 +202,8 @@ mod session_command_admin_validate_test;
 #[cfg(test)]
 mod session_command_assigned_consumer_configuration_test;
 #[cfg(test)]
+mod session_command_client_identity_test;
+#[cfg(test)]
 mod session_command_client_metrics_test;
 #[cfg(test)]
 mod session_command_concurrent_test;

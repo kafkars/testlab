@@ -51,6 +51,11 @@ to independent broker observations.
 Protocol v84 and evidence schema v73 retain all six Share Fetch fields plus
 membership-start and close deadlines. Both bounded-delivery scenarios use
 non-default policy and exact independently observed records.
+Protocol v85 and evidence schema v74 retain an optional expected cluster ID at
+client creation while the normalized mismatch oracle remains scenario-only.
+The cluster scenario proves rejection and same-identity reuse before joining a
+successful construction, repeated public readiness, public Admin description,
+and independent librdkafka cluster metadata to the exact environment identity.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

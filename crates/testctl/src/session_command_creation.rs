@@ -5,11 +5,12 @@ use testlab_schema::{AdapterCommand, ScenarioAction};
 
 pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
-        ScenarioAction::CreateClient { client_id } => (
-            AdapterCommand::CreateClient {
-                client_id: client_id.clone(),
-            },
-            ExpectedEvent::ClientCreated(client_id.clone()),
+        ScenarioAction::CreateClient(action) => (
+            AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
+                client_id: action.client_id.clone(),
+                expected_cluster_id: action.expected_cluster_id.clone(),
+            }),
+            ExpectedEvent::ClientCreated(action.client_id.clone()),
         ),
         ScenarioAction::CreateConfiguredClient(action) => (
             AdapterCommand::CreateConfiguredClient(action.clone()),

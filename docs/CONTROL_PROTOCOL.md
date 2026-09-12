@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v84 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v87 and evidence schema v73.
+Protocol v85 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v88 and evidence schema v74.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -14,6 +14,14 @@ Lifecycle verdicts join each creation, readiness, assignment, flush, close,
 shutdown, and finish event to that exact originating command. Repeating a
 public operation on one resource therefore requires one completion per command;
 resource-level event totals are not a substitute for correlation.
+
+Client creation may require one exact broker-issued cluster ID when the adapter
+advertises `expected_cluster_identity`. The adapter must configure that value
+through the public builder before startup and retain it in the returned public
+client. Construction and each later readiness probe must fail with `identity`
+when Kafka reports another ID. The expected failure code remains scenario-only;
+a rejected construction must not retain a client handle, and the qualification
+reuses that same client identity immediately with the correct cluster ID.
 
 Producer and directly assigned consumer creation carry an exact child ownership
 selection. `shared` uses the originating client's execution and lifecycle
@@ -1020,6 +1028,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v84 is an exact semantic contract. New capabilities may be declared
+Protocol v85 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

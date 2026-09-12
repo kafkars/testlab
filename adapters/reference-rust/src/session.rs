@@ -68,7 +68,8 @@ fn dispatch<W: Write>(
         AdapterCommand::Hello {
             broker_endpoints, ..
         } => dispatch_hello(state, writer, command_id, broker_endpoints)?,
-        AdapterCommand::CreateClient { client_id } => {
+        AdapterCommand::CreateClient(command) if command.expected_cluster_id.is_none() => {
+            let client_id = command.client_id;
             state.create_client(client_id.clone())?;
             emit(
                 writer,
@@ -108,7 +109,8 @@ fn dispatch<W: Write>(
             producer_id,
             operations,
         } => session_send::dispatch_batch(state, writer, command_id, &producer_id, operations)?,
-        command @ (AdapterCommand::StartConcurrentActors(_)
+        command @ (AdapterCommand::CreateClient(_)
+        | AdapterCommand::StartConcurrentActors(_)
         | AdapterCommand::JoinConcurrentActors { .. }
         | AdapterCommand::CancelProducerSend(_)
         | AdapterCommand::CreateConfiguredClient(_)

@@ -13,10 +13,7 @@ pub enum AdapterCommand {
         /// Non-secret connection policy and secret environment references.
         security: crate::AdapterSecurity,
     },
-    CreateClient {
-        /// Scenario-local client identity.
-        client_id: ClientId,
-    },
+    CreateClient(crate::CreateClientCommand),
     CreateConfiguredClient(crate::CreateConfiguredClientAction),
     CreateAssignedConsumerClient(crate::CreateAssignedConsumerClientAction),
     /// Waits for one public client readiness probe.

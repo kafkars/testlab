@@ -89,9 +89,10 @@ fn create_handles(
 ) {
     history.command(
         "create-client",
-        AdapterCommand::CreateClient {
+        AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
             client_id: client.clone(),
-        },
+            expected_cluster_id: None,
+        }),
     );
     history.event(
         "create-client",

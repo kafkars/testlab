@@ -26,6 +26,8 @@ pub enum Capability {
     IndependentHandles,
     /// Explicit public client readiness probing.
     ClientReadiness,
+    /// Startup and readiness enforcement of one exact broker cluster identity.
+    ExpectedClusterIdentity,
     /// Bounded public client operational metrics snapshots.
     ClientMetrics,
     /// Testlab's self-test model broker transport.

@@ -14,9 +14,12 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v84 over stdin/stdout;
-3. preserves caller-selected record timestamps and returned partitions through
-   public delivery receipts, omits explicit partitions for Java-keyed sends,
+2. implements protocol v85 over stdin/stdout;
+3. configures exact expected cluster identity through the public client builder,
+   verifies that the returned public handle retains it, and exercises both
+   fail-closed mismatch and repeated readiness checks against independent
+   cluster metadata; preserves caller-selected record timestamps and returned
+   partitions through public delivery receipts, omits explicit partitions for Java-keyed sends,
    preserves consumer records, and passes caller-ordered multi-topic classic,
    KIP-848, and Share subscriptions plus complete Share Fetch, runtime, and rack
    configuration through the public builder; group registrations also preserve

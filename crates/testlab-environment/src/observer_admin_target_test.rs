@@ -235,12 +235,15 @@ fn duplicate_scenario_targets_are_rejected() {
 
 #[test]
 fn unsupported_action_has_no_admin_observation_target() {
-    let action = ScenarioAction::CreateClient {
+    let action = ScenarioAction::CreateClient(testlab_schema::CreateClientAction {
         client_id: client(),
-    };
-    let command = AdapterCommand::CreateClient {
+        expected_cluster_id: None,
+        expected_error_code: None,
+    });
+    let command = AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
         client_id: client(),
-    };
+        expected_cluster_id: None,
+    });
 
     assert_eq!(AdminTarget::from_exact(&action, &command).ok(), Some(None));
 }

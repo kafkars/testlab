@@ -15,9 +15,11 @@ pub(crate) fn dispatch<W: Write>(
     command: AdapterCommand,
 ) -> Result<(), AdapterError> {
     let event = match command {
-        AdapterCommand::CreateClient { client_id } => {
-            state.create_client(client_id.clone())?;
-            AdapterEvent::ClientCreated { client_id }
+        AdapterCommand::CreateClient(command) => {
+            state.create_client(command.client_id.clone(), command.expected_cluster_id)?;
+            AdapterEvent::ClientCreated {
+                client_id: command.client_id,
+            }
         }
         AdapterCommand::CreateConfiguredClient(action) => {
             state.create_configured_client(action.client_id.clone(), action.configuration)?;

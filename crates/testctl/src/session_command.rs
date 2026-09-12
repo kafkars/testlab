@@ -5,7 +5,7 @@ mod creation;
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
-        action @ (ScenarioAction::CreateClient { .. }
+        action @ (ScenarioAction::CreateClient(testlab_schema::CreateClientAction { .. })
         | ScenarioAction::CreateConfiguredClient(_)
         | ScenarioAction::CreateAssignedConsumerClient(_)
         | ScenarioAction::AwaitClientReady { .. }

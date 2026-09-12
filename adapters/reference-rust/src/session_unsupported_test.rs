@@ -185,6 +185,19 @@ fn share_commands_require_share_consumer_capability() {
     assert_eq!(reason(&command), "share_consumer capability required");
 }
 
+#[test]
+fn expected_cluster_identity_requires_its_capability() {
+    let command = AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {
+        client_id: client_id(),
+        expected_cluster_id: Some("cluster-a".to_owned()),
+    });
+
+    assert_eq!(
+        reason(&command),
+        "expected_cluster_identity capability required"
+    );
+}
+
 fn client_id() -> ClientId {
     ClientId::new("client-1").unwrap_or_else(|error| panic!("client id: {error}"))
 }

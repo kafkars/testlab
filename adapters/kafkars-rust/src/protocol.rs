@@ -87,7 +87,7 @@ fn dispatch<W: Write>(
             security,
             ..
         } => dispatch_hello(state, writer, command_id, broker_endpoints, security)?,
-        command @ (AdapterCommand::CreateClient { .. }
+        command @ (AdapterCommand::CreateClient(testlab_schema::CreateClientCommand { .. })
         | AdapterCommand::CreateConfiguredClient(_)
         | AdapterCommand::CreateAssignedConsumerClient(_)
         | AdapterCommand::AwaitClientReady { .. }

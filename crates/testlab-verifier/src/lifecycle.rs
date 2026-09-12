@@ -24,19 +24,18 @@ pub(crate) fn verify_lifecycle(
         if has_no_lifecycle_terminal(&step.action) {
             continue;
         }
-        match &step.action {
-            ScenarioAction::CreateClient { client_id }
-            | ScenarioAction::CreateConfiguredClient(
-                testlab_schema::CreateConfiguredClientAction { client_id, .. },
-            )
-            | ScenarioAction::CreateAssignedConsumerClient(
-                testlab_schema::CreateAssignedConsumerClientAction { client_id, .. },
-            ) => check(
+        if let Some(client_id) =
+            crate::lifecycle_commands::successful_client_creation_id(&step.action)
+        {
+            check(
                 "LIFE-001",
                 "client creation",
                 references(index.clients_created.get(client_id).map(Vec::as_slice)),
                 violations,
-            ),
+            );
+            continue;
+        }
+        match &step.action {
             ScenarioAction::AwaitClientReady { client_id } => check(
                 "LIFE-007",
                 "client readiness",
@@ -134,6 +133,11 @@ fn verify_group_lifecycle(
     true
 }
 fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
+    if let ScenarioAction::CreateClient(action) = action
+        && action.expected_error_code.is_some()
+    {
+        return true;
+    }
     matches!(
         action,
         ScenarioAction::SetBrokerBehavior { .. }

@@ -26,9 +26,7 @@ fn open_handles_are_rejected() {
         requires: BTreeSet::from([Capability::Lifecycle]),
         steps: vec![ScenarioStep {
             id: id(StepId::new("create")),
-            action: ScenarioAction::CreateClient {
-                client_id: id(ClientId::new("client-1")),
-            },
+            action: create_client(id(ClientId::new("client-1"))),
         }],
         assertions: Vec::new(),
     };
@@ -75,12 +73,7 @@ fn empty_batch_is_rejected() {
             Capability::Lifecycle,
         ]),
         steps: vec![
-            step(
-                "client",
-                ScenarioAction::CreateClient {
-                    client_id: client.clone(),
-                },
-            ),
+            step("client", create_client(client.clone())),
             step(
                 "producer",
                 ScenarioAction::CreateProducer {
@@ -183,7 +176,7 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
 #[test]
 fn broker_and_role_stops_require_exact_restoration() {
     let source = r#"
-schema_version = 87
+schema_version = 88
 id = "environment.paired-control"
 title = "paired control"
 description = "every retained broker control is restored"
@@ -243,12 +236,7 @@ fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
     let client = id(ClientId::new("client-1"));
     let producer = id(ProducerId::new("producer-1"));
     vec![
-        step(
-            "client",
-            ScenarioAction::CreateClient {
-                client_id: client.clone(),
-            },
-        ),
+        step("client", create_client(client.clone())),
         step(
             "producer",
             ScenarioAction::CreateProducer {
@@ -292,4 +280,12 @@ fn step(id_value: &str, action: ScenarioAction) -> ScenarioStep {
         id: id(StepId::new(id_value)),
         action,
     }
+}
+
+fn create_client(client_id: ClientId) -> ScenarioAction {
+    ScenarioAction::CreateClient(crate::CreateClientAction {
+        client_id,
+        expected_cluster_id: None,
+        expected_error_code: None,
+    })
 }

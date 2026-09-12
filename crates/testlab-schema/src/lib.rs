@@ -67,6 +67,7 @@ mod broker_policy;
 mod broker_role;
 mod broker_state;
 mod bytes;
+mod client_creation_validation;
 mod client_metrics;
 mod concurrent;
 mod concurrent_validation;
@@ -193,10 +194,7 @@ pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
 pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario};
 pub use scenario_action::ScenarioAction;
 pub use scenario_error::ScenarioError;
-pub use scenario_types::{
-    BatchRecord, BrokerBehavior, CloseTransactionalProducerAction, OperationAssertion,
-    ScenarioStep, TransactionDisposition, VisibilityExpectation,
-};
+pub use scenario_types::*;
 pub use share::{ShareConsumedRecord, ShareConsumerFetchConfiguration, ShareDisposition};
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use transaction_offsets::{

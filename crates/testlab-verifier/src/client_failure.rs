@@ -55,6 +55,13 @@ fn command_matches(
 ) -> bool {
     match (action, command) {
         (
+            testlab_schema::ScenarioAction::CreateClient(action),
+            testlab_schema::AdapterCommand::CreateClient(command),
+        ) => {
+            action.client_id == command.client_id
+                && action.expected_cluster_id == command.expected_cluster_id
+        }
+        (
             testlab_schema::ScenarioAction::GroupReceive {
                 consumer_id,
                 receive_id,

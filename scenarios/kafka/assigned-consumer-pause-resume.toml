@@ -1,4 +1,4 @@
-schema_version = 87
+schema_version = 88
 id = "kafka.assigned-consumer-pause-resume"
 title = "pause and resume isolate one assigned partition"
 description = "The packaged consumer pauses partition zero, receives only partition one, resumes partition zero, and then receives its independently observed record."

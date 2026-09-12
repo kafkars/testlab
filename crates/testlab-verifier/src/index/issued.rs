@@ -29,9 +29,9 @@ impl HistoryIndex {
 
     fn client_action_issued(&self, action: &ScenarioAction) -> Option<bool> {
         match action {
-            ScenarioAction::CreateClient { client_id } => {
-                Some(self.clients_create_issued.contains(client_id))
-            }
+            ScenarioAction::CreateClient(testlab_schema::CreateClientAction {
+                client_id, ..
+            }) => Some(self.clients_create_issued.contains(client_id)),
             ScenarioAction::CreateConfiguredClient(action) => {
                 Some(self.clients_create_issued.contains(&action.client_id))
             }
@@ -71,7 +71,7 @@ impl HistoryIndex {
 
     fn generic_action_issued(&self, action: &ScenarioAction) -> bool {
         match action {
-            ScenarioAction::CreateClient { .. }
+            ScenarioAction::CreateClient(testlab_schema::CreateClientAction { .. })
             | ScenarioAction::CreateConfiguredClient(_)
             | ScenarioAction::CreateAssignedConsumerClient(_)
             | ScenarioAction::AwaitClientReady { .. }

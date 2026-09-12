@@ -59,9 +59,11 @@ fn admin_queries_require_the_admin_capability() {
         steps: vec![
             step(
                 "create-client",
-                ScenarioAction::CreateClient {
+                ScenarioAction::CreateClient(crate::CreateClientAction {
                     client_id: client_id.clone(),
-                },
+                    expected_cluster_id: None,
+                    expected_error_code: None,
+                }),
             ),
             step(
                 "describe-topic",

@@ -2,7 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{OperationId, ProducerId, RecordSpec, ScenarioAction, StepId, TerminalStatus};
+use crate::{
+    ClientId, OperationId, ProducerId, RecordSpec, ScenarioAction, StepId, TerminalStatus,
+};
 
 /// One named scenario action.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -12,6 +14,31 @@ pub struct ScenarioStep {
     /// Action payload.
     #[serde(flatten)]
     pub action: ScenarioAction,
+}
+
+/// Creates one client with an optional exact broker-cluster identity guard.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CreateClientAction {
+    /// Scenario-local client identity.
+    pub client_id: ClientId,
+    /// Exact broker-issued cluster ID required during construction and readiness.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_cluster_id: Option<String>,
+    /// Expected normalized public failure; retained only in scenario intent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_error_code: Option<String>,
+}
+
+/// Creates one public client with an optional exact broker-cluster identity guard.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct CreateClientCommand {
+    /// Scenario-local client identity.
+    pub client_id: ClientId,
+    /// Exact broker-issued cluster ID required by the public client.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_cluster_id: Option<String>,
 }
 
 /// One identified record within a public batch send.
