@@ -3,9 +3,12 @@
 use std::collections::BTreeMap;
 
 use crate::scenario_action_validation::ActionStates;
-use crate::transaction_abort_validation::execute as validate_admin_abort;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction, TransactionDisposition};
 
+#[path = "transaction_batch_send_validation.rs"]
+mod batch_send_validation;
+#[path = "transaction_execute_validation.rs"]
+mod execute_validation;
 pub(crate) type TransactionStates = BTreeMap<ProducerId, TransactionState>;
 pub(crate) type TransactionSends = BTreeMap<OperationId, TransactionRecordOutcome>;
 pub(crate) const MAX_TRANSACTION_RECORDS: usize = 31;
@@ -51,19 +54,21 @@ pub(crate) fn validate(
             producer_id,
             transaction_id,
             operations,
+            method,
             disposition,
             timeout_ms,
-        } => execute(
+        } => execute_validation::execute(
             producer_id,
             transaction_id,
             operations,
+            *method,
             *disposition,
             *timeout_ms,
             state,
             problems,
         ),
         ScenarioAction::ExecuteTransactionalTransform(action) => {
-            crate::transaction_transform_validation::validate(action, state, problems);
+            crate::transaction_transform_validation::validate(action, state, problems)
         }
         ScenarioAction::FenceTransaction {
             fence_method: _,
@@ -159,39 +164,9 @@ fn create(
     );
 }
 
-fn execute(
-    producer_id: &ProducerId,
-    transaction_id: &OperationId,
-    operations: &[crate::BatchRecord],
-    disposition: TransactionDisposition,
-    timeout_ms: u64,
-    state: &mut ActionStates,
-    problems: &mut Vec<String>,
-) {
-    require_open(producer_id, &state.transactions, problems);
-    validate_admin_abort(transaction_id, operations, disposition, problems);
-    if !state.operation_ids.insert(transaction_id.clone()) {
-        problems.push(format!("duplicate operation id {transaction_id}"));
-    }
-    if operations.is_empty() || operations.len() > MAX_TRANSACTION_RECORDS {
-        problems.push(format!(
-            "transaction {transaction_id} must contain between 1 and {MAX_TRANSACTION_RECORDS} records"
-        ));
-    }
-    for operation in operations {
-        record_operation(
-            operation,
-            TransactionRecordOutcome::Completed(disposition),
-            state,
-            problems,
-        );
-    }
-    validate_timeout(producer_id, "timeout_ms", timeout_ms, problems);
-}
-
 #[allow(
     clippy::too_many_arguments,
-    reason = "the validator mirrors every explicit fencing manifest field"
+    reason = "explicit fencing manifest fields"
 )]
 fn fence(
     producer_id: &ProducerId,

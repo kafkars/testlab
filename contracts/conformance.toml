@@ -565,6 +565,12 @@ statement = "A committed transform independently exposes its exact group checkpo
 category = "transaction"
 
 [[contract]]
+id = "TXN-009"
+title = "Transactional batch staging uses one exact public request"
+statement = "Each declared transactional batch is issued once through the public send_batch selection with the exact producer, transaction, caller-ordered homogeneous records, disposition, and deadline from the scenario."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

@@ -247,12 +247,12 @@ pub enum AdapterCommand {
     },
     /// Runs one bounded linear public transaction.
     ExecuteTransaction {
-        /// Existing transactional producer.
         producer_id: ProducerId,
-        /// Stable transaction operation identity.
         transaction_id: OperationId,
         /// Ordered records staged by the transaction.
         operations: Vec<BatchRecord>,
+        /// Exact public record-staging method.
+        method: crate::TransactionSendMethod,
         /// Requested public transaction terminal operation.
         disposition: crate::TransactionDisposition,
         /// Complete begin, send, and end bound.

@@ -126,6 +126,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "transaction steps require the transactions capability",
     ),
     (
+        Capability::TransactionBatchSend,
+        "transactional batch sends require the transaction_batch_send capability",
+    ),
+    (
         Capability::ModelBroker,
         "broker-control steps require the model_broker capability",
     ),

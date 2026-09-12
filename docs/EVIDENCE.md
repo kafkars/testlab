@@ -90,6 +90,11 @@ hosted group batch observer. CONS-018 distinguishes repeated immediate
 `try_take_batch` from waiting `recv` for classic and KIP-848 consumers while
 ordinary checkpoint, epoch, record, and independent broker evidence still
 applies.
+Protocol v95, scenario schema v98, and evidence schema v84 retain the selected
+transaction record-staging method. TXN-009 binds each declared homogeneous
+batch to one exact `send_batch` command while ordinary staging, disposition,
+offset-order, record-fidelity, and independent read-committed evidence still
+applies to both commit and abort.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

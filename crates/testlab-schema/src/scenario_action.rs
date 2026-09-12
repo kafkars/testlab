@@ -254,12 +254,12 @@ pub enum ScenarioAction {
         expected_error_code: Option<String>,
     },
     ExecuteTransaction {
-        /// Existing transactional producer.
         producer_id: ProducerId,
-        /// Stable transaction identity.
         transaction_id: OperationId,
-        /// Ordered staged operations.
         operations: Vec<crate::BatchRecord>,
+        /// Exact public record-staging method.
+        #[serde(default)]
+        method: crate::TransactionSendMethod,
         /// Requested transaction terminal operation.
         disposition: crate::TransactionDisposition,
         /// Complete transaction bound.

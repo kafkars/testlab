@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminProducersDescription, BatchRecord,
-    CommandId, OperationId, ProducerStateSnapshot, TransactionDisposition,
+    CommandId, OperationId, ProducerStateSnapshot, TransactionDisposition, TransactionSendMethod,
 };
 
 use crate::AdapterError;
@@ -27,6 +27,7 @@ pub(crate) fn dispatch<W: Write>(
         producer_id,
         transaction_id,
         operations,
+        method: TransactionSendMethod::Send,
         disposition: TransactionDisposition::AdminPartitionAbort,
         timeout_ms,
     } = command

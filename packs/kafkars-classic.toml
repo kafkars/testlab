@@ -115,6 +115,8 @@ scenarios = [
   "scenarios/kafka/transaction-commit-abort.toml",
   "scenarios/kafka/transaction-multi-record-commit.toml",
   "scenarios/kafka/transaction-multi-record-abort.toml",
+  "scenarios/kafka/transaction-batch-commit.toml",
+  "scenarios/kafka/transaction-batch-abort.toml",
   "scenarios/kafka/transaction-successive-boundaries.toml",
   "scenarios/kafka/transaction-fencing.toml",
   "scenarios/kafka/transaction-admin-force-termination.toml",

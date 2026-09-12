@@ -31,6 +31,7 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         Capability::GroupConsumerShutdown,
         Capability::Admin,
         Capability::Transactions,
+        Capability::TransactionBatchSend,
     ]);
     #[cfg(kafkars_share_candidate)]
     let capabilities = {

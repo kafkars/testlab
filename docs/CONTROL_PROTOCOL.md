@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v94 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v97 and evidence schema v83.
+Protocol v95 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v98 and evidence schema v84.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1015,9 +1015,13 @@ by a public description of zero members and an exact offset listing, then
 requires an independent not-found group result. Observer errors and timeouts
 invalidate these claims rather than manufacturing absence.
 
-One `execute_transaction` command owns a complete linear begin, ordered send,
+One `execute_transaction` command owns a complete linear begin, ordered staging,
 and terminal operation because the public transaction token borrows its producer
-until it ends. `commit` and `abort` use that token directly.
+until it ends. The default `send` method stages each record independently;
+`send_batch` requires `transaction_batch_send` and stages one nonempty record
+set sharing an exact topic and explicit partition through the public homogeneous
+batch method. The command retains that method selection and the complete
+caller-ordered record set. `commit` and `abort` use the transaction token directly.
 `admin_partition_abort` is restricted to one exact staged record: the adapter
 uses public `DescribeProducers` to obtain its producer and coordinator identity,
 emits the open state, calls public Admin partition abort, and emits the cleared
@@ -1090,6 +1094,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v94 is an exact semantic contract. New capabilities may be declared
+Protocol v95 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

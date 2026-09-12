@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use crate::kafkars_api::{ErrorKind, KafkaError, RetryAdvice, Transaction, TransactionalProducer};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId,
-    TerminalStatus, TransactionDisposition,
+    TerminalStatus, TransactionDisposition, TransactionSendMethod,
 };
 
 use crate::AdapterError;
@@ -52,6 +52,7 @@ pub(crate) fn dispatch<W: Write>(
             producer_id,
             transaction_id,
             operations,
+            method,
             disposition,
             timeout_ms,
         } => execute(
@@ -60,6 +61,7 @@ pub(crate) fn dispatch<W: Write>(
             command_id,
             transaction_id,
             operations,
+            method,
             disposition,
             Duration::from_millis(timeout_ms),
         ),
@@ -85,6 +87,7 @@ fn execute<W: Write>(
     command_id: CommandId,
     transaction_id: OperationId,
     operations: Vec<BatchRecord>,
+    method: TransactionSendMethod,
     disposition: TransactionDisposition,
     timeout: Duration,
 ) -> Result<(), AdapterError> {
@@ -100,6 +103,7 @@ fn execute<W: Write>(
                     command_id,
                     transaction_id,
                     operations,
+                    method,
                     disposition,
                     deadline,
                 );
@@ -120,11 +124,23 @@ fn execute_started<W: Write>(
     command_id: CommandId,
     transaction_id: OperationId,
     operations: Vec<BatchRecord>,
+    method: TransactionSendMethod,
     disposition: TransactionDisposition,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
-    for operation in operations {
-        send(&mut transaction, writer, &command_id, operation, deadline)?;
+    match method {
+        TransactionSendMethod::Send => {
+            for operation in operations {
+                send(&mut transaction, writer, &command_id, operation, deadline)?;
+            }
+        }
+        TransactionSendMethod::SendBatch => crate::transaction_send_batch::send(
+            &mut transaction,
+            writer,
+            &command_id,
+            operations,
+            deadline,
+        )?,
     }
     end(transaction, disposition, deadline)?;
     emit(

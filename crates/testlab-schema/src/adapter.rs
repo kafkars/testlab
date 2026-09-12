@@ -62,6 +62,8 @@ pub enum Capability {
     ShareConsumerConfiguration,
     /// Transactional producer operations.
     Transactions,
+    /// Homogeneous public transactional batch staging.
+    TransactionBatchSend,
     /// Administrative operations.
     Admin,
     /// TLS transport.

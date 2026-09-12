@@ -34,4 +34,9 @@ fn descriptor_reports_the_packaged_client_version() {
             .capabilities
             .contains(&Capability::GroupConsumerImmediateBatch)
     );
+    assert!(
+        descriptor
+            .capabilities
+            .contains(&Capability::TransactionBatchSend)
+    );
 }

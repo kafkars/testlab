@@ -140,6 +140,7 @@ fn transaction_scenario(
                     operation_id: operation_id.clone(),
                     record: record("transaction"),
                 }],
+                method: Default::default(),
                 disposition,
                 timeout_ms: 1_000,
             },

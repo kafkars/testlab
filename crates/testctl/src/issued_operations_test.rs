@@ -38,6 +38,7 @@ fn recorded_commands_retain_every_observed_operation() {
                 producer_id: id(ProducerId::new("transactional-1")),
                 transaction_id: id(OperationId::new("transaction-1")),
                 operations: vec![record("transaction-record-1", 0)],
+                method: Default::default(),
                 disposition: TransactionDisposition::Commit,
                 timeout_ms: 1_000,
             },

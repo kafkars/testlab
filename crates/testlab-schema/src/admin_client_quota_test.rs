@@ -11,9 +11,9 @@ use super::{
 
 #[test]
 fn client_quota_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 94);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 97);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 83);
+    assert_eq!(PROTOCOL_VERSION, 95);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 98);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 84);
 }
 
 #[test]

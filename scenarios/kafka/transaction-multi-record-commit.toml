@@ -1,4 +1,4 @@
-schema_version = 97
+schema_version = 98
 id = "kafka.transaction-multi-record-commit"
 title = "one committed transaction preserves a multi-topic record set"
 description = "One public transaction commits six records across two topics and four partitions; independent read-committed observations must preserve the whole set, exact null and empty fields, tombstones, duplicate nullable binary headers, broker coordinates, and caller order within each partition."

@@ -34,6 +34,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             producer_id,
             transaction_id,
             operations,
+            method,
             disposition: TransactionDisposition::AdminPartitionAbort,
             timeout_ms,
         } => {
@@ -48,6 +49,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     producer_id: producer_id.clone(),
                     transaction_id: transaction_id.clone(),
                     operations: operations.clone(),
+                    method: *method,
                     disposition: TransactionDisposition::AdminPartitionAbort,
                     timeout_ms: *timeout_ms,
                 },
@@ -101,6 +103,7 @@ mod tests {
                 .unwrap_or_else(|error| panic!("producer ID: {error}")),
             transaction_id: operation("transaction-1"),
             operations,
+            method: Default::default(),
             disposition: TransactionDisposition::AdminPartitionAbort,
             timeout_ms: 1_000,
         }

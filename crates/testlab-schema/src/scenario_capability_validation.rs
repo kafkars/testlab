@@ -81,6 +81,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     ) {
         usage.insert(Capability::GroupConsumerImmediateBatch);
     }
+    if matches!(
+        action,
+        ScenarioAction::ExecuteTransaction {
+            method: crate::TransactionSendMethod::SendBatch,
+            ..
+        }
+    ) {
+        usage.insert(Capability::TransactionBatchSend);
+    }
     let capability = match action {
         ScenarioAction::SetBrokerBehavior { .. } => Some(Capability::ModelBroker),
         ScenarioAction::CreateClient(action) if action.expected_cluster_id.is_some() => {

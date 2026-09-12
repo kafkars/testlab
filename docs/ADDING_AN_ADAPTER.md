@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v94. It is not a
+An adapter translates one packaged client surface to protocol v95. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -36,6 +36,9 @@ runner and not a verifier.
 - Preserve canonical unfiltered transaction listings, caller-ordered exact
   transaction descriptions, and caller-ordered producer-fencing identities
   without receiving expected states or fields.
+- Advertise `transaction_batch_send` only when `method = "send_batch"` stages
+  the exact homogeneous caller-ordered set through one public transaction batch
+  request and expands its single acknowledgment into exact per-record offsets.
 - Submit broker unregistration only once, preserve the exact broker ID and
   throttle, and never receive the scenario-owned remaining or restored cluster
   expectations.

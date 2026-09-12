@@ -1,0 +1,74 @@
+schema_version = 98
+id = "kafka.transaction-batch-abort"
+title = "one public transactional batch aborts atomically"
+description = "One homogeneous record set is staged through the public transaction send_batch method and aborted; independent read-committed observation must expose none of the declared records."
+timeout_ms = 180000
+requires = ["producer", "transactions", "transaction_batch_send", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-batch-abort-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "abort-batch"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-batch-abort"
+method = "send_batch"
+disposition = "abort"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "op-batch-abort-null"
+record = { topic = "testlab-transaction-batch-abort", partition = 0, sequence = 1, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-batch-abort-null" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-batch-abort-empty"
+record = { topic = "testlab-transaction-batch-abort", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-batch-abort-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.operations]]
+operation_id = "op-batch-abort-binary"
+record = { topic = "testlab-transaction-batch-abort", partition = 0, sequence = 3, key = { encoding = "hex", data = "00ff" }, value = { encoding = "hex", data = "ff0001" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-batch-abort-binary" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }, { name = "trace", value = { encoding = "hex", data = "00ff" } }] }
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-batch-abort-null"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-batch-abort-empty"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-batch-abort-binary"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"

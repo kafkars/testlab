@@ -204,6 +204,7 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
             producer_id,
             transaction_id,
             operations,
+            method,
             disposition,
             timeout_ms,
         } => (
@@ -211,6 +212,7 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
                 producer_id: producer_id.clone(),
                 transaction_id: transaction_id.clone(),
                 operations: operations.clone(),
+                method: *method,
                 disposition: *disposition,
                 timeout_ms: *timeout_ms,
             },

@@ -135,6 +135,7 @@ fn expected_command(action: &ScenarioAction) -> Option<AdapterCommand> {
         producer_id,
         transaction_id,
         operations,
+        method,
         disposition,
         timeout_ms,
     } = action
@@ -145,6 +146,7 @@ fn expected_command(action: &ScenarioAction) -> Option<AdapterCommand> {
         producer_id: producer_id.clone(),
         transaction_id: transaction_id.clone(),
         operations: operations.clone(),
+        method: *method,
         disposition: *disposition,
         timeout_ms: *timeout_ms,
     })

@@ -87,6 +87,17 @@ pub enum TransactionDisposition {
     AdminPartitionAbort,
 }
 
+/// Public record-staging method selected inside one transaction.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TransactionSendMethod {
+    /// Stage each record through an independent public `send` call.
+    #[default]
+    Send,
+    /// Stage one homogeneous record set through public `send_batch`.
+    SendBatch,
+}
+
 /// Public operation used to fence one active transactional producer.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]

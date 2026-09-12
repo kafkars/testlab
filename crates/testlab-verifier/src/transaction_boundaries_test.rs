@@ -175,6 +175,7 @@ fn transaction_step(
             producer_id: producer_id.clone(),
             transaction_id: operation_id(transaction_id),
             operations: operations.to_vec(),
+            method: Default::default(),
             disposition,
             timeout_ms: 1_000,
         },

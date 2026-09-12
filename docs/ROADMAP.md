@@ -146,8 +146,10 @@
   while qualifying private producer close and replacement owners and two
   directly assigned consumers with independent cursor state from one client
   configuration.
-- Multi-record transactions span topics and partitions with the same field and
-  header distinctions. Committed sets retain exact independent coordinates and
+- Multi-record transactions span topics and partitions through individual
+  sends, while dedicated homogeneous sets exercise one public `send_batch` for
+  both commit and abort with the same field and header distinctions. Committed
+  sets retain exact independent coordinates and
   per-partition order, aborted sets remain wholly read-committed invisible, and
   successive commit/abort boundaries on one public producer cannot overlap. A
   separate singleton scenario derives the active producer and coordinator

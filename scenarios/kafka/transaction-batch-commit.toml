@@ -1,0 +1,74 @@
+schema_version = 98
+id = "kafka.transaction-batch-commit"
+title = "one public transactional batch commits in caller order"
+description = "One homogeneous record set is staged through the public transaction send_batch method and committed; independent read-committed observation must preserve every record exactly once in caller and offset order."
+timeout_ms = 180000
+requires = ["producer", "transactions", "transaction_batch_send", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-batch-commit-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "commit-batch"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-batch-commit"
+method = "send_batch"
+disposition = "commit"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "op-batch-commit-null"
+record = { topic = "testlab-transaction-batch-commit", partition = 0, sequence = 1, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-batch-commit-null" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-batch-commit-empty"
+record = { topic = "testlab-transaction-batch-commit", partition = 0, sequence = 2, key = { encoding = "hex", data = "" }, value = { encoding = "hex", data = "" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-batch-commit-empty" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps.operations]]
+operation_id = "op-batch-commit-binary"
+record = { topic = "testlab-transaction-batch-commit", partition = 0, sequence = 3, key = { encoding = "hex", data = "00ff" }, value = { encoding = "hex", data = "ff0001" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-batch-commit-binary" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } }, { name = "trace", value = { encoding = "hex", data = "00ff" } }] }
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-batch-commit-null"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-batch-commit-empty"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-batch-commit-binary"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

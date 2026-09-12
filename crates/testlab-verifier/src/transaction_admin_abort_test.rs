@@ -120,6 +120,7 @@ fn action() -> ScenarioAction {
             operation_id: id("admin-abort-record-1"),
             record: record("aborted"),
         }],
+        method: Default::default(),
         disposition: TransactionDisposition::AdminPartitionAbort,
         timeout_ms: 1_000,
     }
@@ -130,6 +131,7 @@ fn exact_command(action: &ScenarioAction) -> AdapterCommand {
         producer_id,
         transaction_id,
         operations,
+        method,
         disposition,
         timeout_ms,
     } = action
@@ -140,6 +142,7 @@ fn exact_command(action: &ScenarioAction) -> AdapterCommand {
         producer_id: producer_id.clone(),
         transaction_id: transaction_id.clone(),
         operations: operations.clone(),
+        method: *method,
         disposition: *disposition,
         timeout_ms: *timeout_ms,
     }

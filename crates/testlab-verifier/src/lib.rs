@@ -95,6 +95,7 @@ mod transaction_admin_abort;
 mod transaction_boundaries;
 mod transaction_offsets;
 mod transaction_records;
+mod transaction_send_method;
 mod verify;
 mod verify_index;
 
@@ -279,6 +280,8 @@ mod transaction_fence_test;
 mod transaction_offsets_test;
 #[cfg(test)]
 mod transaction_records_test;
+#[cfg(test)]
+mod transaction_send_method_test;
 #[cfg(test)]
 mod transaction_test;
 #[cfg(test)]
