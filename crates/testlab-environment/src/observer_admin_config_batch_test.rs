@@ -93,6 +93,8 @@ fn action() -> DescribeTopicConfigsAction {
         client_id: client(),
         operation_id: operation(),
         api: testlab_schema::TopicConfigApi::Topic,
+        include_synonyms: true,
+        include_documentation: true,
         topics: vec![
             expectation("topic-z", "cleanup.policy", "delete"),
             expectation("topic-a", "retention.ms", "604800000"),
@@ -106,6 +108,8 @@ fn command() -> DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(),
         api: testlab_schema::TopicConfigApi::Topic,
+        include_synonyms: true,
+        include_documentation: true,
         topics: vec![
             selection("topic-z", "cleanup.policy"),
             selection("topic-a", "retention.ms"),

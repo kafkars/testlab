@@ -47,6 +47,8 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
                     api: action.api,
+                    include_synonyms: action.include_synonyms,
+                    include_documentation: action.include_documentation,
                     topics: topics.clone(),
                     timeout_ms: action.timeout_ms,
                 }),

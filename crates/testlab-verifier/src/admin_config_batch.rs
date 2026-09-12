@@ -6,6 +6,8 @@ use testlab_schema::{
 
 #[path = "admin_config_batch_contract.rs"]
 mod contract;
+#[path = "admin_config_options.rs"]
+mod options;
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{
@@ -37,6 +39,7 @@ fn verify_description(
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
 ) {
+    options::verify(scenario_action, action, index, violations);
     if description_evidence(scenario_action, action, index).is_some() {
         return;
     }

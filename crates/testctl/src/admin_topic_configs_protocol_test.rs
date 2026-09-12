@@ -19,6 +19,8 @@ fn translation_preserves_order_without_expected_values() {
     };
     assert_eq!(command.client_id, client());
     assert_eq!(command.operation_id, operation());
+    assert!(command.include_synonyms);
+    assert!(command.include_documentation);
     assert_eq!(
         command
             .topics
@@ -189,6 +191,8 @@ fn action() -> DescribeTopicConfigsAction {
         client_id: client(),
         operation_id: operation(),
         api: testlab_schema::TopicConfigApi::Topic,
+        include_synonyms: true,
+        include_documentation: true,
         topics: vec![
             expectation("topic-z", "cleanup.policy", "delete"),
             expectation("topic-a", "retention.ms", "604800000"),
@@ -263,6 +267,7 @@ fn outcome(topic: &str, config_name: &str, value: &str) -> AdminTopicConfigDescr
         topic: topic.to_owned(),
         config_name: config_name.to_owned(),
         value: Some(value.to_owned()),
+        metadata: None,
         error_code: None,
     }
 }

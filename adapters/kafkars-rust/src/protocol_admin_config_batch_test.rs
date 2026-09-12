@@ -1,8 +1,8 @@
 //! Plural topic-configuration normalization rejects lossy or reordered results.
 
-use testlab_schema::{OperationId, TopicConfigSelection};
+use testlab_schema::{AdminConfigEntryMetadata, OperationId, TopicConfigSelection};
 
-use super::protocol_admin_config::described_outcomes;
+use super::protocol_admin_config_entry::{SelectedConfig, described_outcomes};
 
 #[test]
 fn exact_selected_values_remain_in_caller_order() {
@@ -19,6 +19,16 @@ fn exact_selected_values_remain_in_caller_order() {
     assert_eq!(outcomes[0].topic, "topic-z");
     assert_eq!(outcomes[1].config_name, "retention.ms");
     assert_eq!(outcomes[1].value.as_deref(), Some("604800000"));
+    let metadata = outcomes[1]
+        .metadata
+        .as_ref()
+        .unwrap_or_else(|| panic!("selected configuration metadata"));
+    assert_eq!(metadata.source, 5);
+    assert_eq!(metadata.config_type, Some(7));
+    assert_eq!(
+        metadata.documentation.as_deref(),
+        Some("configuration documentation")
+    );
 }
 
 #[test]
@@ -42,12 +52,24 @@ fn result(
     value: &str,
 ) -> (
     String,
-    Result<Vec<(String, Option<String>)>, crate::kafkars_api::KafkaError>,
+    Result<Vec<SelectedConfig>, crate::kafkars_api::KafkaError>,
 ) {
-    (
-        topic.to_owned(),
-        Ok(vec![(config_name.to_owned(), Some(value.to_owned()))]),
-    )
+    (topic.to_owned(), Ok(vec![selected(config_name, value)]))
+}
+
+fn selected(config_name: &str, value: &str) -> SelectedConfig {
+    SelectedConfig {
+        name: config_name.to_owned(),
+        value: Some(value.to_owned()),
+        metadata: AdminConfigEntryMetadata {
+            read_only: false,
+            source: 5,
+            sensitive: false,
+            synonyms: Vec::new(),
+            config_type: Some(7),
+            documentation: Some("configuration documentation".to_owned()),
+        },
+    }
 }
 
 fn selections() -> Vec<TopicConfigSelection> {

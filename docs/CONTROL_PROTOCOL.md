@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v110 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v113 and evidence schema v99.
+Protocol v111 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v114 and evidence schema v100.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -739,7 +739,12 @@ immediate independent librdkafka query. `describe_topic_configs` carries two
 through 32 distinct topics with one selected key each into one public call; its
 single completion retains every public value or normalized error in caller
 order, and contiguous immediate independent reads must confirm every expected
-non-sensitive value in that order. Incremental alteration is restricted to one
+non-sensitive value in that order. Its exact `include_synonyms` and
+`include_documentation` flags select those public builder options. Successful
+selected entries preserve read-only, source, sensitive, synonym, type, and
+documentation facts; requested synonyms must include the effective value, and
+requested documentation must include a type and nonempty text. Incremental
+alteration is restricted to one
 exact `SET` replacement after a separately identified description proves a
 different baseline. The public completion and a polling independent query must
 then establish the requested value. Sensitive or unavailable values invalidate
@@ -1180,6 +1185,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v110 is an exact semantic contract. New capabilities may be declared
+Protocol v111 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

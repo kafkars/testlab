@@ -1,7 +1,7 @@
-schema_version = 113
+schema_version = 114
 id = "kafka.admin-config-resource-lifecycle"
 title = "packaged admin manages caller-ordered generic configuration resources"
-description = "The resource-generic public describe and incremental-alter surfaces preserve caller order while exact Set, Delete, Append, and Subtract methods change two topic resources and immediate independent reads prove every transition."
+description = "The resource-generic public describe and incremental-alter surfaces preserve caller order, one post-Set description requests complete synonym and documentation metadata, exact Set, Delete, Append, and Subtract methods change two topic resources, and immediate independent reads prove every transition."
 timeout_ms = 240000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -47,6 +47,8 @@ kind = "describe_topic_configs"
 client_id = "client-1"
 operation_id = "admin-config-resource-after"
 api = "resource"
+include_synonyms = true
+include_documentation = true
 topics = [
   { topic = "testlab-kafkars-config-resource-lifecycle-zulu", config_name = "cleanup.policy", expected_value = "compact" },
   { topic = "testlab-kafkars-config-resource-lifecycle-alpha", config_name = "cleanup.policy", expected_value = "compact" },

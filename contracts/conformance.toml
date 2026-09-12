@@ -541,6 +541,12 @@ statement = "Topic-specific and generic-resource incremental Delete, Append, and
 category = "admin"
 
 [[contract]]
+id = "ADMIN-081"
+title = "DescribeConfigs options preserve complete public metadata"
+statement = "Topic-specific and generic-resource DescribeConfigs calls preserve exact synonym and documentation option flags, and every selected successful entry retains public source, mutability, sensitivity, synonyms containing its effective value, type, and nonempty documentation while immediate independent reads retain value truth."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

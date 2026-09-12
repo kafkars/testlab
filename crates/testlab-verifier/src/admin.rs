@@ -210,6 +210,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
         ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",
         ScenarioAction::DescribeTopicConfig(_) => "ADMIN-015",
+        ScenarioAction::DescribeTopicConfigs(value)
+            if value.include_synonyms || value.include_documentation =>
+        {
+            "ADMIN-081"
+        }
         ScenarioAction::DescribeTopicConfigs(value) => match value.api {
             testlab_schema::TopicConfigApi::Topic => "ADMIN-048",
             testlab_schema::TopicConfigApi::Resource => "ADMIN-064",

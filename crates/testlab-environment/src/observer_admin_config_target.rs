@@ -68,6 +68,8 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
                     api: action.api,
+                    include_synonyms: action.include_synonyms,
+                    include_documentation: action.include_documentation,
                     topics: action
                         .topics
                         .iter()

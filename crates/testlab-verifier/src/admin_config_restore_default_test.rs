@@ -47,6 +47,8 @@ fn history() -> Vec<HistoryEntry> {
                 client_id: client(),
                 operation_id: operation(BEFORE),
                 api: testlab_schema::TopicConfigApi::Topic,
+                include_synonyms: false,
+                include_documentation: false,
                 topics: selections(&topics),
                 timeout_ms: 20_000,
             }),
@@ -123,6 +125,7 @@ fn description(topics: &[String], value: &str) -> AdminTopicConfigsDescription {
                 topic: topic.clone(),
                 config_name: CONFIG.to_owned(),
                 value: Some(value.to_owned()),
+                metadata: None,
                 error_code: None,
             })
             .collect(),

@@ -1,8 +1,8 @@
 //! Topic-configuration normalization tests reject missing or ambiguous public results.
 
-use testlab_schema::OperationId;
+use testlab_schema::{AdminConfigEntryMetadata, OperationId};
 
-use super::protocol_admin_config::described_value;
+use super::protocol_admin_config_entry::{SelectedConfig, described_value};
 
 fn operation() -> OperationId {
     OperationId::new("config-op").unwrap_or_else(|error| panic!("operation ID: {error}"))
@@ -13,10 +13,7 @@ fn selected_topic_configuration_preserves_nullable_value() {
     let value = described_value(
         vec![(
             "orders".to_owned(),
-            Ok(vec![(
-                "cleanup.policy".to_owned(),
-                Some("compact".to_owned()),
-            )]),
+            Ok(vec![selected("cleanup.policy", "compact")]),
         )],
         &operation(),
         "orders",
@@ -31,7 +28,7 @@ fn selected_topic_configuration_rejects_wrong_key() {
     let Err(error) = described_value(
         vec![(
             "orders".to_owned(),
-            Ok(vec![("retention.ms".to_owned(), Some("1000".to_owned()))]),
+            Ok(vec![selected("retention.ms", "1000")]),
         )],
         &operation(),
         "orders",
@@ -52,8 +49,8 @@ fn selected_topic_configuration_rejects_extra_entries() {
         vec![(
             "orders".to_owned(),
             Ok(vec![
-                ("cleanup.policy".to_owned(), Some("delete".to_owned())),
-                ("retention.ms".to_owned(), Some("1000".to_owned())),
+                selected("cleanup.policy", "delete"),
+                selected("retention.ms", "1000"),
             ]),
         )],
         &operation(),
@@ -67,4 +64,19 @@ fn selected_topic_configuration_rejects_extra_entries() {
             .to_string()
             .contains("unexpected selected configuration")
     );
+}
+
+fn selected(name: &str, value: &str) -> SelectedConfig {
+    SelectedConfig {
+        name: name.to_owned(),
+        value: Some(value.to_owned()),
+        metadata: AdminConfigEntryMetadata {
+            read_only: false,
+            source: 5,
+            sensitive: false,
+            synonyms: Vec::new(),
+            config_type: None,
+            documentation: None,
+        },
+    }
 }

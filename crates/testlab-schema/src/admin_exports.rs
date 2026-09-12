@@ -14,11 +14,12 @@ pub use crate::admin_cluster::{
     ValidateFeatureUpdatesCommand,
 };
 pub use crate::admin_config::{
-    AdminTopicConfigCompletion, AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome,
-    AdminTopicConfigsDescription, AlterTopicConfigAction, AlterTopicConfigCommand,
-    BrokerTopicConfigState, DescribeTopicConfigAction, DescribeTopicConfigCommand,
-    DescribeTopicConfigExpectation, DescribeTopicConfigsAction, DescribeTopicConfigsCommand,
-    TopicConfigApi, TopicConfigMutationApi, TopicConfigSelection,
+    AdminConfigEntryMetadata, AdminConfigSynonym, AdminTopicConfigCompletion,
+    AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome, AdminTopicConfigsDescription,
+    AlterTopicConfigAction, AlterTopicConfigCommand, BrokerTopicConfigState,
+    DescribeTopicConfigAction, DescribeTopicConfigCommand, DescribeTopicConfigExpectation,
+    DescribeTopicConfigsAction, DescribeTopicConfigsCommand, TopicConfigApi,
+    TopicConfigMutationApi, TopicConfigSelection,
 };
 pub use crate::admin_config_batch_mutation::{
     AdminTopicConfigAlterationOutcome, AdminTopicConfigsAlteration, AlterTopicConfigExpectation,

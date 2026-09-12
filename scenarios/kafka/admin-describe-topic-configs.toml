@@ -1,7 +1,7 @@
-schema_version = 113
+schema_version = 114
 id = "kafka.admin-describe-topic-configs"
-title = "packaged admin describes caller-ordered topic configurations"
-description = "One public plural topic-configuration description preserves caller order and exact selected values while contiguous independent configuration reads confirm both topics."
+title = "packaged admin describes topic configurations with complete metadata"
+description = "One public plural topic-configuration description requests synonyms and documentation, preserves caller order and complete selected-entry metadata, and is followed by contiguous independent value reads for both topics."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -21,6 +21,8 @@ id = "describe-topic-configs"
 kind = "describe_topic_configs"
 client_id = "client-1"
 operation_id = "admin-describe-topic-configs"
+include_synonyms = true
+include_documentation = true
 topics = [
   { topic = "testlab-kafkars-admin-describe-topic-configs-zulu", config_name = "cleanup.policy", expected_value = "delete" },
   { topic = "testlab-kafkars-admin-describe-topic-configs-alpha", config_name = "cleanup.policy", expected_value = "delete" },

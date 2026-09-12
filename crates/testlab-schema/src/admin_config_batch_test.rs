@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn plural_topic_config_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 110);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 113);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 99);
+    assert_eq!(PROTOCOL_VERSION, 111);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 114);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 100);
 }
 
 #[test]
@@ -88,6 +88,8 @@ fn action() -> DescribeTopicConfigsAction {
         client_id: client(),
         operation_id: operation("describe-topic-configs"),
         api: crate::TopicConfigApi::Topic,
+        include_synonyms: true,
+        include_documentation: true,
         topics: vec![
             expectation("topic-z", "cleanup.policy", "delete"),
             expectation("topic-a", "retention.ms", "604800000"),
@@ -101,6 +103,8 @@ fn command() -> DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation("describe-topic-configs"),
         api: crate::TopicConfigApi::Topic,
+        include_synonyms: true,
+        include_documentation: true,
         topics: vec![
             selection("topic-z", "cleanup.policy"),
             selection("topic-a", "retention.ms"),
@@ -143,6 +147,18 @@ fn outcome(topic: &str, config_name: &str, value: &str) -> AdminTopicConfigDescr
         topic: topic.to_owned(),
         config_name: config_name.to_owned(),
         value: Some(value.to_owned()),
+        metadata: Some(crate::AdminConfigEntryMetadata {
+            read_only: false,
+            source: 5,
+            sensitive: false,
+            synonyms: vec![crate::AdminConfigSynonym {
+                name: config_name.to_owned(),
+                value: Some(value.to_owned()),
+                source: 5,
+            }],
+            config_type: Some(7),
+            documentation: Some("Topic configuration documentation".to_owned()),
+        }),
         error_code: None,
     }
 }

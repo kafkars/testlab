@@ -136,6 +136,8 @@ fn topic_config_commands_require_admin_capability() {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
             api: testlab_schema::TopicConfigApi::Topic,
+            include_synonyms: false,
+            include_documentation: false,
             topics: vec![TopicConfigSelection {
                 topic: "orders".to_owned(),
                 config_name: "cleanup.policy".to_owned(),

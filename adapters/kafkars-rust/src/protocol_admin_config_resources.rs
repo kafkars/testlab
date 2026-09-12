@@ -28,6 +28,8 @@ pub(crate) fn describe<W: Write>(
         .client(&command.client_id)?
         .admin()
         .describe_config_resources(queries)
+        .include_synonyms(command.include_synonyms)
+        .include_documentation(command.include_documentation)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()
@@ -45,16 +47,11 @@ pub(crate) fn describe<W: Write>(
             }
             Ok((
                 resource.name().to_owned(),
-                result.map(|entries| {
-                    entries
-                        .into_iter()
-                        .map(|entry| (entry.name().to_owned(), entry.value().map(str::to_owned)))
-                        .collect()
-                }),
+                result.map(crate::protocol_admin_config_entry::normalize_entries),
             ))
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let outcomes = crate::protocol_admin_config::described_outcomes(
+    let outcomes = crate::protocol_admin_config_entry::described_outcomes(
         entries,
         &command.topics,
         &command.operation_id,

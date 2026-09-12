@@ -45,6 +45,7 @@ mod protocol_admin_cluster;
 mod protocol_admin_config;
 mod protocol_admin_config_alteration;
 mod protocol_admin_config_batch_mutation;
+mod protocol_admin_config_entry;
 mod protocol_admin_config_resources;
 mod protocol_admin_consumer_group_deletion_batch;
 mod protocol_admin_consumer_group_description_batch;

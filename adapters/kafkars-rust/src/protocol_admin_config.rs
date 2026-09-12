@@ -3,22 +3,18 @@
 use std::io::Write;
 use std::time::Duration;
 
-use crate::kafkars_api::{ConfigAlteration, KafkaError, TopicConfigAlterations, TopicConfigQuery};
+use crate::kafkars_api::{ConfigAlteration, TopicConfigAlterations, TopicConfigQuery};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminTopicConfigCompletion,
-    AdminTopicConfigDescription, AdminTopicConfigDescriptionOutcome, AdminTopicConfigsDescription,
-    AlterTopicConfigCommand, CommandId, DescribeTopicConfigCommand, DescribeTopicConfigsCommand,
-    OperationId, TopicConfigSelection,
+    AdminTopicConfigDescription, AdminTopicConfigsDescription, AlterTopicConfigCommand, CommandId,
+    DescribeTopicConfigCommand, DescribeTopicConfigsCommand,
 };
 
 use crate::AdapterError;
 use crate::protocol::emit;
-use crate::protocol_admin_result::{take_single_result, validate_single_topic_result};
+use crate::protocol_admin_result::validate_single_topic_result;
 use crate::protocol_admin_validation_event::config_alteration;
 use crate::state::AdapterState;
-
-type SelectedConfig = (String, Option<String>);
-type TopicConfigResult = (String, Result<Vec<SelectedConfig>, KafkaError>);
 
 pub(crate) fn dispatch<W: Write>(
     state: &AdapterState,
@@ -65,6 +61,8 @@ fn describe_batch<W: Write>(
         .client(&command.client_id)?
         .admin()
         .describe_configs(queries)
+        .include_synonyms(command.include_synonyms)
+        .include_documentation(command.include_documentation)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()
@@ -76,16 +74,15 @@ fn describe_batch<W: Write>(
         .map(|(topic, result)| {
             (
                 topic,
-                result.map(|entries| {
-                    entries
-                        .into_iter()
-                        .map(|entry| (entry.name().to_owned(), entry.value().map(str::to_owned)))
-                        .collect::<Vec<_>>()
-                }),
+                result.map(crate::protocol_admin_config_entry::normalize_entries),
             )
         })
         .collect();
-    let outcomes = described_outcomes(entries, &command.topics, &command.operation_id)?;
+    let outcomes = crate::protocol_admin_config_entry::described_outcomes(
+        entries,
+        &command.topics,
+        &command.operation_id,
+    )?;
     emit_event(
         writer,
         command_id,
@@ -119,16 +116,11 @@ fn describe<W: Write>(
         .map(|(topic, result)| {
             (
                 topic,
-                result.map(|entries| {
-                    entries
-                        .into_iter()
-                        .map(|entry| (entry.name().to_owned(), entry.value().map(str::to_owned)))
-                        .collect::<Vec<_>>()
-                }),
+                result.map(crate::protocol_admin_config_entry::normalize_entries),
             )
         })
         .collect();
-    let value = described_value(
+    let value = crate::protocol_admin_config_entry::described_value(
         entries,
         &command.operation_id,
         &command.topic,
@@ -188,92 +180,10 @@ fn alter<W: Write>(
     )
 }
 
-pub(crate) fn described_value(
-    entries: Vec<TopicConfigResult>,
-    operation_id: &OperationId,
-    expected_topic: &str,
-    expected_name: &str,
-) -> Result<Option<String>, AdapterError> {
-    let configs = take_single_result(
-        entries,
-        operation_id,
-        |topic| topic == expected_topic,
-        "topic configuration",
-    )?;
-    let mut configs = configs.into_iter();
-    let Some((name, value)) = configs.next() else {
-        return Err(invalid(operation_id, "returned no selected configuration"));
-    };
-    if configs.next().is_some() || name != expected_name {
-        return Err(invalid(
-            operation_id,
-            "returned an unexpected selected configuration",
-        ));
-    }
-    Ok(value)
-}
-
-pub(crate) fn described_outcomes(
-    entries: Vec<TopicConfigResult>,
-    expected: &[TopicConfigSelection],
-    operation_id: &OperationId,
-) -> Result<Vec<AdminTopicConfigDescriptionOutcome>, AdapterError> {
-    if entries.len() != expected.len() {
-        return Err(invalid(
-            operation_id,
-            "returned a different number of topic-configuration outcomes than requested",
-        ));
-    }
-    entries
-        .into_iter()
-        .zip(expected)
-        .map(|((topic, result), expected)| {
-            if topic.as_str() != expected.topic.as_str() {
-                return Err(invalid(
-                    operation_id,
-                    "returned topic-configuration outcomes outside caller order",
-                ));
-            }
-            match result {
-                Ok(configs) => {
-                    let mut configs = configs.into_iter();
-                    let Some((config_name, value)) = configs.next() else {
-                        return Err(invalid(operation_id, "returned no selected configuration"));
-                    };
-                    if configs.next().is_some()
-                        || config_name.as_str() != expected.config_name.as_str()
-                    {
-                        return Err(invalid(
-                            operation_id,
-                            "returned an unexpected selected configuration",
-                        ));
-                    }
-                    Ok(AdminTopicConfigDescriptionOutcome {
-                        topic,
-                        config_name,
-                        value,
-                        error_code: None,
-                    })
-                }
-                Err(error) => Ok(AdminTopicConfigDescriptionOutcome {
-                    topic,
-                    config_name: expected.config_name.clone(),
-                    value: None,
-                    error_code: Some(crate::normalize::error_code(&error)),
-                }),
-            }
-        })
-        .collect()
-}
-
 fn emit_event<W: Write>(
     writer: &mut W,
     command_id: CommandId,
     event: AdapterEvent,
 ) -> Result<(), AdapterError> {
     emit(writer, &AdapterEventEnvelope::new(command_id, event))
-}
-
-fn invalid(operation_id: &OperationId, detail: &str) -> AdapterError {
-    AdapterError::AdminResult(format!("admin operation {operation_id} {detail}"))
 }

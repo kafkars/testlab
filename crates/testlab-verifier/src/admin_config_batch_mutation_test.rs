@@ -66,7 +66,7 @@ fn missing_mismatched_or_stale_named_baseline_fails() {
                 client_id: client(),
                 operation_id: operation("intervening-alter"),
                 topic: zulu_topic().to_owned(),
-                config_name: config().to_owned(),
+                config_name: CONFIG.to_owned(),
                 value: "compact".to_owned(),
                 validate_only: false,
                 timeout_ms: 1_000,
@@ -114,11 +114,13 @@ fn description_command() -> DescribeTopicConfigsCommand {
         client_id: client(),
         operation_id: operation(BEFORE),
         api: testlab_schema::TopicConfigApi::Topic,
+        include_synonyms: false,
+        include_documentation: false,
         topics: topics()
             .into_iter()
             .map(|topic| TopicConfigSelection {
                 topic,
-                config_name: config().to_owned(),
+                config_name: CONFIG.to_owned(),
             })
             .collect(),
         timeout_ms: 20_000,
@@ -134,7 +136,7 @@ fn alter_command() -> AlterTopicConfigsCommand {
             .into_iter()
             .map(|topic| TopicConfigAlteration {
                 topic,
-                config_name: config().to_owned(),
+                config_name: CONFIG.to_owned(),
                 method: testlab_schema::TopicConfigMutationMethod::Set,
                 value: Some("compact".to_owned()),
             })
@@ -150,8 +152,9 @@ fn description_completion() -> AdminTopicConfigsDescription {
             .into_iter()
             .map(|topic| AdminTopicConfigDescriptionOutcome {
                 topic,
-                config_name: config().to_owned(),
+                config_name: CONFIG.to_owned(),
                 value: Some("delete".to_owned()),
+                metadata: None,
                 error_code: None,
             })
             .collect(),
@@ -165,7 +168,7 @@ fn alter_completion() -> AdminTopicConfigsAlteration {
             .into_iter()
             .map(|topic| AdminTopicConfigAlterationOutcome {
                 topic,
-                config_name: config().to_owned(),
+                config_name: CONFIG.to_owned(),
                 error_code: None,
             })
             .collect(),
@@ -187,7 +190,7 @@ fn state(
                 observation,
                 operation_id: operation(operation_id),
                 topic: topic.to_owned(),
-                config_name: config().to_owned(),
+                config_name: CONFIG.to_owned(),
                 value: value.to_owned(),
             }),
         },
@@ -276,10 +279,6 @@ fn operation(value: &str) -> OperationId {
     OperationId::new(value).unwrap_or_else(|error| panic!("operation: {error}"))
 }
 
-fn config() -> &'static str {
-    "cleanup.policy"
-}
-
 #[path = "admin_config_incremental_method_test.rs"]
 mod incremental_method_test;
 #[path = "admin_config_resource_mutation_test.rs"]
@@ -297,3 +296,4 @@ fn alpha_topic() -> &'static str {
 
 const BEFORE: &str = "admin-alter-topic-configs-before";
 const ALTER: &str = "admin-alter-topic-configs";
+const CONFIG: &str = "cleanup.policy";

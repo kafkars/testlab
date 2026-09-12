@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v110 over stdin/stdout;
+2. implements protocol v111 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -67,7 +67,8 @@ It:
    topic descriptions, detailed caller-ordered plural topic descriptions and
    caller-ordered plural name-based topic deletion with mixed outcomes,
    caller-ordered plural selected topic-configuration descriptions and
-   exact incremental Set, Delete, Append, and Subtract methods plus legacy
+   exact synonym/documentation options with complete public entry metadata,
+   exact incremental Set, Delete, Append, and Subtract methods, plus legacy
    full-snapshot replacements through both
    topic-convenience and generic resource APIs, including legacy default
    restoration with no expected value on the wire, plus filtered canonical

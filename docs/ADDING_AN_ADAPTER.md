@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v110. It is not a
+An adapter translates one packaged client surface to protocol v111. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -109,6 +109,10 @@ runner and not a verifier.
   methods through their matching public constructors. Send an operand only for
   `set`, `append`, or `subtract`; never send the expected final value as an
   append or subtract operand.
+- Apply exact plural DescribeConfigs synonym and documentation options through
+  both topic-specific and generic-resource builders. Preserve every public
+  selected entry's source, mutability, sensitivity, synonyms, type, and
+  documentation without deriving or filling absent metadata.
 - Never report a sensitive or unavailable configuration value as observed
   broker truth.
 - For a legacy plural configuration entry with no wire value, invoke the exact

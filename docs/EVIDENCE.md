@@ -166,6 +166,10 @@ public group-transition observer. CONS-026 binds every assignment observation's
 selected `next_event` or `try_take_event` method across its ordered command and
 completion; classic and KIP-848 ownership scenarios exercise both methods while
 the existing assignment and independent broker contracts retain state truth.
+Protocol v111, scenario schema v114, and evidence schema v100 retain exact
+DescribeConfigs option selection and complete public entry metadata. ADMIN-081
+binds synonym and documentation flags across topic-specific and generic-resource
+builders, while immediate independent reads continue to establish value truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -740,6 +744,14 @@ immediate independent post-state through both public surfaces. Delete carries
 no value and must restore the effective default. Append and Subtract carry only
 their exact list operand; the independently required combined or reduced value
 never crosses the adapter boundary.
+
+ADMIN-081 binds exact `include_synonyms` and `include_documentation` flags to
+one preceding plural DescribeConfigs command and one completion through both
+topic-specific and generic-resource surfaces. Every selected successful entry
+must retain public source, mutability, sensitivity, configuration type, and
+nonempty documentation. Requested synonyms must be nonempty and contain the
+effective public value. Immediate independent configuration reads still prove
+that value; metadata does not substitute for broker-state evidence.
 
 ADMIN-068 binds configured classic static membership to one explicit Admin
 removal. Two unique `group_instance_id` values first participate in a complete

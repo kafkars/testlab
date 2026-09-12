@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+#[path = "admin_config_metadata.rs"]
+mod metadata;
+pub use metadata::{AdminConfigEntryMetadata, AdminConfigSynonym};
+
 /// Public configuration API selected for a plural topic-resource request.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -19,6 +23,10 @@ impl TopicConfigApi {
     fn is_topic(&self) -> bool {
         *self == Self::Topic
     }
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 /// Public configuration-mutation API selected for a plural topic-resource request.
@@ -103,6 +111,12 @@ pub struct DescribeTopicConfigsAction {
     /// Public configuration API exercised by the adapter.
     #[serde(default, skip_serializing_if = "TopicConfigApi::is_topic")]
     pub api: TopicConfigApi,
+    /// Whether the public request asks Kafka for all configuration synonyms.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub include_synonyms: bool,
+    /// Whether the public request asks Kafka for configuration documentation.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub include_documentation: bool,
     /// Caller-ordered selected topic-configuration expectations.
     pub topics: Vec<DescribeTopicConfigExpectation>,
     /// Complete public operation bound.
@@ -130,6 +144,10 @@ pub struct DescribeTopicConfigsCommand {
     /// Public configuration API exercised by the adapter.
     #[serde(default, skip_serializing_if = "TopicConfigApi::is_topic")]
     pub api: TopicConfigApi,
+    /// Whether the public request asks Kafka for all configuration synonyms.
+    pub include_synonyms: bool,
+    /// Whether the public request asks Kafka for configuration documentation.
+    pub include_documentation: bool,
     /// Caller-ordered selected topic configurations without expectations.
     pub topics: Vec<TopicConfigSelection>,
     /// Complete public operation bound.
@@ -202,6 +220,8 @@ pub struct AdminTopicConfigDescriptionOutcome {
     pub config_name: String,
     /// Public value, preserving absence for sensitive or unavailable values.
     pub value: Option<String>,
+    /// Complete public metadata when the selected description succeeded.
+    pub metadata: Option<AdminConfigEntryMetadata>,
     /// Stable normalized per-topic error when the selected description failed.
     pub error_code: Option<String>,
 }
