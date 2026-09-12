@@ -135,7 +135,7 @@ fn alter_command() -> AlterTopicConfigsCommand {
             .map(|topic| TopicConfigAlteration {
                 topic,
                 config_name: config().to_owned(),
-                value: "compact".to_owned(),
+                value: Some("compact".to_owned()),
             })
             .collect(),
         timeout_ms: 20_000,
@@ -281,6 +281,8 @@ fn config() -> &'static str {
 
 #[path = "admin_config_resource_mutation_test.rs"]
 mod resource_test;
+#[path = "admin_config_restore_default_test.rs"]
+mod restore_default_test;
 
 fn zulu_topic() -> &'static str {
     "testlab-kafkars-admin-alter-topic-configs-zulu"

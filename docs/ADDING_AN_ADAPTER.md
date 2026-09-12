@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v107. It is not a
+An adapter translates one packaged client surface to protocol v108. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -107,6 +107,9 @@ runner and not a verifier.
   receive or infer their scenario-only expected codes.
 - Preserve exact selected configuration values and use incremental alteration;
   never report a sensitive or unavailable value as observed broker truth.
+- For a legacy plural configuration entry with no wire value, invoke the exact
+  public default-restoration constructor. Never substitute an explicit value
+  from later scenario or broker expectations.
 - Preserve complete public metrics snapshots without receiving scenario-owned
   thresholds or treating client counters as independent broker truth.
 - Advertise assigned-consumer controls only when replacement, incremental

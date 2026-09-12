@@ -114,14 +114,14 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                         (
                             selected.topic.as_str(),
                             selected.config_name.as_str(),
-                            selected.value.as_str(),
+                            (!selected.restore_default).then_some(selected.value.as_str()),
                         )
                     })
                     .eq(command.topics.iter().map(|selected| {
                         (
                             selected.topic.as_str(),
                             selected.config_name.as_str(),
-                            selected.value.as_str(),
+                            selected.value.as_deref(),
                         )
                     }))
         }

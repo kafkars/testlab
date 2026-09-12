@@ -28,7 +28,8 @@
   deletion with explicit and high-watermark boundaries, singleton and caller-ordered plural
   empty-group deletion, and selected
   topic-configuration description, caller-ordered plural selected-configuration
-  description and replacement, plus singleton replacement and restoration;
+  description and replacement, legacy full-snapshot default restoration, plus
+  singleton replacement and restoration;
   caller-ordered
   literal ACL creation, exact description, and exact deletion plus named-user
   producer and consumer quota replacement, description, and removal and

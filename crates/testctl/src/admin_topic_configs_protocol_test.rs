@@ -156,6 +156,34 @@ fn legacy_mutation_selectors_cross_the_wire_command() {
     }
 }
 
+#[test]
+fn legacy_default_restore_keeps_expected_value_outside_the_wire_command() {
+    let mut mutation = mutation_action();
+    mutation.api = testlab_schema::TopicConfigMutationApi::LegacyTopic;
+    for selected in &mut mutation.topics {
+        selected.expected_previous_value = "compact".to_owned();
+        selected.value = "delete".to_owned();
+        selected.restore_default = true;
+    }
+    let Some((AdapterCommand::AlterTopicConfigs(command), _)) =
+        crate::session_command_admin_config::translate(&ScenarioAction::AlterTopicConfigs(
+            mutation,
+        ))
+    else {
+        panic!("legacy default restoration translation");
+    };
+    assert!(
+        command
+            .topics
+            .iter()
+            .all(|selected| selected.value.is_none())
+    );
+    let encoded = serde_json::to_string(&command)
+        .unwrap_or_else(|error| panic!("encode legacy default restoration: {error}"));
+    assert!(!encoded.contains("\"value\""), "{encoded}");
+    assert!(!encoded.contains("delete"), "{encoded}");
+}
+
 fn action() -> DescribeTopicConfigsAction {
     DescribeTopicConfigsAction {
         client_id: client(),
@@ -209,6 +237,7 @@ fn mutation(topic: &str, config_name: &str) -> AlterTopicConfigExpectation {
         config_name: config_name.to_owned(),
         expected_previous_value: "delete".to_owned(),
         value: "compact".to_owned(),
+        restore_default: false,
     }
 }
 

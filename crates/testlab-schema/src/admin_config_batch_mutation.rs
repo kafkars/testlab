@@ -10,12 +10,15 @@ use crate::{ClientId, OperationId, TopicConfigMutationApi};
 pub struct AlterTopicConfigExpectation {
     /// Exact Kafka topic name.
     pub topic: String,
-    /// Exact configuration key replaced through the public API.
+    /// Exact configuration key changed through the public API.
     pub config_name: String,
-    /// Exact independently corroborated value before the replacement.
+    /// Exact independently corroborated value before the mutation.
     pub expected_previous_value: String,
-    /// Exact replacement value sent through the public API.
+    /// Exact final value required from independent broker observation.
     pub value: String,
+    /// Restore the broker default without sending the expected final value.
+    #[serde(default)]
+    pub restore_default: bool,
 }
 
 /// Scenario intent for one caller-ordered plural configuration mutation.
@@ -37,16 +40,17 @@ pub struct AlterTopicConfigsAction {
     pub timeout_ms: u64,
 }
 
-/// One topic-configuration replacement crossing the adapter boundary.
+/// One topic-configuration mutation crossing the adapter boundary.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TopicConfigAlteration {
     /// Exact Kafka topic name.
     pub topic: String,
-    /// Exact configuration key replaced through the public API.
+    /// Exact configuration key changed through the public API.
     pub config_name: String,
-    /// Exact replacement value sent through the public API.
-    pub value: String,
+    /// Exact replacement value, absent when restoring the broker default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<String>,
 }
 
 /// Wire payload for one caller-ordered plural configuration mutation.
@@ -60,7 +64,7 @@ pub struct AlterTopicConfigsCommand {
     /// Public configuration API exercised by the adapter.
     #[serde(default, skip_serializing_if = "is_topic_api")]
     pub api: TopicConfigMutationApi,
-    /// Caller-ordered replacements without baseline expectations.
+    /// Caller-ordered mutations without baseline expectations.
     pub topics: Vec<TopicConfigAlteration>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
@@ -74,7 +78,7 @@ pub struct AdminTopicConfigAlterationOutcome {
     pub topic: String,
     /// Exact selected configuration key.
     pub config_name: String,
-    /// Stable normalized per-topic error when the replacement failed.
+    /// Stable normalized per-topic error when the mutation failed.
     pub error_code: Option<String>,
 }
 

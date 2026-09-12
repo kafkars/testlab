@@ -204,6 +204,18 @@ fn validate_alteration_batch(
                 ));
             }
         }
+        if selected.restore_default
+            && !matches!(
+                action.api,
+                crate::TopicConfigMutationApi::LegacyTopic
+                    | crate::TopicConfigMutationApi::LegacyResource
+            )
+        {
+            problems.push(format!(
+                "admin operation {} restore_default requires a legacy configuration API",
+                action.operation_id
+            ));
+        }
     }
     validate_timeout(&action.operation_id, action.timeout_ms, problems);
 }

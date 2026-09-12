@@ -214,6 +214,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             testlab_schema::TopicConfigApi::Topic => "ADMIN-048",
             testlab_schema::TopicConfigApi::Resource => "ADMIN-064",
         },
+        ScenarioAction::AlterTopicConfigs(value)
+            if value.topics.iter().any(|topic| topic.restore_default) =>
+        {
+            "ADMIN-079"
+        }
         ScenarioAction::AlterTopicConfigs(value) => match value.api {
             testlab_schema::TopicConfigMutationApi::Topic => "ADMIN-049",
             testlab_schema::TopicConfigMutationApi::Resource => "ADMIN-065",

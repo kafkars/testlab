@@ -3,7 +3,20 @@
 use testlab_schema::{OperationId, TopicConfigAlteration};
 
 use crate::kafkars_api::{ErrorKind, KafkaError};
-use crate::protocol_admin_config_batch_mutation::outcomes;
+use crate::protocol_admin_config_batch_mutation::{incremental_alteration, legacy_entry, outcomes};
+
+#[test]
+fn absent_command_value_maps_to_exact_public_default_restoration() {
+    let mut selected = alteration("topic-z", "cleanup.policy", "compact");
+    selected.value = None;
+
+    let incremental = incremental_alteration(&selected);
+    let legacy = legacy_entry(&selected);
+    assert_eq!(incremental.key(), "cleanup.policy");
+    assert_eq!(incremental.operation().value(), None);
+    assert_eq!(legacy.key(), "cleanup.policy");
+    assert_eq!(legacy.value(), None);
+}
 
 #[test]
 fn every_public_outcome_remains_in_caller_order() {
@@ -58,7 +71,7 @@ fn alteration(topic: &str, config_name: &str, value: &str) -> TopicConfigAlterat
     TopicConfigAlteration {
         topic: topic.to_owned(),
         config_name: config_name.to_owned(),
-        value: value.to_owned(),
+        value: Some(value.to_owned()),
     }
 }
 

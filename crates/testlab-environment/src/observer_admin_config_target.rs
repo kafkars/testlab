@@ -112,7 +112,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                         .map(|selected| TopicConfigAlteration {
                             topic: selected.topic.clone(),
                             config_name: selected.config_name.clone(),
-                            value: selected.value.clone(),
+                            value: (!selected.restore_default).then(|| selected.value.clone()),
                         })
                         .collect(),
                     timeout_ms: action.timeout_ms,

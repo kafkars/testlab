@@ -149,7 +149,7 @@ fn topic_config_commands_require_admin_capability() {
             topics: vec![TopicConfigAlteration {
                 topic: "orders".to_owned(),
                 config_name: "cleanup.policy".to_owned(),
-                value: "compact".to_owned(),
+                value: Some("compact".to_owned()),
             }],
             timeout_ms: 1_000,
         }),

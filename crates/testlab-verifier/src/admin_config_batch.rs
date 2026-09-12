@@ -105,9 +105,9 @@ fn verify_alteration(
         .flat_map(|evidence| evidence.independent.iter())
         .map(|value| format!("broker-state-observation:{}", value.observation));
     violations.push(violation(
-        alteration_contract(action.api),
+        alteration_contract(action),
         format!(
-            "admin operation {} expected one caller-ordered successful plural configuration replacement, immediate independent post-state, and exact distinct baseline {}",
+            "admin operation {} expected one caller-ordered successful plural configuration mutation, immediate independent post-state, and exact distinct baseline {}",
             action.operation_id, action.baseline_operation_id
         ),
         Some(action.operation_id.clone()),
@@ -281,8 +281,11 @@ fn description_contract(api: testlab_schema::TopicConfigApi) -> &'static str {
     }
 }
 
-fn alteration_contract(api: testlab_schema::TopicConfigMutationApi) -> &'static str {
-    match api {
+fn alteration_contract(action: &AlterTopicConfigsAction) -> &'static str {
+    if action.topics.iter().any(|topic| topic.restore_default) {
+        return "ADMIN-079";
+    }
+    match action.api {
         testlab_schema::TopicConfigMutationApi::Topic => "ADMIN-049",
         testlab_schema::TopicConfigMutationApi::Resource => "ADMIN-065",
         testlab_schema::TopicConfigMutationApi::LegacyTopic => "ADMIN-066",

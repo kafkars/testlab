@@ -47,13 +47,7 @@ fn alter_topics<W: Write>(
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
     let changes = command.topics.iter().map(|selected| {
-        TopicConfigAlterations::new(
-            selected.topic.clone(),
-            [PublicAlteration::set(
-                selected.config_name.clone(),
-                selected.value.clone(),
-            )],
-        )
+        TopicConfigAlterations::new(selected.topic.clone(), [incremental_alteration(selected)])
     });
     let result = state
         .client(&command.client_id)?
@@ -90,10 +84,7 @@ fn alter_resources<W: Write>(
         ConfigResourceAlterations::new(
             ConfigResourceType::Topic,
             selected.topic.clone(),
-            [PublicAlteration::set(
-                selected.config_name.clone(),
-                selected.value.clone(),
-            )],
+            [incremental_alteration(selected)],
         )
     });
     let result = state
@@ -138,13 +129,7 @@ fn alter_legacy_topics<W: Write>(
     command: AlterTopicConfigsCommand,
 ) -> Result<(), AdapterError> {
     let replacements = command.topics.iter().map(|selected| {
-        LegacyTopicConfigReplacement::new(
-            selected.topic.clone(),
-            [LegacyTopicConfigEntry::set(
-                selected.config_name.clone(),
-                selected.value.clone(),
-            )],
-        )
+        LegacyTopicConfigReplacement::new(selected.topic.clone(), [legacy_entry(selected)])
     });
     let result = state
         .client(&command.client_id)?
@@ -181,10 +166,7 @@ fn alter_legacy_resources<W: Write>(
         LegacyConfigResourceReplacement::new(
             ConfigResourceType::Topic,
             selected.topic.clone(),
-            [LegacyTopicConfigEntry::set(
-                selected.config_name.clone(),
-                selected.value.clone(),
-            )],
+            [legacy_entry(selected)],
         )
     });
     let result = state
@@ -252,6 +234,20 @@ pub(crate) fn outcomes(
             })
         })
         .collect()
+}
+
+pub(crate) fn incremental_alteration(selected: &TopicConfigAlteration) -> PublicAlteration {
+    match &selected.value {
+        Some(value) => PublicAlteration::set(selected.config_name.clone(), value.clone()),
+        None => PublicAlteration::delete(selected.config_name.clone()),
+    }
+}
+
+pub(crate) fn legacy_entry(selected: &TopicConfigAlteration) -> LegacyTopicConfigEntry {
+    match &selected.value {
+        Some(value) => LegacyTopicConfigEntry::set(selected.config_name.clone(), value.clone()),
+        None => LegacyTopicConfigEntry::restore_default(selected.config_name.clone()),
+    }
 }
 
 fn invalid(operation_id: &OperationId, detail: &str) -> AdapterError {

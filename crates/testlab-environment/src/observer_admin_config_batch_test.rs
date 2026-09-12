@@ -167,6 +167,7 @@ fn mutation_expectation(topic: &str, config_name: &str) -> AlterTopicConfigExpec
         config_name: config_name.to_owned(),
         expected_previous_value: "delete".to_owned(),
         value: "compact".to_owned(),
+        restore_default: false,
     }
 }
 
@@ -174,7 +175,7 @@ fn mutation(topic: &str, config_name: &str) -> TopicConfigAlteration {
     TopicConfigAlteration {
         topic: topic.to_owned(),
         config_name: config_name.to_owned(),
-        value: "compact".to_owned(),
+        value: Some("compact".to_owned()),
     }
 }
 

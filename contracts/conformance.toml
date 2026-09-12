@@ -529,6 +529,12 @@ statement = "One public maximum-timestamp ListOffsets selector returns the uniqu
 category = "admin"
 
 [[contract]]
+id = "ADMIN-079"
+title = "Legacy topic configuration restoration omits the expected default"
+statement = "Each selected legacy topic configuration restoration emits one exact command with no replacement value, succeeds in caller order, and is followed immediately by independent broker observations of the scenario-only expected defaults after a distinct exact baseline."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
