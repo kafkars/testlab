@@ -60,7 +60,7 @@ fn plural_admin_commands_require_admin_capability() {
     let client_id = client_id();
     let operation_id = operation_id();
     let partition = ConsumerGroupOffsetSelection {
-        topics: vec!["orders".to_owned()],
+        topic: "orders".to_owned(),
         partition: 0,
     };
     let commands = [
@@ -175,7 +175,7 @@ fn share_commands_require_share_consumer_capability() {
         consumer_id: ConsumerId::new("share-1")
             .unwrap_or_else(|error| panic!("consumer id: {error}")),
         group_id: "share-group".to_owned(),
-        topic: "orders".to_owned(),
+        topics: vec!["orders".to_owned()],
         membership_timeout_ms: 1_000,
         close_timeout_ms: 1_000,
         configuration: None,
