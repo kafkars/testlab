@@ -98,6 +98,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "immediate group receives require the group_consumer_immediate_batch capability",
     ),
     (
+        Capability::GroupConsumerAcknowledge,
+        "processing acknowledgements require the group_consumer_acknowledge capability",
+    ),
+    (
         Capability::GroupConsumerControls,
         "group-consumer controls require the group_consumer_controls capability",
     ),

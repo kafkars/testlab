@@ -103,7 +103,6 @@ pub enum ScenarioAction {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         configuration: Option<crate::GroupConsumerConfiguration>,
     },
-    /// Receives one group batch and commits its assignment-fenced checkpoint.
     GroupReceive {
         consumer_id: ConsumerId,
         /// Exact public retained-batch observation method.
@@ -111,10 +110,11 @@ pub enum ScenarioAction {
         method: crate::GroupConsumerReceiveMethod,
         receive_id: OperationId,
         expected_operation_id: OperationId,
-        /// Exact normalized public failure expected instead of a completion.
+        /// Delay before and after a public processing acknowledgement; zero disables it.
+        #[serde(default)]
+        processing_acknowledgement_delay_ms: u64,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         expected_error_code: Option<String>,
-        /// Complete receive and commit bound.
         timeout_ms: u64,
     },
     /// Observes one stable complete assignment across declared live group members.

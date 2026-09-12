@@ -83,6 +83,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     }
     if matches!(
         action,
+        ScenarioAction::GroupReceive {
+            processing_acknowledgement_delay_ms: 1..,
+            ..
+        }
+    ) {
+        usage.insert(Capability::GroupConsumerAcknowledge);
+    }
+    if matches!(
+        action,
         ScenarioAction::ExecuteTransaction {
             method: crate::TransactionSendMethod::SendBatch,
             ..

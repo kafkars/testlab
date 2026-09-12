@@ -125,6 +125,7 @@ fn group_receive(consumer_id: &str, receive_id: &str) -> ScenarioAction {
         method: Default::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("producer-op"),
+        processing_acknowledgement_delay_ms: 0,
         timeout_ms: 2_000,
         expected_error_code: None,
     }

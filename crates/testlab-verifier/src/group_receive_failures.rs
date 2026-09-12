@@ -11,6 +11,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             consumer_id,
             method,
             receive_id,
+            processing_acknowledgement_delay_ms,
             expected_error_code: Some(expected),
             timeout_ms,
             ..
@@ -48,6 +49,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     consumer_id: actual_consumer,
                     method: actual_method,
                     receive_id: actual_receive,
+                    processing_acknowledgement_delay_ms: actual_delay,
                     timeout_ms: actual_timeout,
                 } if actual_receive == receive_id => Some((
                     *sequence,
@@ -55,6 +57,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     actual_consumer.clone(),
                     *actual_method,
                     actual_receive.clone(),
+                    *actual_delay,
                     *actual_timeout,
                 )),
                 _ => None,
@@ -72,11 +75,13 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     actual_consumer,
                     actual_method,
                     actual_receive,
+                    actual_delay,
                     actual_timeout,
                 ),
             ] if actual_consumer == consumer_id
                 && actual_method == method
                 && actual_receive == receive_id
+                && actual_delay == processing_acknowledgement_delay_ms
                 && actual_timeout == timeout_ms =>
             {
                 Some((*sequence, command_id))

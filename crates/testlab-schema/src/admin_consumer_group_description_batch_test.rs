@@ -14,9 +14,9 @@ use crate::{
 
 #[test]
 fn versions_cover_mixed_description_protocol_and_evidence() {
-    assert_eq!(PROTOCOL_VERSION, 95);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 98);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 84);
+    assert_eq!(PROTOCOL_VERSION, 96);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 99);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 85);
 }
 
 #[test]
@@ -220,6 +220,7 @@ fn receive(id: &str, receive_id: &str) -> ScenarioAction {
         method: Default::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("record"),
+        processing_acknowledgement_delay_ms: 0,
         timeout_ms: 1_000,
         expected_error_code: None,
     }

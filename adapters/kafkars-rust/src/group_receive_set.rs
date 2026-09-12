@@ -46,7 +46,7 @@ pub(crate) fn receive<W: Write>(
             };
             if let Some(batch) = batch {
                 let batch_records =
-                    crate::protocol_group::commit_batch(state, consumer_id, batch, deadline)?;
+                    crate::protocol_group::commit_batch(state, consumer_id, batch, 0, deadline)?;
                 observed += batch_records.len();
                 let member_records = records.get_mut(consumer_id).ok_or_else(|| {
                     AdapterError::ConsumerRecord(format!(

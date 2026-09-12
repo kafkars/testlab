@@ -36,12 +36,14 @@ fn fixture(method: GroupConsumerReceiveMethod) -> (Scenario, Vec<HistoryEntry>) 
                 consumer_id,
                 method: GroupConsumerReceiveMethod::TryTakeBatch,
                 receive_id,
+                processing_acknowledgement_delay_ms,
                 timeout_ms,
                 ..
             } => Some(AdapterCommand::GroupReceive {
                 consumer_id: consumer_id.clone(),
                 method,
                 receive_id: receive_id.clone(),
+                processing_acknowledgement_delay_ms: *processing_acknowledgement_delay_ms,
                 timeout_ms: *timeout_ms,
             }),
             _ => None,

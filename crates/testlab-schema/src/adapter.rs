@@ -50,6 +50,8 @@ pub enum Capability {
     ConsumerProtocolGroups,
     /// Immediate retained-batch observation through hosted `try_take_batch`.
     GroupConsumerImmediateBatch,
+    /// Public application-processing liveness acknowledgement.
+    GroupConsumerAcknowledge,
     /// Runtime pause, resume, and seek controls for hosted group consumers.
     GroupConsumerControls,
     /// Missing-offset, visibility, static identity, and classic timing configuration.

@@ -95,6 +95,11 @@ transaction record-staging method. TXN-009 binds each declared homogeneous
 batch to one exact `send_batch` command while ordinary staging, disposition,
 offset-order, record-fidelity, and independent read-committed evidence still
 applies to both commit and abort.
+Protocol v96, scenario schema v99, and evidence schema v85 add bounded group
+processing acknowledgement. CONS-019 binds each classic or KIP-848 receive to
+one exact renewal plan, then requires the same assignment-fenced batch to stay
+live beyond its original processing window and commit against independent
+broker truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

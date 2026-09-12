@@ -36,6 +36,7 @@ scenarios = [
   "scenarios/kafka/concurrent-two-client-pipeline.toml",
   "scenarios/kafka/classic-group-round-trip.toml",
   "scenarios/kafka/classic-group-immediate-batch.toml",
+  "scenarios/kafka/classic-group-processing-acknowledgement.toml",
   "scenarios/kafka/classic-group-seek-replay.toml",
   "scenarios/kafka/classic-group-pause-resume.toml",
   "scenarios/kafka/classic-group-latest-offset-reset.toml",

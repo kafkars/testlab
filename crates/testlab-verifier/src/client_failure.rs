@@ -66,6 +66,7 @@ fn command_matches(
                 consumer_id,
                 method,
                 receive_id,
+                processing_acknowledgement_delay_ms,
                 timeout_ms,
                 ..
             },
@@ -73,12 +74,14 @@ fn command_matches(
                 consumer_id: actual_consumer,
                 method: actual_method,
                 receive_id: actual_receive,
+                processing_acknowledgement_delay_ms: actual_delay,
                 timeout_ms: actual_timeout,
             },
         ) => {
             consumer_id == actual_consumer
                 && method == actual_method
                 && receive_id == actual_receive
+                && processing_acknowledgement_delay_ms == actual_delay
                 && timeout_ms == actual_timeout
         }
         (

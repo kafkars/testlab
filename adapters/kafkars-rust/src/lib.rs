@@ -21,6 +21,7 @@ mod group_consumer_shutdown;
 mod group_consumers;
 #[cfg(test)]
 mod group_consumers_test;
+mod group_processing_acknowledgement;
 mod group_receive_events;
 #[cfg(test)]
 mod group_receive_events_test;

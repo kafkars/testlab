@@ -57,6 +57,7 @@ pub(crate) fn dispatch<W: Write>(
             consumer_id,
             method,
             receive_id,
+            processing_acknowledgement_delay_ms,
             timeout_ms,
         } => receive(
             state,
@@ -65,6 +66,7 @@ pub(crate) fn dispatch<W: Write>(
             &consumer_id,
             method,
             receive_id,
+            processing_acknowledgement_delay_ms,
             timeout_ms,
         ),
         AdapterCommand::ObserveGroupAssignments(command) => {
@@ -136,6 +138,7 @@ fn receive<W: Write>(
     consumer_id: &ConsumerId,
     method: testlab_schema::GroupConsumerReceiveMethod,
     receive_id: OperationId,
+    processing_acknowledgement_delay_ms: u64,
     timeout_ms: u64,
 ) -> Result<(), AdapterError> {
     let timeout = Duration::from_millis(timeout_ms);
@@ -143,7 +146,16 @@ fn receive<W: Write>(
         .checked_add(timeout)
         .ok_or_else(|| AdapterError::ConsumerRecord("receive deadline overflow".to_owned()))?;
     let (records, committed) = match receive_batch(state, consumer_id, method, deadline)? {
-        Some(batch) => (commit_batch(state, consumer_id, batch, deadline)?, true),
+        Some(batch) => (
+            commit_batch(
+                state,
+                consumer_id,
+                batch,
+                processing_acknowledgement_delay_ms,
+                deadline,
+            )?,
+            true,
+        ),
         None => (Vec::new(), false),
     };
     let group_epoch = public_group_epoch(state, consumer_id, deadline)?;
@@ -204,14 +216,20 @@ pub(crate) fn commit_batch(
     state: &mut AdapterState,
     consumer_id: &ConsumerId,
     batch: ConsumerBatch,
+    processing_acknowledgement_delay_ms: u64,
     deadline: Instant,
 ) -> Result<Vec<ConsumedRecord>, AdapterError> {
     let records = batch
         .records()
         .map(|record| normalize_record(&record))
         .collect::<Result<Vec<_>, _>>()?;
-    let mut checkpoint = batch.checkpoint();
     let consumer = state.group_consumer_mut(consumer_id)?;
+    let mut checkpoint = crate::group_processing_acknowledgement::checkpoint(
+        consumer,
+        batch,
+        processing_acknowledgement_delay_ms,
+        deadline,
+    )?;
     loop {
         let commit = retry_owned_until(
             deadline,

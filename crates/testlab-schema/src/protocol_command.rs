@@ -105,7 +105,7 @@ pub enum AdapterCommand {
         /// Exact public retained-batch observation method.
         method: crate::GroupConsumerReceiveMethod,
         receive_id: OperationId,
-        /// Maximum public observation duration.
+        processing_acknowledgement_delay_ms: u64,
         timeout_ms: u64,
     },
     /// Observes stable public assignments across declared group consumers.

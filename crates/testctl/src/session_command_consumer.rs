@@ -84,6 +84,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             consumer_id,
             method,
             receive_id,
+            processing_acknowledgement_delay_ms,
             timeout_ms,
             ..
         } => (
@@ -91,6 +92,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 consumer_id: consumer_id.clone(),
                 method: *method,
                 receive_id: receive_id.clone(),
+                processing_acknowledgement_delay_ms: *processing_acknowledgement_delay_ms,
                 timeout_ms: *timeout_ms,
             },
             ExpectedEvent::GroupReceiveCompleted(receive_id.clone()),

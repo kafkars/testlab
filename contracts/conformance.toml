@@ -979,6 +979,12 @@ statement = "A scenario-selected hosted group receive emits exactly one command 
 category = "consumer"
 
 [[contract]]
+id = "CONS-019"
+title = "Group processing acknowledgement renews a bounded commit window"
+statement = "Each selected classic or KIP-848 receive issues one exact processing-acknowledgement delay plan, remains live beyond the original configured processing window, and commits the same assignment-fenced batch against independent broker truth."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v92 over stdin/stdout;
+2. implements protocol v96 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -27,7 +27,8 @@ It:
    membership-start, seek, and close deadlines, while configured assigned
    clients preserve the same Fetch and capacity envelope; direct receives map
    default `recv` and selected repeated `try_take_batch` to their exact public
-   methods, while retained failure events map default `next_event` and selected
+   methods, while a selected bounded delay publicly acknowledges the retained
+   group checkpoint before committing that same batch; retained failure events map default `next_event` and selected
    repeated `try_take_event` with complete public fences and failure kinds;
 4. preserves immediate `try_send` rejection separately from accepted delivery,
    and maps an explicit `send` selection to Kafkars's bounded FIFO waiting
