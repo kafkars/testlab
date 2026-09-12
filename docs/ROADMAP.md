@@ -111,6 +111,10 @@
   independent broker observations.
 - Lifecycle scenarios cover repeated client readiness and producer flush plus
   independent client progress after another client shuts down.
+- Explicit child-handle ownership preserves the original shared client path
+  while qualifying private producer close and replacement owners and two
+  directly assigned consumers with independent cursor state from one client
+  configuration.
 - Multi-record transactions span topics and partitions with the same field and
   header distinctions. Committed sets retain exact independent coordinates and
   per-partition order, aborted sets remain wholly read-committed invisible, and
@@ -124,13 +128,11 @@
 
 ## Now — complete the stable boundary
 
-1. Add explicit independent producer and directly assigned consumer ownership
-   in Kafkars before enabling the corresponding multi-handle scenarios.
-2. Extend black-box coverage across high-use public group configuration and
+1. Extend black-box coverage across high-use public group configuration and
    Admin operations that currently have only client-repository evidence.
-3. Fix client failures exposed by Testlab until every gating release cell
+2. Fix client failures exposed by Testlab until every gating release cell
    passes.
-4. Derive Kafkars support and release eligibility from archived qualification
+3. Derive Kafkars support and release eligibility from archived qualification
    evidence.
 
 ## Next — broaden failure coverage

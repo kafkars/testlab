@@ -1,4 +1,4 @@
-schema_version = 79
+schema_version = 80
 id = "kafka.admin-describe-share-group"
 title = "packaged admin describes an independently observed active Share group"
 description = "While one Share member retains an acquired record, the packaged client's public Share-group description preserves its stable state, epochs, assignor, subscription, topic identity, and partition assignment, and an immediate Kafka CLI query confirms the same state and member count."

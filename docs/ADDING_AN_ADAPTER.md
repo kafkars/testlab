@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v76. It is not a
+An adapter translates one packaged client surface to protocol v77. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -10,6 +10,10 @@ runner and not a verifier.
 - Preserve command and operation IDs exactly.
 - Report admission separately from terminal completion.
 - Preserve delivery certainty rather than collapsing failures.
+- Advertise independent handles only when each selected producer or directly
+  assigned consumer starts a private execution and lifecycle owner from the
+  originating client's exact configuration. Preserve the original shared path
+  for commands that select `shared`.
 - Preserve a caller-selected record timestamp in the public producer receipt
   and public consumer record whenever those surfaces expose it.
 - For `java_keyed` sends, omit the scenario record's expected partition from

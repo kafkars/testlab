@@ -28,7 +28,8 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::CreateAssignedConsumer {
             client_id,
             consumer_id,
-        } => create(state, writer, command_id, client_id, consumer_id),
+            ownership,
+        } => create(state, writer, command_id, client_id, consumer_id, ownership),
         AdapterCommand::AssignBeginning {
             consumer_id,
             topic,
@@ -92,8 +93,9 @@ pub(crate) fn create<W: Write>(
     command_id: CommandId,
     client_id: testlab_schema::ClientId,
     consumer_id: ConsumerId,
+    ownership: testlab_schema::ChildHandleOwnership,
 ) -> Result<(), AdapterError> {
-    state.create_assigned_consumer(client_id, consumer_id.clone())?;
+    state.create_assigned_consumer(client_id, consumer_id.clone(), ownership)?;
     emit(
         writer,
         &AdapterEventEnvelope::new(

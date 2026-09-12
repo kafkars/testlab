@@ -208,6 +208,8 @@ mod session_command_concurrent_test;
 #[cfg(test)]
 mod session_command_consumer_test;
 #[cfg(test)]
+mod session_command_handle_ownership_test;
+#[cfg(test)]
 mod session_command_policy_test;
 #[cfg(test)]
 mod session_command_producer_cancellation_test;

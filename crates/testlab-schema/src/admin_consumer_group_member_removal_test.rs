@@ -9,9 +9,9 @@ use crate::{
 
 #[test]
 fn version_cut_and_payloads_preserve_caller_order() {
-    assert_eq!(PROTOCOL_VERSION, 76);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 79);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 65);
+    assert_eq!(PROTOCOL_VERSION, 77);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 80);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 66);
     round_trip(&ScenarioAction::RemoveConsumerGroupMembers(action()));
     round_trip(&AdapterCommand::RemoveConsumerGroupMembers(command()));
     round_trip(&AdapterEvent::ConsumerGroupMembersRemoved(completion()));

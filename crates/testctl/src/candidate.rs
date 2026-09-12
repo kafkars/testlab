@@ -17,6 +17,10 @@ use crate::identity::new_run_id;
 use crate::run_error::AppError;
 use crate::time::unix_ms;
 
+#[path = "candidate_build.rs"]
+mod candidate_build;
+pub(crate) use candidate_build::build_command;
+
 const KAFKARS_PACKAGE_NAMES: [&str; 3] = ["kafka-client-core", "kafka-client-engine", "kafkars"];
 const DRIVERS: [&str; 3] = [
     "kafka-driver",
@@ -238,19 +242,6 @@ pub(crate) fn find_archive(directory: &Path, package: &str) -> Result<(PathBuf, 
     matches
         .pop()
         .ok_or_else(|| AppError::Candidate(format!("lost {package} archive")))
-}
-
-pub(crate) fn build_command(manifest: &Path, target: &Path) -> Command {
-    let mut command = Command::new("cargo");
-    command
-        .arg("build")
-        .arg("--manifest-path")
-        .arg(manifest)
-        .arg("--locked")
-        .arg("--target-dir")
-        .arg(target)
-        .env("RUSTFLAGS", "--cfg kafkars_share_candidate");
-    command
 }
 
 fn resolve_adapter(manifest: &Path) -> Result<(), AppError> {

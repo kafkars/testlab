@@ -15,6 +15,8 @@ pub enum ScenarioAction {
     CreateProducer {
         client_id: ClientId,
         producer_id: ProducerId,
+        #[serde(default)]
+        ownership: crate::ChildHandleOwnership,
     },
     SetBrokerBehavior {
         behavior: crate::BrokerBehavior,
@@ -64,14 +66,12 @@ pub enum ScenarioAction {
     StartConcurrentActors(crate::StartConcurrentActorsAction),
     JoinConcurrentActors(crate::JoinConcurrentActorsAction),
     CreateAssignedConsumer {
-        /// Owning client.
         client_id: ClientId,
-        /// New consumer identity.
         consumer_id: ConsumerId,
+        #[serde(default)]
+        ownership: crate::ChildHandleOwnership,
     },
-    /// Replaces one consumer's assignment at the beginning of one partition.
     AssignBeginning {
-        /// Existing assigned consumer.
         consumer_id: ConsumerId,
         /// Exact topic.
         topic: String,

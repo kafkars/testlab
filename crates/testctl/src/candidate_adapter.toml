@@ -29,4 +29,4 @@ kafka-client-engine = {{ path = {engine} }}
 
 [lints.rust]
 unsafe_code = "forbid"
-unexpected_cfgs = {{ level = "warn", check-cfg = ["cfg(kafkars_share_candidate)"] }}
+unexpected_cfgs = {{ level = "warn", check-cfg = ["cfg(kafkars_independent_handles_candidate)", "cfg(kafkars_share_candidate)"] }}

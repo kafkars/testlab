@@ -37,6 +37,7 @@ pub(crate) fn validate_action(
         ScenarioAction::CreateProducer {
             client_id,
             producer_id,
+            ..
         } => create_producer(
             client_id,
             producer_id,

@@ -1,4 +1,4 @@
-schema_version = 79
+schema_version = 80
 id = "kafka.admin-delete-share-groups"
 title = "packaged admin deletes two independently observed empty Share groups"
 description = "Two Share groups independently accept the same record and close their only modeled members before one caller-ordered public deletion; an immediate read-only Kafka CLI listing confirms both groups are absent."

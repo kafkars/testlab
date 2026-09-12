@@ -28,7 +28,7 @@ completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
 independently selected broker-role disruption, broker-policy facts, and
 network-proxy controls and effect observations.
-Protocol v76 and record digest v2 retain an optional caller-selected timestamp
+Protocol v77 and record digest v2 retain an optional caller-selected timestamp
 in commands, public producer terminals, public consumer records, and independent
 broker observations.
 Every effectful environment terminal operation carries a stable identity in
@@ -81,7 +81,7 @@ declarations do not claim an execution order.
 PROD-014 binds the partition returned by every successful public producer
 receipt to its independent Kafka observation and forbids partition claims on
 failed or uncertain terminals. PROD-015 additionally proves that a keyed send
-crossed protocol v76 as `java_keyed`, that the adapter selected the public
+crossed protocol v77 as `java_keyed`, that the adapter selected the public
 automatic path, and that both receipt and broker record match the independent
 positive-Murmur2 oracle over the serialized key and declared logical partition
 count. The scenario's expected partition is retained for provisioning and
@@ -152,6 +152,10 @@ shutdown completion under its originating command. A later send on a sibling,
 replacement, or independently owned producer must still satisfy the ordinary
 admission, terminal, coordinate, and broker-visibility contracts; a lifecycle
 success string alone cannot establish handle isolation.
+Two independently owned assigned consumers must each expose the same declared
+broker records in order through their own public receive stream. Shared
+operation IDs, aggregate counts, or one consumer's observations cannot
+substitute for the other consumer's exact coordinates and bytes.
 
 Transaction evidence keeps public staging, public disposition, and independent
 visibility separate. TXN-004 requires every declared member to have one exact

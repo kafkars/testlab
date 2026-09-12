@@ -116,6 +116,7 @@ fn create_handles(
         AdapterCommand::CreateProducer {
             client_id: client.clone(),
             producer_id: producer.clone(),
+            ownership: Default::default(),
         },
     );
     history.event(
@@ -129,6 +130,7 @@ fn create_handles(
         AdapterCommand::CreateAssignedConsumer {
             client_id: client.clone(),
             consumer_id: consumer.clone(),
+            ownership: Default::default(),
         },
     );
     history.event(

@@ -4,6 +4,8 @@ title = "packaged Kafkars pull-request qualification"
 scenarios = [
   "scenarios/kafka/producer-round-trip.toml",
   "scenarios/kafka/producer-repeated-readiness-flush.toml",
+  "scenarios/kafka/producer-sibling-close-isolation.toml",
+  "scenarios/kafka/producer-replacement-after-close.toml",
   "scenarios/kafka/client-metrics-producer.toml",
   "scenarios/kafka/client-shutdown-isolation.toml",
   "scenarios/kafka/producer-null-empty-batch.toml",
@@ -20,6 +22,7 @@ scenarios = [
   "scenarios/kafka/assigned-consumer-multi-partition.toml",
   "scenarios/kafka/assigned-consumer-sequential-cursor.toml",
   "scenarios/kafka/assigned-consumer-replacement.toml",
+  "scenarios/kafka/assigned-consumer-independent-cursors.toml",
   "scenarios/kafka/assigned-consumer-beginning-reset.toml",
   "scenarios/kafka/assigned-consumer-null-empty.toml",
   "scenarios/kafka/assigned-consumer-header-fidelity.toml",

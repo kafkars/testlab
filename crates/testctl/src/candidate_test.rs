@@ -183,6 +183,14 @@ fn candidate_adapter_build_uses_the_generated_lock() {
         ]
         .map(OsStr::new)
     );
+    assert_eq!(
+        command.get_envs().find_map(|(key, value)| {
+            (key == OsStr::new("RUSTFLAGS")).then_some(value).flatten()
+        }),
+        Some(OsStr::new(
+            "--cfg kafkars_share_candidate --cfg kafkars_independent_handles_candidate"
+        ))
+    );
 }
 
 fn artifacts() -> Vec<PackageArtifact> {

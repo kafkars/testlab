@@ -71,6 +71,7 @@ fn assigned_consumer_exact_round_trip_passes() {
             ScenarioAction::CreateAssignedConsumer {
                 client_id: id(testlab_schema::ClientId::new("client-1")),
                 consumer_id: consumer.clone(),
+                ownership: Default::default(),
             },
         ),
         step(

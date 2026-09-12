@@ -9,10 +9,12 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ScenarioAction::CreateAssignedConsumer {
             client_id,
             consumer_id,
+            ownership,
         } => (
             AdapterCommand::CreateAssignedConsumer {
                 client_id: client_id.clone(),
                 consumer_id: consumer_id.clone(),
+                ownership: *ownership,
             },
             ExpectedEvent::AssignedConsumerCreated(consumer_id.clone()),
         ),

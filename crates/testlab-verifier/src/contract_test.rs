@@ -68,6 +68,7 @@ fn public_client_failure_is_valid_semantic_evidence() {
             AdapterCommand::CreateProducer {
                 client_id: client,
                 producer_id: producer.clone(),
+                ownership: Default::default(),
             },
         ),
         command(

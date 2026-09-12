@@ -85,6 +85,7 @@ mod group_consumer_control;
 mod group_consumer_control_validation;
 mod group_consumer_shutdown;
 mod group_consumer_shutdown_validation;
+mod handle_ownership;
 mod ids;
 mod network_proxy;
 mod pack;
@@ -154,6 +155,7 @@ pub use evidence::{
 pub use expected_client_error::expected_client_error;
 pub use group_consumer_control::*;
 pub use group_consumer_shutdown::*;
+pub use handle_ownership::ChildHandleOwnership;
 pub use ids::{
     ActorId, AdapterId, CellId, ClientId, CommandId, ConcurrencyId, ConsumerId, ContractId,
     EnvironmentId, EnvironmentOperationId, IdError, OperationId, PackId, ProducerId,
@@ -296,5 +298,3 @@ mod record_test;
 mod scenario_test;
 #[cfg(test)]
 mod share_action_validation_test;
-#[cfg(test)]
-mod subject_test;

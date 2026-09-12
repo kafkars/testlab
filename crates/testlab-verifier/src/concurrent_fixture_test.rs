@@ -91,6 +91,7 @@ fn scenario_steps(record: &RecordSpec) -> Vec<ScenarioStep> {
             ScenarioAction::CreateProducer {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
+                ownership: Default::default(),
             },
         ),
         step(
@@ -98,6 +99,7 @@ fn scenario_steps(record: &RecordSpec) -> Vec<ScenarioStep> {
             ScenarioAction::CreateAssignedConsumer {
                 client_id: client.clone(),
                 consumer_id: consumer.clone(),
+                ownership: Default::default(),
             },
         ),
         step(

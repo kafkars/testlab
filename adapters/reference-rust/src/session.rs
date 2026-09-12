@@ -1,6 +1,7 @@
 //! Session interpreter translates protocol commands to one fixture state machine.
 
 use crate::AdapterError;
+use crate::session_producer;
 use crate::session_send;
 use crate::state::AdapterState;
 use std::io::{self, BufRead, Read, Write};
@@ -80,7 +81,15 @@ fn dispatch<W: Write>(
         AdapterCommand::CreateProducer {
             client_id,
             producer_id,
-        } => dispatch_create_producer(state, writer, command_id, client_id, producer_id)?,
+            ownership,
+        } => session_producer::dispatch(
+            state,
+            writer,
+            command_id,
+            client_id,
+            producer_id,
+            ownership,
+        )?,
         AdapterCommand::Send {
             producer_id,
             operation_id,
@@ -226,20 +235,6 @@ fn dispatch<W: Write>(
         }
     }
     Ok(false)
-}
-
-fn dispatch_create_producer<W: Write>(
-    state: &mut AdapterState,
-    writer: &mut W,
-    command_id: testlab_schema::CommandId,
-    client_id: testlab_schema::ClientId,
-    producer_id: testlab_schema::ProducerId,
-) -> Result<(), AdapterError> {
-    state.create_producer(client_id, producer_id.clone())?;
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(command_id, AdapterEvent::ProducerCreated { producer_id }),
-    )
 }
 
 fn dispatch_hello<W: Write>(

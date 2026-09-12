@@ -6,10 +6,15 @@ module facade. It implements producer, assigned/group/share consumer, admin,
 transaction, and lifecycle commands; Kafka environment control and broker
 observation remain testlab-owned.
 
+The checked-in dependency remains the public RC baseline. Candidate builds
+replace it with the packaged checkout, advertise `independent_handles`, and use
+the public independent producer and assigned-consumer builders; baseline builds
+do not advertise or compile those newer calls.
+
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v76 over stdin/stdout;
+2. implements protocol v77 over stdin/stdout;
 3. preserves caller-selected record timestamps and returned partitions through
    public delivery receipts, omits explicit partitions for Java-keyed sends,
    and preserves consumer records;

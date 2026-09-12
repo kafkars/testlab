@@ -3,9 +3,21 @@
 use std::collections::BTreeSet;
 
 use crate::scenario_action_validation::ActionStates;
-use crate::{Capability, GroupProtocol, Scenario, ScenarioAction};
+use crate::{Capability, ChildHandleOwnership, GroupProtocol, Scenario, ScenarioAction};
 
 pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
+    if matches!(
+        action,
+        ScenarioAction::CreateProducer {
+            ownership: ChildHandleOwnership::Independent,
+            ..
+        } | ScenarioAction::CreateAssignedConsumer {
+            ownership: ChildHandleOwnership::Independent,
+            ..
+        }
+    ) {
+        usage.insert(Capability::IndependentHandles);
+    }
     if let ScenarioAction::StartConcurrentActors(action) = action {
         usage.insert(Capability::ConcurrentActors);
         for actor in &action.actors {
@@ -172,6 +184,10 @@ pub(crate) fn validate_required(
 }
 
 const REQUIRED_USAGE: &[(Capability, &str)] = &[
+    (
+        Capability::IndependentHandles,
+        "independent child handles require the independent_handles capability",
+    ),
     (
         Capability::ConcurrentActors,
         "concurrent actor steps require the concurrent_actors capability",

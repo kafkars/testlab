@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v76 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v79 and evidence schema v65.
+Protocol v77 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v80 and evidence schema v66.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -14,6 +14,16 @@ Lifecycle verdicts join each creation, readiness, assignment, flush, close,
 shutdown, and finish event to that exact originating command. Repeating a
 public operation on one resource therefore requires one completion per command;
 resource-level event totals are not a substitute for correlation.
+
+Producer and directly assigned consumer creation carry an exact child ownership
+selection. `shared` uses the originating client's execution and lifecycle
+owner. `independent` starts a private owner from that client's exact
+configuration and requires the `independent_handles` capability. Scenario files
+may omit the field only to select the backward-compatible `shared` default;
+adapter commands never default it across the process boundary. Parent metrics
+or shutdown do not establish private-owner behavior: sibling, replacement, and
+dual-cursor scenarios require later public operations on the independent
+handles.
 
 Configured client creation carries the complete client-wide producer policy:
 delivery timeout, one of the five public compression selections, bounded retry
@@ -955,9 +965,10 @@ old-commit result separately. The verifier requires `fenced` and independently
 requires the staged record to remain absent under `read_committed` isolation.
 
 Lifecycle commands target one exact public handle. Repeated readiness probes
-and producer flushes retain distinct command identities. Closing one producer
-does not close a sibling or prevent a distinct replacement producer on the
-same live client; shutting down one client does not affect another client.
+and producer flushes retain distinct command identities. Closing one independent
+producer does not close a sibling or prevent a distinct replacement built from
+the same live client configuration; shutting down one client does not affect
+another client.
 Scenarios prove those boundaries only through later public completions and
 independently observed Kafka records on the still-open handle.
 
@@ -982,6 +993,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v76 is an exact semantic contract. New capabilities may be declared
+Protocol v77 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

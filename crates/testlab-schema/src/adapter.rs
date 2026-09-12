@@ -22,6 +22,8 @@ pub enum Capability {
     ConcurrentActors,
     /// Explicit close, shutdown, and finish behavior.
     Lifecycle,
+    /// Private execution and lifecycle ownership for public child handles.
+    IndependentHandles,
     /// Explicit public client readiness probing.
     ClientReadiness,
     /// Bounded public client operational metrics snapshots.

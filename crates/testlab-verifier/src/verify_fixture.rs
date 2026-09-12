@@ -45,6 +45,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
                 ScenarioAction::CreateProducer {
                     client_id: client.clone(),
                     producer_id: producer.clone(),
+                    ownership: Default::default(),
                 },
             ),
             step(

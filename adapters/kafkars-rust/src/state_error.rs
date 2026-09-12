@@ -27,6 +27,8 @@ pub(crate) enum StateError {
     DuplicateConsumer(ConsumerId),
     #[error("consumer {0} does not exist")]
     MissingConsumer(ConsumerId),
+    #[error("independent_handles capability is unavailable in this adapter build")]
+    IndependentHandlesUnavailable,
     #[cfg(kafkars_share_candidate)]
     #[error("share batch {0} already exists")]
     DuplicateShareBatch(OperationId),

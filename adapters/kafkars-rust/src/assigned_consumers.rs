@@ -8,7 +8,8 @@ use crate::kafkars_api::{
     TopicPartition,
 };
 use testlab_schema::{
-    AssignedConsumerControlCommand, ClientId, ConsumerId, TopicPartitionIdentity,
+    AssignedConsumerControlCommand, ChildHandleOwnership, ClientId, ConsumerId,
+    TopicPartitionIdentity,
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_safe, retry_until};
@@ -40,11 +41,25 @@ impl AssignedConsumers {
         client: &Client,
         client_id: ClientId,
         consumer_id: ConsumerId,
+        ownership: ChildHandleOwnership,
     ) -> Result<(), StateError> {
         if self.owners.contains_key(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
         }
-        let consumer = retry_owned_safe(client.assigned_consumer(), |builder| {
+        let builder = match ownership {
+            ChildHandleOwnership::Shared => client.assigned_consumer(),
+            ChildHandleOwnership::Independent => {
+                #[cfg(kafkars_independent_handles_candidate)]
+                {
+                    client.independent_assigned_consumer()
+                }
+                #[cfg(not(kafkars_independent_handles_candidate))]
+                {
+                    return Err(StateError::IndependentHandlesUnavailable);
+                }
+            }
+        };
+        let consumer = retry_owned_safe(builder, |builder| {
             builder
                 .build()
                 .map_err(AssignedConsumerBuildError::into_parts)

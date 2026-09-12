@@ -51,7 +51,7 @@ missing_debug_implementations = "warn"
 missing_docs = "warn"
 unreachable_pub = "warn"
 unused_lifetimes = "warn"
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kafkars_share_candidate)"] }
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kafkars_independent_handles_candidate)", "cfg(kafkars_share_candidate)"] }
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }

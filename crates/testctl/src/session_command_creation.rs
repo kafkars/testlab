@@ -28,10 +28,12 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ScenarioAction::CreateProducer {
             client_id,
             producer_id,
+            ownership,
         } => (
             AdapterCommand::CreateProducer {
                 client_id: client_id.clone(),
                 producer_id: producer_id.clone(),
+                ownership: *ownership,
             },
             ExpectedEvent::ProducerCreated(producer_id.clone()),
         ),

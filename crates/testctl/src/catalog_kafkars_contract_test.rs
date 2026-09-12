@@ -4,45 +4,34 @@ use std::{collections::BTreeSet, fs, path::Path, path::PathBuf};
 
 use crate::catalog::Repository;
 
-const UNQUALIFIED_KAFKA_SCENARIOS: [(&str, &str); 3] = [
-    (
-        "producer-sibling-close-isolation.toml",
-        "producer handles from one client share one owner and close fence",
-    ),
-    (
-        "producer-replacement-after-close.toml",
-        "a closed producer owner cannot be replaced within the same client",
-    ),
-    (
-        "assigned-consumer-independent-cursors.toml",
-        "one client admits one directly assigned consumer for its lifetime",
-    ),
+const INDEPENDENT_HANDLE_SCENARIOS: [&str; 3] = [
+    "producer-sibling-close-isolation.toml",
+    "producer-replacement-after-close.toml",
+    "assigned-consumer-independent-cursors.toml",
 ];
 
 #[test]
-fn kafkars_packs_exclude_unqualified_contracts() {
+fn kafkars_pr_and_release_packs_qualify_independent_handles() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let repository = Repository::open(&root)
         .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
-    for path in kafkars_pack_paths(&root) {
+    for path in ["packs/kafkars-pr.toml", "packs/kafkars-release.toml"] {
         let (_, pack) = repository
-            .load_pack(&path)
-            .unwrap_or_else(|error| panic!("load {}: {error}", path.display()));
-        for (scenario, reason) in UNQUALIFIED_KAFKA_SCENARIOS {
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        for scenario in INDEPENDENT_HANDLE_SCENARIOS {
             assert!(
-                !pack
-                    .scenarios
+                pack.scenarios
                     .iter()
                     .any(|candidate| candidate.ends_with(scenario)),
-                "{} claims unqualified {scenario}: {reason}",
-                path.display()
+                "{path} does not qualify {scenario}"
             );
         }
     }
 }
 
 #[test]
-fn every_kafka_scenario_is_packed_or_explicitly_unqualified() {
+fn every_kafka_scenario_is_packed() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let repository = Repository::open(&root)
         .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
@@ -63,18 +52,14 @@ fn every_kafka_scenario_is_packed_or_explicitly_unqualified() {
     }
 
     let scenarios = directory_manifest_names(&root.join("scenarios/kafka"));
-    let unqualified = UNQUALIFIED_KAFKA_SCENARIOS
-        .iter()
-        .map(|(scenario, _)| (*scenario).to_owned())
-        .collect::<BTreeSet<_>>();
     let uncovered = scenarios
         .difference(&packed)
         .cloned()
         .collect::<BTreeSet<_>>();
 
-    assert_eq!(
-        uncovered, unqualified,
-        "every checked-in Kafka scenario must be packed or explicitly unqualified"
+    assert!(
+        uncovered.is_empty(),
+        "every checked-in Kafka scenario must be packed: {uncovered:?}"
     );
 }
 

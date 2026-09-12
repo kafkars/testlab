@@ -27,8 +27,8 @@ pub enum AdapterCommand {
     /// Creates one public producer handle.
     CreateProducer {
         client_id: ClientId,
-        /// Scenario-local producer identity.
         producer_id: ProducerId,
+        ownership: crate::ChildHandleOwnership,
     },
     /// Offers one record through the public producer surface.
     Send {
@@ -58,10 +58,9 @@ pub enum AdapterCommand {
         timeout_ms: u64,
     },
     CreateAssignedConsumer {
-        /// Owning client.
         client_id: ClientId,
-        /// Scenario-local consumer identity.
         consumer_id: ConsumerId,
+        ownership: crate::ChildHandleOwnership,
     },
     /// Assigns one consumer at the beginning of one partition.
     AssignBeginning {

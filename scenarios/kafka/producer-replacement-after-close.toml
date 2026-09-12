@@ -1,9 +1,9 @@
-schema_version = 79
+schema_version = 80
 id = "kafka.producer-replacement-after-close"
 title = "one client creates a replacement producer after close"
-description = "A client closes its first public producer, creates a distinct replacement, and preserves exact broker-visible progress through the replacement handle."
+description = "One client configuration starts and closes a private producer owner, then starts a distinct replacement and preserves exact broker-visible progress through it."
 timeout_ms = 120000
-requires = ["producer", "lifecycle", "client_readiness"]
+requires = ["producer", "lifecycle", "independent_handles", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -20,6 +20,7 @@ id = "create-first-producer"
 kind = "create_producer"
 client_id = "client-1"
 producer_id = "producer-first"
+ownership = "independent"
 
 [[steps]]
 id = "send-from-first-producer"
@@ -48,6 +49,7 @@ id = "create-replacement-producer"
 kind = "create_producer"
 client_id = "client-1"
 producer_id = "producer-replacement"
+ownership = "independent"
 
 [[steps]]
 id = "send-from-replacement-producer"

@@ -15,7 +15,7 @@ use crate::kafkars_api::{
 #[cfg(kafkars_share_candidate)]
 use crate::share_consumers::ShareConsumers;
 use crate::transactional_producers::{OwnedTransactionalProducer, TransactionalProducers};
-use testlab_schema::{AdapterSecurity, ClientId, ConsumerId, ProducerId};
+use testlab_schema::{AdapterSecurity, ChildHandleOwnership, ClientId, ConsumerId, ProducerId};
 
 pub(crate) use crate::state_error::StateError;
 
@@ -62,6 +62,7 @@ impl AdapterState {
         &mut self,
         client_id: ClientId,
         producer_id: ProducerId,
+        ownership: ChildHandleOwnership,
     ) -> Result<(), StateError> {
         if self.producers.contains_key(&producer_id)
             || self.transactional_producers.contains(&producer_id)
@@ -72,8 +73,20 @@ impl AdapterState {
             .clients
             .get(&client_id)
             .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
-        let producer = client
-            .producer()
+        let builder = match ownership {
+            ChildHandleOwnership::Shared => client.producer(),
+            ChildHandleOwnership::Independent => {
+                #[cfg(kafkars_independent_handles_candidate)]
+                {
+                    client.independent_producer()
+                }
+                #[cfg(not(kafkars_independent_handles_candidate))]
+                {
+                    return Err(StateError::IndependentHandlesUnavailable);
+                }
+            }
+        };
+        let producer = builder
             .delivery_timeout(DELIVERY_TIMEOUT)
             .build()
             .map_err(StateError::Client)?;
@@ -152,6 +165,7 @@ impl AdapterState {
         &mut self,
         client_id: ClientId,
         consumer_id: ConsumerId,
+        ownership: ChildHandleOwnership,
     ) -> Result<(), StateError> {
         if self.group_consumers.contains(&consumer_id) || self.share_contains(&consumer_id) {
             return Err(StateError::DuplicateConsumer(consumer_id));
@@ -160,7 +174,8 @@ impl AdapterState {
             .clients
             .get(&client_id)
             .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
-        self.consumers.create(client, client_id, consumer_id)
+        self.consumers
+            .create(client, client_id, consumer_id, ownership)
     }
 
     pub(crate) fn create_group_consumer(

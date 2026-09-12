@@ -39,6 +39,10 @@ pub struct SubjectManifest {
     pub working_directory: Option<String>,
 }
 
+#[cfg(test)]
+#[path = "subject_test.rs"]
+mod tests;
+
 impl SubjectManifest {
     /// Validates process identity without touching the filesystem.
     pub fn validate(&self) -> Result<(), SubjectError> {

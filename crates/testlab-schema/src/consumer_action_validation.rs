@@ -45,6 +45,7 @@ pub(crate) fn validate(
         ScenarioAction::CreateAssignedConsumer {
             client_id,
             consumer_id,
+            ..
         } => create(
             client_id,
             consumer_id,
