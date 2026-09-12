@@ -12,9 +12,9 @@ use crate::admin_action_validation::validate;
 
 #[test]
 fn versions_advance_together_for_the_new_evidence_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 105);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 108);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 94);
+    assert_eq!(PROTOCOL_VERSION, 106);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 109);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 95);
 }
 
 #[test]

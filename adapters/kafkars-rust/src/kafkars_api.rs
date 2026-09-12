@@ -30,9 +30,10 @@ pub(crate) use kafkars::consumer::{
     AssignedConsumerPositionResolutionFailureKind, Checkpoint, ClassicGroupAssignor,
     ClassicGroupConfig, Consumer, ConsumerAssignment, ConsumerBatch, ConsumerBuildError,
     ConsumerBuilder, ConsumerCommitAdmissionError, ConsumerEvent, ConsumerFetchConfig,
-    ConsumerGroupProtocol, ConsumerLimits, ConsumerRecord, GroupConsumerRecord,
-    GroupMembershipEpoch, GroupMetadata, OffsetReset, OwnedConsumerHeader, OwnedConsumerRecord,
-    ReadIsolation, RecordBatch, RetainedSourceRecord, StartPosition, TopicPartition,
+    ConsumerGroupProtocol, ConsumerLimits, ConsumerRecord, GroupConsumerOperationConfig,
+    GroupConsumerRecord, GroupMembershipEpoch, GroupMetadata, OffsetReset, OwnedConsumerHeader,
+    OwnedConsumerRecord, ReadIsolation, RecordBatch, RetainedSourceRecord, StartPosition,
+    TopicPartition,
 };
 #[cfg(kafkars_share_candidate)]
 pub(crate) use kafkars::consumer::{

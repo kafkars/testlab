@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v105 over stdin/stdout;
+2. implements protocol v106 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -25,7 +25,8 @@ It:
    KIP-848, and Share subscriptions plus complete Share Fetch, runtime, and rack
    configuration through the public builder; group registrations also preserve
    caller-selected Fetch policy, retained-delivery capacities, and processing,
-   membership-start, seek, and close deadlines, while configured assigned
+   membership-start, seek, and close deadlines through either the exact
+   individual setters or one public aggregate operation configuration, while configured assigned
    clients preserve the same Fetch and capacity envelope; direct receives map
    default `recv` and selected repeated `try_take_batch` to their exact public
    methods, retain public Fetch UUID, offset-window, byte-charge, and checkpoint

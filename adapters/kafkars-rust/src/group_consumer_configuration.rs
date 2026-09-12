@@ -2,9 +2,9 @@
 
 use std::time::Duration;
 
-use testlab_schema::GroupConsumerConfiguration;
+use testlab_schema::{GroupConsumerConfiguration, GroupOperationConfigMethod};
 
-use crate::kafkars_api::{ClassicGroupConfig, ConsumerBuilder};
+use crate::kafkars_api::{ClassicGroupConfig, ConsumerBuilder, GroupConsumerOperationConfig};
 use crate::state::StateError;
 
 pub(crate) fn apply_fetch_and_limits(
@@ -23,20 +23,39 @@ pub(crate) fn apply_fetch_and_limits(
 pub(crate) fn apply_runtime_configuration(
     mut builder: ConsumerBuilder,
     configuration: &GroupConsumerConfiguration,
-) -> ConsumerBuilder {
+) -> Result<ConsumerBuilder, StateError> {
     if let Some(value) = configuration.processing_timeout_ms {
         builder = builder.processing_timeout(Duration::from_millis(value));
     }
     if let Some(value) = configuration.membership_start_timeout_ms {
         builder = builder.membership_start_timeout(Duration::from_millis(value));
     }
-    if let Some(value) = configuration.seek_timeout_ms {
-        builder = builder.seek_timeout(Duration::from_millis(value));
+    match configuration.operation_config_method {
+        GroupOperationConfigMethod::IndividualSetters => {
+            if let Some(value) = configuration.seek_timeout_ms {
+                builder = builder.seek_timeout(Duration::from_millis(value));
+            }
+            if let Some(value) = configuration.close_timeout_ms {
+                builder = builder.close_timeout(Duration::from_millis(value));
+            }
+        }
+        GroupOperationConfigMethod::OperationConfig => {
+            let (Some(seek), Some(close)) = (
+                configuration.seek_timeout_ms,
+                configuration.close_timeout_ms,
+            ) else {
+                return Err(StateError::ConsumerConfiguration(
+                    "operation_config requires both seek_timeout_ms and close_timeout_ms"
+                        .to_owned(),
+                ));
+            };
+            builder = builder.operation_config(GroupConsumerOperationConfig::new(
+                Duration::from_millis(seek),
+                Duration::from_millis(close),
+            ));
+        }
     }
-    if let Some(value) = configuration.close_timeout_ms {
-        builder = builder.close_timeout(Duration::from_millis(value));
-    }
-    builder
+    Ok(builder)
 }
 
 pub(crate) fn public_classic_group_config(

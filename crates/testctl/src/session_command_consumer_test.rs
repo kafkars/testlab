@@ -186,6 +186,7 @@ fn group_creation_preserves_public_configuration() {
         membership_start_timeout_ms: Some(25_000),
         seek_timeout_ms: Some(15_000),
         close_timeout_ms: Some(20_000),
+        operation_config_method: testlab_schema::GroupOperationConfigMethod::OperationConfig,
         group_instance_id: Some("worker-static-1".to_owned()),
         classic_assignor: Some(testlab_schema::GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(120_000),

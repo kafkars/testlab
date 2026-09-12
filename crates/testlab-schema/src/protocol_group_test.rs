@@ -2,7 +2,7 @@
 
 use crate::{
     Capability, GroupClassicAssignor, GroupConsumerConfiguration, GroupConsumerReceiveMethod,
-    GroupOffsetReset, GroupReadIsolation, Scenario, ScenarioAction,
+    GroupOffsetReset, GroupOperationConfigMethod, GroupReadIsolation, Scenario, ScenarioAction,
 };
 
 #[test]
@@ -33,6 +33,7 @@ fn configured_group_policy_round_trips() {
             membership_start_timeout_ms: Some(25_000),
             seek_timeout_ms: Some(15_000),
             close_timeout_ms: Some(20_000),
+            operation_config_method: GroupOperationConfigMethod::OperationConfig,
             group_instance_id: Some("worker-static-1".to_owned()),
             classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
             classic_session_timeout_ms: Some(120_000),
@@ -124,6 +125,7 @@ fn configured_group_requires_its_capability() {
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
         close_timeout_ms: None,
+        operation_config_method: GroupOperationConfigMethod::IndividualSetters,
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: None,
@@ -161,6 +163,7 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
         close_timeout_ms: None,
+        operation_config_method: GroupOperationConfigMethod::IndividualSetters,
         group_instance_id: None,
         classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(10_000),
@@ -195,6 +198,7 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
         close_timeout_ms: None,
+        operation_config_method: GroupOperationConfigMethod::IndividualSetters,
         group_instance_id: None,
         classic_assignor: Some(GroupClassicAssignor::Range),
         classic_session_timeout_ms: Some(0),
@@ -235,6 +239,7 @@ fn group_runtime_timing_is_positive() {
         membership_start_timeout_ms: Some(0),
         seek_timeout_ms: Some(0),
         close_timeout_ms: Some(0),
+        operation_config_method: GroupOperationConfigMethod::OperationConfig,
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: None,

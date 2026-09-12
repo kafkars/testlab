@@ -11,9 +11,9 @@ use super::{
 
 #[test]
 fn plural_topic_deletion_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 105);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 108);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 94);
+    assert_eq!(PROTOCOL_VERSION, 106);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 109);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 95);
 }
 
 #[test]

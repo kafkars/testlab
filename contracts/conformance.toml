@@ -523,6 +523,12 @@ statement = "One public timestamp ListOffsets selector preserves the exact calle
 category = "admin"
 
 [[contract]]
+id = "ADMIN-078"
+title = "Maximum-timestamp offset selection preserves the greatest record"
+statement = "One public maximum-timestamp ListOffsets selector returns the unique independently observed record with the greatest timestamp inside immediate partition watermarks, distinct from earliest and latest selection."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
@@ -1024,6 +1030,12 @@ category = "consumer"
 id = "CONS-023"
 title = "Direct owned-record conversion remains exact"
 statement = "One selected owned assigned-record transfer preserves the direct RecordBatch into_owned_records conversion while retaining the complete public transfer and independent source and destination evidence."
+category = "consumer"
+
+[[contract]]
+id = "CONS-024"
+title = "Aggregate group operation configuration remains exact"
+statement = "Every scenario-selected group operation_config retains both explicit seek and close durations in one exact group-consumer creation command."
 category = "consumer"
 
 [[contract]]

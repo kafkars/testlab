@@ -1,4 +1,4 @@
-schema_version = 108
+schema_version = 109
 id = "kafka.classic-group-immediate-batch"
 title = "classic group receives through immediate batch observation"
 description = "A classic member repeatedly calls the public try_take_batch method, returns one exact broker-visible record, and commits its checkpoint."

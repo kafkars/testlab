@@ -1,4 +1,4 @@
-schema_version = 108
+schema_version = 109
 id = "kafka.classic-group-partial-checkpoint"
 title = "a classic member commits only its processed batch prefix"
 description = "One classic member receives two exact records in one public batch, marks and commits only the first record, and a replacement member receives the unprocessed suffix after independent offset-1 proof."

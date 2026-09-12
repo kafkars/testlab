@@ -1,6 +1,6 @@
 //! Shared and classic group policy remains explicit at scenario boundaries.
 
-use crate::{ConsumerId, GroupConsumerConfiguration, GroupProtocol};
+use crate::{ConsumerId, GroupConsumerConfiguration, GroupOperationConfigMethod, GroupProtocol};
 
 pub(super) fn validate(
     consumer_id: &ConsumerId,
@@ -80,6 +80,13 @@ fn validate_runtime(
         ],
         problems,
     );
+    if configuration.operation_config_method == GroupOperationConfigMethod::OperationConfig
+        && (configuration.seek_timeout_ms.is_none() || configuration.close_timeout_ms.is_none())
+    {
+        problems.push(format!(
+            "consumer {consumer_id} operation_config requires both seek_timeout_ms and close_timeout_ms"
+        ));
+    }
 }
 
 fn validate_durations<const N: usize>(

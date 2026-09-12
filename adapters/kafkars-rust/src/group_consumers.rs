@@ -9,8 +9,8 @@ use crate::kafkars_api::{
 };
 use testlab_schema::{
     AssignedStartPosition, ClientId, ConsumerId, GroupClassicAssignor, GroupConsumerConfiguration,
-    GroupConsumerControl, GroupConsumerControlCommand, GroupOffsetReset, GroupProtocol,
-    GroupReadIsolation,
+    GroupConsumerControl, GroupConsumerControlCommand, GroupOffsetReset,
+    GroupOperationConfigMethod, GroupProtocol, GroupReadIsolation,
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
@@ -62,6 +62,7 @@ impl GroupConsumers {
                 membership_start_timeout_ms: None,
                 seek_timeout_ms: None,
                 close_timeout_ms: None,
+                operation_config_method: GroupOperationConfigMethod::IndividualSetters,
                 group_instance_id: None,
                 classic_assignor: None,
                 classic_session_timeout_ms: None,
@@ -83,7 +84,7 @@ impl GroupConsumers {
             .read_isolation(public_read_isolation(configuration.read_isolation))
             .membership_start_timeout(OPERATION_TIMEOUT)
             .close_timeout(OPERATION_TIMEOUT);
-        let builder = apply_runtime_configuration(builder, &configuration);
+        let builder = apply_runtime_configuration(builder, &configuration)?;
         let builder = apply_fetch_and_limits(builder, &configuration)?;
         let builder = match configuration.group_instance_id {
             Some(group_instance_id) => builder.group_instance_id(group_instance_id),

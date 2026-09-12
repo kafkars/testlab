@@ -141,6 +141,11 @@ Protocol v105, scenario schema v108, and evidence schema v94 add direct
 owned-record conversion. CONS-023 requires the exact `into_owned_records`
 selection while retaining CONS-021's public destination terminal, post-terminal
 source evidence, and distinct independent source and destination records.
+Protocol v106, scenario schema v109, and evidence schema v95 retain aggregate
+hosted-group operation configuration. CONS-024 requires the exact
+`operation_config` selection with both explicit seek and close durations in the
+issued creation command; classic and KIP-848 seek scenarios exercise that
+registration under the existing control and lifecycle contracts.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -285,7 +290,8 @@ aborted-transaction evidence; configuration alone cannot pass.
 
 Configured-group history retains the requested missing-offset and read-isolation
 policy plus any Fetch and retained-delivery policy, processing,
-membership-start, seek, and close durations, static
+membership-start, seek, and close durations, their selected individual or
+aggregate public builder surface, static
 group-instance identity, classic assignor, and all six classic
 membership-timing values in the issued protocol command. That
 adapter-reported configuration is not the verdict: exact group receives must
@@ -293,8 +299,9 @@ still join to independently observed records, positive protocol epochs, and
 aborted-transaction visibility evidence. A dedicated three-broker recovery
 scenario runs with every classic timing set to a non-default value.
 Classic and KIP-848 seek scenarios run with every shared runtime duration set
-to a non-default value and non-default Fetch and capacity policy, then exercise
-public membership, Fetch, seek, and close.
+to a non-default value through the aggregate public operation configuration and
+with non-default Fetch and capacity policy, then exercise public membership,
+Fetch, seek, and close.
 The issued group-create command also retains the complete caller-ordered
 subscription, while assignment and record evidence prove that every declared
 topic reached the public consumer.
@@ -822,6 +829,9 @@ operation-identified completion. The completion proves only the public control
 result. Subsequent classic and KIP-848 committed receives, positive protocol
 epochs, assignment snapshots, and independent broker records separately prove
 partition isolation, resumed progress, and exact seek replay.
+CONS-024 separately retains the exact aggregate operation-configuration method
+and both durations in the group-create command. CONS-014 and LIFE-012 then bind
+the selected registration's public seek and explicit close outcomes.
 LIFE-015 retains the exact clone-shared shutdown request count and requires one
 correlated public event-stream termination before the adapter releases its
 hosted group handle. That terminal does not claim a broker leave: the scenario's

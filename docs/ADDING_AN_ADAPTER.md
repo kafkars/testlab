@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v105. It is not a
+An adapter translates one packaged client surface to protocol v106. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -151,6 +151,9 @@ runner and not a verifier.
   isolation, every supplied Fetch and retained-delivery value, every shared
   runtime deadline, an optional classic assignor, and every supplied classic
   timing are fixed through public builder calls before membership starts.
+  Preserve `operation_config_method`: apply both required seek and close
+  durations through one aggregate public operation configuration when selected,
+  without substituting the individual setters.
   Preserve all three reset policies: `error` must fail closed with the
   correlated public `state` error, while `earliest` and `latest` select their
   exact public positions.

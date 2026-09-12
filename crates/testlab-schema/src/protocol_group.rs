@@ -1,5 +1,9 @@
 //! Consumer-group protocol evidence distinguishes classic generations from KIP-848 epochs.
 
+#[cfg(test)]
+#[path = "group_operation_config_validation_test.rs"]
+mod operation_config_validation_tests;
+
 use serde::{Deserialize, Serialize};
 
 /// Stable public client error emitted when a group has no committed offset.
@@ -50,6 +54,17 @@ pub enum GroupReadIsolation {
     ReadCommitted,
 }
 
+/// Public builder surface selected for hosted-group seek and close durations.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupOperationConfigMethod {
+    /// Apply each duration through its dedicated builder setter.
+    #[default]
+    IndividualSetters,
+    /// Apply both durations through one `GroupConsumerOperationConfig` value.
+    OperationConfig,
+}
+
 /// Public partition assignor selected for classic group membership.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -87,6 +102,9 @@ pub struct GroupConsumerConfiguration {
     /// Optional end-to-end timeout for explicit or requested group close.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub close_timeout_ms: Option<u64>,
+    /// Exact public builder surface used for seek and close durations.
+    #[serde(default)]
+    pub operation_config_method: GroupOperationConfigMethod,
     /// Optional stable broker-visible member identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group_instance_id: Option<String>,

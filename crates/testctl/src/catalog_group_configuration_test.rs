@@ -27,7 +27,7 @@ fn capable_kafkars_packs_retain_group_configuration() {
     );
 }
 
-const ALL_SCENARIOS: [&str; 7] = [
+const ALL_SCENARIOS: [&str; 9] = [
     "admin-remove-static-group-members.toml",
     "classic-group-latest-offset-reset.toml",
     "consumer-protocol-group-latest-offset-reset.toml",
@@ -35,13 +35,16 @@ const ALL_SCENARIOS: [&str; 7] = [
     "consumer-protocol-group-multi-topic-subscription.toml",
     "classic-group-read-committed.toml",
     "consumer-protocol-group-read-committed.toml",
+    "classic-group-seek-replay.toml",
+    "consumer-protocol-group-seek-replay.toml",
 ];
 
-const CLASSIC_SCENARIOS: [&str; 4] = [
+const CLASSIC_SCENARIOS: [&str; 5] = [
     "admin-remove-static-group-members.toml",
     "classic-group-latest-offset-reset.toml",
     "classic-group-multi-topic-subscription.toml",
     "classic-group-read-committed.toml",
+    "classic-group-seek-replay.toml",
 ];
 
 fn assert_scenarios(repository: &Repository, path: &str, expected: &[&str]) {

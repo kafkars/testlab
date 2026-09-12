@@ -67,6 +67,7 @@ mod contracts;
 mod group_consumer_controls;
 mod group_consumer_receive_method;
 mod group_consumer_shutdown;
+mod group_operation_config;
 mod group_ownership;
 mod group_partial_checkpoint;
 mod group_processing_acknowledgement;
@@ -102,8 +103,7 @@ mod transaction_send_method;
 mod transaction_topic_uuid;
 mod verify;
 mod verify_index;
-pub use contracts::known_contract_ids;
-pub use verify::verify;
+pub use {contracts::known_contract_ids, verify::verify};
 #[cfg(test)]
 mod admin_acl_test;
 #[cfg(test)]

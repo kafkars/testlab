@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v105 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v108 and evidence schema v94.
+Protocol v106 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v109 and evidence schema v95.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -538,7 +538,10 @@ and retained-delivery blocks obey the same bounded byte envelope as a directly
 assigned consumer and are fixed before membership starts. Optional
 processing, membership-start, seek, and close durations select the public
 hosted runtime deadlines for either group protocol; every supplied value is
-from one through `i32::MAX` milliseconds. An optional nonempty
+from one through `i32::MAX` milliseconds. `operation_config_method` selects
+either the individual seek/close setters or one public aggregate
+`GroupConsumerOperationConfig`; the aggregate path requires both durations.
+An optional nonempty
 `group_instance_id` selects static membership. Classic membership may
 also select the range or cooperative-sticky assignor and each public classic
 timing: session timeout, rebalance timeout, heartbeat interval, heartbeat
@@ -1164,6 +1167,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v105 is an exact semantic contract. New capabilities may be declared
+Protocol v106 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

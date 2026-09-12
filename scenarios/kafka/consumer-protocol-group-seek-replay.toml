@@ -1,7 +1,7 @@
-schema_version = 108
+schema_version = 109
 id = "kafka.consumer-protocol-group-seek-replay"
 title = "a runtime-configured KIP-848 group seek replays one committed broker record"
-description = "The packaged KIP-848 member uses non-default public Fetch, retained-capacity, processing, membership, seek, and close policy, receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."
+description = "The packaged KIP-848 member uses non-default public Fetch, retained-capacity, processing, membership, and aggregate seek/close policy, receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."
 timeout_ms = 150000
 requires = ["producer", "consumer_protocol_groups", "group_consumer_configuration", "group_consumer_controls", "lifecycle", "client_readiness"]
 
@@ -53,6 +53,7 @@ processing_timeout_ms = 90000
 membership_start_timeout_ms = 45000
 seek_timeout_ms = 20000
 close_timeout_ms = 25000
+operation_config_method = "operation_config"
 
 [steps.configuration.fetch]
 max_wait_ms = 250

@@ -15,12 +15,12 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 186);
+    assert_eq!(summary.scenarios, 203);
     assert_eq!(summary.packs, 28);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 23);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 170);
+    assert_eq!(summary.contracts, 184);
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn pull_request_pack_excludes_release_disruptions() {
         Err(error) => panic!("load pull-request pack: {error}"),
     };
 
-    assert_eq!(pack.scenarios.len(), 125);
+    assert_eq!(pack.scenarios.len(), 149);
     assert!(
         !pack
             .scenarios

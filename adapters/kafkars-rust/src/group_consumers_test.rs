@@ -3,7 +3,8 @@
 use std::time::Duration;
 
 use testlab_schema::{
-    GroupClassicAssignor, GroupConsumerConfiguration, GroupOffsetReset, GroupReadIsolation,
+    GroupClassicAssignor, GroupConsumerConfiguration, GroupOffsetReset, GroupOperationConfigMethod,
+    GroupReadIsolation,
 };
 
 use crate::group_consumer_configuration::{
@@ -64,6 +65,7 @@ fn portable_classic_timing_maps_every_public_selection() {
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
         close_timeout_ms: None,
+        operation_config_method: GroupOperationConfigMethod::IndividualSetters,
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: Some(11_000),
@@ -108,6 +110,7 @@ fn portable_group_runtime_maps_every_public_deadline() {
         membership_start_timeout_ms: Some(23_000),
         seek_timeout_ms: Some(17_000),
         close_timeout_ms: Some(19_000),
+        operation_config_method: GroupOperationConfigMethod::OperationConfig,
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: None,
@@ -121,7 +124,8 @@ fn portable_group_runtime_maps_every_public_deadline() {
         .bootstrap_servers(["127.0.0.1:1"])
         .build()
         .unwrap_or_else(|error| panic!("start lazy public client: {error}"));
-    let selected = apply_runtime_configuration(client.consumer("workers"), &configuration);
+    let selected = apply_runtime_configuration(client.consumer("workers"), &configuration)
+        .unwrap_or_else(|error| panic!("apply group runtime policy: {error}"));
     let selected = apply_fetch_and_limits(selected, &configuration)
         .unwrap_or_else(|error| panic!("apply group Fetch policy: {error}"));
     assert_eq!(

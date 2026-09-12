@@ -1,4 +1,4 @@
-schema_version = 108
+schema_version = 109
 id = "kafka.admin-describe-topic-partitions"
 title = "packaged admin describes a topic through DescribeTopicPartitions"
 description = "The packaged client's explicit DescribeTopicPartitions public path returns the complete partition set for one independently provisioned three-partition topic, and an immediate independent metadata query proves the same topology."
