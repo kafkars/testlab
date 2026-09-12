@@ -11,6 +11,8 @@ fn group_error_expectation_is_not_sent_to_the_adapter() {
         method: testlab_schema::GroupConsumerReceiveMethod::Recv,
         receive_id: operation("receive-1"),
         expected_operation_id: operation("op-1"),
+        additional_expected_operation_ids: Vec::new(),
+        processed_record_count: None,
         processing_acknowledgement_delay_ms: 0,
         expected_error_code: Some("broker:broker_30".to_owned()),
         timeout_ms: 1_000,

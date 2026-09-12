@@ -42,6 +42,11 @@ fn descriptor_reports_the_packaged_client_version() {
     assert!(
         descriptor
             .capabilities
+            .contains(&Capability::GroupConsumerPartialCheckpoint)
+    );
+    assert!(
+        descriptor
+            .capabilities
             .contains(&Capability::TransactionBatchSend)
     );
 }

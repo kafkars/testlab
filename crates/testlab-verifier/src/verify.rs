@@ -44,6 +44,7 @@ pub fn verify(
     crate::group_consumer_controls::verify(scenario, &index, &mut violations);
     crate::group_consumer_receive_method::verify(scenario, &index, &mut violations);
     crate::group_consumer_shutdown::verify(scenario, &index, &mut violations);
+    crate::group_partial_checkpoint::verify(scenario, &index, &mut violations);
     crate::group_processing_acknowledgement::verify(scenario, &index, &mut violations);
     crate::group_receive_failures::verify(scenario, &index, &mut violations);
     verify_admin(scenario, &index, observations, &mut violations);

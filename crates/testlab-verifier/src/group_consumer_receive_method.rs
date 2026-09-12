@@ -14,6 +14,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             method: GroupConsumerReceiveMethod::TryTakeBatch,
             receive_id,
             processing_acknowledgement_delay_ms,
+            processed_record_count,
             timeout_ms,
             ..
         } = &step.action
@@ -29,12 +30,14 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     method,
                     receive_id: actual_receive,
                     processing_acknowledgement_delay_ms: actual_delay,
+                    processed_record_count: actual_processed_count,
                     timeout_ms: actual_timeout,
                 } if actual_receive == receive_id => Some((
                     *sequence,
                     actual_consumer,
                     *method,
                     *actual_delay,
+                    *actual_processed_count,
                     *actual_timeout,
                 )),
                 _ => None,
@@ -42,9 +45,10 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             .collect::<Vec<_>>();
         let exact = matches!(
             commands.as_slice(),
-            [(_, actual_consumer, GroupConsumerReceiveMethod::TryTakeBatch, actual_delay, actual_timeout)]
+            [(_, actual_consumer, GroupConsumerReceiveMethod::TryTakeBatch, actual_delay, actual_processed_count, actual_timeout)]
                 if *actual_consumer == consumer_id
                     && *actual_delay == *processing_acknowledgement_delay_ms
+                    && *actual_processed_count == *processed_record_count
                     && *actual_timeout == *timeout_ms
         );
         if exact {

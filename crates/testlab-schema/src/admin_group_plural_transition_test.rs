@@ -226,6 +226,8 @@ fn group_receive(consumer_id: &str, receive_id: &str) -> ScenarioAction {
         method: Default::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("producer-op"),
+        additional_expected_operation_ids: Vec::new(),
+        processed_record_count: None,
         processing_acknowledgement_delay_ms: 0,
         timeout_ms: 1_000,
         expected_error_code: None,
@@ -236,7 +238,6 @@ fn close_group(consumer_id: &str) -> ScenarioAction {
         consumer_id: consumer(consumer_id),
     }
 }
-
 fn describe_classic(
     operation_id: &str,
     group_id: &str,
@@ -252,7 +253,6 @@ fn describe_classic(
         timeout_ms: 1_000,
     })
 }
-
 fn expectation(
     topic: &str,
     partition: i32,

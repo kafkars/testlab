@@ -1,4 +1,4 @@
-schema_version = 99
+schema_version = 100
 id = "kafka.producer-sibling-close-isolation"
 title = "closing one producer preserves its sibling"
 description = "Two public producers use private execution owners from one client configuration; after the first closes, its sibling continues with an acknowledged independently observed send."

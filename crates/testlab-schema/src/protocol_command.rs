@@ -106,9 +106,9 @@ pub enum AdapterCommand {
         method: crate::GroupConsumerReceiveMethod,
         receive_id: OperationId,
         processing_acknowledgement_delay_ms: u64,
+        processed_record_count: Option<usize>,
         timeout_ms: u64,
     },
-    /// Observes stable public assignments across declared group consumers.
     ObserveGroupAssignments(crate::ObserveGroupAssignmentsCommand),
     /// Receives and commits a structural record count across declared group consumers.
     GroupReceiveSet(crate::GroupReceiveSetCommand),

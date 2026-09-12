@@ -1,5 +1,3 @@
-//! ACL policy verification requires exact public denial followed by restored progress.
-
 use testlab_schema::{
     AdapterCommand, BrokerAclOperation, BrokerAclResource, BrokerPolicy, Scenario, ScenarioAction,
     Violation,
@@ -82,7 +80,6 @@ fn denial(
         _ => None,
     }
 }
-
 fn producer_denial(
     action: &ScenarioAction,
     topic: &str,
@@ -232,6 +229,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
                 method,
                 receive_id,
                 processing_acknowledgement_delay_ms,
+                processed_record_count,
                 timeout_ms,
                 ..
             },
@@ -240,6 +238,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
                 method: actual_method,
                 receive_id: actual_receive,
                 processing_acknowledgement_delay_ms: actual_delay,
+                processed_record_count: actual_processed_count,
                 timeout_ms: actual_timeout,
             },
         ) => {
@@ -247,6 +246,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
                 && method == actual_method
                 && receive_id == actual_receive
                 && processing_acknowledgement_delay_ms == actual_delay
+                && processed_record_count == actual_processed_count
                 && timeout_ms == actual_timeout
         }
         (ScenarioAction::CreateTopic(action), AdapterCommand::CreateTopic(command)) => {

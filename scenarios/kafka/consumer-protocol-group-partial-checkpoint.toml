@@ -1,0 +1,132 @@
+schema_version = 100
+id = "kafka.consumer-protocol-group-partial-checkpoint"
+title = "a KIP-848 member commits only its processed batch prefix"
+description = "One KIP-848 member receives two exact records in one public batch, marks and commits only the first record, and a replacement member receives the unprocessed suffix after independent offset-1 proof."
+timeout_ms = 240000
+requires = ["producer", "producer_batch", "consumer_protocol_groups", "group_consumer_partial_checkpoint", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-batch"
+kind = "send_batch"
+producer_id = "producer-1"
+
+[[steps.operations]]
+operation_id = "op-consumer-prefix-processed"
+record = { topic = "testlab-consumer-partial-checkpoint", partition = 0, sequence = 1, value = { encoding = "utf8", data = "processed" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-consumer-prefix-processed" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-consumer-suffix-unprocessed"
+record = { topic = "testlab-consumer-partial-checkpoint", partition = 0, sequence = 2, value = { encoding = "utf8", data = "unprocessed" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-consumer-suffix-unprocessed" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-first-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-consumer-partial-checkpoint-group"
+topics = ["testlab-consumer-partial-checkpoint"]
+protocol = "consumer"
+
+[[steps]]
+id = "commit-processed-prefix"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-prefix"
+expected_operation_id = "op-consumer-prefix-processed"
+additional_expected_operation_ids = ["op-consumer-suffix-unprocessed"]
+processed_record_count = 1
+timeout_ms = 45000
+
+[[steps]]
+id = "confirm-prefix-offset"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "list-prefix-offset"
+group_id = "testlab-consumer-partial-checkpoint-group"
+topic = "testlab-consumer-partial-checkpoint"
+partition = 0
+require_stable = false
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "close-first-member"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "create-replacement-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-2"
+group_id = "testlab-consumer-partial-checkpoint-group"
+topics = ["testlab-consumer-partial-checkpoint"]
+protocol = "consumer"
+
+[[steps]]
+id = "receive-unprocessed-suffix"
+kind = "group_receive"
+consumer_id = "consumer-2"
+receive_id = "receive-suffix"
+expected_operation_id = "op-consumer-suffix-unprocessed"
+timeout_ms = 45000
+
+[[steps]]
+id = "confirm-complete-offset"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "list-complete-offset"
+group_id = "testlab-consumer-partial-checkpoint-group"
+topic = "testlab-consumer-partial-checkpoint"
+partition = 0
+require_stable = false
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "close-replacement-member"
+kind = "close_group_consumer"
+consumer_id = "consumer-2"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-consumer-prefix-processed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-consumer-suffix-unprocessed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

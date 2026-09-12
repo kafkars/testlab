@@ -69,6 +69,7 @@ mod group_consumer_controls;
 mod group_consumer_receive_method;
 mod group_consumer_shutdown;
 mod group_ownership;
+mod group_partial_checkpoint;
 mod group_processing_acknowledgement;
 mod group_receive_failures;
 mod group_recovery;
@@ -243,6 +244,8 @@ mod group_consumer_receive_method_test;
 mod group_consumer_shutdown_test;
 #[cfg(test)]
 mod group_ownership_test;
+#[cfg(test)]
+mod group_partial_checkpoint_test;
 #[cfg(test)]
 mod group_processing_acknowledgement_test;
 #[cfg(test)]

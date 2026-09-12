@@ -110,6 +110,10 @@ pub enum ScenarioAction {
         method: crate::GroupConsumerReceiveMethod,
         receive_id: OperationId,
         expected_operation_id: OperationId,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        additional_expected_operation_ids: Vec<OperationId>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        processed_record_count: Option<usize>,
         /// Delay before and after a public processing acknowledgement; zero disables it.
         #[serde(default)]
         processing_acknowledgement_delay_ms: u64,
@@ -117,9 +121,7 @@ pub enum ScenarioAction {
         expected_error_code: Option<String>,
         timeout_ms: u64,
     },
-    /// Observes one stable complete assignment across declared live group members.
     ObserveGroupAssignments(crate::ObserveGroupAssignmentsAction),
-    /// Receives and commits an exact record set across declared live group members.
     GroupReceiveSet(crate::GroupReceiveSetAction),
     ControlGroupConsumer(crate::GroupConsumerControlAction),
     ShutdownGroupConsumer(crate::GroupConsumerShutdownAction),
@@ -127,7 +129,6 @@ pub enum ScenarioAction {
         consumer_id: ConsumerId,
     },
     AbandonGroupConsumer(crate::GroupConsumerAbandonment),
-    /// Registers one unique KIP-932 share-group member.
     CreateShareConsumer {
         client_id: ClientId,
         consumer_id: ConsumerId,
@@ -140,7 +141,6 @@ pub enum ScenarioAction {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         configuration: Option<crate::ShareConsumerFetchConfiguration>,
     },
-    /// Retains one exact share batch for a later acknowledgement or drop.
     ShareReceive {
         /// Existing share consumer.
         consumer_id: ConsumerId,

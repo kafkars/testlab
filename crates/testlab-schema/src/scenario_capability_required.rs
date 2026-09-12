@@ -102,6 +102,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "processing acknowledgements require the group_consumer_acknowledge capability",
     ),
     (
+        Capability::GroupConsumerPartialCheckpoint,
+        "partial group checkpoints require the group_consumer_partial_checkpoint capability",
+    ),
+    (
         Capability::GroupConsumerControls,
         "group-consumer controls require the group_consumer_controls capability",
     ),

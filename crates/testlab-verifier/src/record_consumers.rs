@@ -22,19 +22,25 @@ pub(crate) fn verify(
                 receive_id,
                 expected_operation_id,
                 ..
-            }
-            | ScenarioAction::GroupReceive {
-                receive_id,
-                expected_operation_id,
-                expected_error_code: None,
-                ..
             } if index.action_issued(&step.action) => verify_receive(
                 receive_id,
-                expected_operation_id,
+                &[expected_operation_id],
                 index,
                 observed,
                 violations,
             ),
+            ScenarioAction::GroupReceive {
+                receive_id,
+                expected_operation_id,
+                additional_expected_operation_ids,
+                expected_error_code: None,
+                ..
+            } if index.action_issued(&step.action) => {
+                let operation_ids = std::iter::once(expected_operation_id)
+                    .chain(additional_expected_operation_ids)
+                    .collect::<Vec<_>>();
+                verify_receive(receive_id, &operation_ids, index, observed, violations);
+            }
             ScenarioAction::GroupReceiveSet(action) if index.action_issued(&step.action) => {
                 verify_receive_set(scenario, action, index, observed, violations);
             }
@@ -72,7 +78,7 @@ fn verify_concurrent_receives(
         {
             verify_receive(
                 receive_id,
-                expected_operation_id,
+                &[expected_operation_id],
                 index,
                 observed,
                 violations,
@@ -83,7 +89,7 @@ fn verify_concurrent_receives(
 
 fn verify_receive(
     receive_id: &OperationId,
-    operation_id: &OperationId,
+    operation_ids: &[&OperationId],
     index: &HistoryIndex,
     observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
     violations: &mut Vec<Violation>,
@@ -91,21 +97,23 @@ fn verify_receive(
     let Some([receive]) = index.receives.get(receive_id).map(Vec::as_slice) else {
         return;
     };
-    let [record] = receive.records.as_slice() else {
+    if receive.records.len() != operation_ids.len() {
         return;
-    };
-    let Some([observation]) = observed.get(operation_id).map(Vec::as_slice) else {
-        return;
-    };
-    verify_public_record(
-        "CONS-012",
-        "consumer receive",
-        receive.history_sequence,
-        operation_id,
-        record,
-        observation,
-        violations,
-    );
+    }
+    for (record, operation_id) in receive.records.iter().zip(operation_ids) {
+        let Some([observation]) = observed.get(*operation_id).map(Vec::as_slice) else {
+            continue;
+        };
+        verify_public_record(
+            "CONS-012",
+            "consumer receive",
+            receive.history_sequence,
+            operation_id,
+            record,
+            observation,
+            violations,
+        );
+    }
 }
 
 fn verify_receive_set(

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v96. It is not a
+An adapter translates one packaged client surface to protocol v97. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -118,6 +118,9 @@ runner and not a verifier.
 - Advertise group-consumer acknowledgement only when a selected nonzero delay
   calls the public processing-acknowledgement method with the retained batch's
   assignment-fenced checkpoint before committing that same batch.
+- Advertise partial group checkpoints only when the declared processed count
+  marks that exact ordered batch prefix through the public checkpoint builder;
+  never pass harness-only expected operation identities to the adapter.
 - Pass every group-create topic to the public subscription builder in caller
   order. Do not select only the first topic or infer topics from expected
   records.

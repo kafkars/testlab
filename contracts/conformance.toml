@@ -985,6 +985,12 @@ statement = "Each selected classic or KIP-848 receive issues one exact processin
 category = "consumer"
 
 [[contract]]
+id = "CONS-020"
+title = "Partial checkpoints commit only an ordered processed prefix"
+statement = "Each selected classic or KIP-848 receive marks one exact nonempty proper batch prefix, independently proves that committed offset, and leaves the unprocessed suffix for an exact replacement-member receive."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

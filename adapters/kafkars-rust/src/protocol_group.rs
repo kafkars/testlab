@@ -1,5 +1,3 @@
-//! Classic-group commands retain public records and checkpoint truth.
-
 use std::io::Write;
 use std::time::{Duration, Instant};
 
@@ -58,6 +56,7 @@ pub(crate) fn dispatch<W: Write>(
             method,
             receive_id,
             processing_acknowledgement_delay_ms,
+            processed_record_count,
             timeout_ms,
         } => receive(
             state,
@@ -67,6 +66,7 @@ pub(crate) fn dispatch<W: Write>(
             method,
             receive_id,
             processing_acknowledgement_delay_ms,
+            processed_record_count,
             timeout_ms,
         ),
         AdapterCommand::ObserveGroupAssignments(command) => {
@@ -139,6 +139,7 @@ fn receive<W: Write>(
     method: testlab_schema::GroupConsumerReceiveMethod,
     receive_id: OperationId,
     processing_acknowledgement_delay_ms: u64,
+    processed_record_count: Option<usize>,
     timeout_ms: u64,
 ) -> Result<(), AdapterError> {
     let timeout = Duration::from_millis(timeout_ms);
@@ -152,6 +153,7 @@ fn receive<W: Write>(
                 consumer_id,
                 batch,
                 processing_acknowledgement_delay_ms,
+                processed_record_count,
                 deadline,
             )?,
             true,
@@ -217,6 +219,7 @@ pub(crate) fn commit_batch(
     consumer_id: &ConsumerId,
     batch: ConsumerBatch,
     processing_acknowledgement_delay_ms: u64,
+    processed_record_count: Option<usize>,
     deadline: Instant,
 ) -> Result<Vec<ConsumedRecord>, AdapterError> {
     let records = batch
@@ -224,10 +227,11 @@ pub(crate) fn commit_batch(
         .map(|record| normalize_record(&record))
         .collect::<Result<Vec<_>, _>>()?;
     let consumer = state.group_consumer_mut(consumer_id)?;
-    let mut checkpoint = crate::group_processing_acknowledgement::checkpoint(
+    let mut checkpoint = crate::group_checkpoint::checkpoint(
         consumer,
         batch,
         processing_acknowledgement_delay_ms,
+        processed_record_count,
         deadline,
     )?;
     loop {

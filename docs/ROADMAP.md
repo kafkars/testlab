@@ -116,7 +116,9 @@
   `recv` object and repeated immediate `try_take_batch` calls, with the selected
   public method retained in command evidence. Both protocols also acknowledge
   an assignment-fenced checkpoint midway through work that exceeds the original
-  processing window, then commit the same batch inside the renewed window.
+  processing window, then commit the same batch inside the renewed window. A
+  second path marks and commits only an ordered processed prefix, independently
+  proves its offset, and resumes the exact suffix with a replacement member.
 - Classic and KIP-848 group consumers preserve caller-ordered multi-topic
   subscriptions, expose an assignment for every subscribed topic, and commit
   exact records from both topics against independent broker observations.

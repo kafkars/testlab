@@ -67,6 +67,7 @@ fn command_matches(
                 method,
                 receive_id,
                 processing_acknowledgement_delay_ms,
+                processed_record_count,
                 timeout_ms,
                 ..
             },
@@ -75,6 +76,7 @@ fn command_matches(
                 method: actual_method,
                 receive_id: actual_receive,
                 processing_acknowledgement_delay_ms: actual_delay,
+                processed_record_count: actual_processed_count,
                 timeout_ms: actual_timeout,
             },
         ) => {
@@ -82,6 +84,7 @@ fn command_matches(
                 && method == actual_method
                 && receive_id == actual_receive
                 && processing_acknowledgement_delay_ms == actual_delay
+                && processed_record_count == actual_processed_count
                 && timeout_ms == actual_timeout
         }
         (

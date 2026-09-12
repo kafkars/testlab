@@ -14,10 +14,11 @@ pub(crate) fn verify_consumers(
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
-        let Some((receive_id, expected_operation_id, group_consumer)) = expectation(&step.action)
+        let Some((receive_id, first, additional, group_consumer)) = expectation(&step.action)
         else {
             continue;
         };
+        let expected_operation_ids = std::iter::once(first).chain(additional).collect::<Vec<_>>();
         let group = group_consumer.is_some();
         if !index.action_issued(&step.action) {
             continue;
@@ -38,9 +39,13 @@ pub(crate) fn verify_consumers(
             ));
             continue;
         }
-        let Some(expected) = sent_record(scenario, expected_operation_id) else {
+        let expected = expected_operation_ids
+            .iter()
+            .filter_map(|operation_id| sent_record(scenario, operation_id))
+            .collect::<Vec<_>>();
+        if expected.len() != expected_operation_ids.len() {
             continue;
-        };
+        }
         let receive = &receives.map_or(&[][..], Vec::as_slice)[0];
         if group && receive.committed != Some(true) {
             violations.push(violation(
@@ -56,15 +61,18 @@ pub(crate) fn verify_consumers(
         let exact = receive
             .records
             .iter()
-            .filter(|record| exact_record(record, expected))
+            .zip(&expected)
+            .filter(|(record, expected)| exact_record(record, expected))
             .count();
-        if receive.records.len() != 1 || exact != 1 {
+        if receive.records.len() != expected.len() || exact != expected.len() {
             violations.push(violation(
                 "CONS-002",
                 format!(
-                    "receive {receive_id} expected exactly one public record matching send {expected_operation_id}, observed {exact}"
+                    "receive {receive_id} expected {} ordered public record(s), observed {} with {exact} exact match(es)",
+                    expected.len(),
+                    receive.records.len()
                 ),
-                Some(expected_operation_id.clone()),
+                Some(first.clone()),
                 vec![format!("history:{}", receive.history_sequence)],
             ));
         }
@@ -73,20 +81,31 @@ pub(crate) fn verify_consumers(
 
 fn expectation(
     action: &ScenarioAction,
-) -> Option<(&OperationId, &OperationId, Option<&ConsumerId>)> {
+) -> Option<(
+    &OperationId,
+    &OperationId,
+    &[OperationId],
+    Option<&ConsumerId>,
+)> {
     match action {
         ScenarioAction::Receive {
             receive_id,
             expected_operation_id,
             ..
-        } => Some((receive_id, expected_operation_id, None)),
+        } => Some((receive_id, expected_operation_id, &[], None)),
         ScenarioAction::GroupReceive {
             consumer_id,
             receive_id,
             expected_operation_id,
+            additional_expected_operation_ids,
             expected_error_code: None,
             ..
-        } => Some((receive_id, expected_operation_id, Some(consumer_id))),
+        } => Some((
+            receive_id,
+            expected_operation_id,
+            additional_expected_operation_ids,
+            Some(consumer_id),
+        )),
         _ => None,
     }
 }

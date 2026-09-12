@@ -92,6 +92,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     }
     if matches!(
         action,
+        ScenarioAction::GroupReceive {
+            processed_record_count: Some(_),
+            ..
+        }
+    ) {
+        usage.insert(Capability::GroupConsumerPartialCheckpoint);
+    }
+    if matches!(
+        action,
         ScenarioAction::ExecuteTransaction {
             method: crate::TransactionSendMethod::SendBatch,
             ..

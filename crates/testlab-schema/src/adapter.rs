@@ -52,6 +52,8 @@ pub enum Capability {
     GroupConsumerImmediateBatch,
     /// Public application-processing liveness acknowledgement.
     GroupConsumerAcknowledge,
+    /// Ordered processed-prefix checkpoint commits.
+    GroupConsumerPartialCheckpoint,
     /// Runtime pause, resume, and seek controls for hosted group consumers.
     GroupConsumerControls,
     /// Missing-offset, visibility, static identity, and classic timing configuration.

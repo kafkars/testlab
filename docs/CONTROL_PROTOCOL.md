@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v96 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v99 and evidence schema v85.
+Protocol v97 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v100 and evidence schema v86.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -469,13 +469,22 @@ still verified against independent broker coordinates and bytes, so a successful
 control event cannot manufacture positioning, isolation, or cursor truth.
 
 `group_receive` carries the exact public batch observer, receive identity,
-processing-acknowledgement delay, and complete timeout. A nonzero delay requires
-an explicit processing timeout and `group_consumer_acknowledge`; each delay is
-shorter than that timeout, the two delays together exceed it, and both fit in
-the command timeout. The adapter waits once, publicly acknowledges an
-assignment-fenced checkpoint, waits again, and commits the same retained batch.
-Classic and KIP-848 scenarios thereby prove that acknowledgement renews a
-processing window instead of merely exercising a fast commit.
+processing-acknowledgement delay, optional processed-record count, and complete
+timeout. A nonzero delay requires an explicit processing timeout and
+`group_consumer_acknowledge`; each delay is shorter than that timeout, the two
+delays together exceed it, and both fit in the command timeout. The adapter
+waits once, publicly acknowledges an assignment-fenced checkpoint, waits again,
+and commits the same retained batch. Classic and KIP-848 scenarios thereby
+prove that acknowledgement renews a processing window instead of merely
+exercising a fast commit.
+
+A processed-record count requires `group_consumer_partial_checkpoint`, at least
+two distinct same-partition records declared in increasing sequence order, and
+a nonempty proper prefix. Those expected record identities remain harness-only.
+The adapter marks exactly that many records through the public checkpoint
+builder and commits the result. Independent group-offset evidence must stop at
+the prefix; after the first member closes, a replacement must receive the exact
+unprocessed suffix before the final offset advances.
 
 A group receive set carries only a structural record count and an ordered live
 member set. It round-robins public batches, commits every assignment-fenced
@@ -1103,6 +1112,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v96 is an exact semantic contract. New capabilities may be declared
+Protocol v97 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

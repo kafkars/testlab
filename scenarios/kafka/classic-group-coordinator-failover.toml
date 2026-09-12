@@ -1,4 +1,4 @@
-schema_version = 99
+schema_version = 100
 id = "kafka.classic-group-coordinator-failover"
 title = "classic member recovers across its observed coordinator election"
 description = "After a classic member commits initial work, Testlab independently selects and stops that exact group coordinator, proves a distinct replacement, and the live member commits exact new work while the original coordinator remains offline."

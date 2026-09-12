@@ -100,6 +100,10 @@ processing acknowledgement. CONS-019 binds each classic or KIP-848 receive to
 one exact renewal plan, then requires the same assignment-fenced batch to stay
 live beyond its original processing window and commit against independent
 broker truth.
+Protocol v97, scenario schema v100, and evidence schema v86 add ordered partial
+group checkpoints. CONS-020 binds each classic or KIP-848 receive to one exact
+processed-prefix command, an independently observed prefix offset, and exact
+replacement-member delivery of the previously unprocessed suffix.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

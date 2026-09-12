@@ -34,6 +34,7 @@ fn fixture(delay_ms: u64) -> (Scenario, Vec<HistoryEntry>) {
                 consumer_id,
                 method,
                 receive_id,
+                processed_record_count,
                 timeout_ms,
                 ..
             } => Some(AdapterCommand::GroupReceive {
@@ -41,6 +42,7 @@ fn fixture(delay_ms: u64) -> (Scenario, Vec<HistoryEntry>) {
                 method: *method,
                 receive_id: receive_id.clone(),
                 processing_acknowledgement_delay_ms: delay_ms,
+                processed_record_count: *processed_record_count,
                 timeout_ms: *timeout_ms,
             }),
             _ => None,
