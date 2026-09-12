@@ -51,7 +51,7 @@ fn describe_by_name(
             client
                 .admin()
                 .describe_topics(command.topics.clone())
-                .include_authorized_operations(false)
+                .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
                 .wait()
@@ -84,7 +84,7 @@ fn describe_by_id(
             client
                 .admin()
                 .describe_topics_by_id(ids.clone())
-                .include_authorized_operations(false)
+                .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
                 .wait()
@@ -197,6 +197,7 @@ fn successful_outcome(
         description: Some(AdminTopicDescriptionValue {
             topic_id: description.topic_id(),
             internal: description.is_internal(),
+            authorized_operations: description.authorized_operations(),
             partitions,
         }),
         error_code: None,

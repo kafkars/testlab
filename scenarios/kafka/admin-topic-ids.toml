@@ -1,7 +1,7 @@
-schema_version = 117
+schema_version = 118
 id = "kafka.admin-topic-ids"
-title = "packaged admin describes and deletes caller-ordered topic IDs"
-description = "Scenario-owned names resolve to Kafka UUIDs; one public ID-keyed description preserves both identities and topology against pinned Kafka CLI snapshots, then one public ID-keyed deletion uses those same independently proven identities and polling metadata confirms absence."
+title = "packaged admin describes authorized topic IDs and deletes them"
+description = "Scenario-owned names resolve to Kafka UUIDs; one public ID-keyed description retains requested authorization bitfields, identities, and topology against pinned Kafka CLI snapshots, then one public ID-keyed deletion uses those same independently proven identities and polling metadata confirms absence."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -22,6 +22,7 @@ kind = "describe_topics"
 client_id = "client-1"
 operation_id = "admin-describe-topics-by-id"
 selection = "topic_id"
+include_authorized_operations = true
 topics = [
   { topic = "testlab-kafkars-admin-topic-ids-zulu", expected_partitions = [0, 1] },
   { topic = "testlab-kafkars-admin-topic-ids-alpha", expected_partitions = [0] },

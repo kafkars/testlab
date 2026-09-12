@@ -321,7 +321,7 @@ category = "admin"
 [[contract]]
 id = "ADMIN-044"
 title = "Plural topic descriptions preserve caller order and broker truth"
-statement = "One public description of multiple topics preserves each detailed success or exact per-topic error in caller order, while immediate independent metadata confirms every requested topic's partition topology or absence in the same order."
+statement = "One public description of multiple topics preserves the exact authorization-bitfield option and each detailed success or exact per-topic error in caller order, while immediate independent metadata confirms every requested topic's partition topology or absence in the same order."
 category = "admin"
 
 [[contract]]
@@ -423,7 +423,7 @@ category = "admin"
 [[contract]]
 id = "ADMIN-061"
 title = "Topic-ID descriptions preserve caller order and broker identities"
-statement = "One public topic-ID description resolves scenario-owned names to nonzero unique Kafka UUIDs, preserves each UUID, matching inner identity, and exact partition topology in caller order, while contiguous immediate snapshots from Kafka's pinned topic CLI independently confirm every UUID and topology."
+statement = "One public topic-ID description resolves scenario-owned names to nonzero unique Kafka UUIDs, preserves its exact authorization-bitfield option, each UUID, matching inner identity, and exact partition topology in caller order, while contiguous immediate snapshots from Kafka's pinned topic CLI independently confirm every UUID and topology."
 category = "admin"
 
 [[contract]]

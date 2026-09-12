@@ -1,7 +1,7 @@
-schema_version = 117
+schema_version = 118
 id = "kafka.admin-describe-topics"
-title = "packaged admin describes caller-ordered topics with mixed outcomes"
-description = "One public plural topic description preserves caller order, detailed partitions, and an exact missing-topic error while immediate independent metadata confirms every success and absence."
+title = "packaged admin describes caller-ordered topics with authorization metadata"
+description = "One public plural name-keyed topic description requests and retains authorization bitfields while preserving caller order, detailed partitions, and an exact missing-topic error against immediate independent metadata."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -21,6 +21,7 @@ id = "describe-topics"
 kind = "describe_topics"
 client_id = "client-1"
 operation_id = "admin-describe-topics"
+include_authorized_operations = true
 topics = [
   { topic = "testlab-kafkars-admin-describe-topics-zulu", expected_partitions = [0, 1] },
   { topic = "testlab-kafkars-admin-describe-topics-missing", expected_error_code = "broker:broker_3" },

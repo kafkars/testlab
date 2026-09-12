@@ -21,6 +21,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             operation_id: action.operation_id.clone(),
             selection: action.selection,
             topics: topics.clone(),
+            include_authorized_operations: action.include_authorized_operations,
             timeout_ms: action.timeout_ms,
         }),
         match action.selection {

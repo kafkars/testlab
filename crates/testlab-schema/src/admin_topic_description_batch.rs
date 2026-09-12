@@ -49,6 +49,8 @@ pub struct DescribeTopicsAction {
     pub selection: TopicSelection,
     /// Caller-ordered topic expectations.
     pub topics: Vec<DescribeTopicExpectation>,
+    /// Whether Kafka must return the authorized-operation bitfield per topic.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -66,6 +68,8 @@ pub struct DescribeTopicsCommand {
     pub selection: TopicSelection,
     /// Caller-ordered topic names without verifier expectations.
     pub topics: Vec<String>,
+    /// Whether Kafka must return the authorized-operation bitfield per topic.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -88,6 +92,8 @@ pub struct AdminTopicDescriptionValue {
     pub topic_id: Option<[u8; 16]>,
     /// Whether Kafka marks the topic as internal.
     pub internal: bool,
+    /// Raw Kafka authorization bitfield, when requested.
+    pub authorized_operations: Option<i32>,
     /// Public partition descriptions in returned order.
     pub partitions: Vec<AdminTopicPartitionDescriptionOutcome>,
 }

@@ -109,6 +109,7 @@ fn description_command(scenario: &Scenario) -> testlab_schema::DescribeTopicsCom
             .iter()
             .map(|value| value.topic.clone())
             .collect(),
+        include_authorized_operations: action.include_authorized_operations,
         timeout_ms: action.timeout_ms,
     }
 }
@@ -122,6 +123,7 @@ fn description_value() -> AdminTopicsDescription {
             description: Some(AdminTopicDescriptionValue {
                 topic_id: Some(topic_id()),
                 internal: false,
+                authorized_operations: None,
                 partitions: vec![AdminTopicPartitionDescriptionOutcome {
                     partition: 0,
                     error_code: None,

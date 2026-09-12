@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v114 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v117 and evidence schema v103.
+Protocol v115 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v118 and evidence schema v104.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -685,15 +685,17 @@ claim exhaustive topic listing, internal-topic filtering, topic IDs, or replica
 topology.
 
 `describe_topics` carries two through 32 unique scenario-owned topic names in
-caller order. Its `selection` is either the default `name` or `topic_id`. The
-topic-ID path resolves each name once under the same deadline and invokes the
-public ID-keyed operation with the resulting nonzero unique UUIDs. Scenario-only
-partitions and expected errors stay in Testlab. Its single `topics_described`
-completion preserves the same outer order, exact request UUID when ID-keyed,
-complete successful partition results, matching nonzero inner topic IDs,
-internal-topic flags, and per-topic or per-partition errors. Name-keyed calls use
-immediate independent metadata. ID-keyed calls use one immediate pinned Kafka
-topic-CLI snapshot per topic to prove both UUID and topology in caller order.
+caller order, the exact `include_authorized_operations` selection, and either
+the default `name` or `topic_id` key. The topic-ID path resolves each name once
+under the same deadline and invokes the public ID-keyed operation with the
+resulting nonzero unique UUIDs. Scenario-only partitions and expected errors
+stay in Testlab. Its single `topics_described` completion preserves the same
+outer order, exact request UUID when ID-keyed, complete successful partition
+results, matching nonzero inner topic IDs, internal-topic flags, the requested
+authorization bitfields, and per-topic or per-partition errors. Name-keyed calls
+use immediate independent metadata. ID-keyed calls use one immediate pinned
+Kafka topic-CLI snapshot per topic to prove both UUID and topology in caller
+order.
 
 `delete_topics` carries two through 32 unique scenario-owned topic names in
 caller order and selects either the default name-keyed operation or the public
@@ -1202,6 +1204,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v114 is an exact semantic contract. New capabilities may be declared
+Protocol v115 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

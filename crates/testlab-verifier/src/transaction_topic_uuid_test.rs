@@ -81,6 +81,7 @@ fn description_command() -> DescribeTopicsCommand {
             .iter()
             .map(|value| value.topic.clone())
             .collect(),
+        include_authorized_operations: action.include_authorized_operations,
         timeout_ms: action.timeout_ms,
     }
 }
@@ -103,6 +104,7 @@ fn description(topic: &str, topic_id: [u8; 16]) -> AdminTopicDescriptionOutcome 
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some(topic_id),
             internal: false,
+            authorized_operations: None,
             partitions: vec![AdminTopicPartitionDescriptionOutcome {
                 partition: 0,
                 error_code: None,

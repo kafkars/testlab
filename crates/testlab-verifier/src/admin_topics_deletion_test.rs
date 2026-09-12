@@ -87,6 +87,7 @@ fn description_command() -> DescribeTopicsCommand {
         operation_id: description_operation(),
         selection: TopicSelection::Name,
         topics: names(),
+        include_authorized_operations: false,
         timeout_ms: 20_000,
     }
 }
@@ -124,6 +125,7 @@ fn described(topic: &str, partitions: Vec<i32>, id: u8) -> AdminTopicDescription
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some([id; 16]),
             internal: false,
+            authorized_operations: None,
             partitions: partitions
                 .into_iter()
                 .map(|partition| AdminTopicPartitionDescriptionOutcome {

@@ -82,6 +82,23 @@ fn altered_wire_topic_order_fails_exact_command_ownership() {
     assert_contract(&violations(&entries));
 }
 
+#[test]
+fn missing_requested_authorization_or_changed_wire_flag_fails() {
+    let mut missing = history();
+    description(&mut missing, 0).authorized_operations = None;
+    assert_contract(&violations(&missing));
+
+    let mut changed = history();
+    let HistoryPayload::HarnessCommand { command } = &mut changed[0].payload else {
+        panic!("plural topic-description command");
+    };
+    let AdapterCommand::DescribeTopics(value) = &mut command.command else {
+        panic!("plural topic-description payload");
+    };
+    value.include_authorized_operations = false;
+    assert_contract(&violations(&changed));
+}
+
 fn history() -> Vec<HistoryEntry> {
     vec![
         command(1, AdapterCommand::DescribeTopics(command_payload())),
@@ -98,6 +115,7 @@ fn command_payload() -> DescribeTopicsCommand {
         operation_id: operation(),
         selection: TopicSelection::Name,
         topics: topic_names(),
+        include_authorized_operations: true,
         timeout_ms: 20_000,
     }
 }
@@ -125,6 +143,7 @@ fn successful(topic: &str, partitions: Vec<i32>, topic_id: u8) -> AdminTopicDesc
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some([topic_id; 16]),
             internal: false,
+            authorized_operations: Some(1),
             partitions: partitions
                 .into_iter()
                 .map(|partition| AdminTopicPartitionDescriptionOutcome {

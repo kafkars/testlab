@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 114);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 117);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 103);
+    assert_eq!(PROTOCOL_VERSION, 115);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 118);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 104);
 }
 
 #[test]
@@ -33,6 +33,7 @@ fn action_command_and_completion_round_trip_in_caller_order() {
         },
     ));
     assert_eq!(command().topics, topic_names());
+    assert!(command().include_authorized_operations);
 }
 
 #[test]
@@ -183,6 +184,7 @@ fn action() -> DescribeTopicsAction {
             failure("topic-missing"),
             success("topic-a", vec![0]),
         ],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -193,6 +195,7 @@ fn command() -> DescribeTopicsCommand {
         operation_id: operation("describe-topics"),
         selection: TopicSelection::Name,
         topics: topic_names(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -220,6 +223,7 @@ fn described(topic: &str, partitions: Vec<i32>, topic_id: u8) -> AdminTopicDescr
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some([topic_id; 16]),
             internal: false,
+            authorized_operations: Some(1),
             partitions: partitions
                 .into_iter()
                 .map(|partition| AdminTopicPartitionDescriptionOutcome {

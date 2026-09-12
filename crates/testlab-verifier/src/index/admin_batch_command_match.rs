@@ -64,6 +64,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
                 && action.selection == command.selection
+                && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
                 && action
                     .topics

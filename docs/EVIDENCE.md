@@ -186,6 +186,11 @@ mixed classic/KIP-848 consumer-group, and singleton and plural Share-group
 descriptions. Existing immediate CLI membership snapshots continue to anchor
 each live group independently while the public result must retain the requested
 option-specific metadata.
+Protocol v115, scenario schema v118, and evidence schema v104 extend that exact
+option-and-result treatment to caller-ordered topic descriptions by name and by
+Kafka UUID. Immediate metadata and pinned topic-CLI snapshots continue to
+independently anchor topic identity and topology; only the public result proves
+that the requested authorization bitfield survived the client surface.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -576,9 +581,10 @@ Separate immediate read-only Kafka CLI offset queries run once per group; their
 normalized facts retain consecutive history and observation order and must
 agree on every selected start offset and lag.
 
-ADMIN-044 binds one caller-ordered public topic-description batch to each full
-successful description or exact missing-topic error. Successful descriptions
-retain a nonzero topic identity, the internal marker, and every ordered
+ADMIN-044 binds one caller-ordered public topic-description batch and its exact
+authorization-bitfield option to each full successful description or exact
+missing-topic error. Successful descriptions retain a nonzero topic identity,
+the internal marker, the requested authorization bitfield, and every ordered
 partition without hidden errors. Immediate metadata facts retain consecutive
 history and observation order and must prove each exact partition topology or
 topic absence before the next command.
@@ -727,11 +733,12 @@ leader and the complete replica set in the ISR.
 
 ADMIN-061 uses scenario-owned names only to resolve the broker-assigned topic
 UUIDs under the same public deadline. The target public call is
-`describe_topics_by_id`: every caller-positioned result must retain its exact
-nonzero request UUID, repeat that UUID inside the successful description, and
-preserve the expected partition topology without hidden errors. One pinned
-Kafka topic-CLI query per name immediately supplies independent UUID and
-partition facts in the same contiguous caller order.
+`describe_topics_by_id` with the exact authorization-bitfield option: every
+caller-positioned result must retain its exact nonzero request UUID, repeat that
+UUID inside the successful description, retain the requested authorization
+bitfield, and preserve the expected partition topology without hidden errors.
+One pinned Kafka topic-CLI query per name immediately supplies independent UUID
+and partition facts in the same contiguous caller order.
 
 ADMIN-062 requires a prior ADMIN-061 description over the same ordered topics.
 The independently observed UUIDs become the deletion baseline, so a topic

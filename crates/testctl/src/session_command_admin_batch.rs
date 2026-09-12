@@ -52,6 +52,7 @@ fn describe_topics(
             operation_id: action.operation_id.clone(),
             selection: action.selection,
             topics: topics.clone(),
+            include_authorized_operations: action.include_authorized_operations,
             timeout_ms: action.timeout_ms,
         }),
         ExpectedEvent::TopicsDescribed {

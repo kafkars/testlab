@@ -33,6 +33,17 @@ fn mismatched_description_key_or_inner_identity_fails() {
 }
 
 #[test]
+fn missing_requested_authorization_fails() {
+    let mut missing = history();
+    described(&mut missing, 0)
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("description"))
+        .authorized_operations = None;
+    assert_contract(&violations(&missing), "ADMIN-061");
+}
+
+#[test]
 fn deletion_must_use_independently_observed_ids_and_reach_absence() {
     let mut wrong_id = history();
     deletion(&mut wrong_id).outcomes[0].topic_id = Some([9; 16]);
@@ -63,6 +74,7 @@ fn description_command() -> DescribeTopicsCommand {
         operation_id: description_operation(),
         selection: TopicSelection::TopicId,
         topics: names(),
+        include_authorized_operations: true,
         timeout_ms: 20_000,
     }
 }
@@ -98,6 +110,7 @@ fn description(
         description: Some(AdminTopicDescriptionValue {
             topic_id: Some(topic_id),
             internal: false,
+            authorized_operations: Some(1),
             partitions: partitions
                 .into_iter()
                 .map(|partition| AdminTopicPartitionDescriptionOutcome {

@@ -1,4 +1,4 @@
-schema_version = 117
+schema_version = 118
 id = "kafka.admin-delete-topics"
 title = "packaged admin deletes caller-ordered topics with mixed outcomes"
 description = "A prior caller-ordered description proves two topics present and one absent; one public plural deletion preserves exact mixed outcomes while polling independent metadata proves every selected topic absent."
@@ -21,6 +21,7 @@ id = "describe-topics"
 kind = "describe_topics"
 client_id = "client-1"
 operation_id = "admin-describe-topics-before-delete"
+include_authorized_operations = false
 topics = [
   { topic = "testlab-kafkars-admin-delete-topics-zulu", expected_partitions = [0, 1] },
   { topic = "testlab-kafkars-admin-delete-topics-missing", expected_error_code = "broker:broker_3" },

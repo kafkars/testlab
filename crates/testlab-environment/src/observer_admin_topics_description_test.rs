@@ -83,6 +83,7 @@ fn action() -> DescribeTopicsAction {
             ),
             expectation("topic-a", Some(vec![0]), None),
         ],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -93,6 +94,7 @@ fn command() -> DescribeTopicsCommand {
         operation_id: operation(),
         selection: TopicSelection::Name,
         topics: topic_names(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }

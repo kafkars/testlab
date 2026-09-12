@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn user_scram_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 114);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 117);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 103);
+    assert_eq!(PROTOCOL_VERSION, 115);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 118);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 104);
 }
 
 #[test]

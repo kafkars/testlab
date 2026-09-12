@@ -1,4 +1,4 @@
-schema_version = 117
+schema_version = 118
 id = "kafka.transaction-topic-uuid-commit"
 title = "one transaction validates UUID-bound topics before commit"
 description = "Two records bind independently proven Kafka topic UUIDs during public admission; one fresh public transaction validation seals the exact topic set before commit, and independent read-committed observation proves both records."
@@ -30,6 +30,7 @@ kind = "describe_topics"
 client_id = "client-1"
 operation_id = "transaction-topic-identities"
 selection = "topic_id"
+include_authorized_operations = false
 topics = [
   { topic = "testlab-transaction-topic-uuid-alpha", expected_partitions = [0] },
   { topic = "testlab-transaction-topic-uuid-zulu", expected_partitions = [0] },

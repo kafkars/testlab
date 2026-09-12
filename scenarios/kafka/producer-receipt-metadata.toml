@@ -1,4 +1,4 @@
-schema_version = 117
+schema_version = 118
 id = "kafka.producer-receipt-metadata"
 title = "ordinary producer receipts retain UUID and serialization truth"
 description = "Two UUID-bound ordinary sends retain the exact public topic, topic ID, leader epoch, coordinates, timestamp, and nullable serialized sizes; independent topic and record observations prove the broker facts."
@@ -27,6 +27,7 @@ kind = "describe_topics"
 client_id = "client-1"
 operation_id = "producer-receipt-topic-identity"
 selection = "topic_id"
+include_authorized_operations = false
 topics = [{ topic = "testlab-producer-receipt-metadata", expected_partitions = [0] }]
 timeout_ms = 20000
 

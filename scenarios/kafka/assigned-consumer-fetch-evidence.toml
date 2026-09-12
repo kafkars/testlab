@@ -1,4 +1,4 @@
-schema_version = 117
+schema_version = 118
 id = "kafka.assigned-consumer-fetch-evidence"
 title = "packaged assigned consumer retains broker-correlated Fetch evidence"
 description = "One direct Fetch exposes its topic UUID, request and progress offsets, broker bounds, retained-byte charge, and batch checkpoint against prior independent topic-ID, watermark, and record observations."
@@ -49,6 +49,7 @@ kind = "describe_topics"
 client_id = "client-1"
 operation_id = "admin-fetch-topic-id"
 selection = "topic_id"
+include_authorized_operations = false
 topics = [
   { topic = "testlab-kafkars-assigned-fetch-evidence", expected_partitions = [0] },
 ]

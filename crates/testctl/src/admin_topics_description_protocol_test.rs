@@ -19,6 +19,7 @@ fn translation_preserves_caller_order_without_expectations() {
     assert_eq!(command.client_id, client());
     assert_eq!(command.operation_id, operation());
     assert_eq!(command.topics, topic_names());
+    assert!(command.include_authorized_operations);
     assert_eq!(command.timeout_ms, 1_000);
     assert!(matches!(expected, ExpectedEvent::TopicsDescribed { .. }));
 }
@@ -60,6 +61,7 @@ fn action() -> DescribeTopicsAction {
             ),
             expectation("topic-a", Some(vec![0]), None),
         ],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }

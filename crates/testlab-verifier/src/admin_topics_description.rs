@@ -38,7 +38,14 @@ fn verify(
                 .outcomes
                 .iter()
                 .zip(&action.topics)
-                .all(|(actual, expected)| outcome_matches(actual, expected, action.selection))
+                .all(|(actual, expected)| {
+                    outcome_matches(
+                        actual,
+                        expected,
+                        action.selection,
+                        action.include_authorized_operations,
+                    )
+                })
     });
     let identities = index.topic_identities_observed.get(&action.operation_id);
     let independent_matches = match action.selection {
@@ -87,7 +94,7 @@ fn verify(
     violations.push(violation(
         contract(action.selection),
         format!(
-            "admin operation {} expected caller-ordered detailed {:?} topic outcomes and immediate independent broker identity for every requested topic",
+            "admin operation {} expected caller-ordered detailed {:?} topic outcomes with requested authorization metadata and immediate independent broker identity for every requested topic",
             action.operation_id, action.selection
         ),
         Some(action.operation_id.clone()),
@@ -108,6 +115,7 @@ fn outcome_matches(
     actual: &testlab_schema::AdminTopicDescriptionOutcome,
     expected: &DescribeTopicExpectation,
     selection: TopicSelection,
+    include_authorized_operations: bool,
 ) -> bool {
     if actual.topic != expected.topic {
         return false;
@@ -127,6 +135,8 @@ fn outcome_matches(
             actual.error_code.is_none()
                 && actual.description.as_ref().is_some_and(|description| {
                     description.topic_id.is_some_and(|id| id != [0; 16])
+                        && description.authorized_operations.is_some()
+                            == include_authorized_operations
                         && actual
                             .topic_id
                             .is_none_or(|topic_id| description.topic_id == Some(topic_id))
