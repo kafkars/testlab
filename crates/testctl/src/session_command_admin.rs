@@ -208,6 +208,9 @@ fn translate_group(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
                 api: action.api,
+                state_filters: action.state_filters.clone(),
+                group_type_filters: action.group_type_filters.clone(),
+                protocol_type_filters: action.protocol_type_filters.clone(),
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::ConsumerGroupsListed {

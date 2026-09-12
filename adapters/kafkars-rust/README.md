@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v111 over stdin/stdout;
+2. implements protocol v112 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -88,7 +88,8 @@ It:
    classic static membership plus complete session, rebalance, heartbeat, and
    rejoin timing, and caller-ordered static-member removal after owner
    abandonment,
-   consumer-only and generic all-group listings, plural offset
+   consumer-only and generic all-group listings with exact state and group-type
+   filters plus generic protocol-type filtering, plural offset
    mutations, dedicated classic-group descriptions, caller-ordered plural
    empty classic-group deletion, singleton and
    caller-ordered plural active Share-group state, rack, and assignment

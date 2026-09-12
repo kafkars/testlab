@@ -161,6 +161,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeConsumerGroups(_) => "ADMIN-069",
         ScenarioAction::ListOffsetsBatch(_) => "ADMIN-028",
         ScenarioAction::ListConsumerGroups(value)
+            if crate::admin_group::filters::selected(value) =>
+        {
+            "ADMIN-082"
+        }
+        ScenarioAction::ListConsumerGroups(value)
             if value.api == testlab_schema::GroupListingApi::AllGroups =>
         {
             "ADMIN-029"

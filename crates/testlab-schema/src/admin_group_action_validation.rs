@@ -7,6 +7,8 @@ use crate::{ClientId, OperationId, ScenarioAction};
 
 #[path = "admin_cluster_action_validation.rs"]
 mod cluster;
+#[path = "admin_group_listing_validation.rs"]
+mod listing;
 
 const MAX_REQUIRED_GROUPS: usize = 32;
 
@@ -132,6 +134,7 @@ fn validate_singleton(
                 problems,
             );
             required_groups(&action.operation_id, &action.required_group_ids, problems);
+            listing::validate(action, problems);
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
         ScenarioAction::DescribeConsumerGroup(action) => {

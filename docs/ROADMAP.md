@@ -19,7 +19,8 @@
   `DescribeTopicPartitions` singleton topic description, caller-ordered
   detailed plural topic descriptions and name-based deletion with mixed resource
   outcomes, scoped topic, cluster,
-  consumer-only, and generic all-group discovery, singleton earliest-, latest-,
+  consumer-only and generic all-group discovery with exact state and group-type
+  filters plus generic protocol-type filtering, singleton earliest-, latest-,
   maximum-timestamp-, and caller-timestamp-offset administration plus
   caller-ordered batch earliest and latest selection, consumer-group offset
   listing, alteration, and

@@ -60,6 +60,8 @@ fn list<W: Write>(
                     client
                         .admin()
                         .list_consumer_groups()
+                        .state_filters(command.state_filters.clone())
+                        .group_type_filters(command.group_type_filters.clone())
                         .deadline_after(remaining)
                         .submit()
                         .wait()
@@ -89,6 +91,9 @@ fn list<W: Write>(
                     client
                         .admin()
                         .list_groups()
+                        .state_filters(command.state_filters.clone())
+                        .group_type_filters(command.group_type_filters.clone())
+                        .protocol_type_filters(command.protocol_type_filters.clone())
                         .deadline_after(remaining)
                         .submit()
                         .wait()

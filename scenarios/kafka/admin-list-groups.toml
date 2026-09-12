@@ -1,7 +1,7 @@
-schema_version = 114
+schema_version = 115
 id = "kafka.admin-list-groups"
-title = "packaged admin lists a consumer group through the generic group API"
-description = "After a classic group publicly consumes and commits one exact record, the packaged client's public unfiltered all-group listing contains that group and an independent query confirms the same required identity."
+title = "packaged admin filters a consumer group through the generic group API"
+description = "After a classic group publicly consumes and commits one exact record, the packaged client's generic listing selects exact Stable, classic, and consumer protocol filters, retains that group, and is corroborated by an independent query."
 timeout_ms = 120000
 requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
 
@@ -71,6 +71,9 @@ kind = "list_consumer_groups"
 client_id = "client-1"
 operation_id = "admin-list-all-groups-1"
 api = "all_groups"
+state_filters = ["Stable"]
+group_type_filters = ["classic"]
+protocol_type_filters = ["consumer"]
 required_group_ids = ["testlab-admin-all-groups-listed"]
 timeout_ms = 20000
 

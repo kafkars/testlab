@@ -15,6 +15,9 @@ fn group_list_expectations_do_not_cross_the_wire_boundary() {
         client_id: client(),
         operation_id: operation("admin-groups-list"),
         api: GroupListingApi::AllGroups,
+        state_filters: vec!["Stable".to_owned()],
+        group_type_filters: vec!["classic".to_owned()],
+        protocol_type_filters: vec!["consumer".to_owned()],
         required_group_ids: vec!["group-1".to_owned()],
         timeout_ms: 1_000,
     });
@@ -22,6 +25,9 @@ fn group_list_expectations_do_not_cross_the_wire_boundary() {
         client_id: client(),
         operation_id: operation("admin-groups-list"),
         api: GroupListingApi::AllGroups,
+        state_filters: vec!["Stable".to_owned()],
+        group_type_filters: vec!["classic".to_owned()],
+        protocol_type_filters: vec!["consumer".to_owned()],
         timeout_ms: 1_000,
     });
 
@@ -30,6 +36,9 @@ fn group_list_expectations_do_not_cross_the_wire_boundary() {
 
     assert!(action.contains("required_group_ids = [\"group-1\"]"));
     assert!(action.contains("api = \"all_groups\""));
+    assert!(action.contains("state_filters = [\"Stable\"]"));
+    assert!(command.contains("group_type_filters = [\"classic\"]"));
+    assert!(command.contains("protocol_type_filters = [\"consumer\"]"));
     assert!(command.contains("api = \"all_groups\""));
     assert!(!command.contains("required_group_ids"));
     assert_round_trip::<AdapterCommand>(&command);
@@ -85,6 +94,9 @@ fn admin_commands_have_exact_v18_kinds() {
                 client_id: client(),
                 operation_id: operation("admin-groups-list"),
                 api: Default::default(),
+                state_filters: Vec::new(),
+                group_type_filters: Vec::new(),
+                protocol_type_filters: Vec::new(),
                 timeout_ms: 1_000,
             }),
         ),

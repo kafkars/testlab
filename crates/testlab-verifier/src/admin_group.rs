@@ -14,6 +14,12 @@ use crate::index::{
 };
 use crate::support::violation;
 
+#[cfg(test)]
+#[path = "admin_group_filter_test.rs"]
+mod filter_tests;
+#[path = "admin_group_filters.rs"]
+pub(crate) mod filters;
+
 pub(crate) fn verify_group_action(
     action: &ScenarioAction,
     index: &HistoryIndex,
@@ -32,13 +38,16 @@ pub(crate) fn verify_group_action(
             command_window,
             violations,
         ),
-        ScenarioAction::ListConsumerGroups(expected) => verify_list_groups(
-            expected,
-            index.consumer_groups_listed.get(&expected.operation_id),
-            index.consumer_groups_observed.get(&expected.operation_id),
-            command_window,
-            violations,
-        ),
+        ScenarioAction::ListConsumerGroups(expected) => {
+            filters::verify(action, expected, index, violations);
+            verify_list_groups(
+                expected,
+                index.consumer_groups_listed.get(&expected.operation_id),
+                index.consumer_groups_observed.get(&expected.operation_id),
+                command_window,
+                violations,
+            );
+        }
         ScenarioAction::DescribeConsumerGroup(expected) => verify_describe_group(
             expected,
             index.consumer_groups_described.get(&expected.operation_id),

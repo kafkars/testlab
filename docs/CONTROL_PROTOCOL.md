@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v111 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v114 and evidence schema v100.
+Protocol v112 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v115 and evidence schema v101.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1082,7 +1082,9 @@ restores the original replica into the full ISR, and polls metadata until that
 preferred replica is leader again.
 
 Group listing carries an exact `api` selector for the consumer-only compatibility
-view or the generic unfiltered `ListGroups` view, while required group IDs remain
+view or the generic `ListGroups` view. Both commands may carry caller-ordered
+broker-side `state_filters` and `group_type_filters`; only the generic view may
+add caller-ordered client-side `protocol_type_filters`. Required group IDs remain
 scenario-only. Either public result must contain the independently listed live
 groups without broker-local errors. Consumer-group description likewise omits
 the expected member count. All independent queries run immediately after their
@@ -1185,6 +1187,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v111 is an exact semantic contract. New capabilities may be declared
+Protocol v112 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -547,6 +547,12 @@ statement = "Topic-specific and generic-resource DescribeConfigs calls preserve 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-082"
+title = "Group listing filters preserve exact public selection"
+statement = "Consumer-only and generic group listings preserve caller-ordered state and group-type filters, generic listings additionally preserve protocol-type filters, and each successful filtered result retains every independently observed required group identity without broker errors."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

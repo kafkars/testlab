@@ -2,6 +2,9 @@
 
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
+#[path = "admin_group_listing_command_match.rs"]
+mod group_listing;
+
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
     Some(match action {
         ScenarioAction::CreateTopic(value) => &value.operation_id,
@@ -120,14 +123,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
             c.timeout_ms,
         ),
         (ScenarioAction::ListConsumerGroups(a), AdapterCommand::ListConsumerGroups(c)) => {
-            same_base(
-                &a.client_id,
-                &a.operation_id,
-                a.timeout_ms,
-                &c.client_id,
-                &c.operation_id,
-                c.timeout_ms,
-            ) && a.api == c.api
+            group_listing::matches(a, c)
         }
         (ScenarioAction::DescribeConsumerGroup(a), AdapterCommand::DescribeConsumerGroup(c)) => {
             same_group(

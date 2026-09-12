@@ -15,6 +15,9 @@ fn generic_group_listing_preserves_the_public_api_choice() {
         client_id: client_id.clone(),
         operation_id: operation_id.clone(),
         api: GroupListingApi::AllGroups,
+        state_filters: vec!["Stable".to_owned()],
+        group_type_filters: vec!["classic".to_owned()],
+        protocol_type_filters: vec!["consumer".to_owned()],
         required_group_ids: vec!["orders-group".to_owned()],
         timeout_ms: 20_000,
     });
@@ -29,6 +32,9 @@ fn generic_group_listing_preserves_the_public_api_choice() {
             client_id,
             operation_id,
             api: GroupListingApi::AllGroups,
+            state_filters: vec!["Stable".to_owned()],
+            group_type_filters: vec!["classic".to_owned()],
+            protocol_type_filters: vec!["consumer".to_owned()],
             timeout_ms: 20_000,
         })
     );

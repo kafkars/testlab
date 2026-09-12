@@ -22,6 +22,9 @@ fn cluster_and_group_discovery_targets_are_exact() {
         client_id: client(),
         operation_id: operation("list-groups"),
         api: GroupListingApi::AllGroups,
+        state_filters: vec!["Stable".to_owned()],
+        group_type_filters: vec!["classic".to_owned()],
+        protocol_type_filters: vec!["consumer".to_owned()],
         required_group_ids: vec!["orders-group".to_owned()],
         timeout_ms: 500,
     });
@@ -122,6 +125,9 @@ fn duplicate_group_listing_targets_are_rejected() {
         client_id: client(),
         operation_id: operation("list-groups"),
         api: Default::default(),
+        state_filters: Vec::new(),
+        group_type_filters: Vec::new(),
+        protocol_type_filters: Vec::new(),
         required_group_ids: vec!["orders-group".to_owned(), "orders-group".to_owned()],
         timeout_ms: 500,
     });

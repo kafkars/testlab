@@ -170,6 +170,11 @@ Protocol v111, scenario schema v114, and evidence schema v100 retain exact
 DescribeConfigs option selection and complete public entry metadata. ADMIN-081
 binds synonym and documentation flags across topic-specific and generic-resource
 builders, while immediate independent reads continue to establish value truth.
+Protocol v112, scenario schema v115, and evidence schema v101 retain exact
+group-listing filter intent. ADMIN-082 covers state and group-type filters on
+both consumer-only and generic public builders plus the generic builder's
+client-side protocol-type filter, while immediate independent group queries
+continue to establish required live identities.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -489,6 +494,11 @@ batch offset result to contiguous immediate watermark observations for every
 unique topic-partition selection and requires each selected earliest or latest
 offset exactly. ADMIN-029 applies the generic public group listing to the same
 independent group facts without narrowing the result to consumer groups.
+ADMIN-082 requires exact group-listing filter intent on the wire. Both public
+listing paths retain caller-ordered state and group-type filters; the generic
+path additionally retains its client-side protocol-type filter. Each filtered
+result must still contain every scenario-selected group that an immediate
+independent query proves live, with no broker-local errors.
 ADMIN-030 through ADMIN-032 bind caller-ordered public ACL creation, one exact
 public description, and caller-ordered exact deletion matches to contiguous
 Kafka-CLI observations of presence or absence after each terminal. Public and

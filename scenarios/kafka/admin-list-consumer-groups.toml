@@ -1,7 +1,7 @@
-schema_version = 114
+schema_version = 115
 id = "kafka.admin-list-consumer-groups"
-title = "packaged admin lists an independently observed consumer group"
-description = "After a classic group publicly consumes and commits one exact record, the packaged client's public group listing contains that group and an independent librdkafka query confirms the same required identity."
+title = "packaged admin filters an independently observed consumer group"
+description = "After a classic group publicly consumes and commits one exact record, the packaged client's consumer-only listing selects exact Stable and classic filters, retains that group, and is corroborated by an independent query."
 timeout_ms = 120000
 requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
 
@@ -70,6 +70,8 @@ id = "list-consumer-groups"
 kind = "list_consumer_groups"
 client_id = "client-1"
 operation_id = "admin-list-groups-1"
+state_filters = ["Stable"]
+group_type_filters = ["classic"]
 required_group_ids = ["testlab-admin-listed-group"]
 timeout_ms = 20000
 

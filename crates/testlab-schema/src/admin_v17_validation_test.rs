@@ -19,6 +19,9 @@ fn admin_lists_require_unique_valid_resource_names() {
             client_id: client(),
             operation_id: operation("admin-groups-list"),
             api: Default::default(),
+            state_filters: Vec::new(),
+            group_type_filters: Vec::new(),
+            protocol_type_filters: Vec::new(),
             required_group_ids: vec!["group-1".to_owned(), "group-1".to_owned()],
             timeout_ms: 1_000,
         }),
@@ -46,6 +49,42 @@ fn admin_lists_require_unique_valid_resource_names() {
     assert_problem(
         &problems,
         "required_topics must contain unique valid topics",
+    );
+}
+
+#[test]
+fn group_listing_filters_are_bounded_and_api_specific() {
+    let mut action = ListConsumerGroupsAction {
+        client_id: client(),
+        operation_id: operation("admin-filtered-groups"),
+        api: Default::default(),
+        state_filters: vec!["Stable".to_owned(), "Stable".to_owned()],
+        group_type_filters: vec![String::new()],
+        protocol_type_filters: vec!["consumer".to_owned()],
+        required_group_ids: vec!["group-1".to_owned()],
+        timeout_ms: 1_000,
+    };
+    let mut problems = Vec::new();
+    validate(
+        &ScenarioAction::ListConsumerGroups(action.clone()),
+        &clients(),
+        &mut BTreeSet::new(),
+        &mut problems,
+    );
+    for expected in [
+        "state_filters must contain unique",
+        "group_type_filters must contain unique",
+        "protocol_type_filters require api = all_groups",
+    ] {
+        assert_problem(&problems, expected);
+    }
+
+    action.api = crate::GroupListingApi::AllGroups;
+    action.state_filters = vec!["Stable".to_owned()];
+    action.group_type_filters = vec!["classic".to_owned()];
+    assert!(
+        problems_for(action).is_empty(),
+        "canonical generic filters must validate"
     );
 }
 
@@ -130,6 +169,17 @@ fn assert_problem(problems: &[String], expected: &str) {
         problems.iter().any(|problem| problem.contains(expected)),
         "missing {expected:?} in {problems:?}"
     );
+}
+
+fn problems_for(action: ListConsumerGroupsAction) -> Vec<String> {
+    let mut problems = Vec::new();
+    validate(
+        &ScenarioAction::ListConsumerGroups(action),
+        &clients(),
+        &mut BTreeSet::new(),
+        &mut problems,
+    );
+    problems
 }
 
 fn clients() -> BTreeMap<ClientId, bool> {

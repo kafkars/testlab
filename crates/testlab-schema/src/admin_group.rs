@@ -29,6 +29,15 @@ pub struct ListConsumerGroupsAction {
     /// Public group-listing operation exercised by the adapter.
     #[serde(default)]
     pub api: GroupListingApi,
+    /// Caller-ordered broker-side group-state filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub state_filters: Vec<String>,
+    /// Caller-ordered broker-side group-type filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub group_type_filters: Vec<String>,
+    /// Caller-ordered client-side protocol-type filters for the generic API.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub protocol_type_filters: Vec<String>,
     /// Group identities that must appear in the public result.
     pub required_group_ids: Vec<String>,
     /// Complete public operation bound.
@@ -46,6 +55,15 @@ pub struct ListConsumerGroupsCommand {
     /// Public group-listing operation exercised by the adapter.
     #[serde(default)]
     pub api: GroupListingApi,
+    /// Caller-ordered broker-side group-state filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub state_filters: Vec<String>,
+    /// Caller-ordered broker-side group-type filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub group_type_filters: Vec<String>,
+    /// Caller-ordered client-side protocol-type filters for the generic API.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub protocol_type_filters: Vec<String>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
