@@ -1034,8 +1034,8 @@ category = "consumer"
 
 [[contract]]
 id = "CONS-024"
-title = "Aggregate group operation configuration remains exact"
-statement = "Every scenario-selected group operation_config retains both explicit seek and close durations in one exact group-consumer creation command."
+title = "Group operation configuration method remains exact"
+statement = "Every scenario-selected individual or aggregate group operation configuration retains its exact public method and supplied seek and close durations in one group-consumer creation command."
 category = "consumer"
 
 [[contract]]

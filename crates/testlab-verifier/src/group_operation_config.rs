@@ -1,12 +1,10 @@
-//! Aggregate hosted-group operation policy retains its exact public selection.
+//! Hosted-group operation policy retains its exact individual or aggregate selection.
 
 #[cfg(test)]
 #[path = "group_operation_config_test.rs"]
 mod tests;
 
-use testlab_schema::{
-    AdapterCommand, GroupOperationConfigMethod, Scenario, ScenarioAction, Violation,
-};
+use testlab_schema::{AdapterCommand, Scenario, ScenarioAction, Violation};
 
 use crate::index::HistoryIndex;
 use crate::support::violation;
@@ -21,7 +19,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         else {
             continue;
         };
-        if configuration.operation_config_method != GroupOperationConfigMethod::OperationConfig
+        if (configuration.seek_timeout_ms.is_none() && configuration.close_timeout_ms.is_none())
             || !index.action_issued(&step.action)
         {
             continue;
@@ -45,7 +43,8 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         violations.push(violation(
             "CONS-024",
             format!(
-                "group consumer {consumer_id} selected operation_config but observed {} matching creation command(s) without one exact aggregate policy",
+                "group consumer {consumer_id} selected {:?} but observed {} matching creation command(s) without one exact operation policy",
+                configuration.operation_config_method,
                 commands.len()
             ),
             None,

@@ -151,8 +151,8 @@
   rebalance, heartbeat, and rejoin timing through live single-broker operation
   and three-broker recovery. Both protocols run seek replay with non-default
   Fetch and retained-delivery capacity policy plus processing,
-  membership-start, seek, and close deadlines selected through the aggregate
-  public group operation configuration.
+  membership-start, seek, and close deadlines selected through both the
+  individual setters and aggregate public group operation configuration.
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.

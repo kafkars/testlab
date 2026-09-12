@@ -26,8 +26,9 @@ It:
    configuration through the public builder; group registrations also preserve
    caller-selected Fetch policy, retained-delivery capacities, and processing,
    membership-start, seek, and close deadlines through either the exact
-   individual setters or one public aggregate operation configuration, while configured assigned
-   clients preserve the same Fetch and capacity envelope; direct receives map
+   individual setters or one public aggregate operation configuration, while
+   configured assigned clients preserve the same Fetch and capacity envelope;
+   direct receives map
    default `recv` and selected repeated `try_take_batch` to their exact public
    methods, retain public Fetch UUID, offset-window, byte-charge, and checkpoint
    evidence for independent comparison, and an owned direct-consumer record
