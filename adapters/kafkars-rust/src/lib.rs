@@ -14,6 +14,7 @@ mod connection_security;
 mod group_assignment_observe;
 #[cfg(test)]
 mod group_assignment_observe_test;
+mod group_consumer_configuration;
 mod group_consumer_shutdown;
 mod group_consumers;
 #[cfg(test)]

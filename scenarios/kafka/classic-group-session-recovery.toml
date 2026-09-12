@@ -1,9 +1,9 @@
-schema_version = 83
+schema_version = 84
 id = "kafka.classic-group-session-recovery"
-title = "one classic member recovers while every broker is disrupted"
-description = "Testlab stops each broker in turn while one classic member remains live, observes a valid public assignment after every disruption, and proves committed forward progress after the stop that necessarily disrupts its original group coordinator."
+title = "one fully timed classic member recovers while every broker is disrupted"
+description = "Testlab configures every public classic membership-timing value, stops each broker in turn while the member remains live, observes a valid public assignment after every disruption, and proves committed forward progress after the stop that necessarily disrupts its original group coordinator."
 timeout_ms = 420000
-requires = ["producer", "consumer_groups", "lifecycle", "client_readiness"]
+requires = ["producer", "consumer_groups", "group_consumer_configuration", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -29,6 +29,16 @@ consumer_id = "consumer-1"
 group_id = "testlab-classic-session-group"
 topics = ["testlab-kafkars-classic-session"]
 protocol = "classic"
+
+[steps.configuration]
+offset_reset = "earliest"
+read_isolation = "read_uncommitted"
+classic_session_timeout_ms = 15000
+classic_rebalance_timeout_ms = 45000
+classic_heartbeat_interval_ms = 2000
+classic_heartbeat_attempt_timeout_ms = 12000
+classic_rejoin_backoff_ms = 250
+classic_rejoin_attempt_timeout_ms = 45000
 
 [[steps]]
 id = "observe-initial-assignment"

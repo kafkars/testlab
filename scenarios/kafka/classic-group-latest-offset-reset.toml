@@ -1,7 +1,7 @@
-schema_version = 83
+schema_version = 84
 id = "kafka.classic-group-latest-offset-reset"
-title = "classic group latest reset skips an existing record"
-description = "A configured classic member stabilizes after one broker-visible record already exists, then latest-offset reset returns and commits only the exact later record."
+title = "fully timed classic group latest reset skips an existing record"
+description = "A classic member built with every public membership-timing value stabilizes after one broker-visible record already exists, then latest-offset reset returns and commits only the exact later record."
 timeout_ms = 150000
 requires = ["producer", "consumer_groups", "group_consumer_configuration", "lifecycle", "client_readiness"]
 
@@ -49,6 +49,12 @@ protocol = "classic"
 [steps.configuration]
 offset_reset = "latest"
 read_isolation = "read_uncommitted"
+classic_session_timeout_ms = 12000
+classic_rebalance_timeout_ms = 20000
+classic_heartbeat_interval_ms = 1000
+classic_heartbeat_attempt_timeout_ms = 7000
+classic_rejoin_backoff_ms = 200
+classic_rejoin_attempt_timeout_ms = 20000
 
 [[steps]]
 id = "observe-assignment"

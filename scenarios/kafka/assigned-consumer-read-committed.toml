@@ -1,4 +1,4 @@
-schema_version = 83
+schema_version = 84
 id = "kafka.assigned-consumer-read-committed"
 title = "assigned consumer read committed hides an aborted record"
 description = "A client configured through the packaged public assigned-consumer policy starts its direct assignment at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."

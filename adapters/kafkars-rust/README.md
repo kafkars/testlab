@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v80 over stdin/stdout;
+2. implements protocol v81 over stdin/stdout;
 3. preserves caller-selected record timestamps and returned partitions through
    public delivery receipts, omits explicit partitions for Java-keyed sends,
    preserves consumer records, and passes caller-ordered multi-topic classic,
@@ -44,8 +44,9 @@ It:
    caller-ordered transaction descriptions, and caller-ordered producer
    fencing with independently matched post-fence identities, selected-replica
    log-directory description and caller-ordered alteration outcomes,
-   classic static membership with explicit session timing and caller-ordered
-   static-member removal after owner abandonment,
+   classic static membership plus complete session, rebalance, heartbeat, and
+   rejoin timing, and caller-ordered static-member removal after owner
+   abandonment,
    consumer-only and generic all-group listings, plural offset
    mutations, dedicated classic-group descriptions, caller-ordered plural
    empty classic-group deletion, singleton and

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v80. It is not a
+An adapter translates one packaged client surface to protocol v81. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -98,9 +98,10 @@ runner and not a verifier.
   acquisitions. Pass an optional rack through the public builder and require
   the resulting public handle to retain it.
 - Advertise group-consumer configuration only when missing-offset reset, read
-  isolation, and an optional classic assignor are fixed through public builder
-  calls before membership starts; reject a classic assignor for KIP-848 and
-  never receive the record or description expected to prove those selections.
+  isolation, an optional classic assignor, and every supplied classic timing
+  are fixed through public builder calls before membership starts. Reject all
+  classic-only fields for KIP-848 and never receive the record or description
+  expected to prove those selections.
 - Advertise group-consumer shutdown only when clone-shared public requests are
   idempotent and public event observation can distinguish terminal stream
   closure; never report that closure as broker-visible leave truth.

@@ -111,6 +111,9 @@
   read-committed isolation against pre-membership records and independently
   verified aborted transactions; classic membership also proves explicit
   cooperative-sticky selection through a broker-reported public description.
+  Classic configuration additionally carries non-default public session,
+  rebalance, heartbeat, and rejoin timing through live single-broker operation
+  and three-broker recovery.
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.

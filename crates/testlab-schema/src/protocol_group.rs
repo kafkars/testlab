@@ -62,6 +62,21 @@ pub struct GroupConsumerConfiguration {
     /// Optional classic-group session timeout sent with each Join request.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub classic_session_timeout_ms: Option<u64>,
+    /// Optional classic-group rebalance timeout sent with each Join request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_rebalance_timeout_ms: Option<u64>,
+    /// Optional delay between successful classic-group heartbeats.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_heartbeat_interval_ms: Option<u64>,
+    /// Optional end-to-end timeout for one classic-group heartbeat attempt.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_heartbeat_attempt_timeout_ms: Option<u64>,
+    /// Optional delay before a recoverable classic-group rejoin.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_rejoin_backoff_ms: Option<u64>,
+    /// Optional end-to-end timeout for one internally retried Join cycle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub classic_rejoin_attempt_timeout_ms: Option<u64>,
 }
 
 /// Exact public group-consumer owner abandoned without member leave.

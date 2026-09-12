@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{
-    ClassicGroupAssignor, ClassicGroupConfig, Client, Consumer, ConsumerBuildError,
-    ConsumerGroupProtocol, OffsetReset, RetryAdvice, StartPosition, TopicPartition,
+    ClassicGroupAssignor, Client, Consumer, ConsumerBuildError, ConsumerGroupProtocol, OffsetReset,
+    RetryAdvice, StartPosition, TopicPartition,
 };
 use testlab_schema::{
     AssignedStartPosition, ClientId, ConsumerId, GroupClassicAssignor, GroupConsumerConfiguration,
@@ -14,6 +14,7 @@ use testlab_schema::{
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
+use crate::group_consumer_configuration::public_classic_group_config;
 use crate::state::StateError;
 
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(30);
@@ -48,13 +49,7 @@ impl GroupConsumers {
         if self.contains(&registration.consumer_id) {
             return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
-        let GroupConsumerConfiguration {
-            offset_reset,
-            read_isolation,
-            group_instance_id,
-            classic_assignor,
-            classic_session_timeout_ms,
-        } = registration
+        let configuration = registration
             .configuration
             .unwrap_or(GroupConsumerConfiguration {
                 offset_reset: GroupOffsetReset::Earliest,
@@ -62,7 +57,20 @@ impl GroupConsumers {
                 group_instance_id: None,
                 classic_assignor: None,
                 classic_session_timeout_ms: None,
+                classic_rebalance_timeout_ms: None,
+                classic_heartbeat_interval_ms: None,
+                classic_heartbeat_attempt_timeout_ms: None,
+                classic_rejoin_backoff_ms: None,
+                classic_rejoin_attempt_timeout_ms: None,
             });
+        let classic_configuration = public_classic_group_config(&configuration);
+        let GroupConsumerConfiguration {
+            offset_reset,
+            read_isolation,
+            group_instance_id,
+            classic_assignor,
+            ..
+        } = configuration;
         let builder = client
             .consumer(registration.group_id)
             .subscribe(registration.topics)
@@ -82,11 +90,8 @@ impl GroupConsumers {
             Some(assignor) => builder.classic_group_assignor(public_classic_assignor(assignor)),
             None => builder,
         };
-        let builder = match classic_session_timeout_ms {
-            Some(timeout_ms) => builder.classic_group_config(
-                ClassicGroupConfig::default()
-                    .with_session_timeout(Duration::from_millis(timeout_ms)),
-            ),
+        let builder = match classic_configuration {
+            Some(configuration) => builder.classic_group_config(configuration),
             None => builder,
         };
         let consumer = retry_owned_safe(builder, |builder| {

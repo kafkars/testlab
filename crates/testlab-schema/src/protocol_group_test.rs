@@ -19,6 +19,11 @@ fn configured_group_policy_round_trips() {
             group_instance_id: Some("worker-static-1".to_owned()),
             classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
             classic_session_timeout_ms: Some(120_000),
+            classic_rebalance_timeout_ms: Some(150_000),
+            classic_heartbeat_interval_ms: Some(2_000),
+            classic_heartbeat_attempt_timeout_ms: Some(9_000),
+            classic_rejoin_backoff_ms: Some(250),
+            classic_rejoin_attempt_timeout_ms: Some(45_000),
         }),
     };
     let encoded = serde_json::to_string(&action)
@@ -48,6 +53,11 @@ fn configured_group_requires_its_capability() {
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: None,
+        classic_rebalance_timeout_ms: None,
+        classic_heartbeat_interval_ms: None,
+        classic_heartbeat_attempt_timeout_ms: None,
+        classic_rejoin_backoff_ms: None,
+        classic_rejoin_attempt_timeout_ms: None,
     });
     let error = match scenario.validate() {
         Ok(()) => panic!("configured group capability must be required"),
@@ -63,7 +73,7 @@ fn configured_group_requires_its_capability() {
 }
 
 #[test]
-fn classic_configuration_is_protocol_specific_and_session_timeout_is_positive() {
+fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
     let mut modern = scenario("../../../scenarios/kafka/consumer-protocol-group-round-trip.toml");
     modern
         .requires
@@ -74,6 +84,11 @@ fn classic_configuration_is_protocol_specific_and_session_timeout_is_positive() 
         group_instance_id: None,
         classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(10_000),
+        classic_rebalance_timeout_ms: Some(30_000),
+        classic_heartbeat_interval_ms: Some(3_000),
+        classic_heartbeat_attempt_timeout_ms: Some(10_000),
+        classic_rejoin_backoff_ms: Some(1_000),
+        classic_rejoin_attempt_timeout_ms: Some(30_000),
     });
     let error = modern
         .validate()
@@ -81,6 +96,11 @@ fn classic_configuration_is_protocol_specific_and_session_timeout_is_positive() 
     let message = error.to_string();
     assert!(message.contains("classic_assignor for a non-classic group"));
     assert!(message.contains("classic_session_timeout_ms for a non-classic group"));
+    assert!(message.contains("classic_rebalance_timeout_ms for a non-classic group"));
+    assert!(message.contains("classic_heartbeat_interval_ms for a non-classic group"));
+    assert!(message.contains("classic_heartbeat_attempt_timeout_ms for a non-classic group"));
+    assert!(message.contains("classic_rejoin_backoff_ms for a non-classic group"));
+    assert!(message.contains("classic_rejoin_attempt_timeout_ms for a non-classic group"));
 
     let mut classic = scenario("../../../scenarios/kafka/classic-group-round-trip.toml");
     classic
@@ -92,11 +112,26 @@ fn classic_configuration_is_protocol_specific_and_session_timeout_is_positive() 
         group_instance_id: None,
         classic_assignor: Some(GroupClassicAssignor::Range),
         classic_session_timeout_ms: Some(0),
+        classic_rebalance_timeout_ms: Some(0),
+        classic_heartbeat_interval_ms: Some(0),
+        classic_heartbeat_attempt_timeout_ms: Some(0),
+        classic_rejoin_backoff_ms: Some(0),
+        classic_rejoin_attempt_timeout_ms: Some(0),
     });
     let error = classic
         .validate()
-        .expect_err("zero classic session timeout must fail");
-    assert!(error.to_string().contains("must be between 1"));
+        .expect_err("zero classic timing must fail");
+    let message = error.to_string();
+    for field in [
+        "classic_session_timeout_ms",
+        "classic_rebalance_timeout_ms",
+        "classic_heartbeat_interval_ms",
+        "classic_heartbeat_attempt_timeout_ms",
+        "classic_rejoin_backoff_ms",
+        "classic_rejoin_attempt_timeout_ms",
+    ] {
+        assert!(message.contains(field), "{message}");
+    }
 }
 
 fn scenario(path: &str) -> Scenario {

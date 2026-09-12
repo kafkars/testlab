@@ -149,6 +149,11 @@ fn group_creation_preserves_public_configuration() {
         group_instance_id: Some("worker-static-1".to_owned()),
         classic_assignor: Some(testlab_schema::GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(120_000),
+        classic_rebalance_timeout_ms: Some(150_000),
+        classic_heartbeat_interval_ms: Some(2_000),
+        classic_heartbeat_attempt_timeout_ms: Some(9_000),
+        classic_rejoin_backoff_ms: Some(250),
+        classic_rejoin_attempt_timeout_ms: Some(45_000),
     };
     let action = ScenarioAction::CreateGroupConsumer {
         client_id: id(ClientId::new("client-1")),
