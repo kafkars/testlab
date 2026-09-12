@@ -1,7 +1,7 @@
 //! Expected admin failure tests bind exact public errors to independent topic state.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminOffsetPosition, BrokerStateObservation, BrokerTopicState,
+    AdapterCommand, AdapterEvent, AdminOffsetSelector, BrokerStateObservation, BrokerTopicState,
     ClientId, CreatePartitionsAction, CreatePartitionsCommand, DeleteTopicAction,
     DeleteTopicCommand, DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload,
     ListOffsetsAction, ListOffsetsCommand, OperationId, ROUTING_ERROR_CODE, ScenarioAction,
@@ -75,7 +75,8 @@ fn failure_actions() -> Vec<ScenarioAction> {
             operation_id: operation("missing-partition"),
             topic: "missing-partition".to_owned(),
             partition: 1,
-            position: AdminOffsetPosition::Latest,
+            position: AdminOffsetSelector::Latest,
+            timestamp_millis: None,
             expected_offset: None,
             expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),
             timeout_ms: 1_000,
@@ -135,6 +136,7 @@ fn wire(action: &ScenarioAction) -> AdapterCommand {
             topic: action.topic.clone(),
             partition: action.partition,
             position: action.position,
+            timestamp_millis: action.timestamp_millis,
             timeout_ms: action.timeout_ms,
         }),
         _ => panic!("unexpected failure action"),

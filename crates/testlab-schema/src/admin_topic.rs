@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AdminOffsetPosition, ClientId, OperationId, TopicDescriptionApi};
+use crate::{AdminOffsetSelector, ClientId, OperationId, TopicDescriptionApi};
 
 /// Normalized public error required for a duplicate topic creation.
 pub const TOPIC_ALREADY_EXISTS_ERROR_CODE: &str = "broker:broker_36";
@@ -146,7 +146,10 @@ pub struct ListOffsetsCommand {
     /// Exact nonnegative partition.
     pub partition: i32,
     /// Broker-relative offset position to query.
-    pub position: AdminOffsetPosition,
+    pub position: AdminOffsetSelector,
+    /// Caller-selected timestamp for the timestamp selector.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp_millis: Option<i64>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -195,4 +198,7 @@ pub struct AdminOffsetListing {
     pub partition: i32,
     /// Reported offset, or no offset when Kafka has no value.
     pub offset: Option<i64>,
+    /// Timestamp associated with the selected offset, when Kafka reports one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp_millis: Option<i64>,
 }

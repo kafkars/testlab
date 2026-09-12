@@ -8,7 +8,7 @@ use crate::kafkars_api::{
 };
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminConsumerGroupOffsetListing,
-    AdminOffsetListing, AdminOffsetPosition, AdminTopicsListing, CommandId,
+    AdminOffsetListing, AdminOffsetSelector, AdminTopicsListing, CommandId,
     ListConsumerGroupOffsetsCommand, ListOffsetsCommand, ListTopicsCommand,
 };
 
@@ -83,10 +83,15 @@ fn list_offset<W: Write>(
 ) -> Result<(), AdapterError> {
     let deadline = deadline_after(command.timeout_ms);
     let client = state.client(&command.client_id)?;
+    let spec = offset_spec(command.position, command.timestamp_millis).ok_or_else(|| {
+        AdapterError::AdminResult(format!(
+            "admin operation {} carried an invalid offset selector",
+            command.operation_id
+        ))
+    })?;
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
-            let spec = offset_spec(command.position);
             let query = ListOffsetsQuery::new(command.topic.clone(), command.partition, spec);
             client
                 .admin()
@@ -103,9 +108,14 @@ fn list_offset<W: Write>(
         .into_offsets()
         .into_entries()
         .into_iter()
-        .map(|(key, result)| (key, result.map(|value| value.offset())))
+        .map(|(key, result)| {
+            (
+                key,
+                result.map(|value| (value.offset(), value.timestamp_ms())),
+            )
+        })
         .collect();
-    let offset = listed_offset(
+    let (offset, timestamp_millis) = listed_offset(
         entries,
         &command.operation_id,
         &command.topic,
@@ -119,14 +129,22 @@ fn list_offset<W: Write>(
             topic: command.topic,
             partition: command.partition,
             offset,
+            timestamp_millis,
         }),
     )
 }
 
-pub(crate) const fn offset_spec(position: AdminOffsetPosition) -> OffsetSpec {
-    match position {
-        AdminOffsetPosition::Earliest => OffsetSpec::earliest(),
-        AdminOffsetPosition::Latest => OffsetSpec::latest(),
+pub(crate) const fn offset_spec(
+    position: AdminOffsetSelector,
+    timestamp_millis: Option<i64>,
+) -> Option<OffsetSpec> {
+    match (position, timestamp_millis) {
+        (AdminOffsetSelector::Earliest, None) => Some(OffsetSpec::earliest()),
+        (AdminOffsetSelector::Latest, None) => Some(OffsetSpec::latest()),
+        (AdminOffsetSelector::Timestamp, Some(timestamp)) if timestamp >= 0 => {
+            Some(OffsetSpec::for_timestamp(timestamp))
+        }
+        _ => None,
     }
 }
 

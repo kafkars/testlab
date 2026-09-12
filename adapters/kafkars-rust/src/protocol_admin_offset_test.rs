@@ -1,7 +1,7 @@
 //! Offset-result normalization tests enforce one exact topic-partition identity.
 
 use crate::kafkars_api::{ErrorKind, KafkaError, OffsetSpec, StartPosition, TopicPartition};
-use testlab_schema::{AdminOffsetPosition, OperationId, ROUTING_ERROR_CODE};
+use testlab_schema::{AdminOffsetSelector, OperationId, ROUTING_ERROR_CODE};
 
 use crate::AdapterError;
 use crate::normalize::error_code;
@@ -11,13 +11,20 @@ use crate::protocol_admin_result::listed_offset;
 #[test]
 fn offset_positions_map_to_exact_public_specs() {
     assert_eq!(
-        offset_spec(AdminOffsetPosition::Earliest),
-        OffsetSpec::earliest()
+        offset_spec(AdminOffsetSelector::Earliest, None),
+        Some(OffsetSpec::earliest())
     );
     assert_eq!(
-        offset_spec(AdminOffsetPosition::Latest),
-        OffsetSpec::latest()
+        offset_spec(AdminOffsetSelector::Latest, None),
+        Some(OffsetSpec::latest())
     );
+    assert_eq!(
+        offset_spec(AdminOffsetSelector::Timestamp, Some(1_700_000_000_123)),
+        Some(OffsetSpec::for_timestamp(1_700_000_000_123))
+    );
+    assert_eq!(offset_spec(AdminOffsetSelector::Timestamp, None), None);
+    assert_eq!(offset_spec(AdminOffsetSelector::Timestamp, Some(-1)), None);
+    assert_eq!(offset_spec(AdminOffsetSelector::Latest, Some(1)), None);
 }
 
 #[test]

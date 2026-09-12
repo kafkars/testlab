@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v102 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v105 and evidence schema v91.
+Protocol v103 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v106 and evidence schema v92.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -686,12 +686,14 @@ ID-keyed deletion, the exact UUID deletion fence. After the public result,
 independent metadata is polled within the original observation bound until
 every selected name is absent, then recorded with consecutive ordinals.
 
-Offset listing selects `earliest` or `latest` for one isolated partition after
-two acknowledged records or deterministic environment seeding. An immediate
-independent librdkafka query captures both low and high watermarks after the
-public result, and the selected public offset must equal the corresponding
-watermark without treating an adapter echo as broker truth. Timestamp selectors,
-other broker-relative positions, and leader epochs are outside this slice.
+Offset listing selects `earliest`, `latest`, or one exact nonnegative timestamp
+for an isolated partition after two acknowledged records or deterministic
+environment seeding. An immediate independent librdkafka query captures both
+low and high watermarks after the public result. Boundary selections must equal
+the corresponding watermark. A timestamp selection must preserve its exact
+wire timestamp and return the matching independently observed record offset and
+timestamp strictly inside those watermarks. Other broker-relative positions
+and leader epochs are outside this slice.
 
 `list_offsets_batch` carries two through 32 unique topic-partition selections
 in caller order and invokes one public Admin operation. Scenario-only expected
@@ -1157,6 +1159,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v102 is an exact semantic contract. New capabilities may be declared
+Protocol v103 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

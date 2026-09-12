@@ -1,7 +1,7 @@
 //! Topic target tests pin exact correlation and independent topology expectations.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, ClientId, CreatePartitionsAction, CreateTopicAction,
+    AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreateTopicAction,
     DeleteRecordsAction, DeleteTopicAction, DescribeTopicAction, ListOffsetsAction,
     ListTopicsAction, OperationId, ScenarioAction,
 };
@@ -143,7 +143,8 @@ fn expected_admin_failures_map_to_immediate_broker_truth() {
         operation_id: operation("list-missing-partition"),
         topic: "offsets".to_owned(),
         partition: 1,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: None,
         expected_error_code,
         timeout_ms: 500,
@@ -212,6 +213,30 @@ fn record_deletion_maps_to_polling_watermark_expectations() {
     assert_eq!(target.expected_low, Some(4));
     assert_eq!(target.expected_high, Some(6));
     assert!(target.poll_expected);
+}
+
+#[test]
+fn timestamp_offset_maps_to_an_exact_command_and_bounding_watermarks() {
+    let action = ScenarioAction::ListOffsets(ListOffsetsAction {
+        client_id: client(),
+        operation_id: operation("timestamp-offset"),
+        topic: "orders".to_owned(),
+        partition: 0,
+        position: AdminOffsetSelector::Timestamp,
+        timestamp_millis: Some(1_700_000_000_123),
+        expected_offset: Some(1),
+        expected_error_code: None,
+        timeout_ms: 500,
+    });
+    let (command, target) = crate::observer_admin_partition_offsets_target::match_action(&action)
+        .unwrap_or_else(|| panic!("missing timestamp offset target"));
+    let AdminTarget::PartitionOffsets(target) = target else {
+        panic!("timestamp offset target kind");
+    };
+    assert!(AdminTarget::from_exact(&action, &command).is_ok());
+    assert_eq!(target.expected_low, None);
+    assert_eq!(target.expected_high, None);
+    assert!(!target.poll_expected);
 }
 
 #[test]

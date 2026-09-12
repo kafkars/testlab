@@ -130,6 +130,7 @@ impl HistoryIndex {
                     topic: value.topic.clone(),
                     partition: value.partition,
                     offset: value.offset,
+                    timestamp_millis: value.timestamp_millis,
                 }),
             AdapterEvent::ClusterDescribed(value) => self
                 .clusters_described

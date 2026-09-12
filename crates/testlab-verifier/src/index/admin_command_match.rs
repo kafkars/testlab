@@ -109,6 +109,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 c.timeout_ms,
             ) && a.partition == c.partition
                 && a.position == c.position
+                && a.timestamp_millis == c.timestamp_millis
         }
         (ScenarioAction::DescribeCluster(a), AdapterCommand::DescribeCluster(c)) => same_base(
             &a.client_id,

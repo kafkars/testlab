@@ -159,12 +159,12 @@ pub(crate) fn sorted_unique_broker_errors(
     Ok(errors)
 }
 
-pub(crate) fn listed_offset(
-    entries: Vec<(TopicPartition, Result<Option<i64>, KafkaError>)>,
+pub(crate) fn listed_offset<T>(
+    entries: Vec<(TopicPartition, Result<T, KafkaError>)>,
     operation_id: &OperationId,
     expected_topic: &str,
     expected_partition: i32,
-) -> Result<Option<i64>, AdapterError> {
+) -> Result<T, AdapterError> {
     take_single_result(
         entries,
         operation_id,

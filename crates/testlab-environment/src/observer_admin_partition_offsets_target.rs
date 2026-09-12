@@ -1,7 +1,7 @@
 //! Offset-admin actions produce exact independent watermark targets.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, DeleteRecordsBatchCommand, DeleteRecordsBatchSelection,
+    AdapterCommand, AdminOffsetSelector, DeleteRecordsBatchCommand, DeleteRecordsBatchSelection,
     DeleteRecordsCommand, ListOffsetsCommand, ScenarioAction,
 };
 
@@ -18,16 +18,17 @@ pub(super) fn match_action(action: &ScenarioAction) -> Option<TargetMatch> {
                 topic: action.topic.clone(),
                 partition: action.partition,
                 position: action.position,
+                timestamp_millis: action.timestamp_millis,
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::PartitionOffsets(PartitionOffsetsTarget {
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 partition: action.partition,
-                expected_low: (action.position == AdminOffsetPosition::Earliest)
+                expected_low: (action.position == AdminOffsetSelector::Earliest)
                     .then_some(action.expected_offset)
                     .flatten(),
-                expected_high: (action.position == AdminOffsetPosition::Latest)
+                expected_high: (action.position == AdminOffsetSelector::Latest)
                     .then_some(action.expected_offset)
                     .flatten(),
                 poll_expected: false,

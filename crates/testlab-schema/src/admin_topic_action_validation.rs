@@ -134,6 +134,22 @@ fn validate_list_offsets(
             action.operation_id
         ));
     }
+    match (action.position, action.timestamp_millis) {
+        (crate::AdminOffsetSelector::Timestamp, Some(timestamp)) if timestamp >= 0 => {}
+        (crate::AdminOffsetSelector::Timestamp, Some(_)) => problems.push(format!(
+            "admin operation {} timestamp_millis must be nonnegative",
+            action.operation_id
+        )),
+        (crate::AdminOffsetSelector::Timestamp, None) => problems.push(format!(
+            "admin operation {} timestamp selector requires timestamp_millis",
+            action.operation_id
+        )),
+        (_, Some(_)) => problems.push(format!(
+            "admin operation {} timestamp_millis requires the timestamp selector",
+            action.operation_id
+        )),
+        (_, None) => {}
+    }
     if action.expected_error_code.is_some() && action.partition == 0 {
         problems.push(format!(
             "admin operation {} expected missing partition must query a positive partition",

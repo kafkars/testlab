@@ -3,10 +3,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    AdminOffsetPosition, ClientId, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
+    AdminOffsetSelector, ClientId, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
     OperationId, ROUTING_ERROR_CODE, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 use crate::admin_action_validation::validate;
+
+#[path = "admin_timestamp_selector_validation_test.rs"]
+mod timestamp_tests;
 
 #[test]
 fn admin_queries_accept_inclusive_collection_bounds_and_reserve_identities() {
@@ -130,7 +133,8 @@ fn list_offsets_rejects_invalid_common_and_offset_fields() {
         operation_id: operation("admin-offset-invalid"),
         topic: "a".repeat(250),
         partition: -1,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: Some(-1),
         expected_error_code: None,
         timeout_ms: 99,
@@ -165,7 +169,8 @@ fn query_expectations_require_exactly_one_result_or_error() {
             operation_id: operation("admin-offset-neither"),
             topic: "records".to_owned(),
             partition: 1,
-            position: AdminOffsetPosition::Latest,
+            position: AdminOffsetSelector::Latest,
+            timestamp_millis: None,
             expected_offset: None,
             expected_error_code: None,
             timeout_ms: 1_000,
@@ -200,7 +205,8 @@ fn absent_offset_partition_requires_positive_index_and_exact_routing_code() {
             operation_id: operation(operation_id),
             topic: "records".to_owned(),
             partition,
-            position: AdminOffsetPosition::Latest,
+            position: AdminOffsetSelector::Latest,
+            timestamp_millis: None,
             expected_offset: None,
             expected_error_code: Some(code.to_owned()),
             timeout_ms: 1_000,
@@ -257,7 +263,8 @@ fn list_offsets(
         operation_id,
         topic: "records".to_owned(),
         partition,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,
         timeout_ms: 1_000,

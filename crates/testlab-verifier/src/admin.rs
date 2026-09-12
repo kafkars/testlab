@@ -202,6 +202,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             testlab_schema::ConfigResourceListingApi::Resource => "ADMIN-063",
             testlab_schema::ConfigResourceListingApi::ClientMetrics => "ADMIN-071",
         },
+        ScenarioAction::ListOffsets(value)
+            if value.position == testlab_schema::AdminOffsetSelector::Timestamp =>
+        {
+            "ADMIN-077"
+        }
         ScenarioAction::ListOffsets(_) => "ADMIN-005",
         ScenarioAction::DeleteRecords(_) => "ADMIN-017",
         ScenarioAction::DeleteRecordsBatch(_) => "ADMIN-047",

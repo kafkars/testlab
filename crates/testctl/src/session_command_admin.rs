@@ -99,6 +99,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 topic: action.topic.clone(),
                 partition: action.partition,
                 position: action.position,
+                timestamp_millis: action.timestamp_millis,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::OffsetListed {

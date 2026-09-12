@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    AdminOffsetPosition, Capability, ClientId, CreatePartitionsAction, CreateTopicAction,
+    AdminOffsetSelector, Capability, ClientId, CreatePartitionsAction, CreateTopicAction,
     DescribeTopicAction, ListOffsetsAction, ListTopicsAction, OperationId, SCENARIO_SCHEMA_VERSION,
     Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
@@ -178,7 +178,8 @@ fn list_offsets(
         operation_id,
         topic: "records".to_owned(),
         partition,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,
         timeout_ms: 1_000,

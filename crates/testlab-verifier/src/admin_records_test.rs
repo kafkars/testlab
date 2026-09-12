@@ -1,7 +1,7 @@
 //! `DeleteRecords` verification pins exact public and independent watermark transitions.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminRecordsDeleted,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminRecordsDeleted,
     BrokerPartitionOffsets, BrokerStateObservation, DeleteRecordsAction, DeleteRecordsCommand,
     HistoryEntry, HistoryPayload, ListOffsetsAction, ListOffsetsCommand, OperationId,
     ScenarioAction, TerminalStatus, VisibilityExpectation,
@@ -39,8 +39,8 @@ fn fixture(
     post_high: i64,
     include_baseline: bool,
 ) -> (testlab_schema::Scenario, Vec<HistoryEntry>) {
-    let earliest = list_action("baseline-earliest", AdminOffsetPosition::Earliest, 0);
-    let latest = list_action("baseline-latest", AdminOffsetPosition::Latest, 3);
+    let earliest = list_action("baseline-earliest", AdminOffsetSelector::Earliest, 0);
+    let latest = list_action("baseline-latest", AdminOffsetSelector::Latest, 3);
     let deletion = ScenarioAction::DeleteRecords(DeleteRecordsAction {
         client_id: client(),
         operation_id: operation("delete-prefix"),
@@ -89,13 +89,14 @@ fn fixture(
     (scenario, history)
 }
 
-fn list_action(id: &str, position: AdminOffsetPosition, expected_offset: i64) -> ScenarioAction {
+fn list_action(id: &str, position: AdminOffsetSelector, expected_offset: i64) -> ScenarioAction {
     ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id: client(),
         operation_id: operation(id),
         topic: "records".to_owned(),
         partition: 0,
         position,
+        timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,
         timeout_ms: 1_000,
@@ -110,6 +111,7 @@ fn wire(action: &ScenarioAction) -> AdapterCommand {
             topic: value.topic.clone(),
             partition: value.partition,
             position: value.position,
+            timestamp_millis: value.timestamp_millis,
             timeout_ms: value.timeout_ms,
         }),
         ScenarioAction::DeleteRecords(value) => {
@@ -134,6 +136,7 @@ fn offset_event(sequence: u64, id: &str, offset: i64) -> HistoryEntry {
             topic: "records".to_owned(),
             partition: 0,
             offset: Some(offset),
+            timestamp_millis: None,
         }),
     )
 }

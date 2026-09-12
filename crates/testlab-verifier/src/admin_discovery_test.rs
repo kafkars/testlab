@@ -1,7 +1,7 @@
 //! Discovery verifier tests require exact public results and independent broker truth.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminTopicDescription,
     AdminTopicsListing, BrokerObservation, BrokerPartitionOffsets, BrokerStateObservation,
     BrokerTopicState, DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload,
     ListOffsetsAction, ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId,
@@ -11,6 +11,9 @@ use testlab_schema::{
 use crate::admin::verify_admin;
 use crate::index::HistoryIndex;
 use crate::verify_fixture::{command, event, scenario, step};
+
+#[path = "admin_timestamp_offset_verifier_test.rs"]
+mod timestamp_tests;
 
 #[test]
 fn exact_description_matches_independent_metadata() {
@@ -130,6 +133,7 @@ fn latest_offset_matches_independent_high_watermark() {
             topic: "offsets".to_owned(),
             partition: 0,
             offset: Some(2),
+            timestamp_millis: None,
         }),
     );
     let history = [
@@ -158,6 +162,7 @@ fn latest_offset_rejects_none_or_a_value_beyond_broker_truth() {
                     topic: "offsets".to_owned(),
                     partition: 0,
                     offset,
+                    timestamp_millis: None,
                 }),
             ),
             partition_offsets(2, operation_id.clone(), "offsets", 0, 0, 2),
@@ -172,7 +177,8 @@ fn offset_scenario(operation_id: OperationId, expected_offset: i64) -> testlab_s
         operation_id,
         topic: "offsets".to_owned(),
         partition: 0,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,
         timeout_ms: 1_000,
@@ -224,6 +230,7 @@ fn admin_command(action: &ScenarioAction) -> AdapterCommand {
             topic: value.topic.clone(),
             partition: value.partition,
             position: value.position,
+            timestamp_millis: value.timestamp_millis,
             timeout_ms: value.timeout_ms,
         }),
         _ => panic!("fixture action is not an admin discovery operation"),

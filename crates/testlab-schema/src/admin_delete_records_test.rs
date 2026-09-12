@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
-    AdapterCommand, AdapterEvent, AdminOffsetPosition, AdminRecordsDeleted, BrokerPartitionOffsets,
+    AdapterCommand, AdapterEvent, AdminOffsetSelector, AdminRecordsDeleted, BrokerPartitionOffsets,
     BrokerStateObservation, Capability, ClientId, DeleteRecordsAction, DeleteRecordsCommand,
     EVIDENCE_SCHEMA_VERSION, ListOffsetsAction, OperationId, PROTOCOL_VERSION,
     SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
@@ -11,9 +11,9 @@ use super::{
 
 #[test]
 fn delete_records_versions_and_wire_facts_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 102);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 105);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 91);
+    assert_eq!(PROTOCOL_VERSION, 103);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 106);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 92);
 
     let action = ScenarioAction::DeleteRecords(delete_action());
     let command = AdapterCommand::DeleteRecords(delete_command());
@@ -164,7 +164,7 @@ fn valid_scenario() -> Scenario {
                 list_offsets(
                     client_id.clone(),
                     "admin-earliest",
-                    AdminOffsetPosition::Earliest,
+                    AdminOffsetSelector::Earliest,
                     0,
                 ),
             ),
@@ -173,7 +173,7 @@ fn valid_scenario() -> Scenario {
                 list_offsets(
                     client_id.clone(),
                     "admin-latest",
-                    AdminOffsetPosition::Latest,
+                    AdminOffsetSelector::Latest,
                     3,
                 ),
             ),
@@ -201,7 +201,7 @@ fn valid_scenario() -> Scenario {
 fn list_offsets(
     client_id: ClientId,
     operation_id: &str,
-    position: AdminOffsetPosition,
+    position: AdminOffsetSelector,
     expected_offset: i64,
 ) -> ScenarioAction {
     ScenarioAction::ListOffsets(ListOffsetsAction {
@@ -210,6 +210,7 @@ fn list_offsets(
         topic: "records".to_owned(),
         partition: 0,
         position,
+        timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,
         timeout_ms: 1_000,

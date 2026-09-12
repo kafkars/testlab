@@ -1,7 +1,7 @@
 //! Admin command translation tests preserve requested intent and event identity.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, ClientId, CreatePartitionsAction, CreatePartitionsCommand,
+    AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreatePartitionsCommand,
     CreateTopicAction, CreateTopicCommand, DeleteRecordsAction, DeleteRecordsCommand,
     DescribeTopicAction, DescribeTopicCommand, ListConsumerGroupOffsetsAction,
     ListConsumerGroupOffsetsCommand, ListOffsetsAction, ListOffsetsCommand, ListTopicsAction,
@@ -10,6 +10,9 @@ use testlab_schema::{
 
 use crate::runner_protocol::ExpectedEvent;
 use crate::session_command_admin::translate;
+
+#[path = "session_command_admin_timestamp_test.rs"]
+mod timestamp_tests;
 
 #[test]
 fn partition_creation_translation_preserves_requested_total() {
@@ -142,7 +145,8 @@ fn offset_translation_keeps_expected_result_private() {
         operation_id: operation_id.clone(),
         topic: "orders".to_owned(),
         partition: 2,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: Some(42),
         expected_error_code: None,
         timeout_ms: 20_000,
@@ -159,7 +163,8 @@ fn offset_translation_keeps_expected_result_private() {
             operation_id,
             topic: "orders".to_owned(),
             partition: 2,
-            position: AdminOffsetPosition::Latest,
+            position: AdminOffsetSelector::Latest,
+            timestamp_millis: None,
             timeout_ms: 20_000,
         })
     );
@@ -174,7 +179,8 @@ fn earliest_offset_translation_preserves_the_public_selector() {
         operation_id: operation_id.clone(),
         topic: "orders".to_owned(),
         partition: 0,
-        position: AdminOffsetPosition::Earliest,
+        position: AdminOffsetSelector::Earliest,
+        timestamp_millis: None,
         expected_offset: Some(0),
         expected_error_code: None,
         timeout_ms: 20_000,
@@ -190,7 +196,8 @@ fn earliest_offset_translation_preserves_the_public_selector() {
             operation_id,
             topic: "orders".to_owned(),
             partition: 0,
-            position: AdminOffsetPosition::Earliest,
+            position: AdminOffsetSelector::Earliest,
+            timestamp_millis: None,
             timeout_ms: 20_000,
         })
     );

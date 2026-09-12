@@ -128,6 +128,10 @@ Protocol v102, scenario schema v105, and evidence schema v91 retain the selected
 Share batch conversion. SHARE-011 requires the exact command to distinguish
 explicit `into_acknowledgement` decisions from `accept_all` while the existing
 Share contracts retain the same terminal and independent record truth.
+Protocol v103, scenario schema v106, and evidence schema v92 add singleton
+timestamp offset selection. ADMIN-077 binds the exact public selector and
+returned timestamp to an independently observed record and immediate partition
+watermarks that rule out earliest- or latest-offset substitution.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -355,7 +359,10 @@ an unpaired transition invalidates execution rather than becoming a packaged
 client result.
 
 Earliest- and latest-offset Admin claims use immediate independent librdkafka
-watermark queries. Singleton and caller-ordered plural record deletion retain
+watermark queries. Timestamp-offset claims additionally require one exact
+independent record at the selected offset and timestamp, plus an earlier record
+inside the same watermark bounds. Singleton and caller-ordered plural record
+deletion retain
 exact pre- and post-operation low and high watermarks for every partition,
 proving that each explicit prefix or high-watermark selection became unavailable
 without accepting an adapter echo as broker truth. Topic creation, expansion,
@@ -766,6 +773,13 @@ set and the same nonempty cluster ID. Exact successful environment stop and
 start terminals for the selected broker must bracket the mutation and restored
 description, making the release scenario reversible without treating restart
 success as mutation evidence.
+
+ADMIN-077 binds one exact public timestamp `ListOffsets` command to a selected
+record strictly inside immediate independent partition watermarks. The public
+offset and returned timestamp must equal one exact independent broker record,
+and an earlier timestamped record must be present so an earliest selector cannot
+satisfy the same evidence. The selected offset below the high watermark also
+prevents a latest-offset substitution from passing.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

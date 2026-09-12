@@ -1,4 +1,4 @@
-schema_version = 105
+schema_version = 106
 id = "kafka.assigned-consumer-exact-offset"
 title = "an assigned consumer starts at one exact offset"
 description = "Two records establish offsets zero and one before the public replacement control starts the direct consumer at offset one."

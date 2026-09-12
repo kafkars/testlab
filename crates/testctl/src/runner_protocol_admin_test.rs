@@ -70,6 +70,7 @@ fn list_offset_completion_checks_topic_partition_and_operation() {
                 topic: "orders".to_owned(),
                 partition: 2,
                 offset: None,
+                timestamp_millis: None,
             }))
             .unwrap_or_else(|error| panic!("list offset classification: {error}")),
         EventDisposition::Complete
@@ -81,6 +82,7 @@ fn list_offset_completion_checks_topic_partition_and_operation() {
                 topic: "orders".to_owned(),
                 partition: 1,
                 offset: Some(2),
+                timestamp_millis: None,
             }))
             .is_err()
     );

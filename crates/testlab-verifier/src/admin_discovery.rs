@@ -1,11 +1,10 @@
 //! Read-only admin verification joins public results to independent broker observations.
-
 use std::collections::BTreeSet;
-
 use testlab_schema::{
-    AdminOffsetPosition, BrokerObservation, OperationId, ScenarioAction, Violation,
+    AdminOffsetSelector, BrokerObservation, OperationId, ScenarioAction, Violation,
 };
-
+#[path = "admin_timestamp_offset.rs"]
+mod timestamp_offset;
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{
     HistoryIndex, IndexedOffsetList, IndexedPartitionOffsetsObservation, IndexedTopicDescription,
@@ -16,7 +15,7 @@ use crate::support::violation;
 pub(crate) fn verify_discovery_action(
     action: &ScenarioAction,
     index: &HistoryIndex,
-    _observations: &[BrokerObservation],
+    observations: &[BrokerObservation],
     violations: &mut Vec<Violation>,
 ) -> bool {
     let command_window = index.admin_command_window(action);
@@ -53,11 +52,13 @@ pub(crate) fn verify_discovery_action(
                     topic: &action.topic,
                     partition: action.partition,
                     position: action.position,
+                    timestamp_millis: action.timestamp_millis,
                     expected_offset,
                 },
                 index.offsets_listed.get(&action.operation_id),
                 index.partition_offsets_observed.get(&action.operation_id),
                 command_window,
+                observations,
                 violations,
             );
         }
@@ -171,12 +172,13 @@ fn verify_topics(
 }
 
 #[derive(Clone, Copy)]
-struct OffsetExpectation<'a> {
+pub(super) struct OffsetExpectation<'a> {
     operation_id: &'a OperationId,
     topic: &'a str,
     partition: i32,
-    position: AdminOffsetPosition,
-    expected_offset: i64,
+    pub(super) position: AdminOffsetSelector,
+    pub(super) timestamp_millis: Option<i64>,
+    pub(super) expected_offset: i64,
 }
 
 fn verify_offset(
@@ -184,13 +186,26 @@ fn verify_offset(
     completions: Option<&Vec<IndexedOffsetList>>,
     independent: Option<&Vec<IndexedPartitionOffsetsObservation>>,
     command_window: Option<AdminCommandWindow>,
+    observations: &[BrokerObservation],
     violations: &mut Vec<Violation>,
 ) {
+    if expected.position == AdminOffsetSelector::Timestamp {
+        timestamp_offset::verify(
+            expected,
+            completions,
+            independent,
+            command_window,
+            observations,
+            violations,
+        );
+        return;
+    }
     let OffsetExpectation {
         operation_id,
         topic,
         partition,
         position,
+        timestamp_millis: _,
         expected_offset,
     } = expected;
     let public = completions
@@ -200,8 +215,9 @@ fn verify_offset(
         .filter(|values| values.len() == 1)
         .and_then(|values| values.first());
     let independent_offset = state.map(|value| match position {
-        AdminOffsetPosition::Earliest => value.low_watermark,
-        AdminOffsetPosition::Latest => value.high_watermark,
+        AdminOffsetSelector::Earliest => value.low_watermark,
+        AdminOffsetSelector::Latest => value.high_watermark,
+        AdminOffsetSelector::Timestamp => unreachable!("timestamp selectors return above"),
     });
     let public_matches = public.is_some_and(|value| {
         value.topic == topic

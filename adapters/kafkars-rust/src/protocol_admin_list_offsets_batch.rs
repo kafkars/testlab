@@ -4,8 +4,8 @@ use std::io::Write;
 
 use crate::kafkars_api::{ListOffsetsQuery, ReadIsolation};
 use testlab_schema::{
-    AdapterEvent, AdapterEventEnvelope, AdminOffsetListingOutcome, AdminOffsetsListing, CommandId,
-    ListOffsetsBatchCommand, OffsetListingSelection,
+    AdapterEvent, AdapterEventEnvelope, AdminOffsetListingOutcome, AdminOffsetPosition,
+    AdminOffsetsListing, CommandId, ListOffsetsBatchCommand, OffsetListingSelection,
 };
 
 use crate::AdapterError;
@@ -14,7 +14,7 @@ use crate::protocol::emit;
 use crate::protocol_admin_plural_result::{
     PartitionResult, ResourceResult, ordered_partition_results,
 };
-use crate::protocol_admin_read::{deadline_after, offset_spec, retry_safe};
+use crate::protocol_admin_read::{deadline_after, retry_safe};
 use crate::state::AdapterState;
 
 pub(crate) fn list<W: Write>(
@@ -74,6 +74,13 @@ fn public_queries(
             offset_spec(query.position),
         )
     })
+}
+
+const fn offset_spec(position: AdminOffsetPosition) -> crate::kafkars_api::OffsetSpec {
+    match position {
+        AdminOffsetPosition::Earliest => crate::kafkars_api::OffsetSpec::earliest(),
+        AdminOffsetPosition::Latest => crate::kafkars_api::OffsetSpec::latest(),
+    }
 }
 
 pub(crate) fn outcomes(

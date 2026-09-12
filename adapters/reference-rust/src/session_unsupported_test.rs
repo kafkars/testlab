@@ -1,7 +1,7 @@
 //! Unsupported-command tests keep capability classification explicit.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, AlterConsumerGroupOffsetsCommand, AlterTopicConfigCommand,
+    AdapterCommand, AdminOffsetSelector, AlterConsumerGroupOffsetsCommand, AlterTopicConfigCommand,
     AlterTopicConfigsCommand, AssignedRecordTransferCommand, ClientId,
     ConsumerGroupOffsetAlteration, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection,
     ConsumerId, DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsCommand,
@@ -36,7 +36,8 @@ fn read_only_admin_commands_require_admin_capability() {
             operation_id: operation_id.clone(),
             topic: "orders".to_owned(),
             partition: 0,
-            position: AdminOffsetPosition::Latest,
+            position: AdminOffsetSelector::Latest,
+            timestamp_millis: None,
             timeout_ms: 1_000,
         }),
         AdapterCommand::ListConsumerGroupOffsets(ListConsumerGroupOffsetsCommand {

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v102. It is not a
+An adapter translates one packaged client surface to protocol v103. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -33,6 +33,9 @@ runner and not a verifier.
   identities, and rejoin without exposing private client state.
 - Preserve exact read-only admin results without receiving scenario
   expectations through the adapter command.
+- Map singleton timestamp offset selection through the public API, preserve the
+  exact caller timestamp on the wire, and return Kafka's selected offset and
+  associated timestamp without deriving either from scenario expectations.
 - Preserve the selected generic-topic or dedicated client-metrics resource
   listing surface, its throttle, and canonical type-tagged identities without
   receiving the scenario-required resource names.

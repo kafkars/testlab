@@ -517,6 +517,12 @@ statement = "One stopped registered broker is unregistered through the public Ad
 category = "admin"
 
 [[contract]]
+id = "ADMIN-077"
+title = "Timestamp offset selection preserves exact record identity"
+statement = "One public timestamp ListOffsets selector preserves the exact caller timestamp and returns the independently observed matching record offset and timestamp inside immediate partition watermarks."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

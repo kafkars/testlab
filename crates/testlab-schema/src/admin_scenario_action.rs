@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AdminOffsetPosition, ClientId, OperationId};
+use crate::{AdminOffsetSelector, ClientId, OperationId};
 
 /// Public topic-description operation selected by a scenario.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -85,7 +85,10 @@ pub struct ListOffsetsAction {
     /// Exact nonnegative partition.
     pub partition: i32,
     /// Broker-relative offset position.
-    pub position: AdminOffsetPosition,
+    pub position: AdminOffsetSelector,
+    /// Caller-selected timestamp for the timestamp selector.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp_millis: Option<i64>,
     /// Exact nonnegative offset the verifier requires after success.
     pub expected_offset: Option<i64>,
     /// Exact normalized public error expected instead of a completion.

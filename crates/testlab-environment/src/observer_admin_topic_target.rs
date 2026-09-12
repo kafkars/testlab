@@ -155,6 +155,7 @@ fn missing_partition_target(
             topic: action.topic.clone(),
             partition: action.partition,
             position: action.position,
+            timestamp_millis: action.timestamp_millis,
             timeout_ms: action.timeout_ms,
         }),
         AdminTarget::Topic(TopicTarget {

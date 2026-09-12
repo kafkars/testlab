@@ -1,7 +1,7 @@
 //! Earliest-offset verification requires an independent low watermark.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, BrokerPartitionOffsets,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, BrokerPartitionOffsets,
     BrokerStateObservation, HistoryEntry, HistoryPayload, ListOffsetsAction, ListOffsetsCommand,
     OperationId, ScenarioAction, TerminalStatus, VisibilityExpectation,
 };
@@ -48,7 +48,8 @@ fn earliest_scenario() -> testlab_schema::Scenario {
                 operation_id: operation(),
                 topic: "offsets".to_owned(),
                 partition: 0,
-                position: AdminOffsetPosition::Earliest,
+                position: AdminOffsetSelector::Earliest,
+                timestamp_millis: None,
                 expected_offset: Some(0),
                 expected_error_code: None,
                 timeout_ms: 1_000,
@@ -67,6 +68,7 @@ fn offset_history(offset: Option<i64>, low_watermark: i64) -> [HistoryEntry; 2] 
                 topic: "offsets".to_owned(),
                 partition: 0,
                 offset,
+                timestamp_millis: None,
             }),
         ),
         HistoryEntry {
@@ -102,6 +104,7 @@ fn violations(
             topic: action.topic.clone(),
             partition: action.partition,
             position: action.position,
+            timestamp_millis: action.timestamp_millis,
             timeout_ms: action.timeout_ms,
         }),
     )];

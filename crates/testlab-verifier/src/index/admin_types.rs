@@ -63,6 +63,7 @@ pub(crate) struct IndexedOffsetList {
     pub(crate) topic: String,
     pub(crate) partition: i32,
     pub(crate) offset: Option<i64>,
+    pub(crate) timestamp_millis: Option<i64>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

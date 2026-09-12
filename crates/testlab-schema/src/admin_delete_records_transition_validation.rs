@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{AdminOffsetPosition, Scenario, ScenarioAction};
+use crate::{AdminOffsetSelector, Scenario, ScenarioAction};
 
 #[derive(Clone, Copy)]
 enum Baseline {
@@ -69,22 +69,23 @@ fn record_baseline(
     baselines: &mut BTreeMap<(String, i32), Baseline>,
     topic: &str,
     partition: i32,
-    position: AdminOffsetPosition,
+    position: AdminOffsetSelector,
     expected_offset: i64,
 ) {
     let key = (topic.to_owned(), partition);
     match position {
-        AdminOffsetPosition::Earliest if expected_offset == 0 => {
+        AdminOffsetSelector::Earliest if expected_offset == 0 => {
             baselines.entry(key).or_insert(Baseline::EarliestZero);
         }
-        AdminOffsetPosition::Earliest => {
+        AdminOffsetSelector::Earliest => {
             baselines.remove(&key);
         }
-        AdminOffsetPosition::Latest => {
+        AdminOffsetSelector::Latest => {
             if let Some(baseline) = baselines.get_mut(&key) {
                 *baseline = Baseline::Complete(expected_offset);
             }
         }
+        AdminOffsetSelector::Timestamp => {}
     }
 }
 

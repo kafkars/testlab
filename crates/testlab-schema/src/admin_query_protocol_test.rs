@@ -1,7 +1,7 @@
 //! Read-only admin wire tests separate verifier expectations from public facts.
 
 use super::{
-    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetPosition, AdminTopicDescription,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminTopicDescription,
     AdminTopicsListing, ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction,
     ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION,
     ROUTING_ERROR_CODE, SCENARIO_SCHEMA_VERSION, ScenarioAction, TopicDescriptionApi,
@@ -10,8 +10,8 @@ use super::{
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 102);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 105);
+    assert_eq!(PROTOCOL_VERSION, 103);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 106);
 }
 
 #[test]
@@ -100,7 +100,8 @@ fn list_offsets_command_excludes_expected_offset() {
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: Some(3),
         expected_error_code: None,
         timeout_ms: 1_000,
@@ -110,7 +111,8 @@ fn list_offsets_command_excludes_expected_offset() {
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         timeout_ms: 1_000,
     });
 
@@ -121,6 +123,7 @@ fn list_offsets_command_excludes_expected_offset() {
     assert!(action.contains("expected_offset = 3"));
     assert!(command.contains("kind = \"list_offsets\""));
     assert!(command.contains("position = \"latest\""));
+    assert!(!command.contains("timestamp_millis"));
     assert!(!command.contains("expected_offset"));
 }
 
@@ -140,6 +143,7 @@ fn admin_query_events_report_only_observed_facts() {
         topic: "records".to_owned(),
         partition: 0,
         offset: Some(3),
+        timestamp_millis: None,
     }));
 
     assert!(described.contains("kind = \"topic_described\""));
@@ -160,7 +164,8 @@ fn list_offsets_accepts_an_earliest_position() {
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         timeout_ms: 1_000,
     }));
     let earliest = latest.replace("position = \"latest\"", "position = \"earliest\"");
@@ -170,10 +175,38 @@ fn list_offsets_accepts_an_earliest_position() {
     assert!(matches!(
         decoded,
         AdapterCommand::ListOffsets(ListOffsetsCommand {
-            position: AdminOffsetPosition::Earliest,
+            position: AdminOffsetSelector::Earliest,
             ..
         })
     ));
+}
+
+#[test]
+fn list_offsets_preserves_a_timestamp_selector_and_result() {
+    let command = AdapterCommand::ListOffsets(ListOffsetsCommand {
+        client_id: client(),
+        operation_id: operation("admin-offset-timestamp"),
+        topic: "records".to_owned(),
+        partition: 0,
+        position: AdminOffsetSelector::Timestamp,
+        timestamp_millis: Some(1_700_000_000_123),
+        timeout_ms: 1_000,
+    });
+    let encoded = encode(&command);
+    let decoded = toml::from_str::<AdapterCommand>(&encoded)
+        .unwrap_or_else(|error| panic!("deserialize timestamp offset command: {error}"));
+    assert_eq!(decoded, command);
+    assert!(encoded.contains("position = \"timestamp\""));
+    assert!(encoded.contains("timestamp_millis = 1700000000123"));
+
+    let event = encode(&AdapterEvent::OffsetListed(AdminOffsetListing {
+        operation_id: operation("admin-offset-timestamp"),
+        topic: "records".to_owned(),
+        partition: 0,
+        offset: Some(1),
+        timestamp_millis: Some(1_700_000_000_123),
+    }));
+    assert!(event.contains("timestamp_millis = 1700000000123"));
 }
 
 #[test]
@@ -192,7 +225,8 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         operation_id: operation("admin-offset-missing"),
         topic: "records".to_owned(),
         partition: 1,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         expected_offset: None,
         expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),
         timeout_ms: 1_000,
@@ -209,7 +243,8 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         operation_id: operation("admin-offset-missing"),
         topic: "records".to_owned(),
         partition: 1,
-        position: AdminOffsetPosition::Latest,
+        position: AdminOffsetSelector::Latest,
+        timestamp_millis: None,
         timeout_ms: 1_000,
     });
 
