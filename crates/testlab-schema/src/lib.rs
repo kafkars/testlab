@@ -3,6 +3,7 @@ mod adapter;
 mod admin_acl;
 mod admin_acl_validation;
 mod admin_action_validation;
+mod admin_broker_unregistration;
 mod admin_classic_group;
 mod admin_classic_group_transition_validation;
 mod admin_client_quota;

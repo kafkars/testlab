@@ -184,6 +184,7 @@ pub enum AdapterCommand {
     AlterTopicConfigs(crate::AlterTopicConfigsCommand),
     AlterTopicConfig(crate::AlterTopicConfigCommand),
     DescribeCluster(crate::DescribeClusterCommand),
+    UnregisterBroker(crate::UnregisterBrokerCommand),
     DescribeFeatures(crate::DescribeFeaturesCommand),
     ValidateFeatureUpdates(crate::ValidateFeatureUpdatesCommand),
     ExerciseDelegationTokenLifecycle(crate::ExerciseDelegationTokenLifecycleCommand),

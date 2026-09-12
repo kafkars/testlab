@@ -1,4 +1,4 @@
-schema_version = 90
+schema_version = 91
 id = "kafka.admin-describe-share-groups"
 title = "packaged admin describes two configured Share racks in caller order"
 description = "Two rack-configured Share groups retain distinct acquired records while one caller-ordered public batch preserves each detailed state, rack, and assignment; separate read-only Kafka CLI state queries confirm both group states and member counts."

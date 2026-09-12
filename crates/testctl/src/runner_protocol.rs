@@ -119,6 +119,7 @@ pub(crate) enum ExpectedEvent {
         config_name: String,
     },
     ClusterDescribed(OperationId),
+    BrokerUnregistered(OperationId, i32),
     FeaturesDescribed(OperationId),
     FeatureUpdatesValidated(OperationId),
     DelegationTokenLifecycleExercised(OperationId),

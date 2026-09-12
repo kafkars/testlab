@@ -139,6 +139,10 @@ pub(super) fn classify_admin(
             operation_id == &actual.operation_id
         }
         (
+            ExpectedEvent::BrokerUnregistered(operation_id, broker_id),
+            AdapterEvent::BrokerUnregistered(actual),
+        ) => operation_id == &actual.operation_id && broker_id == &actual.broker_id,
+        (
             ExpectedEvent::PartitionReassignmentsAltered(operation_id),
             AdapterEvent::PartitionReassignmentsAltered(actual),
         ) => operation_id == &actual.operation_id,

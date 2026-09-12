@@ -2,6 +2,8 @@ use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 use crate::observer_admin_acl_target;
 use crate::observer_admin_batch_topic_target;
+use crate::observer_admin_broker_unregistration_target;
+pub(super) use crate::observer_admin_broker_unregistration_target::BrokerUnregistrationTarget;
 use crate::observer_admin_client_quota_target;
 use crate::observer_admin_config_target;
 pub(super) use crate::observer_admin_config_types::{ConfigBatchTarget, ConfigTarget};
@@ -46,6 +48,7 @@ pub(super) enum AdminTarget {
     TopicIdentities(ListTarget),
     TopicDeletions(ListTarget),
     Cluster(OperationId),
+    BrokerUnregistration(BrokerUnregistrationTarget),
     Features(OperationId),
     MetadataQuorum(OperationId),
     Producers(observer_admin_producer_target::ProducerTarget),
@@ -154,6 +157,7 @@ impl AdminTarget {
             .or(observer_admin_acl_target::match_action(action)?)
             .or(observer_admin_offset_batch_target::match_action(action)?)
             .or(observer_admin_batch_topic_target::match_action(action)?)
+            .or_else(|| observer_admin_broker_unregistration_target::match_action(action))
             .or(observer_admin_topic_deletion_batch_target::match_action(
                 action,
             )?)
@@ -205,6 +209,7 @@ impl AdminTarget {
             | Self::ShareGroups(target)
             | Self::ClassicGroups(target) => &target.operation_id,
             Self::Cluster(operation_id) => operation_id,
+            Self::BrokerUnregistration(target) => &target.operation_id,
             Self::Features(operation_id) => operation_id,
             Self::MetadataQuorum(operation_id) => operation_id,
             Self::Producers(target) => &target.operation_id,

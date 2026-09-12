@@ -175,6 +175,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DeleteRecords(_)
             | ScenarioAction::DeleteRecordsBatch(_)
             | ScenarioAction::DescribeCluster(_)
+            | ScenarioAction::UnregisterBroker(_)
             | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::ValidateFeatureUpdates(_)
             | ScenarioAction::ExerciseDelegationTokenLifecycle(_)
@@ -237,7 +238,6 @@ fn verify_finish(index: &HistoryIndex, violations: &mut Vec<Violation>) {
         check("LIFE-006", "adapter finish", evidence, violations);
     }
 }
-
 fn verify_transaction_lifecycle(
     action: &ScenarioAction,
     index: &HistoryIndex,

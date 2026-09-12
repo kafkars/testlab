@@ -3,15 +3,16 @@
 use std::collections::BTreeMap;
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminDelegationTokenLifecycle, AdminStreamsGroupAdminLifecycle,
-    BrokerDelegationTokensState, BrokerStateObservation, BrokerStreamsGroupsState, OperationId,
-    ScenarioAction,
+    AdapterCommand, AdapterEvent, AdminBrokerUnregistration, AdminDelegationTokenLifecycle,
+    AdminStreamsGroupAdminLifecycle, BrokerDelegationTokensState, BrokerStateObservation,
+    BrokerStreamsGroupsState, OperationId, ScenarioAction,
 };
 
 pub(crate) use super::admin_client_quota::Indexed;
 
 #[derive(Debug, Default)]
 pub(crate) struct AdminLifecycleIndex {
+    pub(crate) brokers_unregistered: BTreeMap<OperationId, Vec<Indexed<AdminBrokerUnregistration>>>,
     pub(crate) delegation_completed:
         BTreeMap<OperationId, Vec<Indexed<AdminDelegationTokenLifecycle>>>,
     pub(crate) delegation_observed:
@@ -24,6 +25,14 @@ pub(crate) struct AdminLifecycleIndex {
 impl AdminLifecycleIndex {
     pub(crate) fn record_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
         match event {
+            AdapterEvent::BrokerUnregistered(value) => self
+                .brokers_unregistered
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(Indexed {
+                    history_sequence: sequence,
+                    value: value.clone(),
+                }),
             AdapterEvent::DelegationTokenLifecycleExercised(value) => self
                 .delegation_completed
                 .entry(value.operation_id.clone())
@@ -75,6 +84,7 @@ impl AdminLifecycleIndex {
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
     match action {
+        ScenarioAction::UnregisterBroker(value) => Some(&value.operation_id),
         ScenarioAction::ExerciseDelegationTokenLifecycle(value) => Some(&value.operation_id),
         ScenarioAction::ExerciseStreamsGroupAdminLifecycle(value) => Some(&value.operation_id),
         _ => None,
@@ -83,6 +93,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
 
 pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&OperationId> {
     match command {
+        AdapterCommand::UnregisterBroker(value) => Some(&value.operation_id),
         AdapterCommand::ExerciseDelegationTokenLifecycle(value) => Some(&value.operation_id),
         AdapterCommand::ExerciseStreamsGroupAdminLifecycle(value) => Some(&value.operation_id),
         _ => None,
@@ -91,6 +102,12 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
 
 pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Option<bool> {
     Some(match (action, command) {
+        (ScenarioAction::UnregisterBroker(action), AdapterCommand::UnregisterBroker(command)) => {
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.broker_id == command.broker_id
+                && action.timeout_ms == command.timeout_ms
+        }
         (
             ScenarioAction::ExerciseDelegationTokenLifecycle(action),
             AdapterCommand::ExerciseDelegationTokenLifecycle(command),
@@ -107,7 +124,9 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.altered_offset == command.altered_offset
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::ExerciseDelegationTokenLifecycle(_), _)
+        (ScenarioAction::UnregisterBroker(_), _)
+        | (_, AdapterCommand::UnregisterBroker(_))
+        | (ScenarioAction::ExerciseDelegationTokenLifecycle(_), _)
         | (_, AdapterCommand::ExerciseDelegationTokenLifecycle(_))
         | (ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_), _)
         | (_, AdapterCommand::ExerciseStreamsGroupAdminLifecycle(_)) => false,

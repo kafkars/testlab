@@ -70,6 +70,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::RecordsDeleted(_)
             | AdapterEvent::RecordsBatchDeleted(_)
             | AdapterEvent::ClusterDescribed(_)
+            | AdapterEvent::BrokerUnregistered(_)
             | AdapterEvent::FeaturesDescribed(_)
             | AdapterEvent::FeatureUpdatesValidated(_)
             | AdapterEvent::DelegationTokenLifecycleExercised(_)

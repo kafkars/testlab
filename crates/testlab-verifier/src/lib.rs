@@ -3,6 +3,7 @@
 mod admin;
 mod admin_acl;
 mod admin_batch;
+mod admin_broker_unregistration;
 mod admin_classic_groups;
 mod admin_client_quota;
 mod admin_cluster;
@@ -98,6 +99,8 @@ pub use verify::verify;
 mod admin_acl_test;
 #[cfg(test)]
 mod admin_batch_test;
+#[cfg(test)]
+mod admin_broker_unregistration_test;
 #[cfg(test)]
 mod admin_classic_groups_test;
 #[cfg(test)]

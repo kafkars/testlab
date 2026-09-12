@@ -61,6 +61,9 @@ transaction-fencing method to the adapter command.
 Protocol v87, scenario schema v90, and evidence schema v76 add the bounded
 single-partition Admin-abort terminal operation and retain its public producer
 state before and after the mutation.
+Protocol v88, scenario schema v91, and evidence schema v77 add reversible
+broker-unregistration evidence: the public completion, exact immediate
+independent remaining broker set, and same-cluster restoration after restart.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -648,6 +651,17 @@ transaction completion so ordinary token-drop cleanup cannot establish the
 transition. One immediate pinned Kafka CLI snapshot before any later command
 must preserve that cleared producer identity, sequence, coordinator epoch, and
 monotonic timestamp; token-drop cleanup may append a later abort marker.
+
+ADMIN-076 binds one exact public broker-unregistration command to a broker that
+Testlab has just stopped in its disposable three-broker environment. The public
+completion must preserve the selected broker ID and bounded throttle, followed
+before any later adapter command by an independently polled exact remaining
+broker set. A preceding and later public cluster description, each immediately
+corroborated by independent metadata, must expose the complete original broker
+set and the same nonempty cluster ID. Exact successful environment stop and
+start terminals for the selected broker must bracket the mutation and restored
+description, making the release scenario reversible without treating restart
+success as mutation evidence.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

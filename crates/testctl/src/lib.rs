@@ -47,6 +47,7 @@ mod session_command;
 mod session_command_admin;
 mod session_command_admin_acl;
 mod session_command_admin_batch;
+mod session_command_admin_broker_unregistration;
 mod session_command_admin_client_quota;
 mod session_command_admin_config;
 mod session_command_admin_delegation_token;

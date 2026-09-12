@@ -182,7 +182,6 @@ pub enum AdapterEvent {
     },
     TopicCreated(crate::AdminTopicCompletion),
     TopicCreationValidated(crate::AdminTopicCompletion),
-    /// One public admin batch topic-creation call returned ordered outcomes.
     TopicsCreationCompleted(crate::AdminTopicsCreationBatch),
     /// One public admin partition-count increase completed successfully.
     TopicPartitionsCreated(crate::AdminTopicCompletion),
@@ -205,6 +204,7 @@ pub enum AdapterEvent {
     /// One selected topic-configuration replacement validated without mutation.
     TopicConfigAlterationValidated(crate::AdminTopicConfigCompletion),
     ClusterDescribed(crate::AdminClusterDescription),
+    BrokerUnregistered(crate::AdminBrokerUnregistration),
     FeaturesDescribed(crate::AdminFeaturesDescription),
     FeatureUpdatesValidated(crate::AdminFeatureUpdatesValidation),
     DelegationTokenLifecycleExercised(crate::AdminDelegationTokenLifecycle),

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v87 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v90 and evidence schema v76.
+Protocol v88 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v91 and evidence schema v77.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -125,6 +125,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `alter_topic_configs`
 - `alter_topic_config`
 - `describe_cluster`
+- `unregister_broker`
 - `describe_features`
 - `validate_feature_updates`
 - `exercise_delegation_token_lifecycle`
@@ -295,6 +296,7 @@ timeouts invalidate evidence.
 - `topic_configs_altered`
 - `topic_config_altered`
 - `cluster_described`
+- `broker_unregistered`
 - `features_described`
 - `feature_updates_validated`
 - `delegation_token_lifecycle_exercised`
@@ -845,6 +847,16 @@ delete completion. Cluster description reports the public cluster identity and
 broker IDs; the environment independently queries the same facts and owns the
 expected broker count through its declared topology.
 
+Broker unregistration carries only the exact client, operation, broker ID, and
+deadline. Scenario validation confines it to a contiguous public cluster
+baseline, matching environment-owned broker stop, unregistration, matching
+broker start, and restored public cluster description. The completion preserves
+the requested broker ID and Kafka throttle. Before the broker can restart, an
+independent librdkafka metadata query polls for the exact scenario-owned
+remaining broker set. The later public and independent descriptions must restore
+the original broker set under the same nonempty cluster ID. This destructive
+scenario is configured only for the disposable plaintext three-broker cell.
+
 Cluster feature description carries only client identity, operation identity,
 and one complete deadline. Its public completion retains canonical supported
 and finalized numeric ranges, the supported-range completeness marker, the
@@ -1041,6 +1053,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v87 is an exact semantic contract. New capabilities may be declared
+Protocol v88 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -114,6 +114,7 @@ impl HistoryIndex {
             | ScenarioAction::AlterTopicConfigs(_)
             | ScenarioAction::AlterTopicConfig(_)
             | ScenarioAction::DescribeCluster(_)
+            | ScenarioAction::UnregisterBroker(_)
             | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::ValidateFeatureUpdates(_)
             | ScenarioAction::ExerciseDelegationTokenLifecycle(_)

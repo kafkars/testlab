@@ -1,0 +1,59 @@
+schema_version = 91
+id = "kafka.admin-unregister-broker"
+title = "public Admin unregisters and restores one stopped broker"
+description = "Testlab proves the complete three-broker identity, stops broker 3, invokes the packaged public broker-unregistration API, independently observes only brokers 1 and 2, restarts broker 3, and proves the original cluster identity and broker set are restored."
+timeout_ms = 180000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-baseline-cluster"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-unregister-broker-baseline"
+timeout_ms = 20000
+
+[[steps]]
+id = "stop-broker-3"
+kind = "stop_broker"
+broker_ordinal = 3
+timeout_ms = 20000
+
+[[steps]]
+id = "unregister-broker-3"
+kind = "unregister_broker"
+client_id = "client-1"
+operation_id = "admin-unregister-broker-3"
+broker_id = 3
+expected_remaining_broker_ids = [1, 2]
+baseline_operation_id = "admin-unregister-broker-baseline"
+restored_operation_id = "admin-unregister-broker-restored"
+timeout_ms = 30000
+
+[[steps]]
+id = "start-broker-3"
+kind = "start_broker"
+broker_ordinal = 3
+timeout_ms = 60000
+
+[[steps]]
+id = "describe-restored-cluster"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-unregister-broker-restored"
+timeout_ms = 30000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

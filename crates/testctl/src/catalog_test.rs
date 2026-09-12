@@ -15,12 +15,12 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 179);
+    assert_eq!(summary.scenarios, 180);
     assert_eq!(summary.packs, 28);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 23);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 165);
+    assert_eq!(summary.contracts, 166);
 }
 
 #[test]
@@ -110,6 +110,22 @@ fn release_cells_use_their_topology_pack() {
             .iter()
             .any(|scenario| scenario.ends_with("share-group-leader-recovery.toml"))
     );
+    assert!(
+        pack.scenarios
+            .iter()
+            .any(|scenario| scenario.ends_with("admin-unregister-broker.toml"))
+    );
+    let (_, security_pack) =
+        match repository.load_pack(Path::new("packs/kafkars-three-broker-security.toml")) {
+            Ok(value) => value,
+            Err(error) => panic!("load three-broker security pack: {error}"),
+        };
+    assert!(
+        !security_pack
+            .scenarios
+            .iter()
+            .any(|scenario| scenario.ends_with("admin-unregister-broker.toml"))
+    );
 }
 
 #[test]
@@ -132,7 +148,8 @@ fn pull_request_pack_excludes_release_disruptions() {
             .any(|scenario| scenario.contains("restart")
                 || scenario.contains("fencing")
                 || scenario.contains("force-termination")
-                || scenario.contains("partition-abort"))
+                || scenario.contains("partition-abort")
+                || scenario.contains("unregister-broker"))
     );
     assert!(
         pack.scenarios

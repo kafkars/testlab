@@ -511,6 +511,12 @@ statement = "One public partition transaction abort preserves the exact active p
 category = "admin"
 
 [[contract]]
+id = "ADMIN-076"
+title = "Broker unregistration is exact, independently observed, and reversible"
+statement = "One stopped registered broker is unregistered through the public Admin surface, immediate independent metadata exposes the exact remaining cluster, and restart restores the same cluster identity and complete broker set."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

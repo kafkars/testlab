@@ -76,6 +76,7 @@ mod observer;
 mod observer_admin;
 mod observer_admin_acl_target;
 mod observer_admin_batch_topic_target;
+mod observer_admin_broker_unregistration_target;
 mod observer_admin_classic_group;
 mod observer_admin_client_quota_target;
 mod observer_admin_config;

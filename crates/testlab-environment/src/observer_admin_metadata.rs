@@ -9,7 +9,7 @@ use testlab_schema::{BrokerClusterState, BrokerStateObservation, BrokerTopicStat
 
 use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
-use crate::observer_admin_target::{ListTarget, TopicTarget, ordinal};
+use crate::observer_admin_target::{BrokerUnregistrationTarget, ListTarget, TopicTarget, ordinal};
 use crate::observer_error::ObserverError;
 
 const POLL_SLICE: Duration = Duration::from_millis(50);
@@ -102,14 +102,66 @@ pub(super) fn capture_cluster(
     request: AdminObserverRequest<'_>,
     operation_id: &OperationId,
 ) -> Result<BrokerStateObservation, ObserverError> {
-    let admin = client(request, "cluster")?;
-    let metadata = admin
-        .inner()
-        .fetch_metadata(None, remaining(request.deadline)?)?;
-    let cluster_id = admin
-        .inner()
-        .fetch_cluster_id(remaining(request.deadline)?)
-        .ok_or_else(|| invalid("cluster ID was null"))?;
+    capture_cluster_when(request, operation_id, "cluster", |broker_ids| {
+        broker_ids.len() == usize::from(request.cluster_size)
+    })
+}
+
+pub(super) fn capture_broker_unregistration(
+    request: AdminObserverRequest<'_>,
+    target: &BrokerUnregistrationTarget,
+) -> Result<BrokerStateObservation, ObserverError> {
+    capture_cluster_when(
+        request,
+        &target.operation_id,
+        "broker-unregistration",
+        |broker_ids| broker_ids == target.expected_remaining_broker_ids.as_slice(),
+    )
+}
+
+fn capture_cluster_when(
+    request: AdminObserverRequest<'_>,
+    operation_id: &OperationId,
+    purpose: &str,
+    ready: impl Fn(&[i32]) -> bool,
+) -> Result<BrokerStateObservation, ObserverError> {
+    let admin = client(request, purpose)?;
+    loop {
+        let metadata = admin
+            .inner()
+            .fetch_metadata(None, remaining(request.deadline)?)?;
+        let cluster_id = admin
+            .inner()
+            .fetch_cluster_id(remaining(request.deadline)?)
+            .ok_or_else(|| invalid("cluster ID was null"))?;
+        let observation = normalize_cluster(
+            request.first_observation,
+            operation_id,
+            cluster_id,
+            &metadata,
+        )?;
+        let BrokerStateObservation::Cluster(cluster) = &observation else {
+            unreachable!("cluster normalization returned another observation kind");
+        };
+        if ready(&cluster.broker_ids) {
+            return Ok(observation);
+        }
+        let wait = request
+            .deadline
+            .saturating_duration_since(std::time::Instant::now());
+        if wait.is_zero() {
+            return Err(ObserverError::Deadline);
+        }
+        thread::sleep(POLL_SLICE.min(wait));
+    }
+}
+
+fn normalize_cluster(
+    observation: u64,
+    operation_id: &OperationId,
+    cluster_id: String,
+    metadata: &Metadata,
+) -> Result<BrokerStateObservation, ObserverError> {
     if cluster_id.is_empty() {
         return Err(invalid("cluster ID was empty"));
     }
@@ -126,15 +178,8 @@ pub(super) fn capture_cluster(
             "metadata contained invalid or duplicate broker IDs",
         ));
     }
-    if broker_ids.len() != usize::from(request.cluster_size) {
-        return Err(invalid(format!(
-            "metadata exposed {} brokers but the environment controls {}",
-            broker_ids.len(),
-            request.cluster_size
-        )));
-    }
     Ok(BrokerStateObservation::Cluster(BrokerClusterState {
-        observation: request.first_observation,
+        observation,
         operation_id: operation_id.clone(),
         cluster_id: Some(cluster_id),
         broker_ids,

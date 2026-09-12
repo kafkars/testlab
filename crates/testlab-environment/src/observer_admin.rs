@@ -107,6 +107,9 @@ pub(super) fn capture(
             request,
             operation_id,
         )?]),
+        AdminTarget::BrokerUnregistration(target) => Ok(vec![
+            observer_admin_metadata::capture_broker_unregistration(request, target)?,
+        ]),
         AdminTarget::ConsumerGroups(target) => {
             observer_admin_group::capture_groups(request, target)
         }

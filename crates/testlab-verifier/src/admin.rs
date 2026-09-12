@@ -1,5 +1,6 @@
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
+use crate::admin_broker_unregistration::verify as verify_broker_unregistration;
 use crate::admin_client_quota::verify_client_quota_action;
 use crate::admin_cluster::verify_cluster_action;
 use crate::admin_config::verify_config_action;
@@ -106,6 +107,7 @@ pub(crate) fn verify_admin(
             || verify_topic_action(&step.action, index, violations)
             || verify_topics_deletion_action(scenario, &step.action, index, violations)
             || verify_topics_description_action(&step.action, index, violations)
+            || verify_broker_unregistration(&step.action, index, violations)
             || verify_cluster_action(&step.action, index, violations)
             || verify_features_action(&step.action, index, violations)
             || verify_producers_action(&step.action, index, violations)
@@ -233,6 +235,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::ListConsumerGroupOffsets(_) => "ADMIN-006",
         ScenarioAction::DeleteTopic(_) => "ADMIN-007",
         ScenarioAction::DescribeCluster(_) => "ADMIN-008",
+        ScenarioAction::UnregisterBroker(_) => "ADMIN-076",
         ScenarioAction::ListConsumerGroups(_) => "ADMIN-009",
         ScenarioAction::DescribeConsumerGroup(_) => "ADMIN-010",
         ScenarioAction::AlterConsumerGroupOffset(_) => "ADMIN-011",

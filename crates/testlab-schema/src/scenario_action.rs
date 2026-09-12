@@ -40,7 +40,6 @@ pub enum ScenarioAction {
         /// Complete election bound.
         timeout_ms: u64,
     },
-    /// Restarts the broker retained by one prior role stop.
     RestoreBrokerRole {
         /// Exact role target used by the paired stop.
         target: crate::BrokerRoleTarget,
@@ -201,6 +200,7 @@ pub enum ScenarioAction {
     AlterTopicConfigs(crate::AlterTopicConfigsAction),
     AlterTopicConfig(crate::AlterTopicConfigAction),
     DescribeCluster(crate::DescribeClusterAction),
+    UnregisterBroker(crate::UnregisterBrokerAction),
     DescribeFeatures(crate::DescribeFeaturesAction),
     ValidateFeatureUpdates(crate::ValidateFeatureUpdatesAction),
     ExerciseDelegationTokenLifecycle(crate::ExerciseDelegationTokenLifecycleAction),

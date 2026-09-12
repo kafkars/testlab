@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v87. It is not a
+An adapter translates one packaged client surface to protocol v88. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -31,6 +31,9 @@ runner and not a verifier.
 - Preserve canonical unfiltered transaction listings, caller-ordered exact
   transaction descriptions, and caller-ordered producer-fencing identities
   without receiving expected states or fields.
+- Submit broker unregistration only once, preserve the exact broker ID and
+  throttle, and never receive the scenario-owned remaining or restored cluster
+  expectations.
 - For `admin_partition_abort`, derive the exact singleton producer and
   coordinator identity from public `DescribeProducers`, retain public state on
   both sides of the Admin mutation, and report completion before transaction

@@ -22,6 +22,7 @@ pub(crate) fn operation_id(action: &ScenarioAction) -> Option<&OperationId> {
         ScenarioAction::AlterTopicConfigs(value) => &value.operation_id,
         ScenarioAction::AlterTopicConfig(value) => &value.operation_id,
         ScenarioAction::DescribeCluster(value) => &value.operation_id,
+        ScenarioAction::UnregisterBroker(value) => &value.operation_id,
         ScenarioAction::DescribeFeatures(value) => &value.operation_id,
         ScenarioAction::ValidateFeatureUpdates(value) => &value.operation_id,
         ScenarioAction::ExerciseDelegationTokenLifecycle(value) => &value.operation_id,

@@ -10,6 +10,10 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
+    if crate::admin_broker_unregistration::validate_action(action, clients, operation_ids, problems)
+    {
+        return;
+    }
     if crate::admin_streams_group::validation::validate(action, clients, operation_ids, problems) {
         return;
     }

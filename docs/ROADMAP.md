@@ -37,7 +37,8 @@
   caller-ordered empty-group deletion, against
   independent Kafka CLI state; transactions, replacement and Admin
   force-termination fencing, broker-derived single-partition Admin abort with
-  pre-cleanup state proof, broker restart, rolling restart, and independently
+  pre-cleanup state proof, reversible stopped-broker unregistration with exact
+  remaining and restored cluster identity, broker restart, rolling restart, and independently
   targeted partition-leader, controller, classic and KIP-848 group-coordinator,
   and transaction-coordinator recovery.
 - Public Admin log-directory coverage preserves selected broker and replica

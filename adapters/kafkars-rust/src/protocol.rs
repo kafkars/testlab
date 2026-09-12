@@ -174,6 +174,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::AlterTopicConfigs(_)
         | AdapterCommand::AlterTopicConfig(_)
         | AdapterCommand::DescribeCluster(_)
+        | AdapterCommand::UnregisterBroker(_)
         | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::ValidateFeatureUpdates(_)
         | AdapterCommand::ExerciseDelegationTokenLifecycle(_)

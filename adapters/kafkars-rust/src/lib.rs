@@ -32,6 +32,7 @@ mod protocol_admin;
 mod protocol_admin_acl;
 mod protocol_admin_acl_mapping;
 mod protocol_admin_acl_result;
+mod protocol_admin_broker_unregistration;
 mod protocol_admin_classic_group;
 mod protocol_admin_client_quota;
 mod protocol_admin_cluster;
