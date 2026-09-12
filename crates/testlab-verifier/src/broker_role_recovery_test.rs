@@ -257,6 +257,7 @@ fn role_progress() -> Vec<(BrokerRoleTarget, AdapterEvent)> {
             AdapterEvent::TransactionCompleted {
                 transaction_id: operation_id("transaction-after-election"),
                 disposition: TransactionDisposition::Commit,
+                validated_topic_ids: Vec::new(),
             },
         ),
     ]

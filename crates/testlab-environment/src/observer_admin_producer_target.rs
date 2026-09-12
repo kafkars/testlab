@@ -36,6 +36,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             operations,
             method,
             disposition: TransactionDisposition::AdminPartitionAbort,
+            topic_identity_operation_id,
             timeout_ms,
         } => {
             let [operation] = operations.as_slice() else {
@@ -51,6 +52,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     operations: operations.clone(),
                     method: *method,
                     disposition: TransactionDisposition::AdminPartitionAbort,
+                    validate_topic_uuids: topic_identity_operation_id.is_some(),
                     timeout_ms: *timeout_ms,
                 },
                 AdminTarget::Producers(ProducerTarget {
@@ -105,6 +107,7 @@ mod tests {
             operations,
             method: Default::default(),
             disposition: TransactionDisposition::AdminPartitionAbort,
+            topic_identity_operation_id: None,
             timeout_ms: 1_000,
         }
     }

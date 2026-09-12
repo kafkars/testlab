@@ -4,7 +4,7 @@ use std::io::Write;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use crate::kafkars_api::{ErrorKind, KafkaError, RetryAdvice, Transaction, TransactionalProducer};
+use crate::kafkars_api::{RetryAdvice, TopicUuid, Transaction, TransactionalProducer};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, BatchRecord, CommandId, OperationId,
     TerminalStatus, TransactionDisposition, TransactionSendMethod,
@@ -54,17 +54,39 @@ pub(crate) fn dispatch<W: Write>(
             operations,
             method,
             disposition,
+            validate_topic_uuids,
             timeout_ms,
-        } => execute(
-            state.transactional_producer_mut(&producer_id)?,
-            writer,
-            command_id,
-            transaction_id,
-            operations,
-            method,
-            disposition,
-            Duration::from_millis(timeout_ms),
-        ),
+        } => {
+            if validate_topic_uuids && disposition != TransactionDisposition::Commit {
+                return Err(AdapterError::TransactionResult(
+                    "topic UUID validation requires commit disposition".to_owned(),
+                ));
+            }
+            let deadline = Instant::now()
+                .checked_add(Duration::from_millis(timeout_ms))
+                .ok_or_else(|| {
+                    crate::transaction_end::timeout_error("transaction deadline overflow")
+                })?;
+            let validation = crate::transaction_topic_validation::TopicValidation::resolve(
+                state,
+                &producer_id,
+                &transaction_id,
+                &operations,
+                validate_topic_uuids,
+                deadline,
+            )?;
+            execute(
+                state.transactional_producer_mut(&producer_id)?,
+                writer,
+                command_id,
+                transaction_id,
+                operations,
+                method,
+                disposition,
+                validation,
+                deadline,
+            )
+        }
         AdapterCommand::CloseTransactionalProducer { producer_id } => {
             state.close_transactional_producer(&producer_id)?;
             emit(
@@ -89,11 +111,9 @@ fn execute<W: Write>(
     operations: Vec<BatchRecord>,
     method: TransactionSendMethod,
     disposition: TransactionDisposition,
-    timeout: Duration,
+    validation: crate::transaction_topic_validation::TopicValidation,
+    deadline: Instant,
 ) -> Result<(), AdapterError> {
-    let deadline = Instant::now()
-        .checked_add(timeout)
-        .ok_or_else(|| timeout_error("transaction deadline overflow"))?;
     loop {
         match producer.begin() {
             Ok(transaction) => {
@@ -105,6 +125,7 @@ fn execute<W: Write>(
                     operations,
                     method,
                     disposition,
+                    validation,
                     deadline,
                 );
             }
@@ -126,23 +147,42 @@ fn execute_started<W: Write>(
     operations: Vec<BatchRecord>,
     method: TransactionSendMethod,
     disposition: TransactionDisposition,
+    validation: crate::transaction_topic_validation::TopicValidation,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     match method {
         TransactionSendMethod::Send => {
             for operation in operations {
-                send(&mut transaction, writer, &command_id, operation, deadline)?;
+                let topic_uuid = validation.topic_uuid(&operation.record.topic)?;
+                send(
+                    &mut transaction,
+                    writer,
+                    &command_id,
+                    operation,
+                    topic_uuid,
+                    deadline,
+                )?;
             }
         }
-        TransactionSendMethod::SendBatch => crate::transaction_send_batch::send(
-            &mut transaction,
-            writer,
-            &command_id,
-            operations,
-            deadline,
-        )?,
+        TransactionSendMethod::SendBatch => {
+            let topic_uuid = operations
+                .first()
+                .map(|operation| validation.topic_uuid(&operation.record.topic))
+                .transpose()?
+                .flatten();
+            crate::transaction_send_batch::send(
+                &mut transaction,
+                writer,
+                &command_id,
+                operations,
+                topic_uuid,
+                deadline,
+            )?;
+        }
     }
-    end(transaction, disposition, deadline)?;
+    validation.seal(&mut transaction, deadline)?;
+    let validated_topic_ids = validation.topic_ids();
+    crate::transaction_end::end(transaction, disposition, deadline)?;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -150,6 +190,7 @@ fn execute_started<W: Write>(
             AdapterEvent::TransactionCompleted {
                 transaction_id,
                 disposition,
+                validated_topic_ids,
             },
         ),
     )
@@ -160,12 +201,16 @@ pub(crate) fn send<W: Write>(
     writer: &mut W,
     command_id: &CommandId,
     operation: BatchRecord,
+    topic_uuid: Option<TopicUuid>,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     let operation_id = operation.operation_id;
     let mut record = normalize::record(operation.record)?;
+    if let Some(topic_uuid) = topic_uuid {
+        record = record.expected_topic_uuid(topic_uuid);
+    }
     let observer = loop {
-        match transaction.send(record, remaining(deadline)?) {
+        match transaction.send(record, crate::transaction_end::remaining(deadline)?) {
             Ok(observer) => break observer,
             Err(rejection) => {
                 let (returned, error) = rejection.into_parts();
@@ -234,63 +279,4 @@ pub(crate) fn send<W: Write>(
         ),
     )?;
     terminal_error.map_or(Ok(()), |error| Err(AdapterError::Client(error)))
-}
-
-pub(crate) fn end(
-    transaction: Transaction<'_>,
-    disposition: TransactionDisposition,
-    deadline: Instant,
-) -> Result<(), AdapterError> {
-    match disposition {
-        TransactionDisposition::Commit => commit(transaction, deadline),
-        TransactionDisposition::Abort => abort(transaction, deadline),
-        TransactionDisposition::AdminPartitionAbort => Err(AdapterError::TransactionResult(
-            "admin partition abort reached ordinary transaction end".to_owned(),
-        )),
-    }
-}
-
-fn commit(mut transaction: Transaction<'_>, deadline: Instant) -> Result<(), AdapterError> {
-    loop {
-        match transaction.commit(remaining(deadline)?) {
-            Ok(observer) => return observer.wait().map_err(AdapterError::Client),
-            Err(rejection) => {
-                let (returned, error) = rejection.into_parts();
-                transaction = returned;
-                if error.retry_advice() != RetryAdvice::RetrySafe || Instant::now() >= deadline {
-                    return Err(AdapterError::Client(error));
-                }
-                thread::sleep(Duration::from_millis(1));
-            }
-        }
-    }
-}
-
-fn abort(mut transaction: Transaction<'_>, deadline: Instant) -> Result<(), AdapterError> {
-    loop {
-        match transaction.abort(remaining(deadline)?) {
-            Ok(observer) => return observer.wait().map_err(AdapterError::Client),
-            Err(rejection) => {
-                let (returned, error) = rejection.into_parts();
-                transaction = returned;
-                if error.retry_advice() != RetryAdvice::RetrySafe || Instant::now() >= deadline {
-                    return Err(AdapterError::Client(error));
-                }
-                thread::sleep(Duration::from_millis(1));
-            }
-        }
-    }
-}
-
-pub(crate) fn remaining(deadline: Instant) -> Result<Duration, AdapterError> {
-    let remaining = deadline.saturating_duration_since(Instant::now());
-    if remaining.is_zero() {
-        Err(timeout_error("transaction command deadline elapsed"))
-    } else {
-        Ok(remaining)
-    }
-}
-
-fn timeout_error(message: &str) -> AdapterError {
-    AdapterError::Client(KafkaError::new(ErrorKind::Timeout, message))
 }

@@ -40,6 +40,7 @@ fn recorded_commands_retain_every_observed_operation() {
                 operations: vec![record("transaction-record-1", 0)],
                 method: Default::default(),
                 disposition: TransactionDisposition::Commit,
+                validate_topic_uuids: false,
                 timeout_ms: 1_000,
             },
         ),

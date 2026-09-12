@@ -152,8 +152,10 @@
   configuration.
 - Multi-record transactions span topics and partitions through individual
   sends, while dedicated homogeneous sets exercise one public `send_batch` for
-  both commit and abort with the same field and header distinctions. Committed
-  sets retain exact independent coordinates and
+  both commit and abort with the same field and header distinctions. A
+  dedicated commit resolves caller-ordered public topic UUIDs, binds every
+  staged record to its UUID, and seals the current transaction revision through
+  fresh public validation before commit. Committed sets retain exact independent coordinates and
   per-partition order, aborted sets remain wholly read-committed invisible, and
   successive commit/abort boundaries on one public producer cannot overlap. A
   separate singleton scenario derives the active producer and coordinator

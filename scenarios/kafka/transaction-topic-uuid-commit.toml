@@ -1,0 +1,76 @@
+schema_version = 101
+id = "kafka.transaction-topic-uuid-commit"
+title = "one transaction validates UUID-bound topics before commit"
+description = "Two records bind independently proven Kafka topic UUIDs during public admission; one fresh public transaction validation seals the exact topic set before commit, and independent read-committed observation proves both records."
+timeout_ms = 180000
+requires = ["producer", "transactions", "transaction_topic_uuid_validation", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-topic-uuid-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "describe-topic-identities"
+kind = "describe_topics"
+client_id = "client-1"
+operation_id = "transaction-topic-identities"
+selection = "topic_id"
+topics = [
+  { topic = "testlab-transaction-topic-uuid-alpha", expected_partitions = [0] },
+  { topic = "testlab-transaction-topic-uuid-zulu", expected_partitions = [0] },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "commit-uuid-bound-records"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-topic-uuid-commit"
+disposition = "commit"
+topic_identity_operation_id = "transaction-topic-identities"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "op-topic-uuid-alpha"
+record = { topic = "testlab-transaction-topic-uuid-alpha", partition = 0, sequence = 1, value = { encoding = "utf8", data = "alpha" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-topic-uuid-alpha" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } }] }
+
+[[steps.operations]]
+operation_id = "op-topic-uuid-zulu"
+record = { topic = "testlab-transaction-topic-uuid-zulu", partition = 0, sequence = 2, value = { encoding = "utf8", data = "zulu" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "op-topic-uuid-zulu" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } }] }
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-topic-uuid-alpha"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "op-topic-uuid-zulu"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

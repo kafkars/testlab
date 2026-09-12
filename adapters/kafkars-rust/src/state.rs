@@ -139,6 +139,14 @@ impl AdapterState {
         self.transactional_producers.get_mut(producer_id)
     }
 
+    pub(crate) fn transactional_producer_client(
+        &self,
+        producer_id: &ProducerId,
+    ) -> Result<Client, StateError> {
+        let client_id = self.transactional_producers.client_id(producer_id)?;
+        self.client(&client_id).cloned()
+    }
+
     pub(crate) fn close_transactional_producer(
         &mut self,
         producer_id: &ProducerId,

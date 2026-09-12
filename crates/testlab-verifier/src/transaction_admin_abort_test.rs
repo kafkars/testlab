@@ -96,6 +96,7 @@ fn history() -> Vec<HistoryEntry> {
             AdapterEvent::TransactionCompleted {
                 transaction_id: transaction_id.clone(),
                 disposition: TransactionDisposition::AdminPartitionAbort,
+                validated_topic_ids: Vec::new(),
             },
         ),
         state(
@@ -122,6 +123,7 @@ fn action() -> ScenarioAction {
         }],
         method: Default::default(),
         disposition: TransactionDisposition::AdminPartitionAbort,
+        topic_identity_operation_id: None,
         timeout_ms: 1_000,
     }
 }
@@ -133,6 +135,7 @@ fn exact_command(action: &ScenarioAction) -> AdapterCommand {
         operations,
         method,
         disposition,
+        topic_identity_operation_id,
         timeout_ms,
     } = action
     else {
@@ -144,6 +147,7 @@ fn exact_command(action: &ScenarioAction) -> AdapterCommand {
         operations: operations.clone(),
         method: *method,
         disposition: *disposition,
+        validate_topic_uuids: topic_identity_operation_id.is_some(),
         timeout_ms: *timeout_ms,
     }
 }

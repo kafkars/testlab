@@ -48,6 +48,7 @@ pub(crate) use kafkars::producer::{
     ProducerRetryConfig, Record, RecordMetadata, Send, TrySendError,
 };
 pub(crate) use kafkars::security::{Sasl, Security, Tls};
+pub(crate) use kafkars::topic::TopicUuid;
 pub(crate) use kafkars::transaction::{
     Transaction, TransactionBatchMetadata, TransactionalProducer,
 };

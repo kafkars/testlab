@@ -13,6 +13,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             operations,
             method: TransactionSendMethod::SendBatch,
             disposition,
+            topic_identity_operation_id,
             timeout_ms,
         } = &step.action
         else {
@@ -24,6 +25,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             operations: operations.clone(),
             method: TransactionSendMethod::SendBatch,
             disposition: *disposition,
+            validate_topic_uuids: topic_identity_operation_id.is_some(),
             timeout_ms: *timeout_ms,
         };
         let commands = index

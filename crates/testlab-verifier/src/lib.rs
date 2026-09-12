@@ -1,5 +1,3 @@
-//! Pure deterministic verification maps public history and observations to contracts.
-
 mod admin;
 mod admin_acl;
 mod admin_batch;
@@ -98,6 +96,7 @@ mod transaction_boundaries;
 mod transaction_offsets;
 mod transaction_records;
 mod transaction_send_method;
+mod transaction_topic_uuid;
 mod verify;
 mod verify_index;
 
@@ -290,6 +289,8 @@ mod transaction_records_test;
 mod transaction_send_method_test;
 #[cfg(test)]
 mod transaction_test;
+#[cfg(test)]
+mod transaction_topic_uuid_test;
 #[cfg(test)]
 mod verify_fixture;
 #[cfg(test)]

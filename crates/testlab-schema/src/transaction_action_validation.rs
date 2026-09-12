@@ -56,6 +56,7 @@ pub(crate) fn validate(
             operations,
             method,
             disposition,
+            topic_identity_operation_id: _,
             timeout_ms,
         } => execute_validation::execute(
             producer_id,

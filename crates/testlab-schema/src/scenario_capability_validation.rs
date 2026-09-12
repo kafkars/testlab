@@ -108,6 +108,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     ) {
         usage.insert(Capability::TransactionBatchSend);
     }
+    if matches!(
+        action,
+        ScenarioAction::ExecuteTransaction {
+            topic_identity_operation_id: Some(_),
+            ..
+        }
+    ) {
+        usage.insert(Capability::TransactionTopicUuidValidation);
+    }
     let capability = match action {
         ScenarioAction::SetBrokerBehavior { .. } => Some(Capability::ModelBroker),
         ScenarioAction::CreateClient(action) if action.expected_cluster_id.is_some() => {

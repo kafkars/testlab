@@ -257,10 +257,10 @@ pub enum AdapterEvent {
         /// Created transactional producer.
         producer_id: ProducerId,
     },
-    /// One public transaction completed its requested terminal operation.
     TransactionCompleted {
         transaction_id: OperationId,
         disposition: TransactionDisposition,
+        validated_topic_ids: Vec<[u8; 16]>,
     },
     /// One public transactional transform and checkpoint transfer completed.
     TransactionalTransformCompleted(crate::TransactionalTransformCompletion),

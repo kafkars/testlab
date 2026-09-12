@@ -129,7 +129,14 @@ fn execute_started<W: Write>(
     initialization_timeout: Duration,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
-    transaction_execute::send(&mut transaction, writer, &command_id, operation, deadline)?;
+    transaction_execute::send(
+        &mut transaction,
+        writer,
+        &command_id,
+        operation,
+        None,
+        deadline,
+    )?;
     let commit_error_code = match fence_method {
         TransactionFenceMethod::ReplacementInitialization => {
             create_replacement(

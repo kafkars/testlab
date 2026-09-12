@@ -177,6 +177,7 @@ fn transaction_step(
             operations: operations.to_vec(),
             method: Default::default(),
             disposition,
+            topic_identity_operation_id: None,
             timeout_ms: 1_000,
         },
     )
@@ -224,6 +225,7 @@ fn transaction_history(
         AdapterEvent::TransactionCompleted {
             transaction_id: operation_id(transaction_id),
             disposition: TransactionDisposition::Commit,
+            validated_topic_ids: Vec::new(),
         },
     ));
     history

@@ -145,6 +145,7 @@ impl HistoryIndex {
             AdapterEvent::TransactionCompleted {
                 transaction_id,
                 disposition,
+                validated_topic_ids,
             } => self
                 .transactions_completed
                 .entry(transaction_id.clone())
@@ -152,6 +153,7 @@ impl HistoryIndex {
                 .push(IndexedTransactionCompletion {
                     history_sequence: sequence,
                     disposition: *disposition,
+                    validated_topic_ids: validated_topic_ids.clone(),
                 }),
             AdapterEvent::TransactionalTransformCompleted(completion) => {
                 self.transactions_completed
@@ -160,6 +162,7 @@ impl HistoryIndex {
                     .push(IndexedTransactionCompletion {
                         history_sequence: sequence,
                         disposition: completion.disposition,
+                        validated_topic_ids: Vec::new(),
                     });
                 self.transactional_transforms
                     .entry(completion.transaction_id.clone())

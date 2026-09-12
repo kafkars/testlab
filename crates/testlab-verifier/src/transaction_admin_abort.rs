@@ -137,6 +137,7 @@ fn expected_command(action: &ScenarioAction) -> Option<AdapterCommand> {
         operations,
         method,
         disposition,
+        topic_identity_operation_id,
         timeout_ms,
     } = action
     else {
@@ -148,6 +149,7 @@ fn expected_command(action: &ScenarioAction) -> Option<AdapterCommand> {
         operations: operations.clone(),
         method: *method,
         disposition: *disposition,
+        validate_topic_uuids: topic_identity_operation_id.is_some(),
         timeout_ms: *timeout_ms,
     })
 }

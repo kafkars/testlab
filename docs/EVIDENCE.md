@@ -104,6 +104,11 @@ Protocol v97, scenario schema v100, and evidence schema v86 add ordered partial
 group checkpoints. CONS-020 binds each classic or KIP-848 receive to one exact
 processed-prefix command, an independently observed prefix offset, and exact
 replacement-member delivery of the previously unprocessed suffix.
+Protocol v98, scenario schema v101, and evidence schema v87 add UUID-bound
+transaction commits. TXN-010 joins caller-ordered public and independent topic
+IDs to the exact validation-enabled transaction command and its matching fresh
+commit seal; ordinary staging and read-committed record contracts still prove
+the resulting record set.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -281,6 +286,11 @@ public assignment-fenced next-offset checkpoint. TXN-008 requires a committed
 checkpoint to match an immediate public Admin result and independent broker
 query; abort is established by closing the member and receiving that exact
 input again from the unchanged group position.
+TXN-010 requires the referenced public topic-ID result and its independent
+broker observations to precede one exact validation-enabled transaction
+command. Their nonzero IDs must remain unique and caller-ordered through the
+adapter's committed validation result. The record set separately remains
+subject to TXN-004, TXN-005, and independent read-committed observation.
 
 Targeted broker-role scenarios retain two exact `broker_role_observe`
 operations around each disruption: one owner immediately before the stop and a

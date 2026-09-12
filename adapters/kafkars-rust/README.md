@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v97 over stdin/stdout;
+2. implements protocol v98 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -39,13 +39,16 @@ It:
    observer;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
-6. preserves caller order and exact per-resource public outcomes for admin
+6. resolves UUID-bound transaction topics through public Admin, applies each
+   public `expected_topic_uuid` record guard, and waits for a fresh
+   `validate_for_commit` seal before committing the exact current revision;
+7. preserves caller order and exact per-resource public outcomes for admin
    batches, including mixed success and failure;
-7. maps singleton public admin errors to stable normalized `command_failed`
+8. maps singleton public admin errors to stable normalized `command_failed`
    events without receiving scenario expectations;
-8. forwards validate-only topic creation, partition increase, and incremental
+9. forwards validate-only topic creation, partition increase, and incremental
    configuration changes through the packaged public builders;
-9. executes metadata-backed and explicit `DescribeTopicPartitions` singleton
+10. executes metadata-backed and explicit `DescribeTopicPartitions` singleton
    topic descriptions, detailed caller-ordered plural topic descriptions and
    caller-ordered plural name-based topic deletion with mixed outcomes,
    caller-ordered plural selected topic-configuration descriptions and
@@ -78,10 +81,10 @@ It:
    set/describe/remove operations, and named-user SCRAM-SHA-256/512
    upsert/describe/delete operations as one bounded public call with exact
    non-secret outcomes;
-10. explicitly settles flush, close, client shutdown, exact group-owner
+11. explicitly settles flush, close, client shutdown, exact group-owner
    abandonment, and clone-shared hosted group shutdown through public
    event-stream termination;
-11. exposes the exact packaged version in its descriptor and subject metadata.
+12. exposes the exact packaged version in its descriptor and subject metadata.
 
 Do not copy the model-broker client into the production adapter. The reference
 adapter is a harness fixture, not a Kafka implementation template.

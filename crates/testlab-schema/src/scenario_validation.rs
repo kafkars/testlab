@@ -8,6 +8,8 @@ use crate::{SCENARIO_SCHEMA_VERSION, Scenario, ScenarioError};
 mod group_partial_checkpoint_validation;
 #[path = "group_processing_acknowledgement_validation.rs"]
 mod processing_acknowledgement_validation;
+#[path = "transaction_topic_uuid_validation.rs"]
+mod transaction_topic_uuid_validation;
 
 pub(crate) fn validate(scenario: &Scenario) -> Result<(), ScenarioError> {
     let mut problems = Vec::new();
@@ -57,6 +59,7 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     crate::scenario_broker_policy_validation::validate(scenario, problems);
     processing_acknowledgement_validation::validate(scenario, problems);
     group_partial_checkpoint_validation::validate(scenario, problems);
+    transaction_topic_uuid_validation::validate(scenario, problems);
     validate_role_targets(scenario, problems);
     crate::admin_feature_transition_validation::validate(scenario, problems);
     crate::admin_transition_validation::validate(scenario, problems);

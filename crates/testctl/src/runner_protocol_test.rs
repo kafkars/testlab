@@ -223,6 +223,7 @@ fn transaction_waits_for_exact_disposition_identity() {
             .classify(&AdapterEvent::TransactionCompleted {
                 transaction_id: transaction_id.clone(),
                 disposition: TransactionDisposition::Abort,
+                validated_topic_ids: Vec::new(),
             })
             .unwrap_or_else(|error| panic!("classify transaction completion: {error}")),
         EventDisposition::Complete
@@ -232,6 +233,7 @@ fn transaction_waits_for_exact_disposition_identity() {
             .classify(&AdapterEvent::TransactionCompleted {
                 transaction_id,
                 disposition: TransactionDisposition::Commit,
+                validated_topic_ids: Vec::new(),
             })
             .is_err()
     );

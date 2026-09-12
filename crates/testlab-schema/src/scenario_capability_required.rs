@@ -138,6 +138,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "transactional batch sends require the transaction_batch_send capability",
     ),
     (
+        Capability::TransactionTopicUuidValidation,
+        "UUID-bound transactions require the transaction_topic_uuid_validation capability",
+    ),
+    (
         Capability::ModelBroker,
         "broker-control steps require the model_broker capability",
     ),

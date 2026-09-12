@@ -38,6 +38,7 @@ fn fixture(method: TransactionSendMethod) -> (Scenario, Vec<HistoryEntry>) {
                 operations,
                 method: TransactionSendMethod::SendBatch,
                 disposition,
+                topic_identity_operation_id,
                 timeout_ms,
             } => Some(AdapterCommand::ExecuteTransaction {
                 producer_id: producer_id.clone(),
@@ -45,6 +46,7 @@ fn fixture(method: TransactionSendMethod) -> (Scenario, Vec<HistoryEntry>) {
                 operations: operations.clone(),
                 method,
                 disposition: *disposition,
+                validate_topic_uuids: topic_identity_operation_id.is_some(),
                 timeout_ms: *timeout_ms,
             }),
             _ => None,

@@ -9,7 +9,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
-use crate::kafkars_api::{RetryAdvice, Transaction};
+use crate::kafkars_api::{RetryAdvice, TopicUuid, Transaction};
 use crate::normalize;
 use crate::protocol::emit;
 
@@ -18,6 +18,7 @@ pub(crate) fn send<W: Write>(
     writer: &mut W,
     command_id: &CommandId,
     operations: Vec<BatchRecord>,
+    topic_uuid: Option<TopicUuid>,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     let (topic, partition) = homogeneous_target(&operations)?;
@@ -27,10 +28,16 @@ pub(crate) fn send<W: Write>(
         .collect::<Vec<_>>();
     let mut records = operations
         .into_iter()
-        .map(|operation| normalize::record(operation.record))
+        .map(|operation| {
+            let record = normalize::record(operation.record)?;
+            Ok(match topic_uuid {
+                Some(topic_uuid) => record.expected_topic_uuid(topic_uuid),
+                None => record,
+            })
+        })
         .collect::<Result<Vec<_>, _>>()?;
     let observer = loop {
-        match transaction.send_batch(records, crate::transaction_execute::remaining(deadline)?) {
+        match transaction.send_batch(records, crate::transaction_end::remaining(deadline)?) {
             Ok(observer) => break observer,
             Err(rejection) => {
                 let (returned, error) = rejection.into_parts();

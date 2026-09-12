@@ -1,7 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use testlab_schema::{
-    ClientId, CommandId, ConsumedRecord, ConsumerId, EnvironmentOperation, OperationId, ProducerId,
-    TerminalStatus,
+    ClientId, CommandId, ConsumedRecord, ConsumerId, OperationId, ProducerId, TerminalStatus,
 };
 pub(crate) mod admin_acl;
 mod admin_acl_command_match;
@@ -111,6 +110,7 @@ pub(crate) struct IndexedGroupReceiveSet {
 pub(crate) struct IndexedTransactionCompletion {
     pub(crate) history_sequence: u64,
     pub(crate) disposition: testlab_schema::TransactionDisposition,
+    pub(crate) validated_topic_ids: Vec<[u8; 16]>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTransactionalTransform {
@@ -289,7 +289,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) adversary_observations: Vec<(u64, testlab_schema::ProtocolAdversaryObservation)>,
     pub(crate) network_proxy_controls: Vec<(u64, testlab_schema::NetworkProxyControl)>,
     pub(crate) network_proxy_observations: Vec<(u64, testlab_schema::NetworkProxyObservation)>,
-    pub(crate) environment_operations: Vec<(u64, EnvironmentOperation)>,
+    pub(crate) environment_operations: Vec<(u64, testlab_schema::EnvironmentOperation)>,
 }
 impl HistoryIndex {
     pub(crate) fn build(history: &[testlab_schema::HistoryEntry]) -> Self {

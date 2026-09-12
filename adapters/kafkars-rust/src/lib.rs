@@ -105,9 +105,11 @@ mod state_consumer;
 mod state_error;
 mod state_share;
 mod transaction_admin_abort;
+mod transaction_end;
 mod transaction_execute;
 mod transaction_fence;
 mod transaction_send_batch;
+mod transaction_topic_validation;
 mod transaction_transform;
 mod transactional_producers;
 

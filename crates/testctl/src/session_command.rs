@@ -206,6 +206,7 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
             operations,
             method,
             disposition,
+            topic_identity_operation_id,
             timeout_ms,
         } => (
             AdapterCommand::ExecuteTransaction {
@@ -214,6 +215,7 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
                 operations: operations.clone(),
                 method: *method,
                 disposition: *disposition,
+                validate_topic_uuids: topic_identity_operation_id.is_some(),
                 timeout_ms: *timeout_ms,
             },
             ExpectedEvent::TransactionCompleted(

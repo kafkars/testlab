@@ -151,11 +151,12 @@ fn execute_started<W: Write>(
             writer,
             &command_id,
             operation,
+            None,
             deadline,
         )?;
     }
     send_offsets(&mut transaction, metadata, checkpoint, deadline)?;
-    crate::transaction_execute::end(transaction, command.disposition, deadline)?;
+    crate::transaction_end::end(transaction, command.disposition, deadline)?;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -197,7 +198,7 @@ fn send_offsets(
         match transaction.send_offsets(
             metadata,
             checkpoint,
-            crate::transaction_execute::remaining(deadline)?,
+            crate::transaction_end::remaining(deadline)?,
         ) {
             Ok(observer) => return observer.wait().map_err(AdapterError::Client),
             Err(rejection) => {

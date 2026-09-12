@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v97. It is not a
+An adapter translates one packaged client surface to protocol v98. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -39,6 +39,10 @@ runner and not a verifier.
 - Advertise `transaction_batch_send` only when `method = "send_batch"` stages
   the exact homogeneous caller-ordered set through one public transaction batch
   request and expands its single acknowledgment into exact per-record offsets.
+- Advertise `transaction_topic_uuid_validation` only when the adapter resolves
+  every distinct record topic through public Admin, binds each record to that
+  nonzero UUID, and completes a fresh validation of the current transaction
+  revision before commit. Preserve the ordered validated IDs in completion.
 - Submit broker unregistration only once, preserve the exact broker ID and
   throttle, and never receive the scenario-owned remaining or restored cluster
   expectations.

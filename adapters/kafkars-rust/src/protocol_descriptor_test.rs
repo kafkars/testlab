@@ -49,4 +49,9 @@ fn descriptor_reports_the_packaged_client_version() {
             .capabilities
             .contains(&Capability::TransactionBatchSend)
     );
+    assert!(
+        descriptor
+            .capabilities
+            .contains(&Capability::TransactionTopicUuidValidation)
+    );
 }

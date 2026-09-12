@@ -73,6 +73,13 @@ impl TransactionalProducers {
             .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))
     }
 
+    pub(crate) fn client_id(&self, producer_id: &ProducerId) -> Result<ClientId, StateError> {
+        self.owners
+            .get(producer_id)
+            .map(|owner| owner.client_id.clone())
+            .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))
+    }
+
     pub(crate) fn close(&mut self, producer_id: &ProducerId) -> Result<(), StateError> {
         let owner = self
             .owners

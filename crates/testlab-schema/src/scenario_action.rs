@@ -260,9 +260,9 @@ pub enum ScenarioAction {
         /// Exact public record-staging method.
         #[serde(default)]
         method: crate::TransactionSendMethod,
-        /// Requested transaction terminal operation.
         disposition: crate::TransactionDisposition,
-        /// Complete transaction bound.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        topic_identity_operation_id: Option<OperationId>,
         timeout_ms: u64,
     },
     ExecuteTransactionalTransform(crate::TransactionalTransformAction),

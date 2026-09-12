@@ -142,6 +142,7 @@ fn transaction_scenario(
                 }],
                 method: Default::default(),
                 disposition,
+                topic_identity_operation_id: None,
                 timeout_ms: 1_000,
             },
         ),
@@ -208,6 +209,7 @@ fn transaction_history(
             AdapterEvent::TransactionCompleted {
                 transaction_id,
                 disposition,
+                validated_topic_ids: Vec::new(),
             },
         ),
         event(

@@ -43,6 +43,7 @@ pub(super) fn classify(
             AdapterEvent::TransactionCompleted {
                 transaction_id: actual_id,
                 disposition: actual_disposition,
+                ..
             },
         ) => {
             return Some(identity_result(

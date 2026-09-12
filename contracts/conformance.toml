@@ -571,6 +571,12 @@ statement = "Each declared transactional batch is issued once through the public
 category = "transaction"
 
 [[contract]]
+id = "TXN-010"
+title = "UUID-bound commits use fresh independently proven topic identities"
+statement = "Each UUID-bound transaction stages its exact ordered topic set against public topic IDs, independently confirms those IDs before admission, and completes one freshly validated commit with the same identities."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

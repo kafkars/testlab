@@ -68,6 +68,8 @@ pub enum Capability {
     Transactions,
     /// Homogeneous public transactional batch staging.
     TransactionBatchSend,
+    /// UUID-bound record admission and fresh pre-commit topic validation.
+    TransactionTopicUuidValidation,
     /// Administrative operations.
     Admin,
     /// TLS transport.

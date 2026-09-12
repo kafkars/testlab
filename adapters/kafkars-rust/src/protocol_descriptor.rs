@@ -34,6 +34,7 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         Capability::Admin,
         Capability::Transactions,
         Capability::TransactionBatchSend,
+        Capability::TransactionTopicUuidValidation,
     ]);
     #[cfg(kafkars_share_candidate)]
     let capabilities = {

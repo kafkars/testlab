@@ -245,7 +245,6 @@ pub enum AdapterCommand {
         transaction_timeout_ms: u64,
         initialization_timeout_ms: u64,
     },
-    /// Runs one bounded linear public transaction.
     ExecuteTransaction {
         producer_id: ProducerId,
         transaction_id: OperationId,
@@ -255,6 +254,7 @@ pub enum AdapterCommand {
         method: crate::TransactionSendMethod,
         /// Requested public transaction terminal operation.
         disposition: crate::TransactionDisposition,
+        validate_topic_uuids: bool,
         /// Complete begin, send, and end bound.
         timeout_ms: u64,
     },

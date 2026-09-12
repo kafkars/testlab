@@ -29,6 +29,7 @@ pub(crate) fn dispatch<W: Write>(
         operations,
         method: TransactionSendMethod::Send,
         disposition: TransactionDisposition::AdminPartitionAbort,
+        validate_topic_uuids: false,
         timeout_ms,
     } = command
     else {
@@ -106,7 +107,14 @@ fn execute_started<W: Write>(
     let operation_id = operation.operation_id.clone();
     let topic = operation.record.topic.clone();
     let partition = operation.record.partition;
-    transaction_execute::send(&mut transaction, writer, &command_id, operation, deadline)?;
+    transaction_execute::send(
+        &mut transaction,
+        writer,
+        &command_id,
+        operation,
+        None,
+        deadline,
+    )?;
     let before = protocol_admin_producers::query(client, &topic, partition, deadline)?;
     let spec = abort_spec(&before, &topic, partition)?;
     let expected = before
@@ -124,7 +132,7 @@ fn execute_started<W: Write>(
     client
         .admin()
         .abort_transaction(spec)
-        .deadline_after(transaction_execute::remaining(deadline)?)
+        .deadline_after(crate::transaction_end::remaining(deadline)?)
         .submit()
         .wait()
         .map_err(AdapterError::Client)?;
@@ -144,6 +152,7 @@ fn execute_started<W: Write>(
             AdapterEvent::TransactionCompleted {
                 transaction_id,
                 disposition: TransactionDisposition::AdminPartitionAbort,
+                validated_topic_ids: Vec::new(),
             },
         ),
     )
