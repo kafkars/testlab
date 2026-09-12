@@ -1,6 +1,6 @@
 //! Producer cancellation tests pin capability, timeout, and uncertainty validation.
 
-use crate::{Capability, Scenario, ScenarioAction, TerminalStatus};
+use crate::{Capability, ProducerSendMethod, Scenario, ScenarioAction, TerminalStatus};
 
 #[test]
 fn cancellation_scenario_preserves_race_dependent_terminal_truth() {
@@ -14,6 +14,25 @@ fn cancellation_scenario_preserves_race_dependent_terminal_truth() {
         .requires
         .remove(&Capability::ProducerCancellation);
     assert_problem(&missing_capability, "producer_cancellation capability");
+
+    let mut missing_waiting = scenario.clone();
+    missing_waiting
+        .requires
+        .remove(&Capability::ProducerWaitingSend);
+    assert_problem(&missing_waiting, "producer_waiting_send capability");
+
+    let methods = scenario
+        .steps
+        .iter()
+        .filter_map(|step| match &step.action {
+            ScenarioAction::CancelProducerSend(action) => Some(action.method),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        methods,
+        [ProducerSendMethod::TrySend, ProducerSendMethod::Send]
+    );
 
     let mut fixed_terminal = scenario.clone();
     fixed_terminal.assertions[0].terminal = Some(TerminalStatus::Acknowledged);
@@ -30,6 +49,19 @@ fn cancellation_timeout_is_bounded() {
     };
     action.timeout_ms = 99;
     assert_problem(&scenario, "timeout_ms must be between 100 and 60000");
+}
+
+#[test]
+fn cancellation_method_is_required() {
+    let source = include_str!("../../../scenarios/kafka/producer-cancellation.toml").replacen(
+        "method = \"try_send\"\n",
+        "",
+        1,
+    );
+    assert!(
+        toml::from_str::<Scenario>(&source).is_err(),
+        "cancellation must not silently default its retained observer type"
+    );
 }
 
 fn scenario() -> Scenario {

@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{OperationId, ProducerId, RecordSpec};
+use crate::{OperationId, ProducerId, ProducerSendMethod, RecordSpec};
 
 /// Public stage-aware cancellation outcome.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -16,7 +16,7 @@ pub enum ProducerCancellationOutcome {
     AlreadyTerminal,
 }
 
-/// One bounded accepted send followed by two public cancellation requests.
+/// One method-selected producer operation followed by two public cancellation requests.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct CancelProducerSendCommand {
@@ -24,6 +24,8 @@ pub struct CancelProducerSendCommand {
     pub producer_id: ProducerId,
     /// Stable operation identity.
     pub operation_id: OperationId,
+    /// Exact public producer operation whose observer is cancelled.
+    pub method: ProducerSendMethod,
     /// Exact offered record.
     pub record: RecordSpec,
     /// Complete admission, cancellation, and terminal bound.

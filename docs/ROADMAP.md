@@ -71,9 +71,10 @@
   positive-Murmur2 partition oracle.
   Share batches cover ordered multi-record acquisition, record-specific accept,
   release, and reject decisions, and complete dropped-batch redelivery.
-- Producer cancellation retains one public delivery observer across two
-  stage-aware cancellation requests, preserves `too_late` uncertainty, and
-  joins cancellation monotonicity to ordinary independent delivery truth.
+- Producer cancellation separately retains public `Delivery` and waiting
+  `Send` observers across two stage-aware cancellation requests, preserves
+  `too_late` uncertainty, and joins cancellation monotonicity to ordinary
+  independent delivery truth.
 - Independent producer-configuration scenarios cover explicit client-wide
   delivery timeout, retry, ownership limits, request concurrency, linger, and
   none, gzip, snappy, LZ4, and zstd public compression selections.

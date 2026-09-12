@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v89. It is not a
+An adapter translates one packaged client surface to protocol v90. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -12,6 +12,8 @@ runner and not a verifier.
 - Preserve the selected single-record producer method. Advertise
   `producer_waiting_send` only when `method = "send"` reaches the client's
   bounded waiting API instead of an immediate-admission retry loop.
+- Preserve that method on cancellation commands and cancel its actual retained
+  observer rather than constructing or substituting the other producer path.
 - Preserve delivery certainty rather than collapsing failures.
 - Advertise independent handles only when each selected producer or directly
   assigned consumer starts a private execution and lifecycle owner from the

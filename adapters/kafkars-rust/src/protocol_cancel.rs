@@ -5,12 +5,13 @@ use std::time::{Duration, Instant};
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, CancelProducerSendCommand, CommandId,
-    ProducerCancellationCompletion, ProducerCancellationOutcome, TerminalStatus,
+    ProducerCancellationCompletion, ProducerCancellationOutcome, ProducerSendMethod,
+    TerminalStatus,
 };
 
 use crate::admission_retry::{retry_owned_until, retry_until};
 use crate::kafkars_api::{
-    CancellationOutcome, Delivery, ErrorKind, KafkaError, RetryAdvice, TrySendError,
+    CancellationOutcome, Delivery, ErrorKind, KafkaError, RetryAdvice, Send, TrySendError,
 };
 use crate::protocol::emit;
 use crate::state::AdapterState;
@@ -28,26 +29,31 @@ pub(crate) fn dispatch<W: Write>(
         .unwrap_or(started);
     let producer = state.producer(&command.producer_id)?;
     let record = normalize::record(command.record)?;
-    let mut delivery = match retry_owned_until(
-        deadline,
-        record,
-        |record| producer.try_send(record).map_err(TrySendError::into_parts),
-        |error| error.retry_advice() == RetryAdvice::RetrySafe,
-    ) {
-        Ok(delivery) => delivery,
-        Err((_, error)) => {
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::OperationRejected {
-                        operation_id: command.operation_id,
-                        code: normalize::error_code(&error),
-                    },
-                ),
-            )?;
-            return Err(AdapterError::Client(error));
+    let mut delivery = match command.method {
+        ProducerSendMethod::TrySend => {
+            match retry_owned_until(
+                deadline,
+                record,
+                |record| producer.try_send(record).map_err(TrySendError::into_parts),
+                |error| error.retry_advice() == RetryAdvice::RetrySafe,
+            ) {
+                Ok(delivery) => CancellableSend::Delivery(delivery),
+                Err((_, error)) => {
+                    emit(
+                        writer,
+                        &AdapterEventEnvelope::new(
+                            command_id,
+                            AdapterEvent::OperationRejected {
+                                operation_id: command.operation_id,
+                                code: normalize::error_code(&error),
+                            },
+                        ),
+                    )?;
+                    return Err(AdapterError::Client(error));
+                }
+            }
         }
+        ProducerSendMethod::Send => CancellableSend::Waiting(producer.send(record)),
     };
     emit(
         writer,
@@ -75,8 +81,29 @@ pub(crate) fn dispatch<W: Write>(
     )
 }
 
+enum CancellableSend {
+    Delivery(Delivery),
+    Waiting(Send),
+}
+
+impl CancellableSend {
+    fn cancel(&mut self) -> Result<CancellationOutcome, KafkaError> {
+        match self {
+            Self::Delivery(delivery) => delivery.cancel(),
+            Self::Waiting(send) => send.cancel(),
+        }
+    }
+
+    fn wait(self) -> Result<crate::kafkars_api::RecordMetadata, KafkaError> {
+        match self {
+            Self::Delivery(delivery) => delivery.wait(),
+            Self::Waiting(send) => send.wait(),
+        }
+    }
+}
+
 fn cancel(
-    delivery: &mut Delivery,
+    delivery: &mut CancellableSend,
     deadline: Instant,
 ) -> Result<ProducerCancellationOutcome, AdapterError> {
     retry_until(
@@ -100,7 +127,7 @@ fn emit_terminal<W: Write>(
     writer: &mut W,
     command_id: &CommandId,
     operation_id: testlab_schema::OperationId,
-    delivery: Delivery,
+    delivery: CancellableSend,
 ) -> Result<(), AdapterError> {
     let (status, code, partition, offset, timestamp_millis) = match delivery.wait() {
         Ok(metadata) => (

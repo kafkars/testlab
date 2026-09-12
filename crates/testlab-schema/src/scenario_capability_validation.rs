@@ -56,7 +56,10 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         ScenarioAction::Send {
             method: crate::ProducerSendMethod::Send,
             ..
-        }
+        } | ScenarioAction::CancelProducerSend(crate::CancelProducerSendCommand {
+            method: crate::ProducerSendMethod::Send,
+            ..
+        })
     ) {
         usage.insert(Capability::ProducerWaitingSend);
     }

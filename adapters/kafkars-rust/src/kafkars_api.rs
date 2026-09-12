@@ -41,7 +41,7 @@ pub(crate) use kafkars::metrics::{
 };
 pub(crate) use kafkars::producer::{
     CancellationOutcome, Compression, Delivery, Header, Producer, ProducerConfig, ProducerLimits,
-    ProducerRetryConfig, Record, RecordMetadata, TrySendError,
+    ProducerRetryConfig, Record, RecordMetadata, Send, TrySendError,
 };
 pub(crate) use kafkars::security::{Sasl, Security, Tls};
 pub(crate) use kafkars::transaction::{Transaction, TransactionalProducer};

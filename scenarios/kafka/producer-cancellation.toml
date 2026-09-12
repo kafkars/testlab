@@ -1,14 +1,31 @@
-schema_version = 92
+schema_version = 93
 id = "kafka.producer-cancellation"
-title = "packaged producer cancellation preserves stage-aware truth"
-description = "The packaged producer accepts one exact record, exposes two public cancellation outcomes on the retained delivery observer, and reports the authoritative terminal without strengthening a too-late result into a not-sent promise."
+title = "both packaged producer operations preserve stage-aware cancellation truth"
+description = "The packaged producer accepts exact records through immediate try_send and bounded waiting send, exposes two public cancellation outcomes on each retained observer, and reports authoritative terminals without strengthening a too-late result into a not-sent promise."
 timeout_ms = 60000
-requires = ["producer", "producer_cancellation", "lifecycle", "client_readiness"]
+requires = ["producer", "producer_waiting_send", "producer_cancellation", "producer_configuration", "lifecycle", "client_readiness"]
 
 [[steps]]
-id = "create-client"
-kind = "create_client"
+id = "create-configured-client"
+kind = "create_configured_client"
 client_id = "client-1"
+
+[steps.configuration]
+delivery_timeout_ms = 10000
+compression = "none"
+max_retries = 2
+retry_backoff_ms = 10
+
+[steps.configuration.limits]
+retained_bytes = 1048576
+in_flight_records = 1
+waiting_records = 1
+waiting_bytes = 4096
+batch_records = 1
+batch_bytes = 262144
+request_bytes = 524288
+max_in_flight_requests_per_broker = 1
+linger_ms = 0
 
 [[steps]]
 id = "await-client-ready"
@@ -26,6 +43,7 @@ id = "cancel-send-twice"
 kind = "cancel_producer_send"
 producer_id = "producer-1"
 operation_id = "cancel-send-1"
+method = "try_send"
 timeout_ms = 30000
 
 [steps.record]
@@ -37,6 +55,25 @@ value = { encoding = "utf8", data = "cancel-value" }
 headers = [
   { name = "testlab-operation-id", value = { encoding = "utf8", data = "cancel-send-1" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "cancel-waiting-send-twice"
+kind = "cancel_producer_send"
+producer_id = "producer-1"
+operation_id = "cancel-waiting-send-1"
+method = "send"
+timeout_ms = 30000
+
+[steps.record]
+topic = "testlab-kafkars-producer-cancellation"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "waiting-cancel-key" }
+value = { encoding = "utf8", data = "waiting-cancel-value" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "cancel-waiting-send-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
 ]
 
 [[steps]]
@@ -56,5 +93,10 @@ client_id = "client-1"
 
 [[assertions]]
 operation_id = "cancel-send-1"
+accepted = true
+visibility = "zero_or_one"
+
+[[assertions]]
+operation_id = "cancel-waiting-send-1"
 accepted = true
 visibility = "zero_or_one"

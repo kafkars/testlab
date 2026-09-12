@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v89 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v92 and evidence schema v78.
+Protocol v90 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v93 and evidence schema v79.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -55,8 +55,8 @@ An ordinary `send` names its exact public producer method. `try_send` is the
 default immediate-admission path; `send` selects bounded FIFO waiting admission
 and requires the `producer_waiting_send` capability. The command retains that
 selection so an adapter cannot silently substitute one public method for the
-other. Cancellation continues to use `try_send` and its retained delivery
-observer.
+other. A cancellation command retains the same selection and invokes
+`Delivery::cancel` for `try_send` or `Send::cancel` for `send`.
 
 An ordinary `send` carries an explicit partition by default. A `java_keyed`
 selection instead carries the logical topic partition count and a keyed record;
@@ -366,14 +366,15 @@ receipt, and each public consumer record retains its exposed timestamp. The
 independent broker observer records Kafka's timestamp separately from those
 adapter claims.
 
-A cancellation command first obtains public producer ownership of one exact
-record, retains its sole terminal observer, and invokes public cancellation
-twice with bounded backpressure retry. It reports both immediate stage-aware
-outcomes in order only after the retained observer emits its authoritative
-terminal. `cancelled_not_sent` requires a definitely-not-sent `cancelled`
-terminal and the next attempt must be `already_terminal`. `too_late` preserves
-zero-or-one broker visibility and may only remain `too_late` or advance to
-`already_terminal`; Testlab never strengthens it into a not-sent promise.
+A cancellation command names whether it obtains public producer ownership
+through immediate `try_send` or bounded waiting `send`, retains that method's
+sole terminal observer, and invokes its public cancellation method twice with
+bounded backpressure retry. It reports both immediate stage-aware outcomes in
+order only after the retained observer emits its authoritative terminal.
+`cancelled_not_sent` requires a definitely-not-sent `cancelled` terminal and the
+next attempt must be `already_terminal`. `too_late` preserves zero-or-one broker
+visibility and may only remain `too_late` or advance to `already_terminal`;
+Testlab never strengthens it into a not-sent promise.
 
 A concurrent actor group contains two through eight exact actors. Testctl sends
 one `start_concurrent_actors` command carrying the stable group identity,
@@ -1060,6 +1061,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v89 is an exact semantic contract. New capabilities may be declared
+Protocol v90 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

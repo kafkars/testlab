@@ -68,6 +68,9 @@ Protocol v89, scenario schema v92, and evidence schema v78 retain the exact
 single-record producer method. PROD-016 requires a scenario-selected
 `Producer::send` to remain distinct from default immediate `try_send` admission;
 its ordinary terminal and independent-record evidence still applies.
+Protocol v90, scenario schema v93, and evidence schema v79 carry the same method
+selection through producer cancellation. PROD-017 prevents `Delivery::cancel`
+and `Send::cancel` from being substituted for one another in retained history.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -150,10 +153,12 @@ public builder-selection test establishes the adapter mapping without treating
 that adapter fact as broker truth.
 
 PROD-012 retains two ordered public cancellation outcomes and the same
-delivery's authoritative terminal. It enforces stage monotonicity, requires
-`cancelled_not_sent` to agree with definitely-not-sent `cancelled` truth, and
-leaves `too_late` broker visibility uncertain until ordinary terminal and
-independent observation contracts resolve it.
+immediate-delivery or waiting-send observer's authoritative terminal. It
+enforces stage monotonicity, requires `cancelled_not_sent` to agree with
+definitely-not-sent `cancelled` truth, and leaves `too_late` broker visibility
+uncertain until ordinary terminal and independent observation contracts resolve
+it. PROD-017 separately requires one exact issued cancellation command retaining
+the scenario-selected observer type, producer, record, and timeout.
 
 Client metrics history retains the expectation-free command and one exact
 correlated public snapshot. METRICS-001 binds that snapshot to its client and
