@@ -1,7 +1,7 @@
-schema_version = 116
+schema_version = 117
 id = "kafka.admin-describe-share-groups"
 title = "packaged admin describes two configured Share racks in caller order"
-description = "Two rack-configured Share groups retain distinct acquired records while one caller-ordered public batch preserves each detailed state, rack, and assignment; separate read-only Kafka CLI state queries confirm both group states and member counts."
+description = "Two rack-configured Share groups retain distinct acquired records while one caller-ordered public batch preserves each requested authorization bitfield, detailed state, rack, and assignment; separate read-only Kafka CLI state queries confirm both group states and member counts."
 timeout_ms = 240000
 requires = ["producer", "share_consumer", "admin", "lifecycle", "client_readiness"]
 
@@ -119,6 +119,7 @@ groups = [
   { group_id = "testlab-admin-share-description-zulu", expected_state = "Stable", expected_member_count = 1, expected_rack_id = "testlab-rack-zulu", expected_topic = "testlab-kafkars-admin-share-description-zulu", expected_partition = 0 },
   { group_id = "testlab-admin-share-description-alpha", expected_state = "Stable", expected_member_count = 1, expected_rack_id = "testlab-rack-alpha", expected_topic = "testlab-kafkars-admin-share-description-alpha", expected_partition = 0 },
 ]
+include_authorized_operations = true
 timeout_ms = 20000
 
 [[steps]]

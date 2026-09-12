@@ -102,6 +102,7 @@ fn action() -> DescribeShareGroupsAction {
             expectation("share-z", "topic-z"),
             expectation("share-a", "topic-a"),
         ],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -111,6 +112,7 @@ fn command() -> DescribeShareGroupsCommand {
         client_id: client(),
         operation_id: operation("describe-share-groups"),
         group_ids: group_ids(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -128,6 +130,7 @@ fn completion() -> AdminShareGroupsDescription {
                     group_epoch: 1,
                     assignment_epoch: 1,
                     assignor_name: "range".to_owned(),
+                    authorized_operations: Some(1),
                     members: Vec::new(),
                 }),
                 group_id,

@@ -23,7 +23,7 @@ pub(crate) fn describe<W: Write>(
         .client(&command.client_id)?
         .admin()
         .describe_classic_groups(command.group_ids.clone())
-        .include_authorized_operations(false)
+        .include_authorized_operations(command.include_authorized_operations)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()
@@ -32,7 +32,12 @@ pub(crate) fn describe<W: Write>(
         .into_groups()
         .into_entries()
         .into_iter()
-        .map(|(group_id, result)| (group_id, result.map(|group| group.members().len())))
+        .map(|(group_id, result)| {
+            (
+                group_id,
+                result.map(|group| (group.members().len(), group.authorized_operations())),
+            )
+        })
         .collect();
     let groups = ordered_group_results(
         entries,
@@ -54,13 +59,13 @@ pub(crate) fn describe<W: Write>(
 }
 
 pub(crate) fn description_outcomes(
-    groups: Vec<GroupResult<usize>>,
+    groups: Vec<GroupResult<(usize, Option<i32>)>>,
     operation_id: &testlab_schema::OperationId,
 ) -> Result<Vec<AdminClassicGroupDescriptionOutcome>, AdapterError> {
     groups
         .into_iter()
         .map(|group| match group.result {
-            ResourceResult::Success(member_count) => {
+            ResourceResult::Success((member_count, authorized_operations)) => {
                 let member_count = u32::try_from(member_count).map_err(|_| {
                     AdapterError::AdminResult(format!(
                         "admin operation {operation_id} returned too many classic-group members"
@@ -69,12 +74,14 @@ pub(crate) fn description_outcomes(
                 Ok(AdminClassicGroupDescriptionOutcome {
                     group_id: group.group_id,
                     member_count: Some(member_count),
+                    authorized_operations,
                     error_code: None,
                 })
             }
             ResourceResult::Failure(error_code) => Ok(AdminClassicGroupDescriptionOutcome {
                 group_id: group.group_id,
                 member_count: None,
+                authorized_operations: None,
                 error_code: Some(error_code),
             }),
         })

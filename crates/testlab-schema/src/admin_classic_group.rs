@@ -24,6 +24,8 @@ pub struct DescribeClassicGroupsAction {
     pub operation_id: OperationId,
     /// Caller-ordered classic-group expectations.
     pub groups: Vec<ClassicGroupExpectation>,
+    /// Whether Kafka must return the authorized-operation bitfield per group.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -38,6 +40,8 @@ pub struct DescribeClassicGroupsCommand {
     pub operation_id: OperationId,
     /// Caller-ordered exact Kafka consumer-group identities.
     pub group_ids: Vec<String>,
+    /// Whether Kafka must return the authorized-operation bitfield per group.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -50,6 +54,8 @@ pub struct AdminClassicGroupDescriptionOutcome {
     pub group_id: String,
     /// Public member count, absent when this group failed.
     pub member_count: Option<u32>,
+    /// Raw Kafka authorization bitfield, absent when omitted or this group failed.
+    pub authorized_operations: Option<i32>,
     /// Stable normalized per-group error code.
     pub error_code: Option<String>,
 }

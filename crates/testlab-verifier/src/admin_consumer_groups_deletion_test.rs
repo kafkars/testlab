@@ -49,6 +49,7 @@ fn history() -> Vec<HistoryEntry> {
                 client_id: client(),
                 operation_id: description_operation(),
                 group_ids: group_ids(),
+                include_authorized_operations: true,
                 timeout_ms: 20_000,
             }),
         ),
@@ -61,6 +62,7 @@ fn history() -> Vec<HistoryEntry> {
                     .map(|group_id| AdminClassicGroupDescriptionOutcome {
                         group_id,
                         member_count: Some(0),
+                        authorized_operations: Some(1),
                         error_code: None,
                     })
                     .collect(),

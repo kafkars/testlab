@@ -1,7 +1,7 @@
-schema_version = 116
+schema_version = 117
 id = "kafka.admin-describe-share-group"
 title = "packaged admin describes a configured Share rack and active assignment"
-description = "While one rack-configured Share member retains an acquired record, the packaged client's public Share-group description preserves its stable state, epochs, assignor, rack, subscription, topic identity, and partition assignment, and an immediate Kafka CLI query confirms the same state and member count."
+description = "While one rack-configured Share member retains an acquired record, the packaged client's public Share-group description preserves a requested authorization bitfield plus its stable state, epochs, assignor, rack, subscription, topic identity, and partition assignment, and an immediate Kafka CLI query confirms the same state and member count."
 timeout_ms = 180000
 requires = ["producer", "share_consumer", "admin", "lifecycle", "client_readiness"]
 
@@ -74,6 +74,7 @@ expected_member_count = 1
 expected_rack_id = "testlab-rack-single"
 expected_topic = "testlab-kafkars-admin-share-group-described"
 expected_partition = 0
+include_authorized_operations = true
 timeout_ms = 20000
 
 [[steps]]

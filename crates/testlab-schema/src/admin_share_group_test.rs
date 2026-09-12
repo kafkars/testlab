@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_share_group_offset_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 113);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 116);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 102);
+    assert_eq!(PROTOCOL_VERSION, 114);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 117);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 103);
 }
 
 #[test]
@@ -133,6 +133,7 @@ fn action() -> DescribeShareGroupAction {
         expected_rack_id: Some("rack-a".to_owned()),
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -142,6 +143,7 @@ fn command() -> DescribeShareGroupCommand {
         client_id: client(),
         operation_id: operation(),
         group_id: "share-group-1".to_owned(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -154,6 +156,7 @@ fn description() -> AdminShareGroupDescription {
         group_epoch: 3,
         assignment_epoch: 4,
         assignor_name: "simple".to_owned(),
+        authorized_operations: Some(1),
         members: vec![AdminShareGroupMember {
             member_id: "member-1".to_owned(),
             rack_id: Some("rack-a".to_owned()),

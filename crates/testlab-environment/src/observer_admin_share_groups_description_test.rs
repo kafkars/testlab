@@ -92,6 +92,7 @@ fn action() -> DescribeShareGroupsAction {
                 expected_partition: 0,
             })
             .collect(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -101,6 +102,7 @@ fn command() -> DescribeShareGroupsCommand {
         client_id: client(),
         operation_id: operation(),
         group_ids: group_ids(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }

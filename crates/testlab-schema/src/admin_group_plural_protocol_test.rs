@@ -18,9 +18,9 @@ use super::{
 
 #[test]
 fn versions_advance_without_changing_evidence_facts() {
-    assert_eq!(PROTOCOL_VERSION, 113);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 116);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 102);
+    assert_eq!(PROTOCOL_VERSION, 114);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 117);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 103);
 }
 
 #[test]
@@ -135,12 +135,14 @@ fn classic_member_expectations_stay_out_of_the_wire_command() {
             group_id: "group-1".to_owned(),
             expected_member_count: 2,
         }],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     });
     let command = AdapterCommand::DescribeClassicGroups(DescribeClassicGroupsCommand {
         client_id: client(),
         operation_id: operation("describe-classic"),
         group_ids: vec!["group-1".to_owned()],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     });
     let event = AdapterEvent::ClassicGroupsDescribed(AdminClassicGroupsDescription {
@@ -148,6 +150,7 @@ fn classic_member_expectations_stay_out_of_the_wire_command() {
         outcomes: vec![AdminClassicGroupDescriptionOutcome {
             group_id: "group-1".to_owned(),
             member_count: Some(2),
+            authorized_operations: Some(1),
             error_code: None,
         }],
     });
@@ -157,6 +160,7 @@ fn classic_member_expectations_stay_out_of_the_wire_command() {
 
     assert!(action_encoded.contains("expected_member_count = 2"));
     assert!(!command_encoded.contains("expected_member_count"));
+    assert!(command_encoded.contains("include_authorized_operations = true"));
     assert_eq!(decode::<ScenarioAction>(&action_encoded), action);
     assert_eq!(decode::<AdapterCommand>(&command_encoded), command);
     assert_eq!(decode::<AdapterEvent>(&encode(&event)), event);

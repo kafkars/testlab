@@ -39,7 +39,9 @@ pub(crate) fn verify(
                 .outcomes
                 .iter()
                 .zip(&expected.groups)
-                .all(|(actual, expected)| outcome_matches(actual, expected))
+                .all(|(actual, group)| {
+                    outcome_matches(actual, group, expected.include_authorized_operations)
+                })
     });
     let independent = index.consumer_groups_observed.get(&expected.operation_id);
     let independent_matches = public_value.is_some_and(|public| {
@@ -72,7 +74,7 @@ pub(crate) fn verify(
     violations.push(violation(
         "ADMIN-069",
         format!(
-            "admin operation {} expected caller-ordered mixed-protocol descriptions, detailed public member facts, live matching receive epochs, and immediate broker counts",
+            "admin operation {} expected caller-ordered mixed-protocol descriptions with requested authorization metadata, detailed public member facts, live matching receive epochs, and immediate broker counts",
             expected.operation_id
         ),
         Some(expected.operation_id.clone()),
@@ -93,6 +95,7 @@ pub(crate) fn verify(
 fn outcome_matches(
     actual: &testlab_schema::AdminConsumerGroupDescriptionOutcome,
     expected: &testlab_schema::ConsumerGroupDescriptionExpectation,
+    include_authorized_operations: bool,
 ) -> bool {
     actual.group_id == expected.group_id
         && actual.error_code.is_none()
@@ -100,6 +103,7 @@ fn outcome_matches(
             description.state == expected.expected_state
                 && description.protocol == expected.protocol
                 && description.member_count == expected.expected_member_count
+                && description.authorized_operations.is_some() == include_authorized_operations
                 && description.assignor_name == expected.expected_assignor_name
                 && usize::try_from(expected.expected_member_count) == Ok(description.members.len())
                 && strictly_ordered_members(&description.members)

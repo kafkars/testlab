@@ -130,6 +130,7 @@ fn classic_group_description_preserves_caller_order_and_reserves_every_fact() {
         client_id: client(),
         operation_id: operation("describe-groups"),
         groups: vec![classic("group-b", 2), classic("group-a", 0)],
+        include_authorized_operations: true,
         timeout_ms: 500,
     });
     let (command, target) = matched(&action);

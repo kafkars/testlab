@@ -50,6 +50,17 @@ fn lossy_public_assignment_fails_the_description_contract() {
 }
 
 #[test]
+fn missing_requested_authorized_operations_fails_the_description_contract() {
+    let mut entries = history();
+    completion(&mut entries).outcomes[0]
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("public Share description"))
+        .authorized_operations = None;
+    assert_contract(&violations(&entries));
+}
+
+#[test]
 fn reordered_or_mismatched_cli_state_fails_the_contract() {
     let mut reordered = history();
     reordered.swap(4, 5);
@@ -78,6 +89,19 @@ fn missing_late_or_unfenced_receive_fails_the_contract() {
     };
     *member_epoch = Some(0);
     assert_contract(&violations(&unfenced));
+}
+
+#[test]
+fn changed_authorization_option_fails_the_description_contract() {
+    let mut entries = history();
+    let HistoryPayload::HarnessCommand { command } = &mut entries[2].payload else {
+        panic!("plural Share description command");
+    };
+    let AdapterCommand::DescribeShareGroups(value) = &mut command.command else {
+        panic!("plural Share description command kind");
+    };
+    value.include_authorized_operations = false;
+    assert_contract(&violations(&entries));
 }
 
 fn history() -> Vec<HistoryEntry> {
@@ -132,6 +156,7 @@ fn command_payload() -> DescribeShareGroupsCommand {
         client_id: client(),
         operation_id: operation("admin-describe-share-groups"),
         group_ids: vec![zulu_group().to_owned(), alpha_group().to_owned()],
+        include_authorized_operations: true,
         timeout_ms: 20_000,
     }
 }
@@ -163,6 +188,7 @@ fn description(group_id: &str, topic: &str, topic_id: u8) -> AdminShareGroupDesc
         group_epoch: 3,
         assignment_epoch: 4,
         assignor_name: "simple".to_owned(),
+        authorized_operations: Some(1),
         members: vec![AdminShareGroupMember {
             member_id: format!("member-{topic_id}"),
             rack_id: None,

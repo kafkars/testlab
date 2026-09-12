@@ -222,6 +222,7 @@ fn describe_classic_groups(
             client_id: action.client_id.clone(),
             operation_id: action.operation_id.clone(),
             group_ids: group_ids.clone(),
+            include_authorized_operations: action.include_authorized_operations,
             timeout_ms: action.timeout_ms,
         }),
         AdminTarget::ClassicGroups(GroupIdsTarget {
@@ -248,6 +249,7 @@ fn describe_consumer_groups(
             client_id: action.client_id.clone(),
             operation_id: action.operation_id.clone(),
             group_ids: group_ids.clone(),
+            include_authorized_operations: action.include_authorized_operations,
             timeout_ms: action.timeout_ms,
         }),
         AdminTarget::ConsumerGroupDescriptions(GroupIdsTarget {

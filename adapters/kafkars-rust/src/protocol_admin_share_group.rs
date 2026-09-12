@@ -33,7 +33,7 @@ pub(crate) fn describe<W: Write>(
             client
                 .admin()
                 .describe_share_group(command.group_id.clone())
-                .include_authorized_operations(false)
+                .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
                 .wait()
@@ -199,6 +199,7 @@ pub(crate) fn public_description(
         group_epoch: description.group_epoch(),
         assignment_epoch: description.assignment_epoch(),
         assignor_name: description.assignor_name().to_owned(),
+        authorized_operations: description.authorized_operations(),
         members,
     }
 }

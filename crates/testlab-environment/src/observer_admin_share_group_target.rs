@@ -21,6 +21,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
                 group_id: action.group_id.clone(),
+                include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::ShareGroup(ShareGroupTarget {
@@ -40,6 +41,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
                     group_ids: group_ids.clone(),
+                    include_authorized_operations: action.include_authorized_operations,
                     timeout_ms: action.timeout_ms,
                 }),
                 AdminTarget::ShareGroupDescriptions(GroupIdsTarget {

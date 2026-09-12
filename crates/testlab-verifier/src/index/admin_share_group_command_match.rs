@@ -37,6 +37,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
                 && action.group_id == command.group_id
+                && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
         }
         (ScenarioAction::DescribeShareGroup(_), _) | (_, AdapterCommand::DescribeShareGroup(_)) => {
@@ -53,6 +54,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                     .iter()
                     .map(|group| group.group_id.as_str())
                     .eq(command.group_ids.iter().map(String::as_str))
+                && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
         }
         (ScenarioAction::DescribeShareGroups(_), _)

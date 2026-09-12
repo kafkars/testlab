@@ -119,6 +119,8 @@ pub struct DescribeShareGroupAction {
     pub expected_topic: String,
     /// Partition that must appear in the public member assignment.
     pub expected_partition: i32,
+    /// Whether Kafka must return the authorized-operation bitfield.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -133,6 +135,8 @@ pub struct DescribeShareGroupCommand {
     pub operation_id: OperationId,
     /// Exact Kafka Share-group identity.
     pub group_id: String,
+    /// Whether Kafka must return the authorized-operation bitfield.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -245,6 +249,8 @@ pub struct AdminShareGroupDescription {
     pub assignment_epoch: i32,
     /// Broker-selected server assignor.
     pub assignor_name: String,
+    /// Raw Kafka authorization bitfield, when requested.
+    pub authorized_operations: Option<i32>,
     /// Members ordered by broker-issued member identity.
     pub members: Vec<AdminShareGroupMember>,
 }

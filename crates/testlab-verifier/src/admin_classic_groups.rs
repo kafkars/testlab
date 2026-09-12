@@ -39,9 +39,13 @@ pub(crate) fn verify_classic_groups(
                 .outcomes
                 .iter()
                 .zip(&expected.groups)
-                .all(|(actual, expected)| {
-                    actual.group_id == expected.group_id
-                        && actual.member_count == Some(expected.expected_member_count)
+                .all(|(actual, group)| {
+                    actual.group_id == group.group_id
+                        && actual.member_count == Some(group.expected_member_count)
+                        && authorized_operations_match(
+                            actual.authorized_operations,
+                            expected.include_authorized_operations,
+                        )
                         && actual.error_code.is_none()
                 })
     });
@@ -72,6 +76,10 @@ pub(crate) fn verify_classic_groups(
         return;
     }
     violations.push(classic_violation(expected, public, independent, index));
+}
+
+const fn authorized_operations_match(actual: Option<i32>, requested: bool) -> bool {
+    actual.is_some() == requested
 }
 
 fn exact_live_classic_epochs(
@@ -172,7 +180,7 @@ fn classic_violation(
     violation(
         "ADMIN-027",
         format!(
-            "admin operation {} expected exact ordered classic-group descriptions, immediate broker membership facts, and positive live classic receive epochs",
+            "admin operation {} expected exact ordered classic-group descriptions with requested authorization metadata, immediate broker membership facts, and positive live classic receive epochs",
             expected.operation_id
         ),
         Some(expected.operation_id.clone()),

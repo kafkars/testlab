@@ -5,7 +5,7 @@ mod fixture;
 #[path = "admin_consumer_groups_description_test_values.rs"]
 mod values;
 
-use testlab_schema::GroupMembershipEpoch;
+use testlab_schema::{AdapterCommand, GroupMembershipEpoch, HistoryPayload};
 
 use fixture::{
     assert_contract, description, group_observation, history, receive_epoch, violations,
@@ -37,6 +37,14 @@ fn mixed_descriptions_reject_wrong_protocol_details_or_receive_epoch() {
         .group_epoch = Some(0);
     assert_contract(&violations(&wrong_group_epoch));
 
+    let mut missing_authorization = history();
+    description(&mut missing_authorization).outcomes[0]
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("description"))
+        .authorized_operations = None;
+    assert_contract(&violations(&missing_authorization));
+
     let mut wrong_receive_epoch = history();
     receive_epoch(
         &mut wrong_receive_epoch[0],
@@ -66,4 +74,17 @@ fn mixed_descriptions_reject_missing_typed_assignment_or_classic_payload() {
         .classic_assignment
         .clear();
     assert_contract(&violations(&missing_classic));
+}
+
+#[test]
+fn mixed_descriptions_reject_changed_authorization_option() {
+    let mut entries = history();
+    let HistoryPayload::HarnessCommand { command } = &mut entries[2].payload else {
+        panic!("mixed description command");
+    };
+    let AdapterCommand::DescribeConsumerGroups(command) = &mut command.command else {
+        panic!("mixed description command kind");
+    };
+    command.include_authorized_operations = false;
+    assert_contract(&violations(&entries));
 }

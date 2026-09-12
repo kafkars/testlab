@@ -1,5 +1,3 @@
-//! Plural group-admin transitions require exact modeled baselines and membership.
-
 use std::collections::BTreeSet;
 
 use super::{
@@ -250,6 +248,7 @@ fn describe_classic(
             group_id: group_id.to_owned(),
             expected_member_count,
         }],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     })
 }

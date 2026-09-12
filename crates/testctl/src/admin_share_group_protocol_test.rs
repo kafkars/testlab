@@ -18,6 +18,7 @@ fn translation_keeps_scenario_expectations_off_the_wire() {
     assert_eq!(command.client_id, client());
     assert_eq!(command.operation_id, operation());
     assert_eq!(command.group_id, "share-group-1");
+    assert!(command.include_authorized_operations);
     assert_eq!(command.timeout_ms, 1_000);
     assert!(matches!(
         expected,
@@ -97,6 +98,7 @@ fn action() -> DescribeShareGroupAction {
         expected_rack_id: Some("rack-a".to_owned()),
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -109,6 +111,7 @@ fn description() -> AdminShareGroupDescription {
         group_epoch: 1,
         assignment_epoch: 1,
         assignor_name: "simple".to_owned(),
+        authorized_operations: Some(1),
         members: Vec::new(),
     }
 }

@@ -81,7 +81,7 @@ fn verify_description_action(
         violations.push(violation(
             "ADMIN-037",
             format!(
-                "admin operation {} expected exact public Share-group state and assignment plus immediate independent state",
+                "admin operation {} expected exact public Share-group state, assignment, and requested authorization metadata plus immediate independent state",
                 action.operation_id
             ),
             Some(action.operation_id.clone()),
@@ -100,6 +100,7 @@ pub(crate) fn description_matches(
         && actual.group_epoch >= 0
         && actual.assignment_epoch >= 0
         && !actual.assignor_name.is_empty()
+        && actual.authorized_operations.is_some() == expected.include_authorized_operations
         && u32::try_from(actual.members.len()).ok() == Some(expected.expected_member_count)
         && valid_members(actual)
         && actual.members.iter().any(|member| {

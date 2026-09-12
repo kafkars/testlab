@@ -1,7 +1,7 @@
-schema_version = 116
+schema_version = 117
 id = "kafka.admin-describe-classic-groups"
 title = "packaged admin describes multiple live classic consumer groups"
-description = "Two live classic members each receive and commit an exact marker, then the dedicated packaged classic-group API returns both groups in caller order while one independent broker snapshot confirms their member counts."
+description = "Two live classic members each receive and commit an exact marker, then the dedicated packaged classic-group API returns both groups and requested authorization bitfields in caller order while one independent broker snapshot confirms their member counts."
 timeout_ms = 200000
 requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
 
@@ -108,6 +108,7 @@ groups = [
   { group_id = "testlab-admin-classic-zulu", expected_member_count = 1 },
   { group_id = "testlab-admin-classic-alpha", expected_member_count = 1 },
 ]
+include_authorized_operations = true
 timeout_ms = 20000
 
 [[steps]]

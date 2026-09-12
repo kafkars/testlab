@@ -180,6 +180,12 @@ transaction-listing selectors. ADMIN-083 covers exact state, signed producer-ID,
 duration, and transactional-ID-pattern intent, and rejects vacuous results by
 requiring strict narrowing from an earlier nonempty public baseline while an
 immediate unfiltered Kafka CLI snapshot proves that full baseline is unchanged.
+Protocol v114, scenario schema v117, and evidence schema v103 retain the exact
+authorization-bitfield request and response across dedicated classic-group,
+mixed classic/KIP-848 consumer-group, and singleton and plural Share-group
+descriptions. Existing immediate CLI membership snapshots continue to anchor
+each live group independently while the public result must retain the requested
+option-specific metadata.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -491,10 +497,11 @@ error, one distinct corroborated different baseline per key, and polling
 independent post-state at every requested offset. ADMIN-026 requires the same
 ordered completion and one present corroborated baseline per key, then polling
 independent explicit absence for every deletion. ADMIN-027 joins one ordered
-classic-group public description to immediate independent existence and member
-counts with no group errors, and requires every counted live member to have a
-prior committed receive with a positive classic epoch; broker membership facts
-alone do not establish classicness. ADMIN-028 binds one caller-ordered public
+classic-group public description with its exact authorization-bitfield option
+to immediate independent existence and member counts with no group errors,
+requires the bitfield on every success, and requires every counted live member
+to have a prior committed receive with a positive classic epoch; broker
+membership facts alone do not establish classicness. ADMIN-028 binds one caller-ordered public
 batch offset result to contiguous immediate watermark observations for every
 unique topic-partition selection and requires each selected earliest or latest
 offset exactly. ADMIN-029 applies the generic public group listing to the same
@@ -522,9 +529,10 @@ baseline. In particular, mutation baselines use distinct preceding list or
 describe operation IDs, so history order preserves precondition and
 postcondition meaning without trusting an adapter echo.
 
-ADMIN-037 binds one active public Share-group description to the exact expected
-state, epochs, assignor, member rack, subscription, nonzero topic identity, and
-partition assignment. A separate immediate Kafka CLI state query must agree on
+ADMIN-037 binds one active public Share-group description to the exact requested
+authorization-bitfield option and expected state, epochs, assignor, member rack,
+subscription, nonzero topic identity, and partition assignment. A separate
+immediate Kafka CLI state query must agree on
 the group, stable state, and member count. The coarse independent snapshot
 cannot manufacture the detailed public assignment, and the public completion
 cannot manufacture broker-visible membership.
@@ -552,8 +560,9 @@ order, and one immediate read-only Kafka CLI list snapshot. The normalized
 independent observations retain consecutive ordinals in caller order and must
 report every selected group absent; unrelated listed groups remain irrelevant.
 
-ADMIN-042 binds one caller-ordered public batch to a complete detailed
-description, including exact configured rack identity, for every selected
+ADMIN-042 binds one caller-ordered public batch and exact requested
+authorization-bitfield option to a complete detailed description, including
+exact configured rack identity, for every selected
 active Share group. Each modeled member must retain an exact acquired public
 batch with positive member and assignment fences before the admin command.
 Separate immediate read-only Kafka CLI state queries retain consecutive history
@@ -792,7 +801,8 @@ bounded by the public deadline. One immediate independent group query must then
 report the exact group with zero members.
 
 ADMIN-069 binds one caller-ordered public description batch spanning classic
-and KIP-848 consumer groups to the scenario's live committed members. The
+and KIP-848 consumer groups, including the exact requested authorization
+bitfield on every success, to the scenario's live committed members. The
 classic member explicitly selects cooperative-sticky before joining, and the
 public result must preserve that selected assignor plus exact protocol variants,
 state, epochs, member identities, subscriptions, typed assignments, raw classic

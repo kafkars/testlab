@@ -41,6 +41,8 @@ pub struct DescribeConsumerGroupsAction {
     pub operation_id: OperationId,
     /// Caller-ordered active group expectations.
     pub groups: Vec<ConsumerGroupDescriptionExpectation>,
+    /// Whether Kafka must return the authorized-operation bitfield per group.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -55,6 +57,8 @@ pub struct DescribeConsumerGroupsCommand {
     pub operation_id: OperationId,
     /// Caller-ordered exact Kafka consumer-group identities.
     pub group_ids: Vec<String>,
+    /// Whether Kafka must return the authorized-operation bitfield per group.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -69,6 +73,8 @@ pub struct AdminConsumerGroupDescriptionValue {
     pub protocol: GroupProtocol,
     /// Public member count.
     pub member_count: u32,
+    /// Raw Kafka authorization bitfield, when requested.
+    pub authorized_operations: Option<i32>,
     /// Classic protocol type, absent for KIP-848 descriptions.
     pub protocol_type: Option<String>,
     /// KIP-848 group epoch, absent for classic descriptions.

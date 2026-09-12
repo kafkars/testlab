@@ -28,7 +28,7 @@ pub(crate) fn describe<W: Write>(
             client
                 .admin()
                 .describe_share_groups(command.group_ids.clone())
-                .include_authorized_operations(false)
+                .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
                 .wait()

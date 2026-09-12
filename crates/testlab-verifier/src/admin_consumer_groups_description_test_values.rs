@@ -45,6 +45,7 @@ fn outcome(
             state: "Stable".to_owned(),
             protocol,
             member_count: 1,
+            authorized_operations: Some(1),
             protocol_type: protocol_type.map(str::to_owned),
             group_epoch,
             assignment_epoch,

@@ -14,9 +14,9 @@ use crate::{
 
 #[test]
 fn versions_cover_mixed_description_protocol_and_evidence() {
-    assert_eq!(PROTOCOL_VERSION, 113);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 116);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 102);
+    assert_eq!(PROTOCOL_VERSION, 114);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 117);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 103);
 }
 
 #[test]
@@ -26,12 +26,14 @@ fn expectations_stay_off_wire_and_detailed_outcomes_round_trip() {
         client_id: client(),
         operation_id: operation("describe-groups"),
         groups: groups.clone(),
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     });
     let command = AdapterCommand::DescribeConsumerGroups(DescribeConsumerGroupsCommand {
         client_id: client(),
         operation_id: operation("describe-groups"),
         group_ids: groups.iter().map(|group| group.group_id.clone()).collect(),
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     });
     let event = AdapterEvent::ConsumerGroupsDescribed(AdminConsumerGroupsDescription {
@@ -45,6 +47,7 @@ fn expectations_stay_off_wire_and_detailed_outcomes_round_trip() {
     assert!(action_encoded.contains("expected_assignor_name = \"uniform\""));
     assert!(!command_encoded.contains("expected_assignor_name"));
     assert!(!command_encoded.contains("expected_member_count"));
+    assert!(command_encoded.contains("include_authorized_operations = true"));
     assert_order(&command_encoded, "consumer-group", "classic-group");
     assert_order(&event_encoded, "consumer-group", "classic-group");
     assert_eq!(decode::<ScenarioAction>(&action_encoded), action);
@@ -80,6 +83,7 @@ fn describe_action() -> ScenarioAction {
         client_id: client(),
         operation_id: operation("describe-groups"),
         groups: expectations(),
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     })
 }
@@ -149,6 +153,7 @@ fn description(
         state: "Stable".to_owned(),
         protocol,
         member_count: 1,
+        authorized_operations: Some(1),
         protocol_type: protocol_type.map(str::to_owned),
         group_epoch,
         assignment_epoch,

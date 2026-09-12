@@ -33,6 +33,7 @@ pub(super) fn history() -> Vec<HistoryEntry> {
                 client_id: client(),
                 operation_id: operation_id.clone(),
                 group_ids: vec!["consumer-group".to_owned(), "classic-group".to_owned()],
+                include_authorized_operations: true,
                 timeout_ms: 2_000,
             }),
         ),
@@ -99,6 +100,7 @@ fn describe_action() -> ScenarioAction {
                 "range",
             ),
         ],
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     })
 }

@@ -16,6 +16,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 client_id: value.client_id.clone(),
                 operation_id: value.operation_id.clone(),
                 group_id: value.group_id.clone(),
+                include_authorized_operations: value.include_authorized_operations,
                 timeout_ms: value.timeout_ms,
             }),
             ExpectedEvent::ShareGroupDescribed {
@@ -32,6 +33,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                     .iter()
                     .map(|group| group.group_id.clone())
                     .collect(),
+                include_authorized_operations: value.include_authorized_operations,
                 timeout_ms: value.timeout_ms,
             }),
             ExpectedEvent::ShareGroupsDescribed {

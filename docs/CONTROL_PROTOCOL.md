@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v113 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v116 and evidence schema v102.
+Protocol v114 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v117 and evidence schema v103.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -825,19 +825,22 @@ independent reads after the completion must establish every requested offset or
 explicit absence. One successful sibling cannot hide a failed or reordered
 outcome.
 
-`describe_classic_groups` carries ordered group IDs but keeps expected member
-counts scenario-only. Its one correlated event retains ordered nullable member
-counts and per-group errors. Each public result must match an immediate
-independent group-existence and member-count fact. Classic membership is not
-inferred from that broker fact: every counted live member must be an explicitly
+`describe_classic_groups` carries ordered group IDs and the exact
+`include_authorized_operations` selection but keeps expected member counts
+scenario-only. Its one correlated event retains ordered nullable member counts,
+requested authorization bitfields, and per-group errors. Each public result
+must match an immediate independent group-existence and member-count fact.
+Classic membership is not inferred from that broker fact: every counted live
+member must be an explicitly
 declared classic consumer with a prior successful committed `group_receive` and
 a positive classic group epoch.
 
-`describe_consumer_groups` carries only caller-ordered group IDs and one
-deadline. Its correlated event preserves each classic or KIP-848 public
-description variant, state, assignor, epochs, member identities, subscriptions,
-typed assignments, raw classic payloads, and per-group error. Expected values
-remain scenario-side. Every declared live member requires a prior committed
+`describe_consumer_groups` carries caller-ordered group IDs, the exact
+`include_authorized_operations` selection, and one deadline. Its correlated
+event preserves each classic or KIP-848 public description variant, state,
+assignor, epochs, member identities, subscriptions, typed assignments, raw
+classic payloads, requested authorization bitfield, and per-group error.
+Expected values remain scenario-side. Every declared live member requires a prior committed
 receive with a matching positive protocol epoch, and an immediate independent
 query must return the same member counts in the same caller order.
 
@@ -893,19 +896,22 @@ query whose raw output is retained. The verifier requires public and independent
 non-secret state to agree; extra users, mechanisms, rows, quota values, or
 malformed CLI output invalidate the claim.
 
-Share-group description selects one exact active group while its public member
-retains an acquired batch. Scenario-owned state, member-count, rack, topic, and
-partition expectations stay in `testctl`. The completion preserves Kafka's
+Share-group description selects one exact active group and the exact
+`include_authorized_operations` option while its public member retains an
+acquired batch. Scenario-owned state, member-count, rack, topic, and partition
+expectations stay in `testctl`. The completion preserves Kafka's
 public state, group and assignment epochs, assignor, ordered members, rack
-identities, subscriptions, nonzero topic IDs, and exact partition assignments.
+identities, subscriptions, nonzero topic IDs, exact partition assignments, and
+the requested authorization bitfield.
 An immediate pinned `kafka-share-groups.sh --describe --state` query
 independently confirms the stable state and member count; that CLI snapshot
 cannot substitute for the detailed public assignment.
 
 Plural Share-group description carries two through 32 distinct group
-identities in caller order while each modeled member retains an acquired
-batch. Scenario-owned state, member-count, topic, and partition expectations
-stay in `testctl`. One public call preserves an exact success or failure per
+identities in caller order plus the exact authorization option while each
+modeled member retains an acquired batch. Scenario-owned state, member-count,
+topic, and partition expectations stay in `testctl`. One public call preserves
+an exact success or failure per
 group in caller order; every success retains the same complete detailed public
 description as the singleton operation. Separate immediate pinned
 `kafka-share-groups.sh --describe --state` queries preserve that order and
@@ -1196,6 +1202,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v113 is an exact semantic contract. New capabilities may be declared
+Protocol v114 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

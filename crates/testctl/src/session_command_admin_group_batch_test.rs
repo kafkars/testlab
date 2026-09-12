@@ -125,6 +125,7 @@ fn classic_description_strips_expected_member_counts() {
         client_id: client(),
         operation_id: operation("describe-classic"),
         groups: vec![classic("group-b", 2), classic("group-a", 1)],
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     });
     let Some((command, expected)) = translate(&action) else {
@@ -136,6 +137,7 @@ fn classic_description_strips_expected_member_counts() {
             client_id: client(),
             operation_id: operation("describe-classic"),
             group_ids: vec!["group-b".to_owned(), "group-a".to_owned()],
+            include_authorized_operations: true,
             timeout_ms: 2_000,
         })
     );
@@ -155,6 +157,7 @@ fn mixed_description_strips_all_expectations_and_preserves_order() {
             mixed("group-b", GroupProtocol::Consumer, "uniform"),
             mixed("group-a", GroupProtocol::Classic, "range"),
         ],
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     });
     let Some((command, expected)) = translate(&action) else {
@@ -166,6 +169,7 @@ fn mixed_description_strips_all_expectations_and_preserves_order() {
             client_id: client(),
             operation_id: operation("describe-mixed"),
             group_ids: vec!["group-b".to_owned(), "group-a".to_owned()],
+            include_authorized_operations: true,
             timeout_ms: 2_000,
         })
     );

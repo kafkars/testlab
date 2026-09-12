@@ -105,6 +105,7 @@ fn plural_admin_commands_require_admin_capability() {
             client_id,
             operation_id,
             group_ids: vec!["alpha".to_owned(), "beta".to_owned()],
+            include_authorized_operations: true,
             timeout_ms: 1_000,
         }),
     ];

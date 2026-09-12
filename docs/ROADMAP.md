@@ -24,7 +24,8 @@
   maximum-timestamp-, and caller-timestamp-offset administration plus
   caller-ordered batch earliest and latest selection, consumer-group offset
   listing, alteration, and
-  deletion, caller-ordered mixed classic/KIP-848 group descriptions, static
+  deletion, caller-ordered mixed classic/KIP-848 group descriptions with
+  requested authorization bitfields, static
   classic-member removal, singleton record-prefix deletion and caller-ordered plural record
   deletion with explicit and high-watermark boundaries, singleton and caller-ordered plural
   empty-group deletion, and selected
@@ -37,9 +38,9 @@
   literal ACL creation, exact description, and exact deletion plus named-user
   producer and consumer quota replacement, description, and removal and
   SCRAM-SHA-256/512 credential upsert, description, and deletion, plus active
-  singleton and caller-ordered plural Share-group state and assignment
-  descriptions, singleton and caller-ordered plural selected partition offset
-  listings, partition offset alteration/deletion, and
+  singleton and caller-ordered plural Share-group state, assignment, and
+  requested authorization descriptions, singleton and caller-ordered plural
+  selected partition offset listings, partition offset alteration/deletion, and
   caller-ordered empty-group deletion, against
   independent Kafka CLI state; stable-baseline transaction discovery with
   exact state, producer-ID, duration, and Kafka 4.3 pattern filtering;

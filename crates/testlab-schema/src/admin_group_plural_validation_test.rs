@@ -73,6 +73,7 @@ fn all_plural_actions_accept_inclusive_item_bounds_and_stable_ownership() {
             client_id,
             operation_id: operation("describe-classic"),
             groups: classic_groups,
+            include_authorized_operations: true,
             timeout_ms: 1_000,
         }),
     ];
@@ -140,6 +141,7 @@ fn plural_actions_reject_empty_oversized_duplicate_and_invalid_items() {
             client_id: client(),
             operation_id: operation("duplicate-classic"),
             groups: vec![classic("group-1"), classic("group-1")],
+            include_authorized_operations: true,
             timeout_ms: 1_000,
         }),
     ];
@@ -178,6 +180,7 @@ fn identity_and_timeout_rules_apply_once_to_plural_operations() {
         client_id: client(),
         operation_id: operation("duplicate"),
         groups: vec![classic("group-1")],
+        include_authorized_operations: true,
         timeout_ms: 99,
     });
 

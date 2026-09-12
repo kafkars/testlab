@@ -64,6 +64,7 @@ fn action() -> ScenarioAction {
             expectation("consumer-group", GroupProtocol::Consumer, "uniform"),
             expectation("classic-group", GroupProtocol::Classic, "range"),
         ],
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     })
 }
@@ -73,6 +74,7 @@ fn command(groups: Vec<&str>) -> AdapterCommand {
         client_id: client(),
         operation_id: operation(),
         group_ids: groups.into_iter().map(str::to_owned).collect(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     })
 }

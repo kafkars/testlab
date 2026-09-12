@@ -45,6 +45,19 @@ fn mismatched_public_rack_fails_share_group_contract() {
 }
 
 #[test]
+fn missing_requested_authorized_operations_fails_share_group_contract() {
+    let mut entries = history();
+    let HistoryPayload::AdapterEvent { event } = &mut entries[1].payload else {
+        panic!("Share-group event history kind");
+    };
+    let AdapterEvent::ShareGroupDescribed(value) = &mut event.event else {
+        panic!("Share-group event kind");
+    };
+    value.authorized_operations = None;
+    assert_contract(&violations(&entries));
+}
+
+#[test]
 fn mismatched_cli_membership_fails_share_group_contract() {
     let mut entries = history();
     let HistoryPayload::BrokerStateObservation { observation } = &mut entries[2].payload else {
@@ -54,6 +67,19 @@ fn mismatched_cli_membership_fails_share_group_contract() {
         panic!("Share-group observation kind");
     };
     value.member_count = Some(2);
+    assert_contract(&violations(&entries));
+}
+
+#[test]
+fn changed_authorization_option_fails_share_group_contract() {
+    let mut entries = history();
+    let HistoryPayload::HarnessCommand { command } = &mut entries[0].payload else {
+        panic!("Share-group command history kind");
+    };
+    let AdapterCommand::DescribeShareGroup(value) = &mut command.command else {
+        panic!("Share-group command kind");
+    };
+    value.include_authorized_operations = false;
     assert_contract(&violations(&entries));
 }
 
@@ -86,6 +112,7 @@ fn description() -> AdminShareGroupDescription {
         group_epoch: 3,
         assignment_epoch: 4,
         assignor_name: "simple".to_owned(),
+        authorized_operations: Some(1),
         members: vec![AdminShareGroupMember {
             member_id: "member-1".to_owned(),
             rack_id: Some("rack-a".to_owned()),
@@ -128,6 +155,7 @@ fn action() -> DescribeShareGroupAction {
         expected_rack_id: Some("rack-a".to_owned()),
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -137,6 +165,7 @@ fn command_value() -> DescribeShareGroupCommand {
         client_id: client(),
         operation_id: operation(),
         group_id: "share-group-1".to_owned(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }

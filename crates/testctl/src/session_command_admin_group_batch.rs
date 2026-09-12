@@ -120,6 +120,7 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                     .iter()
                     .map(|group| group.group_id.clone())
                     .collect(),
+                include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::ClassicGroupsDescribed {
@@ -135,6 +136,7 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                     .iter()
                     .map(|group| group.group_id.clone())
                     .collect(),
+                include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::ConsumerGroupsDescribed(action.operation_id.clone()),

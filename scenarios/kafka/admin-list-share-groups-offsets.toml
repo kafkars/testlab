@@ -1,4 +1,4 @@
-schema_version = 116
+schema_version = 117
 id = "kafka.admin-list-share-groups-offsets"
 title = "packaged admin lists two independently observed Share-group offsets"
 description = "Two closed Share groups retain distinct accepted-prefix offsets while one caller-ordered public batch preserves every group and partition result; separate read-only Kafka CLI offset queries confirm both start offsets and lags."

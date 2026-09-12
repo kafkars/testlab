@@ -19,6 +19,7 @@ fn translation_preserves_caller_order_without_scenario_expectations() {
     assert_eq!(command.client_id, client());
     assert_eq!(command.operation_id, operation());
     assert_eq!(command.group_ids, group_ids());
+    assert!(command.include_authorized_operations);
     assert_eq!(command.timeout_ms, 1_000);
     assert!(matches!(
         expected,
@@ -64,6 +65,7 @@ fn action() -> DescribeShareGroupsAction {
                 expected_partition: 0,
             })
             .collect(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }

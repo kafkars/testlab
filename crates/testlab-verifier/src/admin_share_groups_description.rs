@@ -72,7 +72,7 @@ pub(crate) fn verify(
     violations.push(violation(
         "ADMIN-042",
         format!(
-            "admin operation {} expected caller-ordered detailed descriptions, live retained Share batches, and immediate independent state for every group",
+            "admin operation {} expected caller-ordered detailed descriptions with requested authorization metadata, live retained Share batches, and immediate independent state for every group",
             action.operation_id
         ),
         Some(action.operation_id.clone()),
@@ -105,6 +105,7 @@ fn outcome_matches(
                     expected_rack_id: expected.expected_rack_id.clone(),
                     expected_topic: expected.expected_topic.clone(),
                     expected_partition: expected.expected_partition,
+                    include_authorized_operations: action.include_authorized_operations,
                     timeout_ms: action.timeout_ms,
                 },
             )

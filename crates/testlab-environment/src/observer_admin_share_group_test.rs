@@ -189,6 +189,7 @@ fn action() -> DescribeShareGroupAction {
         expected_rack_id: None,
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }
@@ -198,6 +199,7 @@ fn command() -> DescribeShareGroupCommand {
         client_id: client(),
         operation_id: operation(),
         group_id: "share-group-1".to_owned(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     }
 }

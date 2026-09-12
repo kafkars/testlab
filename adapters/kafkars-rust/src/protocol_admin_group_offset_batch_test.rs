@@ -42,7 +42,7 @@ fn classic_group_event_outcomes_retain_success_and_group_failure() {
         vec![
             GroupResult {
                 group_id: "active".to_owned(),
-                result: ResourceResult::Success(2),
+                result: ResourceResult::Success((2, Some(7))),
             },
             GroupResult {
                 group_id: "missing".to_owned(),
@@ -55,9 +55,11 @@ fn classic_group_event_outcomes_retain_success_and_group_failure() {
 
     assert_eq!(outcomes[0].group_id, "active");
     assert_eq!(outcomes[0].member_count, Some(2));
+    assert_eq!(outcomes[0].authorized_operations, Some(7));
     assert_eq!(outcomes[0].error_code, None);
     assert_eq!(outcomes[1].group_id, "missing");
     assert_eq!(outcomes[1].member_count, None);
+    assert_eq!(outcomes[1].authorized_operations, None);
     assert_eq!(outcomes[1].error_code.as_deref(), Some("broker:broker_69"));
 }
 

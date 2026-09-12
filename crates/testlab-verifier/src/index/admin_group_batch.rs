@@ -218,6 +218,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                     .iter()
                     .map(|group| &group.group_id)
                     .eq(command.group_ids.iter())
+                && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
         }
         (
@@ -231,6 +232,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                     .iter()
                     .map(|group| &group.group_id)
                     .eq(command.group_ids.iter())
+                && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
         }
         (

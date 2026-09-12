@@ -38,6 +38,10 @@ fn classic_description_rejects_group_error_or_wrong_broker_count() {
     let mut wrong_count = classic_history();
     group_observation(&mut wrong_count[5]).member_count = Some(2);
     assert_contract(&violations(&wrong_count));
+
+    let mut missing_authorization = classic_history();
+    description(&mut missing_authorization).outcomes[0].authorized_operations = None;
+    assert_contract(&violations(&missing_authorization));
 }
 
 #[test]
@@ -51,6 +55,19 @@ fn classic_description_rejects_nonclassic_or_nonpositive_epoch() {
         receive_epoch(&mut history[0], epoch);
         assert_contract(&violations(&history));
     }
+}
+
+#[test]
+fn classic_description_rejects_changed_authorization_option() {
+    let mut history = classic_history();
+    let HistoryPayload::HarnessCommand { command } = &mut history[2].payload else {
+        panic!("classic description command");
+    };
+    let AdapterCommand::DescribeClassicGroups(command) = &mut command.command else {
+        panic!("classic description command kind");
+    };
+    command.include_authorized_operations = false;
+    assert_contract(&violations(&history));
 }
 
 fn classic_history() -> Vec<HistoryEntry> {
@@ -72,6 +89,7 @@ fn classic_history() -> Vec<HistoryEntry> {
                 client_id: client(),
                 operation_id: operation_id.clone(),
                 group_ids: vec!["group-b".to_owned(), "group-a".to_owned()],
+                include_authorized_operations: true,
                 timeout_ms: 2_000,
             }),
         ),
@@ -115,6 +133,7 @@ fn describe_action() -> ScenarioAction {
         client_id: client(),
         operation_id: operation("describe-classic"),
         groups: vec![expectation("group-b"), expectation("group-a")],
+        include_authorized_operations: true,
         timeout_ms: 2_000,
     })
 }
@@ -182,6 +201,7 @@ fn outcome(group_id: &str) -> AdminClassicGroupDescriptionOutcome {
     AdminClassicGroupDescriptionOutcome {
         group_id: group_id.to_owned(),
         member_count: Some(1),
+        authorized_operations: Some(1),
         error_code: None,
     }
 }

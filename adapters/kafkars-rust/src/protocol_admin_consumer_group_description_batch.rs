@@ -29,7 +29,7 @@ pub(crate) fn describe<W: Write>(
         .client(&command.client_id)?
         .admin()
         .describe_consumer_groups(command.group_ids.clone())
-        .include_authorized_operations(false)
+        .include_authorized_operations(command.include_authorized_operations)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()
@@ -99,6 +99,7 @@ fn public_description(
         state: description.state().to_owned(),
         protocol,
         member_count,
+        authorized_operations: description.authorized_operations(),
         protocol_type,
         group_epoch,
         assignment_epoch,

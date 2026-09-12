@@ -33,6 +33,8 @@ pub struct DescribeShareGroupsAction {
     pub operation_id: OperationId,
     /// Caller-ordered active Share-group expectations.
     pub groups: Vec<ShareGroupDescriptionExpectation>,
+    /// Whether Kafka must return the authorized-operation bitfield per group.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -47,6 +49,8 @@ pub struct DescribeShareGroupsCommand {
     pub operation_id: OperationId,
     /// Caller-ordered exact Kafka Share-group identities.
     pub group_ids: Vec<String>,
+    /// Whether Kafka must return the authorized-operation bitfield per group.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
