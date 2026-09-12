@@ -1,7 +1,7 @@
 schema_version = 108
-id = "kafka.assigned-consumer-owned-record-transfer"
-title = "owned assigned-consumer records transfer through a producer terminal"
-description = "A packaged direct consumer consumes one borrowed batch into an owned record, transfers its bytes to a producer record, and retains exact source evidence through the independently observed destination terminal."
+id = "kafka.assigned-consumer-direct-owned-records-transfer"
+title = "direct owned-record conversion preserves a source through producer settlement"
+description = "A packaged direct consumer calls RecordBatch::into_owned_records for one batch, transfers that record to a producer, and retains exact source evidence through the independently observed destination terminal."
 timeout_ms = 120000
 requires = ["producer", "assigned_consumer", "assigned_consumer_record_transfer", "lifecycle", "client_readiness"]
 
@@ -22,20 +22,20 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-source-record"
+id = "send-direct-owned-record-source"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "owned-transfer-source"
+operation_id = "direct-owned-record-source"
 
 [steps.record]
-topic = "testlab-kafkars-owned-transfer-source"
+topic = "testlab-kafkars-direct-owned-record-source"
 partition = 0
 sequence = 1
-timestamp_millis = 1700000003000
+timestamp_millis = 1700000004000
 key = { encoding = "hex", data = "" }
-value = { encoding = "hex", data = "00ff1020" }
+value = { encoding = "hex", data = "00ff3040" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "owned-transfer-source" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "direct-owned-record-source" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
   { name = "trace", value = { encoding = "hex", data = "00ff" } },
   { name = "trace" },
@@ -57,18 +57,18 @@ consumer_id = "consumer-1"
 id = "assign-source"
 kind = "assign_beginning"
 consumer_id = "consumer-1"
-topic = "testlab-kafkars-owned-transfer-source"
+topic = "testlab-kafkars-direct-owned-record-source"
 partition = 0
 
 [[steps]]
-id = "transfer-owned-record"
+id = "transfer-owned-records-directly"
 kind = "transfer_assigned_record"
 consumer_id = "consumer-1"
 producer_id = "producer-1"
-operation_id = "owned-transfer-destination"
-expected_input_operation_id = "owned-transfer-source"
-method = "into_owned_batch"
-target_topic = "testlab-kafkars-owned-transfer-destination"
+operation_id = "direct-owned-record-destination"
+expected_input_operation_id = "direct-owned-record-source"
+method = "into_owned_records"
+target_topic = "testlab-kafkars-direct-owned-record-destination"
 target_partition = 1
 timeout_ms = 30000
 
@@ -88,13 +88,13 @@ kind = "shutdown_client"
 client_id = "client-1"
 
 [[assertions]]
-operation_id = "owned-transfer-source"
+operation_id = "direct-owned-record-source"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"
 
 [[assertions]]
-operation_id = "owned-transfer-destination"
+operation_id = "direct-owned-record-destination"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"

@@ -137,6 +137,10 @@ maximum-timestamp offset selection. ADMIN-078 binds the exact public selector,
 offset, and returned timestamp to the unique independently observed record with
 the greatest timestamp. A later lower-timestamp record and immediate watermarks
 rule out earliest- or latest-offset substitution.
+Protocol v105, scenario schema v108, and evidence schema v94 add direct
+owned-record conversion. CONS-023 requires the exact `into_owned_records`
+selection while retaining CONS-021's public destination terminal, post-terminal
+source evidence, and distinct independent source and destination records.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -195,6 +199,10 @@ identity; its requested, progress, log-start, last-stable, and high-watermark
 offsets must match the prior independent watermark window and record; its
 checkpoint must equal Fetch progress; and its retained-byte charge must be
 positive.
+CONS-023 applies the complete CONS-021 transfer proof to the exact direct
+`RecordBatch::into_owned_records` command selection. It cannot be satisfied by
+the separately retained `RecordBatch::into_owned` then
+`OwnedConsumerBatch::into_records` path.
 PROD-011 requires strictly increasing independent offsets for sequential sends
 and caller-ordered batch records targeting one partition; concurrent actor
 declarations do not claim an execution order.

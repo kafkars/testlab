@@ -10,6 +10,17 @@ use crate::{
 /// Broker-visible header that gives a transferred copy its own operation identity.
 pub const RECORD_TRANSFER_OPERATION_HEADER: &str = "testlab-transfer-operation-id";
 
+/// Public conversion used to obtain owned records from one retained batch.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AssignedRecordConversionMethod {
+    /// Calls `RecordBatch::into_owned`, then `OwnedConsumerBatch::into_records`.
+    #[default]
+    IntoOwnedBatch,
+    /// Calls the direct `RecordBatch::into_owned_records` convenience path.
+    IntoOwnedRecords,
+}
+
 /// Scenario intent for one owned direct-consumer record transfer.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -22,6 +33,9 @@ pub struct AssignedRecordTransferAction {
     pub operation_id: OperationId,
     /// Exact prior producer operation expected as the source record.
     pub expected_input_operation_id: OperationId,
+    /// Public batch-to-record ownership conversion to exercise.
+    #[serde(default)]
+    pub method: AssignedRecordConversionMethod,
     /// Destination topic supplied at the public ownership-transfer boundary.
     pub target_topic: String,
     /// Explicit destination partition applied after ownership transfer.
@@ -40,6 +54,8 @@ pub struct AssignedRecordTransferCommand {
     pub producer_id: ProducerId,
     /// Stable identity for the transferred producer record.
     pub operation_id: OperationId,
+    /// Public batch-to-record ownership conversion to exercise.
+    pub method: AssignedRecordConversionMethod,
     /// Destination topic supplied at the public ownership-transfer boundary.
     pub target_topic: String,
     /// Explicit destination partition applied after ownership transfer.

@@ -1,8 +1,9 @@
 //! Owned transfer command translation keeps source expectations out of the adapter.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AssignedRecordTransferAction, AssignedRecordTransferCompletion,
-    ConsumedRecord, ConsumerId, OperationId, ProducerId, ScenarioAction, TerminalStatus,
+    AdapterCommand, AdapterEvent, AssignedRecordConversionMethod, AssignedRecordTransferAction,
+    AssignedRecordTransferCompletion, ConsumedRecord, ConsumerId, OperationId, ProducerId,
+    ScenarioAction, TerminalStatus,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -14,6 +15,7 @@ fn transfer_translation_retains_only_public_inputs() {
         producer_id: id(ProducerId::new("producer-1")),
         operation_id: id(OperationId::new("transfer-1")),
         expected_input_operation_id: id(OperationId::new("source-1")),
+        method: AssignedRecordConversionMethod::IntoOwnedRecords,
         target_topic: "destination".to_owned(),
         target_partition: 2,
         timeout_ms: 30_000,
@@ -26,6 +28,10 @@ fn transfer_translation_retains_only_public_inputs() {
     assert_eq!(command.operation_id.as_str(), "transfer-1");
     assert_eq!(command.target_topic, "destination");
     assert_eq!(command.target_partition, 2);
+    assert_eq!(
+        command.method,
+        AssignedRecordConversionMethod::IntoOwnedRecords
+    );
     assert!(matches!(
         expected,
         ExpectedEvent::AssignedRecordTransferCompleted(operation)

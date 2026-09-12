@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v104 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v107 and evidence schema v93.
+Protocol v105 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v108 and evidence schema v94.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -63,10 +63,12 @@ retained-byte charge, and independent checkpoint offset to `receive_completed`.
 Testctl does not send expected values to the adapter; the verifier joins them to
 prior independent topic-ID and watermark snapshots and the broker record.
 
-`transfer_assigned_record` waits for one public direct-consumer batch, consumes
-it through the owned-batch and owned-record boundaries, and transfers its only
-record to a caller-selected topic and partition through an ordinary producer.
-It requires the `assigned_consumer_record_transfer` capability.
+`transfer_assigned_record` waits for one public direct-consumer batch and
+selects either `into_owned_batch` (`RecordBatch::into_owned`, then
+`OwnedConsumerBatch::into_records`) or the direct `into_owned_records`
+conversion. It transfers the only resulting record to a caller-selected topic
+and partition through an ordinary producer. It requires the
+`assigned_consumer_record_transfer` capability.
 The expected source operation remains scenario-only. The adapter appends one
 reserved `testlab-transfer-operation-id` header so independent observation can
 distinguish the destination without removing the preserved source correlation
@@ -1162,6 +1164,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v104 is an exact semantic contract. New capabilities may be declared
+Protocol v105 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

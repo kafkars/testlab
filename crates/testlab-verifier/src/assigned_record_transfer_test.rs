@@ -1,8 +1,8 @@
 use testlab_schema::{
     AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId,
-    AssignedRecordTransferCommand, AssignedRecordTransferCompletion, BrokerObservation,
-    CommandEnvelope, CommandId, ConsumedRecord, HistoryEntry, HistoryPayload, OperationId,
-    ProducerReceipt, RecordSpec, Scenario, ScenarioAction, TerminalStatus,
+    AssignedRecordTransferAction, AssignedRecordTransferCommand, AssignedRecordTransferCompletion,
+    BrokerObservation, CommandEnvelope, CommandId, ConsumedRecord, HistoryEntry, HistoryPayload,
+    OperationId, ProducerReceipt, RecordSpec, Scenario, ScenarioAction, TerminalStatus,
 };
 
 #[test]
@@ -187,13 +187,12 @@ fn send_command(scenario: &Scenario) -> AdapterCommand {
     }
 }
 
-fn transfer_command(
-    action: &testlab_schema::AssignedRecordTransferAction,
-) -> AssignedRecordTransferCommand {
+fn transfer_command(action: &AssignedRecordTransferAction) -> AssignedRecordTransferCommand {
     AssignedRecordTransferCommand {
         consumer_id: action.consumer_id.clone(),
         producer_id: action.producer_id.clone(),
         operation_id: action.operation_id.clone(),
+        method: action.method,
         target_topic: action.target_topic.clone(),
         target_partition: action.target_partition,
         timeout_ms: action.timeout_ms,
@@ -212,7 +211,7 @@ fn source(scenario: &Scenario) -> (OperationId, &RecordSpec) {
     (operation_id.clone(), record)
 }
 
-fn transfer(scenario: &Scenario) -> &testlab_schema::AssignedRecordTransferAction {
+fn transfer(scenario: &Scenario) -> &AssignedRecordTransferAction {
     let ScenarioAction::TransferAssignedRecord(action) = &scenario.steps[7].action else {
         panic!("transfer action missing");
     };

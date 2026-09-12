@@ -1,4 +1,4 @@
-schema_version = 107
+schema_version = 108
 id = "kafka.producer-replacement-after-close"
 title = "one client creates a replacement producer after close"
 description = "One client configuration starts and closes a private producer owner, then starts a distinct replacement and preserves exact broker-visible progress through it."

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v104. It is not a
+An adapter translates one packaged client surface to protocol v105. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -122,11 +122,12 @@ runner and not a verifier.
   supplied Fetch value, and retained-delivery capacities are fixed through the
   public builder before the client host starts; never receive the expected
   record used to prove that selection.
-- Advertise assigned-consumer record transfer only when a borrowed batch is
-  consumed through the public owned-batch and owned-record APIs, the resulting
-  producer record settles through a public producer, and the retained source
-  record remains readable after that terminal. Append the reserved transfer
-  operation header without replacing any source header.
+- Advertise assigned-consumer record transfer only when `into_owned_batch`
+  calls the public owned-batch then owned-record APIs and
+  `into_owned_records` calls the direct public convenience path. The resulting
+  producer record must settle through a public producer, and the retained
+  source record must remain readable after that terminal. Append the reserved
+  transfer operation header without replacing any source header.
 - Advertise group-consumer controls only when pause, resume, and seek use public
   hosted-consumer calls and retain exact operation, consumer, partition, and
   position identity without receiving later record expectations.

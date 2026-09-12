@@ -5,9 +5,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{
-    AdapterEvent, AdapterEventEnvelope, AssignedRecordTransferCommand,
-    AssignedRecordTransferCompletion, ByteString, CommandId, ConsumedRecord, HeaderSpec,
-    ProducerReceipt, RECORD_TRANSFER_OPERATION_HEADER, TerminalStatus,
+    AdapterEvent, AdapterEventEnvelope, AssignedRecordConversionMethod,
+    AssignedRecordTransferCommand, AssignedRecordTransferCompletion, ByteString, CommandId,
+    ConsumedRecord, HeaderSpec, ProducerReceipt, RECORD_TRANSFER_OPERATION_HEADER, TerminalStatus,
 };
 
 use crate::AdapterError;
@@ -29,14 +29,16 @@ pub(crate) fn execute<W: Write>(
         deadline,
     )?
     .ok_or_else(|| AdapterError::ConsumerRecord("record transfer timed out".to_owned()))?;
-    let owned = batch.into_owned();
-    if owned.len() != 1 {
+    if batch.len() != 1 {
         return Err(AdapterError::ConsumerRecord(format!(
             "record transfer expected one source record, observed {}",
-            owned.len()
+            batch.len()
         )));
     }
-    let mut records = owned.into_records();
+    let mut records = match command.method {
+        AssignedRecordConversionMethod::IntoOwnedBatch => batch.into_owned().into_records(),
+        AssignedRecordConversionMethod::IntoOwnedRecords => batch.into_owned_records(),
+    };
     let source = records.next().ok_or_else(|| {
         AdapterError::ConsumerRecord("record transfer source disappeared".to_owned())
     })?;

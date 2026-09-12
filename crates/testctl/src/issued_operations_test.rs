@@ -1,10 +1,10 @@
 //! Issued-operation tests retain record and independently observed admin identities.
 
 use testlab_schema::{
-    AdapterCommand, AssignedRecordTransferCommand, BatchRecord, ClientId, CommandEnvelope,
-    CommandId, ConsumerId, CreatePartitionsCommand, HistoryEntry, HistoryPayload,
-    ListConsumerGroupOffsetsCommand, OperationId, ProducerId, RecordSpec, TransactionDisposition,
-    TransactionalTransformCommand,
+    AdapterCommand, AssignedRecordConversionMethod, AssignedRecordTransferCommand, BatchRecord,
+    ClientId, CommandEnvelope, CommandId, ConsumerId, CreatePartitionsCommand, HistoryEntry,
+    HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId, ProducerId, RecordSpec,
+    TransactionDisposition, TransactionalTransformCommand,
 };
 
 use crate::issued_operations::from_history;
@@ -88,6 +88,7 @@ fn assigned_record_transfer() -> AdapterCommand {
         consumer_id: id(ConsumerId::new("consumer-1")),
         producer_id: id(ProducerId::new("producer-1")),
         operation_id: id(OperationId::new("transfer-record-1")),
+        method: AssignedRecordConversionMethod::IntoOwnedBatch,
         target_topic: "transferred-records".to_owned(),
         target_partition: 1,
         timeout_ms: 1_000,

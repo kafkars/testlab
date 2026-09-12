@@ -1,4 +1,4 @@
-schema_version = 107
+schema_version = 108
 id = "kafka.admin-delete-consumer-groups"
 title = "packaged admin deletes caller-ordered empty consumer groups"
 description = "Two classic groups independently consume and commit exact records, close their only members, and are described empty in caller order before one public batch deletion; an immediate independent group query proves both are absent."

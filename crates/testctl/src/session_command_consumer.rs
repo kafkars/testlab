@@ -50,6 +50,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 consumer_id: action.consumer_id.clone(),
                 producer_id: action.producer_id.clone(),
                 operation_id: action.operation_id.clone(),
+                method: action.method,
                 target_topic: action.target_topic.clone(),
                 target_partition: action.target_partition,
                 timeout_ms: action.timeout_ms,

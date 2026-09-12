@@ -1,6 +1,6 @@
 //! Owned record-transfer fixtures pin capability, identity, and reserved metadata.
 
-use crate::{Capability, HeaderSpec, Scenario, ScenarioAction};
+use crate::{AssignedRecordConversionMethod, Capability, HeaderSpec, Scenario, ScenarioAction};
 
 #[test]
 fn checked_in_owned_transfer_is_valid_and_exact() {
@@ -21,7 +21,31 @@ fn checked_in_owned_transfer_is_valid_and_exact() {
         "owned-transfer-source"
     );
     assert_eq!(action.operation_id.as_str(), "owned-transfer-destination");
+    assert_eq!(
+        action.method,
+        AssignedRecordConversionMethod::IntoOwnedBatch
+    );
     assert_eq!(action.target_partition, 1);
+}
+
+#[test]
+fn checked_in_direct_owned_records_transfer_is_valid_and_exact() {
+    let scenario = direct_scenario();
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate direct owned-record transfer: {error}"));
+    let Some(ScenarioAction::TransferAssignedRecord(action)) = scenario
+        .steps
+        .iter()
+        .find(|step| step.id.as_str() == "transfer-owned-records-directly")
+        .map(|step| &step.action)
+    else {
+        panic!("direct owned-record transfer action missing");
+    };
+    assert_eq!(
+        action.method,
+        AssignedRecordConversionMethod::IntoOwnedRecords
+    );
 }
 
 #[test]
@@ -72,6 +96,13 @@ fn scenario() -> Scenario {
         "../../../scenarios/kafka/assigned-consumer-owned-record-transfer.toml"
     ))
     .unwrap_or_else(|error| panic!("parse owned transfer: {error}"))
+}
+
+fn direct_scenario() -> Scenario {
+    toml::from_str(include_str!(
+        "../../../scenarios/kafka/assigned-consumer-direct-owned-records-transfer.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse direct owned-record transfer: {error}"))
 }
 
 fn assert_problem(scenario: &Scenario, expected: &str) {

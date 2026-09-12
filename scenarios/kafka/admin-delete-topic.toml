@@ -1,4 +1,4 @@
-schema_version = 107
+schema_version = 108
 id = "kafka.admin-delete-topic"
 title = "packaged admin deletes an independently observed Kafka topic"
 description = "The packaged client's public admin first describes one harness-provisioned topic and then deletes it; independent broker-state observations prove the same topic existed before deletion and became absent afterward."

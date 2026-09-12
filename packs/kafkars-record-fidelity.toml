@@ -9,6 +9,7 @@ scenarios = [
   "scenarios/kafka/assigned-consumer-null-empty.toml",
   "scenarios/kafka/assigned-consumer-header-fidelity.toml",
   "scenarios/kafka/assigned-consumer-owned-record-transfer.toml",
+  "scenarios/kafka/assigned-consumer-direct-owned-records-transfer.toml",
   "scenarios/kafka/assigned-consumer-fetch-evidence.toml",
   "scenarios/kafka/producer-sequential-ordering.toml",
   "scenarios/kafka/classic-group-record-fidelity.toml",

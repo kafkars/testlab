@@ -2,11 +2,11 @@
 
 use testlab_schema::{
     AdapterCommand, AdminOffsetSelector, AlterConsumerGroupOffsetsCommand, AlterTopicConfigCommand,
-    AlterTopicConfigsCommand, AssignedRecordTransferCommand, ClientId,
-    ConsumerGroupOffsetAlteration, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection,
-    ConsumerId, DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsCommand,
-    DescribeTopicCommand, DescribeTopicConfigCommand, DescribeTopicConfigsCommand,
-    ListConfigResourcesCommand, ListConsumerGroupOffsetsBatchCommand,
+    AlterTopicConfigsCommand, AssignedRecordConversionMethod, AssignedRecordTransferCommand,
+    ClientId, ConsumerGroupOffsetAlteration, ConsumerGroupOffsetSelection,
+    ConsumerGroupOffsetsSelection, ConsumerId, DeleteConsumerGroupOffsetsCommand,
+    DescribeClassicGroupsCommand, DescribeTopicCommand, DescribeTopicConfigCommand,
+    DescribeTopicConfigsCommand, ListConfigResourcesCommand, ListConsumerGroupOffsetsBatchCommand,
     ListConsumerGroupOffsetsCommand, ListConsumerGroupsOffsetsCommand, ListOffsetsCommand,
     ListTopicsCommand, OperationId, ProducerId, TopicConfigAlteration, TopicConfigSelection,
 };
@@ -207,6 +207,7 @@ fn owned_record_transfer_requires_its_exact_capability() {
         producer_id: ProducerId::new("producer-1")
             .unwrap_or_else(|error| panic!("producer id: {error}")),
         operation_id: operation_id(),
+        method: AssignedRecordConversionMethod::IntoOwnedBatch,
         target_topic: "destination".to_owned(),
         target_partition: 0,
         timeout_ms: 1_000,

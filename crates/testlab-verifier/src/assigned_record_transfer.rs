@@ -1,12 +1,16 @@
 //! Owned record-transfer verification joins both public owners to two broker records.
 
 #[cfg(test)]
+#[path = "assigned_record_conversion_method_test.rs"]
+mod method_tests;
+#[cfg(test)]
 #[path = "assigned_record_transfer_test.rs"]
 mod tests;
 
 use testlab_schema::{
-    AdapterCommand, AssignedRecordTransferAction, AssignedRecordTransferCommand, BrokerObservation,
-    CommandId, OperationId, Scenario, ScenarioAction, TerminalStatus, Violation,
+    AdapterCommand, AssignedRecordConversionMethod, AssignedRecordTransferAction,
+    AssignedRecordTransferCommand, BrokerObservation, CommandId, OperationId, Scenario,
+    ScenarioAction, TerminalStatus, Violation,
 };
 
 use crate::consumer::exact_record;
@@ -25,6 +29,7 @@ pub(crate) fn verify(
         let ScenarioAction::TransferAssignedRecord(action) = &step.action else {
             continue;
         };
+        let contract = contract(action.method);
         if !index.action_issued(&step.action) {
             continue;
         }
@@ -42,7 +47,7 @@ pub(crate) fn verify(
             && matches!(target.map(Vec::as_slice), Some([_]));
         if !valid {
             violations.push(violation(
-                "CONS-021",
+                contract,
                 format!(
                     "owned transfer {} expected one exact command, admission, terminal, completion, source observation, and destination observation",
                     action.operation_id
@@ -143,7 +148,7 @@ fn verify_exact(
         return;
     }
     violations.push(violation(
-        "CONS-021",
+        contract(action.method),
         format!(
             "owned transfer {} did not preserve its source lease, exact bytes, or destination terminal",
             action.operation_id
@@ -165,9 +170,17 @@ fn command(action: &AssignedRecordTransferAction) -> AssignedRecordTransferComma
         consumer_id: action.consumer_id.clone(),
         producer_id: action.producer_id.clone(),
         operation_id: action.operation_id.clone(),
+        method: action.method,
         target_topic: action.target_topic.clone(),
         target_partition: action.target_partition,
         timeout_ms: action.timeout_ms,
+    }
+}
+
+const fn contract(method: AssignedRecordConversionMethod) -> &'static str {
+    match method {
+        AssignedRecordConversionMethod::IntoOwnedBatch => "CONS-021",
+        AssignedRecordConversionMethod::IntoOwnedRecords => "CONS-023",
     }
 }
 
