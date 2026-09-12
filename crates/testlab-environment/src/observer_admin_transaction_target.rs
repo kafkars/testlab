@@ -40,6 +40,10 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             AdapterCommand::ListTransactions(ListTransactionsCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
+                state_filters: action.state_filters.clone(),
+                producer_id_filters: action.producer_id_filters.clone(),
+                duration_filter_ms: action.duration_filter_ms,
+                transactional_id_pattern: action.transactional_id_pattern.clone(),
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::Transactions(TransactionTarget::List(action.operation_id.clone())),

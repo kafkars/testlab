@@ -119,6 +119,7 @@ scenarios = [
   "scenarios/kafka/admin-alter-replica-log-dirs.toml",
   "scenarios/kafka/admin-describe-metadata-quorum.toml",
   "scenarios/kafka/admin-transaction-discovery.toml",
+  "scenarios/kafka/admin-transaction-pattern-filter.toml",
   "scenarios/kafka/admin-fence-producers.toml",
   "scenarios/kafka/admin-list-consumer-groups.toml",
   "scenarios/kafka/admin-list-groups.toml",

@@ -5,9 +5,9 @@ use crate::{AdapterCommand, AdapterEvent, BrokerStateObservation, ScenarioAction
 
 #[test]
 fn transaction_discovery_versions_are_explicit() {
-    assert_eq!(crate::PROTOCOL_VERSION, 112);
-    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 115);
-    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 101);
+    assert_eq!(crate::PROTOCOL_VERSION, 113);
+    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 116);
+    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 102);
 }
 
 #[test]
@@ -57,17 +57,27 @@ fn expectations_stay_off_commands_and_all_results_round_trip() {
     let list_action = ScenarioAction::ListTransactions(ListTransactionsAction {
         client_id: client(),
         operation_id: operation("list-transactions"),
+        state_filters: vec!["Ongoing".to_owned()],
+        producer_id_filters: vec![71],
+        duration_filter_ms: Some(2_000),
+        transactional_id_pattern: Some("^alpha$".to_owned()),
+        baseline_operation_id: Some(operation("list-transactions-baseline")),
         expected_transactions: vec![listing_expectation("alpha")],
         timeout_ms: 1_000,
     });
     let list_command = AdapterCommand::ListTransactions(ListTransactionsCommand {
         client_id: client(),
         operation_id: operation("list-transactions"),
+        state_filters: vec!["Ongoing".to_owned()],
+        producer_id_filters: vec![71],
+        duration_filter_ms: Some(2_000),
+        transactional_id_pattern: Some("^alpha$".to_owned()),
         timeout_ms: 1_000,
     });
     round_trip(&list_action);
     round_trip(&list_command);
     assert!(!encoded(&list_command).contains("expected_transactions"));
+    assert!(!encoded(&list_command).contains("baseline_operation_id"));
 
     let listing = listing("alpha", 71);
     round_trip(&AdapterEvent::TransactionsListed(

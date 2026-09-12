@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{ProducerId, Scenario, ScenarioAction};
+use crate::{ClientId, ListTransactionsAction, OperationId, ProducerId, Scenario, ScenarioAction};
 
 #[derive(Clone, Debug)]
 struct Owner {
@@ -12,6 +12,7 @@ struct Owner {
 
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut owners = BTreeMap::<ProducerId, Owner>::new();
+    let mut unfiltered = BTreeMap::<OperationId, ClientId>::new();
     for step in &scenario.steps {
         match &step.action {
             ScenarioAction::CreateTransactionalProducer {
@@ -31,22 +32,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 }
             }
             ScenarioAction::ListTransactions(action) => {
-                let expected = action
-                    .expected_transactions
-                    .iter()
-                    .map(|transaction| transaction.transactional_id.as_str())
-                    .collect::<BTreeSet<_>>();
-                let initialized = owners
-                    .values()
-                    .map(|owner| owner.transactional_id.as_str())
-                    .collect::<BTreeSet<_>>();
-                if expected != initialized {
-                    problems.push(format!(
-                        "admin operation {} must list every successfully initialized transactional_id exactly once",
-                        action.operation_id
-                    ));
-                }
-                require_closed(&action.operation_id, expected, &owners, problems);
+                validate_listing(action, &owners, &mut unfiltered, problems)
             }
             ScenarioAction::DescribeTransactions(action) => require_closed(
                 &action.operation_id,
@@ -69,6 +55,62 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             _ => {}
         }
     }
+}
+
+fn validate_listing(
+    action: &ListTransactionsAction,
+    owners: &BTreeMap<ProducerId, Owner>,
+    unfiltered: &mut BTreeMap<OperationId, ClientId>,
+    problems: &mut Vec<String>,
+) {
+    let expected = action
+        .expected_transactions
+        .iter()
+        .map(|transaction| transaction.transactional_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let initialized = owners
+        .values()
+        .map(|owner| owner.transactional_id.as_str())
+        .collect::<BTreeSet<_>>();
+    if !crate::admin_transactions::filter_validation::filtered(action) {
+        if expected != initialized {
+            problems.push(format!(
+                "admin operation {} must list every successfully initialized transactional_id exactly once",
+                action.operation_id
+            ));
+        }
+        require_closed(&action.operation_id, initialized, owners, problems);
+        unfiltered.insert(action.operation_id.clone(), action.client_id.clone());
+        return;
+    }
+    let baseline = action
+        .baseline_operation_id
+        .as_ref()
+        .and_then(|operation_id| unfiltered.get(operation_id));
+    if baseline.is_none() {
+        problems.push(format!(
+            "admin operation {} must reference an earlier unfiltered transaction listing",
+            action.operation_id
+        ));
+    } else if baseline != Some(&action.client_id) {
+        problems.push(format!(
+            "admin operation {} must use the same client as its unfiltered baseline",
+            action.operation_id
+        ));
+    }
+    if !expected.is_subset(&initialized) {
+        problems.push(format!(
+            "admin operation {} filtered transactions must be successfully initialized by the fixture",
+            action.operation_id
+        ));
+    }
+    if expected.len() >= initialized.len() {
+        problems.push(format!(
+            "admin operation {} filtered listing must strictly narrow its unfiltered baseline",
+            action.operation_id
+        ));
+    }
+    require_closed(&action.operation_id, initialized, owners, problems);
 }
 
 fn record(owners: &mut BTreeMap<ProducerId, Owner>, producer_id: &ProducerId, value: &str) {

@@ -81,6 +81,10 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
         (ScenarioAction::ListTransactions(action), AdapterCommand::ListTransactions(command)) => {
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
+                && action.state_filters == command.state_filters
+                && action.producer_id_filters == command.producer_id_filters
+                && action.duration_filter_ms == command.duration_filter_ms
+                && action.transactional_id_pattern == command.transactional_id_pattern
                 && action.timeout_ms == command.timeout_ms
         }
         (

@@ -13,6 +13,9 @@ use crate::admin::verify_admin;
 use crate::index::HistoryIndex;
 use crate::verify_fixture::{command, event, scenario, step};
 
+const ALPHA_ID: &str = "testlab-admin-transaction-alpha";
+const ZULU_ID: &str = "testlab-admin-transaction-zulu";
+
 #[test]
 fn exact_listing_and_cli_snapshot_pass() {
     assert!(listing_violations(listing_history()).is_empty());
@@ -62,6 +65,10 @@ fn listing_history() -> Vec<HistoryEntry> {
             AdapterCommand::ListTransactions(ListTransactionsCommand {
                 client_id: client(),
                 operation_id: listing_operation(),
+                state_filters: Vec::new(),
+                producer_id_filters: Vec::new(),
+                duration_filter_ms: None,
+                transactional_id_pattern: None,
                 timeout_ms: 20_000,
             }),
         ),
@@ -97,7 +104,7 @@ fn description_history() -> Vec<HistoryEntry> {
             AdapterCommand::DescribeTransactions(DescribeTransactionsCommand {
                 client_id: client(),
                 operation_id: description_operation(),
-                transactional_ids: vec![zulu_id().to_owned(), alpha_id().to_owned()],
+                transactional_ids: vec![ZULU_ID.to_owned(), ALPHA_ID.to_owned()],
                 timeout_ms: 20_000,
             }),
         ),
@@ -117,7 +124,12 @@ fn listing_violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violati
     let action = ScenarioAction::ListTransactions(ListTransactionsAction {
         client_id: client(),
         operation_id: listing_operation(),
-        expected_transactions: [alpha_id(), zulu_id()].map(listing_expectation).into(),
+        state_filters: Vec::new(),
+        producer_id_filters: Vec::new(),
+        duration_filter_ms: None,
+        transactional_id_pattern: None,
+        baseline_operation_id: None,
+        expected_transactions: [ALPHA_ID, ZULU_ID].map(listing_expectation).into(),
         timeout_ms: 20_000,
     });
     violations(history, action)
@@ -127,7 +139,7 @@ fn description_violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Vio
     let action = ScenarioAction::DescribeTransactions(DescribeTransactionsAction {
         client_id: client(),
         operation_id: description_operation(),
-        transactions: [zulu_id(), alpha_id()].map(description_expectation).into(),
+        transactions: [ZULU_ID, ALPHA_ID].map(description_expectation).into(),
         timeout_ms: 20_000,
     });
     violations(history, action)
@@ -151,10 +163,7 @@ fn violations(
 }
 
 fn listing_snapshots() -> Vec<TransactionListingSnapshot> {
-    vec![
-        listing_snapshot(alpha_id(), 4),
-        listing_snapshot(zulu_id(), 9),
-    ]
+    vec![listing_snapshot(ALPHA_ID, 4), listing_snapshot(ZULU_ID, 9)]
 }
 
 fn listing_snapshot(transactional_id: &str, producer_id: i64) -> TransactionListingSnapshot {
@@ -167,8 +176,8 @@ fn listing_snapshot(transactional_id: &str, producer_id: i64) -> TransactionList
 
 fn description_snapshots() -> Vec<TransactionDescriptionSnapshot> {
     vec![
-        description_snapshot(zulu_id(), 9),
-        description_snapshot(alpha_id(), 4),
+        description_snapshot(ZULU_ID, 9),
+        description_snapshot(ALPHA_ID, 4),
     ]
 }
 
@@ -273,14 +282,6 @@ fn listing_operation() -> OperationId {
 fn description_operation() -> OperationId {
     OperationId::new("admin-describe-transactions")
         .unwrap_or_else(|error| panic!("operation: {error}"))
-}
-
-fn alpha_id() -> &'static str {
-    "testlab-admin-transaction-alpha"
-}
-
-fn zulu_id() -> &'static str {
-    "testlab-admin-transaction-zulu"
 }
 
 fn assert_contract(violations: &[testlab_schema::Violation], contract: &str) {

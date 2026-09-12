@@ -1,5 +1,8 @@
 //! Transaction Admin joins public results to pinned Kafka CLI snapshots.
 
+#[path = "admin_transaction_filters.rs"]
+pub(crate) mod filters;
+
 use testlab_schema::{
     DescribeTransactionsAction, ListTransactionsAction, ScenarioAction,
     TransactionDescriptionSnapshot, TransactionListingSnapshot, TransactionTopicSnapshot,
@@ -18,7 +21,11 @@ pub(crate) fn verify_transactions_action(
 ) -> bool {
     match scenario_action {
         ScenarioAction::ListTransactions(action) => {
-            verify_listing(scenario_action, action, index, violations);
+            if filters::selected(action) {
+                filters::verify(scenario_action, action, index, violations);
+            } else {
+                verify_listing(scenario_action, action, index, violations);
+            }
         }
         ScenarioAction::DescribeTransactions(action) => {
             verify_descriptions(scenario_action, action, index, violations);
@@ -170,7 +177,7 @@ fn verify_descriptions(
     ));
 }
 
-fn canonical_list(transactions: &[TransactionListingSnapshot]) -> bool {
+pub(crate) fn canonical_list(transactions: &[TransactionListingSnapshot]) -> bool {
     transactions.iter().all(|transaction| {
         valid_name(&transaction.transactional_id)
             && transaction.producer_id >= 0

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v112. It is not a
+An adapter translates one packaged client surface to protocol v113. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -42,9 +42,11 @@ runner and not a verifier.
   receiving the scenario-required resource names.
 - Preserve validation-only finalized-feature update order, throttle, and every
   per-feature outcome; never substitute the independently compared CLI state.
-- Preserve canonical unfiltered transaction listings, caller-ordered exact
-  transaction descriptions, and caller-ordered producer-fencing identities
-  without receiving expected states or fields.
+- Preserve canonical transaction listings and exact caller-ordered state and
+  signed producer-ID filters plus optional duration and transactional-ID
+  pattern selectors. Baseline identities and expected rows stay scenario-only.
+  Preserve caller-ordered exact transaction descriptions and producer-fencing
+  identities without receiving expected states or fields.
 - Advertise `transaction_batch_send` only when `method = "send_batch"` stages
   the exact homogeneous caller-ordered set through one public transaction batch
   request and expands its single acknowledgment into exact per-record offsets.

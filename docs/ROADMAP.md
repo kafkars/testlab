@@ -41,7 +41,9 @@
   descriptions, singleton and caller-ordered plural selected partition offset
   listings, partition offset alteration/deletion, and
   caller-ordered empty-group deletion, against
-  independent Kafka CLI state; transactions, replacement and Admin
+  independent Kafka CLI state; stable-baseline transaction discovery with
+  exact state, producer-ID, duration, and Kafka 4.3 pattern filtering;
+  transactions, replacement and Admin
   force-termination fencing, broker-derived single-partition Admin abort with
   pre-cleanup state proof, reversible stopped-broker unregistration with exact
   remaining and restored cluster identity, broker restart, rolling restart, and independently

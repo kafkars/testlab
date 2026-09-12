@@ -1,4 +1,4 @@
-schema_version = 115
+schema_version = 116
 id = "kafka.producer-waiting-send"
 title = "bounded waiting producer send reaches Kafka exactly once"
 description = "One configured packaged producer enters Kafkars's public send waiting path under explicit one-record and bounded-byte capacity, then reports the exact receipt independently observed from Kafka."

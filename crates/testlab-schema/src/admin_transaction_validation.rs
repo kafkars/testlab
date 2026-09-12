@@ -22,11 +22,7 @@ pub(crate) fn validate(
                 operation_ids,
                 problems,
             );
-            validate_count(
-                &action.operation_id,
-                action.expected_transactions.len(),
-                problems,
-            );
+            crate::admin_transactions::filter_validation::validate(action, problems);
             let mut prior: Option<&str> = None;
             for expected in &action.expected_transactions {
                 validate_id(&action.operation_id, &expected.transactional_id, problems);

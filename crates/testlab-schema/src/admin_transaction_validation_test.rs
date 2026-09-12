@@ -43,10 +43,48 @@ fn duplicate_ids_whitespace_and_noncanonical_topics_fail() {
     assert!(!problems(ScenarioAction::FenceProducers(fence)).is_empty());
 }
 
+#[test]
+fn listing_filters_require_bounded_unique_intent_and_a_baseline() {
+    let mut action = list_action();
+    action.state_filters = vec!["Ongoing".to_owned(), "Ongoing".to_owned()];
+    action.producer_id_filters = vec![7, 7];
+    action.duration_filter_ms = Some(i64::MAX as u64 + 1);
+    action.transactional_id_pattern = Some(String::new());
+    let invalid = problems(ScenarioAction::ListTransactions(action.clone()));
+    for expected in [
+        "state_filters must contain unique",
+        "producer_id_filters must contain unique",
+        "duration_filter_ms must fit",
+        "transactional_id_pattern must contain",
+        "filtered listing requires baseline_operation_id",
+    ] {
+        assert!(
+            invalid.iter().any(|problem| problem.contains(expected)),
+            "missing {expected:?} in {invalid:?}"
+        );
+    }
+
+    action.state_filters = vec!["Ongoing".to_owned()];
+    action.producer_id_filters.clear();
+    action.duration_filter_ms = Some(i64::MAX as u64);
+    action.transactional_id_pattern = Some("^alpha$".to_owned());
+    action.baseline_operation_id = Some(operation("baseline-list-transactions"));
+    action.expected_transactions.clear();
+    assert!(
+        problems(ScenarioAction::ListTransactions(action)).is_empty(),
+        "canonical filtered listing must validate"
+    );
+}
+
 fn list_action() -> ListTransactionsAction {
     ListTransactionsAction {
         client_id: client(),
         operation_id: operation("list-transactions"),
+        state_filters: Vec::new(),
+        producer_id_filters: Vec::new(),
+        duration_filter_ms: None,
+        transactional_id_pattern: None,
+        baseline_operation_id: None,
         expected_transactions: vec![listing("alpha"), listing("zulu")],
         timeout_ms: 1_000,
     }

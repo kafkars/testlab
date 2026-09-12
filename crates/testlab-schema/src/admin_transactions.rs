@@ -1,5 +1,8 @@
 //! Transaction Admin payloads keep fixture expectations outside wire commands.
 
+#[path = "admin_transaction_filter_validation.rs"]
+pub(crate) mod filter_validation;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
@@ -14,7 +17,7 @@ pub struct TransactionListingExpectation {
     pub expected_state: String,
 }
 
-/// Scenario intent for one unfiltered cluster-wide transaction listing.
+/// Scenario intent for one cluster-wide transaction listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ListTransactionsAction {
@@ -22,13 +25,28 @@ pub struct ListTransactionsAction {
     pub client_id: ClientId,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Caller-ordered broker-owned transaction-state filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub state_filters: Vec<String>,
+    /// Caller-ordered exact signed producer-ID filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub producer_id_filters: Vec<i64>,
+    /// Minimum running duration selected by the broker, in milliseconds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub duration_filter_ms: Option<u64>,
+    /// Opaque transactional-ID regular expression interpreted by Kafka.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transactional_id_pattern: Option<String>,
+    /// Earlier unfiltered operation establishing the complete stable result.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub baseline_operation_id: Option<OperationId>,
     /// Exact canonical transaction identities and states expected in the fixture.
     pub expected_transactions: Vec<TransactionListingExpectation>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
 
-/// Wire payload for one unfiltered cluster-wide transaction listing.
+/// Wire payload for one cluster-wide transaction listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ListTransactionsCommand {
@@ -36,6 +54,18 @@ pub struct ListTransactionsCommand {
     pub client_id: ClientId,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Caller-ordered broker-owned transaction-state filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub state_filters: Vec<String>,
+    /// Caller-ordered exact signed producer-ID filters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub producer_id_filters: Vec<i64>,
+    /// Minimum running duration selected by the broker, in milliseconds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub duration_filter_ms: Option<u64>,
+    /// Opaque transactional-ID regular expression interpreted by Kafka.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transactional_id_pattern: Option<String>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

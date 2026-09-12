@@ -1,8 +1,8 @@
-schema_version = 115
+schema_version = 116
 id = "kafka.admin-transaction-discovery"
 title = "packaged admin lists and describes independently observed transactions"
-description = "Two initialized and closed transactional producers leave stable Empty transaction state; the packaged client's canonical listing and caller-ordered descriptions must preserve every public field exposed by the pinned Kafka administration CLI."
-timeout_ms = 90000
+description = "Two initialized and closed transactional producers leave stable Empty transaction state; the packaged client's canonical listing, exact state, signed producer-ID, and duration filters, and caller-ordered descriptions must preserve every public field exposed by the pinned Kafka administration CLI."
+timeout_ms = 150000
 requires = ["transactions", "admin", "lifecycle", "client_readiness"]
 assertions = []
 
@@ -58,6 +58,36 @@ expected_state = "Empty"
 [[steps.expected_transactions]]
 transactional_id = "testlab-admin-transaction-zulu"
 expected_state = "Empty"
+
+[[steps]]
+id = "list-transactions-by-state"
+kind = "list_transactions"
+client_id = "client-1"
+operation_id = "admin-list-transactions-by-state"
+state_filters = ["Ongoing"]
+baseline_operation_id = "admin-list-transactions"
+expected_transactions = []
+timeout_ms = 20000
+
+[[steps]]
+id = "list-transactions-by-producer-id"
+kind = "list_transactions"
+client_id = "client-1"
+operation_id = "admin-list-transactions-by-producer-id"
+producer_id_filters = [9223372036854775807]
+baseline_operation_id = "admin-list-transactions"
+expected_transactions = []
+timeout_ms = 20000
+
+[[steps]]
+id = "list-transactions-by-duration"
+kind = "list_transactions"
+client_id = "client-1"
+operation_id = "admin-list-transactions-by-duration"
+duration_filter_ms = 9223372036854775807
+baseline_operation_id = "admin-list-transactions"
+expected_transactions = []
+timeout_ms = 20000
 
 [[steps]]
 id = "describe-transactions"

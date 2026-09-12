@@ -1,4 +1,4 @@
-schema_version = 115
+schema_version = 116
 id = "kafka.client-metrics-producer"
 title = "client metrics expose completed producer work"
 description = "A public metrics snapshot taken after a flushed acknowledged send exposes coherent call, failure, mailbox, latency, and idle producer state while the broker independently exposes the exact record."

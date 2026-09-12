@@ -175,6 +175,11 @@ group-listing filter intent. ADMIN-082 covers state and group-type filters on
 both consumer-only and generic public builders plus the generic builder's
 client-side protocol-type filter, while immediate independent group queries
 continue to establish required live identities.
+Protocol v113, scenario schema v116, and evidence schema v102 retain all four
+transaction-listing selectors. ADMIN-083 covers exact state, signed producer-ID,
+duration, and transactional-ID-pattern intent, and rejects vacuous results by
+requiring strict narrowing from an earlier nonempty public baseline while an
+immediate unfiltered Kafka CLI snapshot proves that full baseline is unchanged.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -623,6 +628,16 @@ transactional producer first. Public rows must be canonical by transactional
 ID, contain exactly the scenario-declared identities and states, preserve each
 nonnegative producer ID, and exactly equal the independently parsed rows; any
 unknown filter or broker error prevents the public completion.
+
+ADMIN-083 binds each filtered public transaction listing to its exact wire
+selector and an earlier unfiltered public baseline from the same client. The
+baseline must be nonempty and precede the filtered command. The filtered result
+must be canonical, exactly match the scenario-selected identities and states,
+preserve each producer ID from an immediate unfiltered Kafka CLI snapshot, and
+strictly narrow that snapshot. The same snapshot must still equal the complete
+baseline, preventing an empty or partial fixture from masquerading as filter
+coverage. State, producer-ID, and duration paths run across their compatible
+matrix; transactional-ID regular expressions remain on Kafka 4.3 gating cells.
 
 ADMIN-053 binds one caller-ordered public description batch to one immediate
 pinned Kafka CLI description per selected transactional ID. Public and

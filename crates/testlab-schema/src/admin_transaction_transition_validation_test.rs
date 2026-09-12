@@ -55,6 +55,32 @@ fn listing_rejects_an_identity_not_initialized_by_the_fixture() {
     );
 }
 
+#[test]
+fn filtered_listing_requires_an_earlier_unfiltered_baseline() {
+    let mut scenario = fixture();
+    let action = scenario
+        .steps
+        .iter_mut()
+        .find_map(|step| match &mut step.action {
+            ScenarioAction::ListTransactions(action) if !action.state_filters.is_empty() => {
+                Some(action)
+            }
+            _ => None,
+        })
+        .unwrap_or_else(|| panic!("filtered transaction listing action"));
+    action.baseline_operation_id = Some(
+        crate::OperationId::new("missing-baseline")
+            .unwrap_or_else(|error| panic!("operation id: {error}")),
+    );
+    let problems = problems(scenario);
+    assert!(
+        problems
+            .iter()
+            .any(|problem| problem.contains("earlier unfiltered")),
+        "{problems:?}"
+    );
+}
+
 fn fixture() -> Scenario {
     toml::from_str(include_str!(
         "../../../scenarios/kafka/admin-transaction-discovery.toml"

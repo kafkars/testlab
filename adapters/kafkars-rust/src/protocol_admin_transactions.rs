@@ -97,21 +97,27 @@ fn list<W: Write>(
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
-            client
-                .admin()
-                .list_transactions()
-                .deadline_after(remaining)
-                .submit()
-                .wait()
+            let mut listing = client.admin().list_transactions();
+            if !command.state_filters.is_empty() {
+                listing = listing.state_filters(command.state_filters.clone());
+            }
+            if !command.producer_id_filters.is_empty() {
+                listing = listing.producer_id_filters(command.producer_id_filters.clone());
+            }
+            if let Some(duration) = command.duration_filter_ms {
+                listing = listing.duration_filter(Duration::from_millis(duration));
+            }
+            if let Some(pattern) = &command.transactional_id_pattern {
+                listing = listing.transactional_id_pattern(pattern.clone());
+            }
+            listing.deadline_after(remaining).submit().wait()
         },
         retry_safe,
     )
     .map_err(AdapterError::Client)?;
     let (_, transactions, unknown_filters, broker_errors) = result.into_parts();
     if !unknown_filters.is_empty() || !broker_errors.is_empty() {
-        return Err(invalid(
-            "unfiltered listing returned unknown filters or broker errors",
-        ));
+        return Err(invalid("listing returned unknown filters or broker errors"));
     }
     let transactions = transactions
         .into_iter()

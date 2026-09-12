@@ -1,0 +1,78 @@
+schema_version = 116
+id = "kafka.admin-transaction-pattern-filter"
+title = "packaged admin filters transactions by transactional ID pattern"
+description = "Two initialized and closed transactional producers establish one stable unfiltered baseline; Kafka 4.3 ListTransactions v2 must retain an exact regular-expression selector and return only the matching public row while a pinned CLI query proves the full fixture is unchanged."
+timeout_ms = 120000
+requires = ["transactions", "admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-zulu-transaction"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-zulu"
+transactional_id = "testlab-admin-pattern-zulu"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "close-zulu-transaction"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-zulu"
+
+[[steps]]
+id = "create-alpha-transaction"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-alpha"
+transactional_id = "testlab-admin-pattern-alpha"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "close-alpha-transaction"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-alpha"
+
+[[steps]]
+id = "list-transactions"
+kind = "list_transactions"
+client_id = "client-1"
+operation_id = "admin-list-pattern-baseline"
+timeout_ms = 20000
+
+[[steps.expected_transactions]]
+transactional_id = "testlab-admin-pattern-alpha"
+expected_state = "Empty"
+
+[[steps.expected_transactions]]
+transactional_id = "testlab-admin-pattern-zulu"
+expected_state = "Empty"
+
+[[steps]]
+id = "list-transactions-by-pattern"
+kind = "list_transactions"
+client_id = "client-1"
+operation_id = "admin-list-transactions-by-pattern"
+transactional_id_pattern = "^testlab-admin-pattern-alpha$"
+baseline_operation_id = "admin-list-pattern-baseline"
+timeout_ms = 20000
+
+[[steps.expected_transactions]]
+transactional_id = "testlab-admin-pattern-alpha"
+expected_state = "Empty"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

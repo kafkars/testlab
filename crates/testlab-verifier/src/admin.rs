@@ -250,6 +250,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::ExerciseDelegationTokenLifecycle(_) => "ADMIN-073",
         ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_) => "ADMIN-074",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",
+        ScenarioAction::ListTransactions(value)
+            if crate::admin_transactions::filters::selected(value) =>
+        {
+            "ADMIN-083"
+        }
         ScenarioAction::ListTransactions(_) => "ADMIN-052",
         ScenarioAction::DescribeTransactions(_) => "ADMIN-053",
         ScenarioAction::FenceProducers(_) => "ADMIN-057",

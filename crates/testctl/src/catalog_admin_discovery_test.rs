@@ -62,3 +62,38 @@ fn kafkars_pack_variants_retain_admin_discovery() {
         }
     }
 }
+
+#[test]
+fn transaction_pattern_filter_stays_on_kafka_4_3_packs() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let repository = Repository::open(&root)
+        .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
+    for path in [
+        "packs/kafkars-pr.toml",
+        "packs/kafkars-three-broker-share.toml",
+    ] {
+        let (_, pack) = repository
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        assert!(
+            pack.scenarios
+                .iter()
+                .any(|scenario| scenario.ends_with("admin-transaction-pattern-filter.toml")),
+            "{path} omitted the Kafka 4.3 transaction-pattern filter"
+        );
+    }
+    for path in [
+        "packs/kafkars-classic.toml",
+        "packs/kafkars-share-release.toml",
+    ] {
+        let (_, pack) = repository
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        assert!(
+            !pack
+                .scenarios
+                .iter()
+                .any(|scenario| scenario.ends_with("admin-transaction-pattern-filter.toml"))
+        );
+    }
+}

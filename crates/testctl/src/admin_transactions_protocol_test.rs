@@ -21,6 +21,10 @@ fn translation_omits_listing_and_description_expectations() {
     };
     assert_eq!(list.client_id, client());
     assert_eq!(list.operation_id, operation("list-transactions"));
+    assert_eq!(list.state_filters, ["Ongoing"]);
+    assert_eq!(list.producer_id_filters, [71]);
+    assert_eq!(list.duration_filter_ms, Some(2_000));
+    assert_eq!(list.transactional_id_pattern.as_deref(), Some("^alpha$"));
     assert_eq!(list.timeout_ms, 1_000);
     assert!(matches!(expected, ExpectedEvent::TransactionsListed(_)));
 
@@ -121,6 +125,11 @@ fn list_action() -> ListTransactionsAction {
     ListTransactionsAction {
         client_id: client(),
         operation_id: operation("list-transactions"),
+        state_filters: vec!["Ongoing".to_owned()],
+        producer_id_filters: vec![71],
+        duration_filter_ms: Some(2_000),
+        transactional_id_pattern: Some("^alpha$".to_owned()),
+        baseline_operation_id: Some(operation("list-transactions-baseline")),
         expected_transactions: vec![listing("alpha"), listing("zulu")],
         timeout_ms: 1_000,
     }

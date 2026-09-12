@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v112 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v115 and evidence schema v101.
+Protocol v113 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v116 and evidence schema v102.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -113,6 +113,15 @@ healthy states remain in testctl and never cross the adapter boundary. The
 completion preserves every public calls, failures, mailbox, latency, and
 producer snapshot getter. Immediate metrics backpressure is retried within a
 bounded admission window; one accepted observer is waited exactly once.
+
+`list_transactions` carries caller-ordered state and signed producer-ID
+filters, an optional nonnegative duration in milliseconds, and an optional
+Kafka-owned transactional-ID regular expression. Expected rows and the earlier
+unfiltered baseline operation remain scenario-only. After every public result,
+Testlab deliberately runs an unfiltered pinned CLI query so filtered evidence
+proves both exact narrowing and unchanged complete fixture state. Duration
+selection is qualified on Kafka 3.8 and later; the regular-expression path is
+kept on Kafka 4.3 cells that negotiate ListTransactions v2.
 
 ## Handshake
 
@@ -1187,6 +1196,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v112 is an exact semantic contract. New capabilities may be declared
+Protocol v113 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.
