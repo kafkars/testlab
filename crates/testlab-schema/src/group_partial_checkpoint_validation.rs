@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{OperationId, RecordSpec, Scenario, ScenarioAction};
+use crate::{GroupCheckpointMethod, OperationId, RecordSpec, Scenario, ScenarioAction};
 
 pub(super) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     let mut sends = BTreeMap::new();
@@ -11,6 +11,7 @@ pub(super) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             receive_id,
             expected_operation_id,
             additional_expected_operation_ids,
+            checkpoint_method,
             processed_record_count,
             processing_acknowledgement_delay_ms,
             expected_error_code,
@@ -21,6 +22,7 @@ pub(super) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 receive_id,
                 expected_operation_id,
                 additional_expected_operation_ids,
+                *checkpoint_method,
                 *processed_record_count,
                 *processing_acknowledgement_delay_ms,
                 expected_error_code.as_deref(),
@@ -39,6 +41,7 @@ fn validate_receive(
     receive_id: &OperationId,
     first: &OperationId,
     additional: &[OperationId],
+    checkpoint_method: GroupCheckpointMethod,
     processed_count: Option<usize>,
     acknowledgement_delay_ms: u64,
     expected_error_code: Option<&str>,
@@ -93,6 +96,11 @@ fn validate_receive(
             "partial group receive {receive_id} processed_record_count must select a nonempty proper prefix"
         ));
     }
+    if processed_count.is_some() && checkpoint_method != GroupCheckpointMethod::Checkpoint {
+        problems.push(format!(
+            "partial group receive {receive_id} requires checkpoint_builder, not into_checkpoint"
+        ));
+    }
     if acknowledgement_delay_ms != 0 {
         problems.push(format!(
             "partial group receive {receive_id} cannot also select processing acknowledgement"
@@ -126,7 +134,7 @@ fn sent_operations(action: &ScenarioAction) -> Vec<(&OperationId, &RecordSpec)> 
 
 #[cfg(test)]
 mod tests {
-    use crate::{Capability, Scenario, ScenarioAction};
+    use crate::{Capability, GroupCheckpointMethod, Scenario, ScenarioAction};
 
     fn scenario() -> Scenario {
         toml::from_str(include_str!(
@@ -176,6 +184,31 @@ mod tests {
                 .expect_err("full processed count must fail")
                 .to_string()
                 .contains("nonempty proper prefix")
+        );
+    }
+
+    #[test]
+    fn partial_checkpoint_rejects_full_batch_conversion() {
+        let mut scenario = scenario();
+        let method = scenario
+            .steps
+            .iter_mut()
+            .find_map(|step| match &mut step.action {
+                ScenarioAction::GroupReceive {
+                    checkpoint_method,
+                    processed_record_count: Some(_),
+                    ..
+                } => Some(checkpoint_method),
+                _ => None,
+            })
+            .unwrap_or_else(|| panic!("partial group receive missing"));
+        *method = GroupCheckpointMethod::IntoCheckpoint;
+        assert!(
+            scenario
+                .validate()
+                .expect_err("full conversion must fail for a partial checkpoint")
+                .to_string()
+                .contains("requires checkpoint_builder")
         );
     }
 }

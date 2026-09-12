@@ -1039,6 +1039,12 @@ statement = "Every scenario-selected individual or aggregate group operation con
 category = "consumer"
 
 [[contract]]
+id = "CONS-025"
+title = "Full group checkpoint conversion remains exact"
+statement = "One scenario-selected hosted group receive preserves the public ConsumerBatch into_checkpoint conversion in its exact command while ordinary full-batch commit and independent record evidence still apply."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

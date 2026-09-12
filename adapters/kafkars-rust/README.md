@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v106 over stdin/stdout;
+2. implements protocol v107 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -36,7 +36,9 @@ It:
    direct `into_owned_records()` while its source lease stays readable after
    delivery; a selected
    bounded delay publicly acknowledges the retained
-   group checkpoint before committing that same batch, and a selected partial
+   group checkpoint before committing that same batch; complete batches convert
+   through either exact public `checkpoint()` or compatibility
+   `into_checkpoint()`, and a selected partial
    checkpoint marks only the declared ordered prefix through the public builder;
    retained failure events map default `next_event` and selected repeated
    `try_take_event` with complete public fences and failure kinds; Share

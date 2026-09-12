@@ -7,7 +7,6 @@ use crate::broker_policy::{PolicyWindow, active};
 use crate::broker_policy_control::references;
 use crate::index::HistoryIndex;
 use crate::support::violation;
-
 pub(crate) fn verify(
     scenario: &Scenario,
     policy: &BrokerPolicy,
@@ -134,7 +133,6 @@ fn group_denial(
     }
     command_failure(action, code, window, index)
 }
-
 fn command_denial(
     action: &ScenarioAction,
     target: &str,
@@ -162,7 +160,6 @@ fn command_denial(
     };
     command_failure(action, expected, window, index)
 }
-
 fn command_failure(
     action: &ScenarioAction,
     expected: &str,
@@ -227,6 +224,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
             ScenarioAction::GroupReceive {
                 consumer_id,
                 method,
+                checkpoint_method,
                 receive_id,
                 processing_acknowledgement_delay_ms,
                 processed_record_count,
@@ -236,6 +234,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
             AdapterCommand::GroupReceive {
                 consumer_id: actual_consumer,
                 method: actual_method,
+                checkpoint_method: actual_checkpoint_method,
                 receive_id: actual_receive,
                 processing_acknowledgement_delay_ms: actual_delay,
                 processed_record_count: actual_processed_count,
@@ -244,6 +243,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
         ) => {
             consumer_id == actual_consumer
                 && method == actual_method
+                && checkpoint_method == actual_checkpoint_method
                 && receive_id == actual_receive
                 && processing_acknowledgement_delay_ms == actual_delay
                 && processed_record_count == actual_processed_count

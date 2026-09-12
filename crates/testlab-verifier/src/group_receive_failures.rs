@@ -10,6 +10,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         let ScenarioAction::GroupReceive {
             consumer_id,
             method,
+            checkpoint_method,
             receive_id,
             processing_acknowledgement_delay_ms,
             processed_record_count,
@@ -49,6 +50,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                 AdapterCommand::GroupReceive {
                     consumer_id: actual_consumer,
                     method: actual_method,
+                    checkpoint_method: actual_checkpoint_method,
                     receive_id: actual_receive,
                     processing_acknowledgement_delay_ms: actual_delay,
                     processed_record_count: actual_processed_count,
@@ -58,6 +60,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     command_id.clone(),
                     actual_consumer.clone(),
                     *actual_method,
+                    *actual_checkpoint_method,
                     actual_receive.clone(),
                     *actual_delay,
                     *actual_processed_count,
@@ -77,6 +80,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     command_id,
                     actual_consumer,
                     actual_method,
+                    actual_checkpoint_method,
                     actual_receive,
                     actual_delay,
                     actual_processed_count,
@@ -84,6 +88,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                 ),
             ] if actual_consumer == consumer_id
                 && actual_method == method
+                && actual_checkpoint_method == checkpoint_method
                 && actual_receive == receive_id
                 && actual_delay == processing_acknowledgement_delay_ms
                 && actual_processed_count == processed_record_count

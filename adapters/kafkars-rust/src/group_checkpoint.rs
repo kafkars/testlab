@@ -6,19 +6,26 @@ use std::time::{Duration, Instant};
 use crate::AdapterError;
 use crate::admission_retry::retry_owned_until;
 use crate::kafkars_api::{Checkpoint, Consumer, ConsumerBatch, RetryAdvice};
+use testlab_schema::GroupCheckpointMethod;
 
 pub(crate) fn checkpoint(
     consumer: &mut Consumer,
     batch: ConsumerBatch,
+    method: GroupCheckpointMethod,
     acknowledgement_delay_ms: u64,
     processed_record_count: Option<usize>,
     deadline: Instant,
 ) -> Result<Checkpoint, AdapterError> {
     if let Some(count) = processed_record_count {
+        if method != GroupCheckpointMethod::Checkpoint {
+            return Err(AdapterError::ConsumerRecord(
+                "partial checkpoint requires checkpoint_builder".to_owned(),
+            ));
+        }
         return partial_checkpoint(&batch, count);
     }
     if acknowledgement_delay_ms == 0 {
-        return Ok(batch.checkpoint());
+        return Ok(full_checkpoint(batch, method));
     }
     let delay = Duration::from_millis(acknowledgement_delay_ms);
     pause(delay, deadline)?;
@@ -35,7 +42,14 @@ pub(crate) fn checkpoint(
     )
     .map_err(|(_, error)| AdapterError::Client(error))?;
     pause(delay, deadline)?;
-    Ok(batch.checkpoint())
+    Ok(full_checkpoint(batch, method))
+}
+
+fn full_checkpoint(batch: ConsumerBatch, method: GroupCheckpointMethod) -> Checkpoint {
+    match method {
+        GroupCheckpointMethod::Checkpoint => batch.checkpoint(),
+        GroupCheckpointMethod::IntoCheckpoint => batch.into_checkpoint(),
+    }
 }
 
 fn partial_checkpoint(batch: &ConsumerBatch, count: usize) -> Result<Checkpoint, AdapterError> {

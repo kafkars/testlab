@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v106 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v109 and evidence schema v95.
+Protocol v107 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v110 and evidence schema v96.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -461,14 +461,16 @@ requires both observers to expose `PositionResolutionFailed(Broker(29))`, then
 removes that same policy before an independent consumer receives the seeded
 record.
 
-A group receive names its exact public retained-batch observer. `recv` is the
-default waiting path; `try_take_batch` selects repeated immediate observation
-and requires `group_consumer_immediate_batch`. The command retains that method,
-consumer, receive identity, and bound while the expected producer operation
-remains scenario-only. It consumes the exact public batch into its
-assignment-fenced checkpoint and attempts a bounded public commit. Its completion
-reports both the exact records and whether that checkpoint committed; the
-deterministic verifier requires both the expected record and a successful commit.
+A group receive names its exact public retained-batch observer and full-batch
+checkpoint conversion. `recv` is the default waiting path; `try_take_batch`
+selects repeated immediate observation and requires
+`group_consumer_immediate_batch`. `checkpoint` is the canonical conversion;
+`into_checkpoint` selects its compatibility alias. The command retains both
+methods, consumer, receive identity, and bound while the expected producer
+operation remains scenario-only. It converts the exact public batch into its
+assignment-fenced checkpoint and attempts a bounded public commit. Its
+completion reports both the exact records and whether that checkpoint committed;
+the deterministic verifier requires both the expected record and a successful commit.
 
 Single-member and multi-member group receives also drain public assignment
 events and complete revocation leases within the receive's original deadline.
@@ -504,9 +506,9 @@ kind. Scenario record expectations never enter this command. Later receives are
 still verified against independent broker coordinates and bytes, so a successful
 control event cannot manufacture positioning, isolation, or cursor truth.
 
-`group_receive` carries the exact public batch observer, receive identity,
-processing-acknowledgement delay, optional processed-record count, and complete
-timeout. A nonzero delay requires an explicit processing timeout and
+`group_receive` carries the exact public batch observer and checkpoint
+conversion, receive identity, processing-acknowledgement delay, optional
+processed-record count, and complete timeout. A nonzero delay requires an explicit processing timeout and
 `group_consumer_acknowledge`; each delay is shorter than that timeout, the two
 delays together exceed it, and both fit in the command timeout. The adapter
 waits once, publicly acknowledges an assignment-fenced checkpoint, waits again,
@@ -518,7 +520,8 @@ A processed-record count requires `group_consumer_partial_checkpoint`, at least
 two distinct same-partition records declared in increasing sequence order, and
 a nonempty proper prefix. Those expected record identities remain harness-only.
 The adapter marks exactly that many records through the public checkpoint
-builder and commits the result. Independent group-offset evidence must stop at
+builder and commits the result; partial receives reject the full-batch
+`into_checkpoint` selector. Independent group-offset evidence must stop at
 the prefix; after the first member closes, a replacement must receive the exact
 unprocessed suffix before the final offset advances.
 
@@ -1167,6 +1170,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v106 is an exact semantic contract. New capabilities may be declared
+Protocol v107 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

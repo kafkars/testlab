@@ -129,7 +129,9 @@
   joined to positive protocol epochs and independent broker coordinates.
 - Classic and KIP-848 group records are observed through both the waiting
   `recv` object and repeated immediate `try_take_batch` calls, with the selected
-  public method retained in command evidence. Both protocols also acknowledge
+  public method retained in command evidence. Full-batch commits retain both
+  the canonical `checkpoint` conversion and its public `into_checkpoint`
+  compatibility alias. Both protocols also acknowledge
   an assignment-fenced checkpoint midway through work that exceeds the original
   processing window, then commit the same batch inside the renewed window. A
   second path marks and commits only an ordered processed prefix, independently

@@ -1,4 +1,4 @@
-schema_version = 109
+schema_version = 110
 id = "adversary.metadata-stale-response"
 title = "metadata stale response is not accepted as current"
 description = "After bootstrap negotiation, the external Kafka peer replays the prior complete response for a Metadata request; the packaged client must reject the stale correlation and body."

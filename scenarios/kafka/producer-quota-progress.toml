@@ -1,4 +1,4 @@
-schema_version = 109
+schema_version = 110
 id = "kafka.producer-quota-progress"
 title = "packaged producer makes bounded progress under an observed byte-rate quota"
 description = "An independently observed user producer quota remains active for a bounded public send and flush, and the exact record remains broker-visible before the quota is removed."

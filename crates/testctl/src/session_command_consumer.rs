@@ -95,6 +95,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ScenarioAction::GroupReceive {
             consumer_id,
             method,
+            checkpoint_method,
             receive_id,
             processing_acknowledgement_delay_ms,
             processed_record_count,
@@ -104,6 +105,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             AdapterCommand::GroupReceive {
                 consumer_id: consumer_id.clone(),
                 method: *method,
+                checkpoint_method: *checkpoint_method,
                 receive_id: receive_id.clone(),
                 processing_acknowledgement_delay_ms: *processing_acknowledgement_delay_ms,
                 processed_record_count: *processed_record_count,

@@ -146,6 +146,11 @@ hosted-group operation-configuration method. CONS-024 requires the exact
 individual or aggregate selection and explicit durations in the issued creation
 command. Classic seek exercises `operation_config`; KIP-848 seek retains the
 individual setters under the existing control and lifecycle contracts.
+Protocol v107, scenario schema v110, and evidence schema v96 retain the selected
+full-batch group checkpoint conversion. CONS-025 requires one exact
+`into_checkpoint` command while the ordinary committed record and independent
+broker evidence remain unchanged; other group receives retain canonical
+`checkpoint` coverage, and partial receives remain builder-only.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -833,6 +838,10 @@ CONS-024 separately retains each exact individual or aggregate
 operation-configuration method and its durations in the group-create command.
 CONS-014 and LIFE-012 then bind the selected registration's public seek and
 explicit close outcomes.
+CONS-025 retains the exact `into_checkpoint` selector on one full-batch group
+receive. Its successful commit, positive group epoch, exact public record, and
+independent broker observation remain required by the ordinary consumer
+contracts; the command evidence prevents canonical `checkpoint` substitution.
 LIFE-015 retains the exact clone-shared shutdown request count and requires one
 correlated public event-stream termination before the adapter releases its
 hosted group handle. That terminal does not claim a broker leave: the scenario's

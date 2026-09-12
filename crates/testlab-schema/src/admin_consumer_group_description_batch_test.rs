@@ -14,9 +14,9 @@ use crate::{
 
 #[test]
 fn versions_cover_mixed_description_protocol_and_evidence() {
-    assert_eq!(PROTOCOL_VERSION, 106);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 109);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 95);
+    assert_eq!(PROTOCOL_VERSION, 107);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 110);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 96);
 }
 
 #[test]
@@ -218,6 +218,7 @@ fn receive(id: &str, receive_id: &str) -> ScenarioAction {
     ScenarioAction::GroupReceive {
         consumer_id: consumer(id),
         method: Default::default(),
+        checkpoint_method: Default::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("record"),
         additional_expected_operation_ids: Vec::new(),

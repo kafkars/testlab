@@ -10,7 +10,6 @@ use super::{
     ListConsumerGroupsOffsetsAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
     ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
-
 #[test]
 fn batch_listings_establish_every_exact_plural_mutation_baseline() {
     let scenario = scenario(vec![
@@ -224,6 +223,7 @@ fn group_receive(consumer_id: &str, receive_id: &str) -> ScenarioAction {
     ScenarioAction::GroupReceive {
         consumer_id: consumer(consumer_id),
         method: Default::default(),
+        checkpoint_method: Default::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("producer-op"),
         additional_expected_operation_ids: Vec::new(),

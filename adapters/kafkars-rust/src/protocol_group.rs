@@ -13,13 +13,10 @@ use testlab_schema::{
 use crate::AdapterError;
 use crate::admission_retry::retry_owned_until;
 use crate::group_consumers::GroupConsumerRegistration;
+pub(crate) use crate::group_receive_events::receive_batch;
 use crate::protocol::emit;
 use crate::state::AdapterState;
-
-pub(crate) use crate::group_receive_events::receive_batch;
-
 const POLL_SLICE: Duration = Duration::from_millis(10);
-
 pub(crate) fn dispatch<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
@@ -54,6 +51,7 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::GroupReceive {
             consumer_id,
             method,
+            checkpoint_method,
             receive_id,
             processing_acknowledgement_delay_ms,
             processed_record_count,
@@ -64,6 +62,7 @@ pub(crate) fn dispatch<W: Write>(
             command_id,
             &consumer_id,
             method,
+            checkpoint_method,
             receive_id,
             processing_acknowledgement_delay_ms,
             processed_record_count,
@@ -130,13 +129,13 @@ pub(crate) fn dispatch<W: Write>(
         )),
     }
 }
-
 fn receive<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
     command_id: CommandId,
     consumer_id: &ConsumerId,
     method: testlab_schema::GroupConsumerReceiveMethod,
+    checkpoint_method: testlab_schema::GroupCheckpointMethod,
     receive_id: OperationId,
     processing_acknowledgement_delay_ms: u64,
     processed_record_count: Option<usize>,
@@ -152,6 +151,7 @@ fn receive<W: Write>(
                 state,
                 consumer_id,
                 batch,
+                checkpoint_method,
                 processing_acknowledgement_delay_ms,
                 processed_record_count,
                 deadline,
@@ -174,7 +174,6 @@ fn receive<W: Write>(
         ),
     )
 }
-
 pub(crate) fn public_group_epoch(
     state: &mut AdapterState,
     consumer_id: &ConsumerId,
@@ -218,6 +217,7 @@ pub(crate) fn commit_batch(
     state: &mut AdapterState,
     consumer_id: &ConsumerId,
     batch: ConsumerBatch,
+    checkpoint_method: testlab_schema::GroupCheckpointMethod,
     processing_acknowledgement_delay_ms: u64,
     processed_record_count: Option<usize>,
     deadline: Instant,
@@ -230,6 +230,7 @@ pub(crate) fn commit_batch(
     let mut checkpoint = crate::group_checkpoint::checkpoint(
         consumer,
         batch,
+        checkpoint_method,
         processing_acknowledgement_delay_ms,
         processed_record_count,
         deadline,

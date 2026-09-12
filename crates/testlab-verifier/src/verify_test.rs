@@ -179,6 +179,7 @@ fn classic_group_exact_round_trip_requires_commit() {
             ScenarioAction::GroupReceive {
                 consumer_id: consumer.clone(),
                 method: Default::default(),
+                checkpoint_method: Default::default(),
                 receive_id: receive.clone(),
                 expected_operation_id: id(OperationId::new("op-1")),
                 additional_expected_operation_ids: Vec::new(),

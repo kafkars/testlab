@@ -104,6 +104,7 @@ pub enum AdapterCommand {
         consumer_id: ConsumerId,
         /// Exact public retained-batch observation method.
         method: crate::GroupConsumerReceiveMethod,
+        checkpoint_method: crate::GroupCheckpointMethod,
         receive_id: OperationId,
         processing_acknowledgement_delay_ms: u64,
         processed_record_count: Option<usize>,

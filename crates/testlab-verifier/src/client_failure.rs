@@ -65,6 +65,7 @@ fn command_matches(
             testlab_schema::ScenarioAction::GroupReceive {
                 consumer_id,
                 method,
+                checkpoint_method,
                 receive_id,
                 processing_acknowledgement_delay_ms,
                 processed_record_count,
@@ -74,6 +75,7 @@ fn command_matches(
             testlab_schema::AdapterCommand::GroupReceive {
                 consumer_id: actual_consumer,
                 method: actual_method,
+                checkpoint_method: actual_checkpoint_method,
                 receive_id: actual_receive,
                 processing_acknowledgement_delay_ms: actual_delay,
                 processed_record_count: actual_processed_count,
@@ -82,6 +84,7 @@ fn command_matches(
         ) => {
             consumer_id == actual_consumer
                 && method == actual_method
+                && checkpoint_method == actual_checkpoint_method
                 && receive_id == actual_receive
                 && processing_acknowledgement_delay_ms == actual_delay
                 && processed_record_count == actual_processed_count

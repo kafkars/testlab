@@ -4,6 +4,10 @@
 #[path = "group_operation_config_validation_test.rs"]
 mod operation_config_validation_tests;
 
+#[cfg(test)]
+#[path = "group_checkpoint_method_test.rs"]
+mod checkpoint_method_tests;
+
 use serde::{Deserialize, Serialize};
 
 /// Stable public client error emitted when a group has no committed offset.
@@ -28,6 +32,17 @@ pub enum GroupConsumerReceiveMethod {
     Recv,
     /// Repeatedly attempt the immediate retained-batch take operation.
     TryTakeBatch,
+}
+
+/// Public full-batch checkpoint conversion selected after one hosted receive.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GroupCheckpointMethod {
+    /// Convert through the canonical `checkpoint` method.
+    #[default]
+    Checkpoint,
+    /// Convert through the compatibility `into_checkpoint` method.
+    IntoCheckpoint,
 }
 
 /// Public policy used when a group has no committed offset.

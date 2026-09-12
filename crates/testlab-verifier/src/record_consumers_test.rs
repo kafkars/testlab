@@ -8,7 +8,6 @@ use testlab_schema::{
 
 use crate::index::HistoryIndex;
 use crate::verify_fixture::{event, record, scenario, step};
-
 #[test]
 fn ordinary_group_bytes_must_match_independent_observation() {
     let mut scenario = base_scenario();
@@ -18,6 +17,7 @@ fn ordinary_group_bytes_must_match_independent_observation() {
         ScenarioAction::GroupReceive {
             consumer_id: consumer("group-1"),
             method: Default::default(),
+            checkpoint_method: Default::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: operation("op-1"),
             additional_expected_operation_ids: Vec::new(),
@@ -41,7 +41,6 @@ fn ordinary_group_bytes_must_match_independent_observation() {
 
     assert_contract(&violations, "CONS-012");
 }
-
 #[test]
 fn group_receive_set_offsets_must_match_each_independent_record() {
     let (scenario, receive_id) = receive_set_scenario();
@@ -115,6 +114,7 @@ fn public_consumer_timestamp_must_match_independent_record() {
         ScenarioAction::GroupReceive {
             consumer_id: consumer("group-1"),
             method: Default::default(),
+            checkpoint_method: Default::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: operation("op-1"),
             additional_expected_operation_ids: Vec::new(),

@@ -10,6 +10,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         let ScenarioAction::GroupReceive {
             consumer_id,
             method,
+            checkpoint_method,
             receive_id,
             processing_acknowledgement_delay_ms,
             processed_record_count: Some(processed_record_count),
@@ -22,6 +23,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         let expected = AdapterCommand::GroupReceive {
             consumer_id: consumer_id.clone(),
             method: *method,
+            checkpoint_method: *checkpoint_method,
             receive_id: receive_id.clone(),
             processing_acknowledgement_delay_ms: *processing_acknowledgement_delay_ms,
             processed_record_count: Some(*processed_record_count),

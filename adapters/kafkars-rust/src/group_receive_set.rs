@@ -49,6 +49,7 @@ pub(crate) fn receive<W: Write>(
                     state,
                     consumer_id,
                     batch,
+                    testlab_schema::GroupCheckpointMethod::Checkpoint,
                     0,
                     None,
                     deadline,

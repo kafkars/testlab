@@ -1,4 +1,4 @@
-schema_version = 109
+schema_version = 110
 id = "kafka.producer-configuration-lz4"
 title = "configured producer delivers with LZ4 compression"
 description = "A client built with the complete explicit public producer policy and LZ4 record-batch compression delivers one exact independently observed record."

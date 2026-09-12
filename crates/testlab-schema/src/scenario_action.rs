@@ -108,13 +108,14 @@ pub enum ScenarioAction {
         /// Exact public retained-batch observation method.
         #[serde(default)]
         method: crate::GroupConsumerReceiveMethod,
+        #[serde(default)]
+        checkpoint_method: crate::GroupCheckpointMethod,
         receive_id: OperationId,
         expected_operation_id: OperationId,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         additional_expected_operation_ids: Vec<OperationId>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         processed_record_count: Option<usize>,
-        /// Delay before and after a public processing acknowledgement; zero disables it.
         #[serde(default)]
         processing_acknowledgement_delay_ms: u64,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -144,7 +145,6 @@ pub enum ScenarioAction {
     ShareReceive {
         /// Existing share consumer.
         consumer_id: ConsumerId,
-        /// Stable retained-batch identity.
         receive_id: OperationId,
         /// Ordered producer operations expected in this public batch.
         expected_operation_ids: Vec<OperationId>,

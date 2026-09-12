@@ -35,6 +35,7 @@ fn fixture(method: GroupConsumerReceiveMethod) -> (Scenario, Vec<HistoryEntry>) 
             ScenarioAction::GroupReceive {
                 consumer_id,
                 method: GroupConsumerReceiveMethod::TryTakeBatch,
+                checkpoint_method,
                 receive_id,
                 processing_acknowledgement_delay_ms,
                 processed_record_count,
@@ -43,6 +44,7 @@ fn fixture(method: GroupConsumerReceiveMethod) -> (Scenario, Vec<HistoryEntry>) 
             } => Some(AdapterCommand::GroupReceive {
                 consumer_id: consumer_id.clone(),
                 method,
+                checkpoint_method: *checkpoint_method,
                 receive_id: receive_id.clone(),
                 processing_acknowledgement_delay_ms: *processing_acknowledgement_delay_ms,
                 processed_record_count: *processed_record_count,
