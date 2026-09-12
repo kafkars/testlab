@@ -201,7 +201,7 @@ pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario};
 pub use scenario_action::ScenarioAction;
 pub use scenario_error::ScenarioError;
 pub use scenario_types::*;
-pub use share::{ShareConsumedRecord, ShareConsumerFetchConfiguration, ShareDisposition};
+pub use share::*;
 pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, SubjectManifest};
 pub use transaction_offsets::{
     TransactionalTransformAction, TransactionalTransformCommand, TransactionalTransformCompletion,

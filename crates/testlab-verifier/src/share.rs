@@ -11,6 +11,7 @@ pub(crate) fn verify_share(
     violations: &mut Vec<Violation>,
 ) {
     for step in &scenario.steps {
+        verify_acknowledgement_command(&step.action, index, violations);
         if !index.action_issued(&step.action) {
             continue;
         }
@@ -90,6 +91,59 @@ pub(crate) fn verify_share(
             } => verify_close(index, consumer_id, *expect_success, violations),
             _ => {}
         }
+    }
+}
+
+fn verify_acknowledgement_command(
+    action: &ScenarioAction,
+    index: &HistoryIndex,
+    violations: &mut Vec<Violation>,
+) {
+    let ScenarioAction::ShareAcknowledge {
+        consumer_id,
+        receive_id,
+        acknowledgement_id,
+        method,
+        dispositions,
+        timeout_ms,
+    } = action
+    else {
+        return;
+    };
+    let expected = testlab_schema::AdapterCommand::ShareAcknowledge {
+        consumer_id: consumer_id.clone(),
+        receive_id: receive_id.clone(),
+        acknowledgement_id: acknowledgement_id.clone(),
+        method: *method,
+        dispositions: dispositions.clone(),
+        timeout_ms: *timeout_ms,
+    };
+    let commands = index
+        .commands
+        .iter()
+        .filter(|(_, _, command)| {
+            matches!(command,
+                testlab_schema::AdapterCommand::ShareAcknowledge {
+                    acknowledgement_id: actual_acknowledgement,
+                    ..
+                } if actual_acknowledgement == acknowledgement_id
+            )
+        })
+        .collect::<Vec<_>>();
+    let exact = commands.len() == 1 && matches!(&commands[0].2, actual if actual == &expected);
+    if !exact {
+        violations.push(violation(
+            "SHARE-011",
+            format!(
+                "share acknowledgement {acknowledgement_id} selected {method:?} but observed {} matching command(s) without the exact batch conversion",
+                commands.len()
+            ),
+            Some(acknowledgement_id.clone()),
+            commands
+                .iter()
+                .map(|(sequence, ..)| format!("history:{sequence}"))
+                .collect(),
+        ));
     }
 }
 

@@ -144,12 +144,11 @@ pub enum AdapterCommand {
     },
     /// Consumes one retained share batch into record-ordered dispositions.
     ShareAcknowledge {
-        /// Existing share consumer that owns the session.
         consumer_id: ConsumerId,
-        /// Retained batch consumed by this acknowledgement.
         receive_id: OperationId,
-        /// Stable acknowledgement identity.
         acknowledgement_id: OperationId,
+        /// Exact public conversion selected by the scenario.
+        method: crate::ShareAcknowledgementMethod,
         /// One public disposition per retained record.
         dispositions: Vec<crate::ShareDisposition>,
         /// Complete acknowledgement bound.

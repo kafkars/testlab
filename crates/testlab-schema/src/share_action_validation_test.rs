@@ -1,6 +1,6 @@
 //! Share validation tests pin ordered batch identities and disposition cardinality.
 
-use crate::{Scenario, ScenarioAction, ShareDisposition};
+use crate::{Scenario, ScenarioAction, ShareAcknowledgementMethod, ShareDisposition};
 
 fn mixed_release() -> Scenario {
     toml::from_str(include_str!(
@@ -9,11 +9,55 @@ fn mixed_release() -> Scenario {
     .unwrap_or_else(|error| panic!("parse mixed release scenario: {error}"))
 }
 
+fn accept_all() -> Scenario {
+    toml::from_str(include_str!(
+        "../../../scenarios/kafka/share-group-fetch-batch-size.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse accept-all scenario: {error}"))
+}
+
 #[test]
 fn checked_in_mixed_share_batch_is_valid() {
-    mixed_release()
+    let scenario = mixed_release();
+    scenario
         .validate()
         .unwrap_or_else(|error| panic!("validate mixed release scenario: {error}"));
+    assert!(scenario.steps.iter().any(|step| matches!(
+        &step.action,
+        ScenarioAction::ShareAcknowledge {
+            method: ShareAcknowledgementMethod::IntoAcknowledgement,
+            ..
+        }
+    )));
+}
+
+#[test]
+fn checked_in_accept_all_batch_is_valid() {
+    accept_all()
+        .validate()
+        .unwrap_or_else(|error| panic!("validate accept-all scenario: {error}"));
+}
+
+#[test]
+fn accept_all_rejects_non_accept_dispositions() {
+    let mut scenario = accept_all();
+    let Some(ScenarioAction::ShareAcknowledge { dispositions, .. }) = scenario
+        .steps
+        .iter_mut()
+        .find(|step| step.id.as_str() == "acknowledge-three-acquisitions")
+        .map(|step| &mut step.action)
+    else {
+        panic!("accept-all acknowledgement missing");
+    };
+    dispositions[1] = ShareDisposition::Release;
+
+    let error = match scenario.validate() {
+        Ok(()) => panic!("accept_all with Release must fail"),
+        Err(error) => error,
+    };
+    assert!(error.problems.iter().any(|problem| {
+        problem.contains("using accept_all must declare only accept dispositions")
+    }));
 }
 
 #[test]

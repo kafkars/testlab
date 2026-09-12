@@ -158,12 +158,12 @@ pub enum ScenarioAction {
     },
     /// Acknowledges every record in one retained share batch by record order.
     ShareAcknowledge {
-        /// Existing share consumer.
         consumer_id: ConsumerId,
-        /// Retained batch identity.
         receive_id: OperationId,
-        /// Stable acknowledgement identity.
         acknowledgement_id: OperationId,
+        /// Public conversion from the retained batch.
+        #[serde(default)]
+        method: crate::ShareAcknowledgementMethod,
         /// One disposition per record in the retained public batch.
         dispositions: Vec<crate::ShareDisposition>,
         /// Complete acknowledgement bound.

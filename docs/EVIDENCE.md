@@ -124,6 +124,10 @@ Protocol v101, scenario schema v104, and evidence schema v90 add direct-consumer
 Fetch evidence. CONS-022 binds the public batch's topic UUID, requested and next
 offsets, log bounds, high watermark, retained-byte charge, and checkpoint to
 prior independent topic-ID, watermark, and record observations.
+Protocol v102, scenario schema v105, and evidence schema v91 retain the selected
+Share batch conversion. SHARE-011 requires the exact command to distinguish
+explicit `into_acknowledgement` decisions from `accept_all` while the existing
+Share contracts retain the same terminal and independent record truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -169,7 +173,9 @@ disposition vector, and SHARE-009 requires released or dropped records to
 return with increased delivery counts without accepting settled siblings as
 substitutes. SHARE-010 requires the exact scenario-declared public acquisition
 count for a configured Share receive while SHARE-006 still binds every record
-in that batch to independent broker coordinates and bytes.
+in that batch to independent broker coordinates and bytes. SHARE-011 binds the
+scenario-selected batch conversion to the exact adapter command, including the
+public all-record Accept path.
 CONS-021 separately binds an owned direct-consumer source record to its original
 independent coordinates and bytes, then binds its transferred producer record
 and receipt to a distinct destination observation. The completion must follow
@@ -282,10 +288,12 @@ exact removal command.
 
 Configured-Share history retains the complete requested long-poll, byte,
 record, acquisition-range, attempt-timeout, membership-start, and close policy
-in the issued create command. The adapter reports only the public batch's
-acquisition count, records, delivery counts, and membership fences. SHARE-010
-checks the scenario-owned acquisition expectation, while the ordinary Share
-record contracts independently check the delivered broker records.
+in the issued create command. Its acknowledgement command also retains whether
+the public batch used explicit decisions or `accept_all`. The adapter reports
+only the public batch's acquisition count, records, delivery counts, and
+membership fences. SHARE-010 checks the scenario-owned acquisition expectation,
+SHARE-011 checks its exact conversion, and the ordinary Share record contracts
+independently check the delivered broker records.
 
 Lifecycle-isolation scenarios retain every readiness, flush, close, and
 shutdown completion under its originating command. A later send on a sibling,

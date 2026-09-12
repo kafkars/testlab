@@ -70,12 +70,14 @@ pub(crate) fn dispatch<W: Write>(
             consumer_id,
             receive_id,
             acknowledgement_id,
+            method,
             dispositions,
             timeout_ms,
         } => {
             let outcome = state.share_consumers.acknowledge(
                 &consumer_id,
                 &receive_id,
+                method,
                 dispositions.clone(),
                 Duration::from_millis(timeout_ms),
             )?;

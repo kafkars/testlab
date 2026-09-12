@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v101 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v104 and evidence schema v90.
+Protocol v102 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v105 and evidence schema v91.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -599,8 +599,11 @@ signed 32-bit domain except that minimum bytes may be zero. The complete
 membership-start and close bounds are likewise passed through the public
 builder. Expected producer identities and expected acquisition counts remain
 harness-only. The receive event reports the public batch's acquisition count.
-Acknowledgement commands carry only one record-ordered public disposition per
-retained record, and the adapter rejects a structural count mismatch.
+Acknowledgement commands carry one record-ordered public disposition per
+retained record plus the exact public batch conversion. The default
+`into_acknowledgement` path applies those explicit decisions; `accept_all`
+requires every declared disposition to be Accept and invokes the dedicated
+all-record convenience path. The adapter rejects a structural count mismatch.
 Acknowledgement and close events report success or the public delivery
 certainty of failure; Testlab
 never infers a stronger terminal. Delivery counts, acquisition count, and
@@ -1154,6 +1157,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v101 is an exact semantic contract. New capabilities may be declared
+Protocol v102 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

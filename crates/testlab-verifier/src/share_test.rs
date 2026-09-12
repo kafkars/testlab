@@ -4,13 +4,16 @@ use std::collections::BTreeSet;
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, Capability, ConsumedRecord, ConsumerId, OperationId,
-    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ShareConsumedRecord,
-    ShareDisposition, StepId, TerminalStatus,
+    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ShareAcknowledgementMethod,
+    ShareConsumedRecord, ShareDisposition, StepId, TerminalStatus,
 };
 
 use crate::index::HistoryIndex;
 use crate::share::verify_share;
 use crate::verify_fixture::{command, event, step};
+
+#[path = "share_acknowledgement_method_test.rs"]
+mod acknowledgement_method;
 
 #[test]
 fn share_acknowledgement_requires_a_successful_certain_terminal() {
@@ -30,6 +33,7 @@ fn share_acknowledgement_requires_a_successful_certain_terminal() {
                 consumer_id: consumer,
                 receive_id: receive.clone(),
                 acknowledgement_id: acknowledgement.clone(),
+                method: ShareAcknowledgementMethod::IntoAcknowledgement,
                 dispositions: vec![ShareDisposition::Accept],
                 timeout_ms: 500,
             },
@@ -40,6 +44,7 @@ fn share_acknowledgement_requires_a_successful_certain_terminal() {
         consumer_id: id(ConsumerId::new("share-1")),
         receive_id: receive.clone(),
         acknowledgement_id: acknowledgement.clone(),
+        method: ShareAcknowledgementMethod::IntoAcknowledgement,
         dispositions: vec![ShareDisposition::Accept],
         timeout_ms: 500,
     };
@@ -69,6 +74,7 @@ fn successful_share_acknowledgement_is_coherent() {
         consumer_id: consumer.clone(),
         receive_id: receive.clone(),
         acknowledgement_id: acknowledgement.clone(),
+        method: ShareAcknowledgementMethod::IntoAcknowledgement,
         dispositions: vec![ShareDisposition::Release],
         timeout_ms: 500,
     };
@@ -97,6 +103,7 @@ fn successful_share_acknowledgement_is_coherent() {
                 consumer_id,
                 receive_id: receive_id.clone(),
                 acknowledgement_id: acknowledgement_id.clone(),
+                method: ShareAcknowledgementMethod::IntoAcknowledgement,
                 dispositions: dispositions.clone(),
                 timeout_ms,
             },
@@ -135,6 +142,7 @@ fn mixed_share_acknowledgement_preserves_record_order() {
         consumer_id: consumer.clone(),
         receive_id: receive.clone(),
         acknowledgement_id: acknowledgement.clone(),
+        method: ShareAcknowledgementMethod::IntoAcknowledgement,
         dispositions: expected.clone(),
         timeout_ms: 500,
     };
@@ -152,6 +160,7 @@ fn mixed_share_acknowledgement_preserves_record_order() {
         consumer_id: consumer,
         receive_id: receive.clone(),
         acknowledgement_id: acknowledgement.clone(),
+        method: ShareAcknowledgementMethod::IntoAcknowledgement,
         dispositions: expected,
         timeout_ms: 500,
     };

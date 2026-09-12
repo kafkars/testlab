@@ -252,6 +252,7 @@ fn translate_share(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
             consumer_id,
             receive_id,
             acknowledgement_id,
+            method,
             dispositions,
             timeout_ms,
         } => (
@@ -259,6 +260,7 @@ fn translate_share(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 consumer_id: consumer_id.clone(),
                 receive_id: receive_id.clone(),
                 acknowledgement_id: acknowledgement_id.clone(),
+                method: *method,
                 dispositions: dispositions.clone(),
                 timeout_ms: *timeout_ms,
             },

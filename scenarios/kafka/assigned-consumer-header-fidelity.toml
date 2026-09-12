@@ -1,4 +1,4 @@
-schema_version = 104
+schema_version = 105
 id = "kafka.assigned-consumer-header-fidelity"
 title = "assigned consumer preserves ordered duplicate and nullable headers"
 description = "One directly assigned public consumer returns ordered duplicate header names with null, empty, and binary values exactly as independently observed."

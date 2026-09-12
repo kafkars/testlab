@@ -1,4 +1,4 @@
-schema_version = 104
+schema_version = 105
 id = "kafka.classic-group-missing-offset-error"
 title = "classic group fails closed when no committed offset exists"
 description = "A new classic group configured with the public error reset policy reports the exact state failure instead of guessing an initial position."

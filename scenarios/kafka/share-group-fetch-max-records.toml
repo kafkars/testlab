@@ -1,4 +1,4 @@
-schema_version = 104
+schema_version = 105
 id = "kafka.share-group-fetch-max-records"
 title = "fully configured Share fetches bound each public delivery to one record"
 description = "Three separately produced records enter one Share group using non-default public long-poll, byte, record, acquisition-range, attempt, membership, and close policy; each retained batch must expose and acknowledge exactly one independently observed record."

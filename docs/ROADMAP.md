@@ -83,8 +83,9 @@
   including topic identity, optional leader epoch, and null-versus-empty
   serialized sizes, against prior public and independent topic identity plus
   independent record truth.
-  Share batches cover ordered multi-record acquisition, record-specific accept,
-  release, and reject decisions, and complete dropped-batch redelivery.
+  Share batches cover ordered multi-record acquisition, the public `accept_all`
+  conversion, record-specific accept, release, and reject decisions, and
+  complete dropped-batch redelivery.
 - Producer cancellation separately retains public `Delivery` and waiting
   `Send` observers across two stage-aware cancellation requests, preserves
   `too_late` uncertainty, and joins cancellation monotonicity to ordinary

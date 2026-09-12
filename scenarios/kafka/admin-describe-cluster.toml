@@ -1,4 +1,4 @@
-schema_version = 104
+schema_version = 105
 id = "kafka.admin-describe-cluster"
 title = "packaged client enforces and describes the independently observed Kafka cluster"
 description = "The packaged client rejects a mismatched expected cluster ID without retaining a handle, accepts the environment's exact ID during construction and readiness, and publicly describes the cluster identity and broker IDs that an independent librdkafka query observes."

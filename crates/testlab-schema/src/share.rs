@@ -38,6 +38,17 @@ pub enum ShareDisposition {
     Reject,
 }
 
+/// Public conversion selected for one retained Share batch.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ShareAcknowledgementMethod {
+    /// Supplies one explicit disposition for every retained record.
+    #[default]
+    IntoAcknowledgement,
+    /// Uses the batch's all-record Accept convenience path.
+    AcceptAll,
+}
+
 /// One exact record acquired through the packaged share-consumer API.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

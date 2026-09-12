@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v101 over stdin/stdout;
+2. implements protocol v102 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -35,7 +35,9 @@ It:
    group checkpoint before committing that same batch, and a selected partial
    checkpoint marks only the declared ordered prefix through the public builder;
    retained failure events map default `next_event` and selected repeated
-   `try_take_event` with complete public fences and failure kinds;
+   `try_take_event` with complete public fences and failure kinds; Share
+   acknowledgements preserve either explicit record decisions or the public
+   `accept_all` batch conversion;
 4. preserves immediate `try_send` rejection separately from accepted delivery,
    and maps an explicit `send` selection to Kafkars's bounded FIFO waiting
    operation without an adapter retry loop; cancellation retains that method

@@ -223,6 +223,8 @@ mod session_command_producer_cancellation_test;
 #[cfg(test)]
 mod session_command_producer_configuration_test;
 #[cfg(test)]
+mod session_command_share_method_test;
+#[cfg(test)]
 mod session_command_transaction_test;
 #[cfg(test)]
 mod session_command_transfer_test;

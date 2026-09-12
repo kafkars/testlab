@@ -93,9 +93,11 @@ pub(crate) fn validate(
             consumer_id,
             receive_id,
             acknowledgement_id,
+            method,
             dispositions,
             timeout_ms,
         } => {
+            validate_method(receive_id, *method, dispositions, problems);
             validate_dispositions(receive_id, dispositions, &state.share_batches, problems);
             settle_batch(consumer_id, receive_id, &mut state.share_batches, problems);
             unique(acknowledgement_id, &mut state.operation_ids, problems);
@@ -114,6 +116,23 @@ pub(crate) fn validate(
             }
         }
         _ => {}
+    }
+}
+
+fn validate_method(
+    receive_id: &OperationId,
+    method: crate::ShareAcknowledgementMethod,
+    dispositions: &[crate::ShareDisposition],
+    problems: &mut Vec<String>,
+) {
+    if method == crate::ShareAcknowledgementMethod::AcceptAll
+        && dispositions
+            .iter()
+            .any(|disposition| *disposition != crate::ShareDisposition::Accept)
+    {
+        problems.push(format!(
+            "share acknowledgement for {receive_id} using accept_all must declare only accept dispositions"
+        ));
     }
 }
 

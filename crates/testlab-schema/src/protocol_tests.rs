@@ -8,3 +8,5 @@ mod assigned_fetch_evidence;
 mod group;
 #[path = "network_proxy_test.rs"]
 mod network_proxy;
+#[path = "share_acknowledgement_protocol_test.rs"]
+mod share_acknowledgement;

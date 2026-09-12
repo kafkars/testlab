@@ -8,7 +8,8 @@ use crate::kafkars_api::{
     Client, RetryAdvice, ShareConsumer, ShareConsumerBatch, ShareConsumerFetchConfig,
 };
 use testlab_schema::{
-    ClientId, ConsumerId, OperationId, ShareConsumerFetchConfiguration, ShareDisposition,
+    ClientId, ConsumerId, OperationId, ShareAcknowledgementMethod, ShareConsumerFetchConfiguration,
+    ShareDisposition,
 };
 
 use crate::share_consumers_acknowledge;
@@ -135,6 +136,7 @@ impl ShareConsumers {
         &mut self,
         consumer_id: &ConsumerId,
         receive_id: &OperationId,
+        method: ShareAcknowledgementMethod,
         dispositions: Vec<ShareDisposition>,
         timeout: Duration,
     ) -> Result<ShareAcknowledgeOutcome, StateError> {
@@ -144,7 +146,7 @@ impl ShareConsumers {
             .get_mut(consumer_id)
             .ok_or_else(|| StateError::MissingConsumer(consumer_id.clone()))?
             .consumer;
-        share_consumers_acknowledge::acknowledge(consumer, batch, dispositions, timeout)
+        share_consumers_acknowledge::acknowledge(consumer, batch, method, dispositions, timeout)
     }
 
     pub(crate) fn drop_batch(

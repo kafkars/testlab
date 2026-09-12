@@ -1063,6 +1063,12 @@ statement = "A configured Share receive reports the exact public acquisition-ran
 category = "consumer"
 
 [[contract]]
+id = "SHARE-011"
+title = "Share acknowledgement method selection remains exact"
+statement = "Each Share acknowledgement command preserves the scenario-selected public batch conversion, including the all-record Accept convenience path."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-015"
 title = "Hosted group shutdown observes public termination"
 statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."

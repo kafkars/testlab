@@ -7,7 +7,7 @@ use crate::kafkars_api::{
     KafkaError, RetryAdvice, ShareConsumer, ShareConsumerBatch,
     ShareDisposition as PublicDisposition,
 };
-use testlab_schema::ShareDisposition;
+use testlab_schema::{ShareAcknowledgementMethod, ShareDisposition};
 
 use crate::state::StateError;
 
@@ -21,6 +21,7 @@ pub(crate) struct ShareAcknowledgeOutcome {
 pub(crate) fn acknowledge(
     consumer: &mut ShareConsumer,
     batch: ShareConsumerBatch,
+    method: ShareAcknowledgementMethod,
     dispositions: Vec<ShareDisposition>,
     timeout: Duration,
 ) -> Result<ShareAcknowledgeOutcome, StateError> {
@@ -31,21 +32,34 @@ pub(crate) fn acknowledge(
             dispositions.len()
         )));
     }
-    let decisions = batch
-        .records()
-        .zip(dispositions)
-        .map(|(record, disposition)| {
-            let public = match disposition {
-                ShareDisposition::Accept => PublicDisposition::Accept,
-                ShareDisposition::Release => PublicDisposition::Release,
-                ShareDisposition::Reject => PublicDisposition::Reject,
-            };
-            record.decision(public)
-        })
-        .collect();
-    let mut acknowledgement = batch
-        .into_acknowledgement(decisions)
-        .map_err(|error| StateError::ShareSurface(error.to_string()))?;
+    if method == ShareAcknowledgementMethod::AcceptAll
+        && dispositions
+            .iter()
+            .any(|disposition| *disposition != ShareDisposition::Accept)
+    {
+        return Err(StateError::ShareSurface(
+            "accept_all requires only Accept dispositions".to_owned(),
+        ));
+    }
+    let mut acknowledgement = match method {
+        ShareAcknowledgementMethod::IntoAcknowledgement => {
+            let decisions = batch
+                .records()
+                .zip(dispositions)
+                .map(|(record, disposition)| {
+                    let public = match disposition {
+                        ShareDisposition::Accept => PublicDisposition::Accept,
+                        ShareDisposition::Release => PublicDisposition::Release,
+                        ShareDisposition::Reject => PublicDisposition::Reject,
+                    };
+                    record.decision(public)
+                })
+                .collect();
+            batch.into_acknowledgement(decisions)
+        }
+        ShareAcknowledgementMethod::AcceptAll => batch.accept_all(),
+    }
+    .map_err(|error| StateError::ShareSurface(error.to_string()))?;
     let started = Instant::now();
     let deadline = started.checked_add(timeout).unwrap_or(started);
     loop {

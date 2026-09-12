@@ -1,4 +1,4 @@
-schema_version = 104
+schema_version = 105
 id = "kafka.admin-topic-ids"
 title = "packaged admin describes and deletes caller-ordered topic IDs"
 description = "Scenario-owned names resolve to Kafka UUIDs; one public ID-keyed description preserves both identities and topology against pinned Kafka CLI snapshots, then one public ID-keyed deletion uses those same independently proven identities and polling metadata confirms absence."
