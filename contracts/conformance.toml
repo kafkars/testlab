@@ -1021,6 +1021,12 @@ statement = "One selected direct-consumer batch retains the exact nonzero topic 
 category = "consumer"
 
 [[contract]]
+id = "CONS-023"
+title = "Direct owned-record conversion remains exact"
+statement = "One selected owned assigned-record transfer preserves the direct RecordBatch into_owned_records conversion while retaining the complete public transfer and independent source and destination evidence."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
