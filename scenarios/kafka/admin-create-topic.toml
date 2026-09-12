@@ -1,4 +1,4 @@
-schema_version = 94
+schema_version = 95
 id = "kafka.admin-create-topic"
 title = "packaged admin creates a usable Kafka topic"
 description = "The packaged client's public admin creates a topic that the harness did not pre-provision, an immediate independent metadata query confirms its topology, and the packaged producer writes one independently observed exact record to it."

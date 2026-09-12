@@ -85,6 +85,10 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         }
         ScenarioAction::CancelProducerSend(_) => Some(Capability::ProducerCancellation),
         ScenarioAction::ControlAssignedConsumer(_) => Some(Capability::AssignedConsumerControls),
+        ScenarioAction::ObserveAssignedConsumerEvent(_) => {
+            usage.insert(Capability::AssignedConsumerEvents);
+            Some(Capability::AssignedConsumer)
+        }
         ScenarioAction::ControlGroupConsumer(_) => Some(Capability::GroupConsumerControls),
         ScenarioAction::ShutdownGroupConsumer(_) => Some(Capability::GroupConsumerShutdown),
         ScenarioAction::SendBatch { .. } => Some(Capability::ProducerBatch),

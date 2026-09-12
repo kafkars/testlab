@@ -17,6 +17,7 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
         | AdapterCommand::AssignBeginning { .. }
         | AdapterCommand::AssignBeginningBatch(_)
         | AdapterCommand::ControlAssignedConsumer(_)
+        | AdapterCommand::ObserveAssignedConsumerEvent(_)
         | AdapterCommand::Receive { .. }
         | AdapterCommand::CloseAssignedConsumer { .. } => "assigned_consumer capability required",
         AdapterCommand::CreateGroupConsumer { .. }

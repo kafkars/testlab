@@ -65,6 +65,9 @@ pub(crate) fn validate_action(
         ScenarioAction::CancelProducerSend(action) => {
             crate::producer_cancellation_validation::validate(action, state, problems);
         }
+        ScenarioAction::ObserveAssignedConsumerEvent(action) => {
+            crate::assigned_consumer_event_validation::validate(action, state, problems);
+        }
         ScenarioAction::SendBatch {
             producer_id,
             operations: batch,

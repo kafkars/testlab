@@ -30,7 +30,9 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             } => {
                 groups.insert(consumer_id.clone(), group_id.clone());
             }
-            ScenarioAction::GroupReceive { .. } | ScenarioAction::Receive { .. } => {
+            ScenarioAction::GroupReceive { .. }
+            | ScenarioAction::Receive { .. }
+            | ScenarioAction::ObserveAssignedConsumerEvent(_) => {
                 consumer_work = true;
             }
             ScenarioAction::CreateTransactionalProducer {

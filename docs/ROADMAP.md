@@ -61,7 +61,9 @@
   stable actor identities, and independent broker truth.
 - Direct assigned-consumer records are observed through both the waiting
   `recv` object and repeated immediate `try_take_batch` calls, with the selected
-  public method retained in command evidence.
+  public method retained in command evidence. Retained direct-consumer failures
+  are likewise observed through both `next_event` and `try_take_event`, with
+  exact public fences and broker codes joined to independent policy evidence.
 - Producer, assigned, classic, KIP-848, and Share scenarios preserve null versus
   empty keys and values, tombstones, duplicate nullable binary headers, public
   coordinates, and multi-record receive sets against independent broker records;

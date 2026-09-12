@@ -38,6 +38,8 @@ pub enum Capability {
     AssignedConsumer,
     /// Immediate retained-batch observation through `try_take_batch`.
     AssignedConsumerImmediateBatch,
+    /// Waiting and immediate retained-failure event observation.
+    AssignedConsumerEvents,
     /// Client-wide immutable assigned-consumer configuration.
     AssignedConsumerConfiguration,
     /// Positioning and mutation controls for assigned-partition consumers.

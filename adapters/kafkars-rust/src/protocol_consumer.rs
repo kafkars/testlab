@@ -66,6 +66,9 @@ pub(crate) fn dispatch<W: Write>(
                 ),
             )
         }
+        AdapterCommand::ObserveAssignedConsumerEvent(command) => {
+            crate::assigned_consumer_event_observe::observe(state, writer, command_id, command)
+        }
         AdapterCommand::Receive {
             consumer_id,
             method,

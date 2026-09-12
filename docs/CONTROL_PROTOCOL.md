@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v91 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v94 and evidence schema v80.
+Protocol v92 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v95 and evidence schema v81.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -57,6 +57,14 @@ observation and requires the `assigned_consumer_immediate_batch` capability.
 The command retains that selection, consumer identity, receive identity, and
 bound while the expected producer operation remains scenario-only.
 
+`observe_assigned_consumer_event` similarly names one exact public retained-event
+observer. `next_event` is the default waiting path; `try_take_event` selects
+repeated immediate observation. Both require `assigned_consumer_events`. The
+command retains only the operation, consumer, method, and Testlab-owned bound;
+the expected target and failure remain scenario-only. Its completion preserves
+the public topic-partition fence, positive assignment and position generations,
+optional Fetch revision, terminal category, and exact broker code.
+
 An ordinary `send` names its exact public producer method. `try_send` is the
 default immediate-admission path; `send` selects bounded FIFO waiting admission
 and requires the `producer_waiting_send` capability. The command retains that
@@ -103,6 +111,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `assign_beginning`
 - `assign_beginning_batch`
 - `control_assigned_consumer`
+- `observe_assigned_consumer_event`
 - `receive`
 - `start_concurrent_actors`
 - `join_concurrent_actors`
@@ -273,6 +282,7 @@ timeouts invalidate evidence.
 - `assigned_consumer_created`
 - `assignment_completed`
 - `assigned_consumer_control_completed`
+- `assigned_consumer_event_observed`
 - `receive_completed`
 - `concurrent_actors_started`
 - `concurrent_actor_completed`
@@ -406,6 +416,14 @@ A bounded receive polls the packaged consumer's public receive future and emits
 the exact records it observed. An empty completion means no public record
 arrived before the declared receive deadline; the verifier treats a missing
 expected record as a client failure, not manufactured success.
+
+A bounded assigned-consumer event observation polls either the public
+`next_event` future or exact `try_take_event` method until one retained failure
+arrives. This outer harness bound does not become a client Fetch or event
+deadline. The broker-policy scenario independently installs a topic READ deny,
+requires both observers to expose `PositionResolutionFailed(Broker(29))`, then
+removes that same policy before an independent consumer receives the seeded
+record.
 
 A group receive additionally consumes the exact public batch into its
 assignment-fenced checkpoint and attempts a bounded public commit. Its
@@ -1067,6 +1085,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v91 is an exact semantic contract. New capabilities may be declared
+Protocol v92 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

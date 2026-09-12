@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v91. It is not a
+An adapter translates one packaged client surface to protocol v92. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -99,6 +99,9 @@ runner and not a verifier.
 - Advertise assigned-consumer immediate batches only when a selected
   `try_take_batch` receive repeatedly calls that exact public method and never
   substitutes the waiting `recv` observer.
+- Advertise assigned-consumer events only when selected `next_event` and
+  `try_take_event` observations call those exact public methods and retain the
+  complete public fence and failure category without receiving expectations.
 - Advertise assigned-consumer configuration only when read isolation, every
   supplied Fetch value, and retained-delivery capacities are fixed through the
   public builder before the client host starts; never receive the expected

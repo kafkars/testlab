@@ -126,6 +126,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::AssignBeginning { .. }
         | AdapterCommand::AssignBeginningBatch(_)
         | AdapterCommand::ControlAssignedConsumer(_)
+        | AdapterCommand::ObserveAssignedConsumerEvent(_)
         | AdapterCommand::Receive { .. }
         | AdapterCommand::CloseAssignedConsumer { .. }) => {
             protocol_consumer::dispatch(state, writer, command_id, command)?;

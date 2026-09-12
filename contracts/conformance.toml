@@ -955,6 +955,12 @@ statement = "A scenario-selected assigned receive emits exactly one command reta
 category = "consumer"
 
 [[contract]]
+id = "CONS-016"
+title = "Assigned-consumer events preserve observer and public failure identity"
+statement = "Each scenario-selected assigned-consumer event observation emits one ordered exact observer command and one public event retaining its consumer, method, target, positive fence generations, terminal category, and broker code."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

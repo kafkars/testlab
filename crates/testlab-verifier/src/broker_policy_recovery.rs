@@ -18,6 +18,15 @@ pub(crate) fn verify(
     observations: &[testlab_schema::BrokerObservation],
 ) -> Option<u64> {
     match (resource, operation) {
+        (BrokerAclResource::Topic { name }, BrokerAclOperation::Read) => {
+            crate::broker_policy_assigned_consumer::recovery(
+                scenario,
+                name,
+                window,
+                index,
+                observations,
+            )
+        }
         (BrokerAclResource::Topic { name }, BrokerAclOperation::Write) => scenario
             .steps
             .iter()

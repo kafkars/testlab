@@ -60,6 +60,9 @@ fn denial(
     index: &HistoryIndex,
 ) -> Option<u64> {
     match (resource, operation) {
+        (BrokerAclResource::Topic { name }, BrokerAclOperation::Read) => {
+            crate::broker_policy_assigned_consumer::denial(scenario, name, window, index)
+        }
         (BrokerAclResource::Topic { name }, BrokerAclOperation::Write) => scenario
             .steps
             .iter()

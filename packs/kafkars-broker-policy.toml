@@ -11,4 +11,5 @@ scenarios = [
   "scenarios/kafka/transactional-id-authorization-recovery.toml",
   "scenarios/kafka/producer-quota-progress.toml",
   "scenarios/kafka/consumer-quota-progress.toml",
+  "scenarios/kafka/assigned-consumer-event-authorization-recovery.toml",
 ]

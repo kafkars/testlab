@@ -24,6 +24,7 @@ pub(crate) enum ExpectedEvent {
     AssignedConsumerCreated(ConsumerId),
     AssignmentCompleted(ConsumerId),
     AssignedConsumerControlCompleted(testlab_schema::AssignedConsumerControlCompletion),
+    AssignedConsumerEventObserved(OperationId),
     ReceiveCompleted(OperationId),
     AssignedConsumerClosed(ConsumerId),
     GroupConsumerCreated(ConsumerId),

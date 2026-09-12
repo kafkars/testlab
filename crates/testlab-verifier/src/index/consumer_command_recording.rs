@@ -20,6 +20,7 @@ impl HistoryIndex {
                 self.assigned_controls_issued
                     .insert(command.operation_id.clone(), command.clone());
             }
+            AdapterCommand::ObserveAssignedConsumerEvent(_) => {}
             AdapterCommand::Receive { receive_id, .. }
             | AdapterCommand::GroupReceive { receive_id, .. } => {
                 self.receives_issued.insert(receive_id.clone());

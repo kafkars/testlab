@@ -75,6 +75,11 @@ Protocol v91, scenario schema v94, and evidence schema v80 retain the selected
 direct-consumer batch observer. CONS-015 distinguishes immediate
 `try_take_batch` from waiting `recv` without sending the expected record to the
 adapter.
+Protocol v92, scenario schema v95, and evidence schema v81 add direct-consumer
+failure events. CONS-016 binds each selected `next_event` or `try_take_event`
+command to one ordered public completion with the exact consumer, target,
+positive fence generations, terminal category, and broker code while keeping
+the expected failure outside the adapter.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -179,7 +184,10 @@ under its originating command identity. CONS-013 requires one exact issued
 control and one matching public completion. CONS-015 separately requires an
 immediate-batch scenario to retain the exact consumer, method, receive identity,
 and timeout in its issued command; the ordinary receive and independent-record
-contracts still establish the returned batch truth. Successive receives are
+contracts still establish the returned batch truth. CONS-016 binds each direct
+failure-event observer to its exact command and public fence, kind, and broker
+code; independently recorded ACL state establishes the policy transition rather
+than trusting that client event as broker truth. Successive receives are
 joined to their declared independently observed records in order. Exact offset
 and end starts, seek replay, paused-partition isolation, and survivor cursors
 after incremental mutation are therefore broker-backed outcomes rather than adapter

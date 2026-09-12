@@ -91,7 +91,7 @@ pub enum AdapterEvent {
     },
     /// One operation-identified direct-consumer control completed.
     AssignedConsumerControlCompleted(crate::AssignedConsumerControlCompletion),
-    /// One bounded receive observation completed.
+    AssignedConsumerEventObserved(crate::AssignedConsumerEventObservation),
     ReceiveCompleted {
         /// Stable receive operation identity.
         receive_id: OperationId,

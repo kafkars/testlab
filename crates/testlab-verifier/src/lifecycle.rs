@@ -157,6 +157,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::StartConcurrentActors(_)
             | ScenarioAction::JoinConcurrentActors(_)
             | ScenarioAction::Receive { .. }
+            | ScenarioAction::ObserveAssignedConsumerEvent(_)
             | ScenarioAction::GroupReceive { .. }
             | ScenarioAction::ObserveGroupAssignments(_)
             | ScenarioAction::GroupReceiveSet(_)
@@ -288,7 +289,6 @@ fn verify_transaction_lifecycle(
     }
     true
 }
-
 fn check(contract: &str, operation: &str, evidence: Vec<String>, violations: &mut Vec<Violation>) {
     if evidence.len() != 1 {
         let message = format!(

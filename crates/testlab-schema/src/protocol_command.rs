@@ -73,7 +73,7 @@ pub enum AdapterCommand {
     /// Assigns multiple partitions at their beginnings through one public call.
     AssignBeginningBatch(crate::AssignBeginningBatchCommand),
     ControlAssignedConsumer(crate::AssignedConsumerControlCommand),
-    /// Observes public consumer batches for a bounded duration.
+    ObserveAssignedConsumerEvent(crate::ObserveAssignedConsumerEventCommand),
     Receive {
         consumer_id: ConsumerId,
         /// Exact public retained-batch observation method.

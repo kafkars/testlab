@@ -24,7 +24,10 @@ pub(crate) use kafkars::admin::{
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{
-    AssignedConsumer, AssignedConsumerBuildError, Checkpoint, ClassicGroupAssignor,
+    AssignedConsumer, AssignedConsumerBuildError, AssignedConsumerEvent,
+    AssignedConsumerFetchFailureKind, AssignedConsumerFetchFence,
+    AssignedConsumerFetchThrottleFailureKind, AssignedConsumerPositionFence,
+    AssignedConsumerPositionResolutionFailureKind, Checkpoint, ClassicGroupAssignor,
     ClassicGroupConfig, Consumer, ConsumerAssignment, ConsumerBatch, ConsumerBuildError,
     ConsumerBuilder, ConsumerCommitAdmissionError, ConsumerEvent, ConsumerFetchConfig,
     ConsumerGroupProtocol, ConsumerLimits, ConsumerRecord, GroupConsumerRecord,

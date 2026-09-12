@@ -10,7 +10,7 @@ use crate::compose_provision_targets::topics;
 fn validate_only_admin_actions_provision_pre_state_without_the_created_topic() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 94
+schema_version = 95
 id = "kafka.admin-validate-only-provisioning"
 title = "validate-only provisioning"
 description = "validate-only provisioning fixture"

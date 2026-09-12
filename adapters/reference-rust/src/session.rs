@@ -121,6 +121,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::AssignBeginning { .. }
         | AdapterCommand::AssignBeginningBatch(_)
         | AdapterCommand::ControlAssignedConsumer(_)
+        | AdapterCommand::ObserveAssignedConsumerEvent(_)
         | AdapterCommand::Receive { .. }
         | AdapterCommand::CloseAssignedConsumer { .. }
         | AdapterCommand::CreateGroupConsumer { .. }

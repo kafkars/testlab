@@ -36,6 +36,7 @@ impl HistoryIndex {
             | AdapterCommand::AssignBeginning { .. }
             | AdapterCommand::AssignBeginningBatch(_)
             | AdapterCommand::ControlAssignedConsumer(_)
+            | AdapterCommand::ObserveAssignedConsumerEvent(_)
             | AdapterCommand::Receive { .. }
             | AdapterCommand::GroupReceive { .. }
             | AdapterCommand::CloseAssignedConsumer { .. }

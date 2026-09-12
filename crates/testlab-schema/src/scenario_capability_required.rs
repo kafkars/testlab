@@ -74,6 +74,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "immediate assigned-consumer receives require the assigned_consumer_immediate_batch capability",
     ),
     (
+        Capability::AssignedConsumerEvents,
+        "assigned-consumer event observations require the assigned_consumer_events capability",
+    ),
+    (
         Capability::AssignedConsumerConfiguration,
         "configured assigned-consumer clients require the assigned_consumer_configuration capability",
     ),

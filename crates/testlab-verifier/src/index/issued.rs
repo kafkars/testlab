@@ -194,6 +194,7 @@ impl HistoryIndex {
             | ScenarioAction::AssignBeginning { .. }
             | ScenarioAction::AssignBeginningBatch(_)
             | ScenarioAction::ControlAssignedConsumer(_)
+            | ScenarioAction::ObserveAssignedConsumerEvent(_)
             | ScenarioAction::Receive { .. }
             | ScenarioAction::CloseAssignedConsumer { .. }
             | ScenarioAction::CreateGroupConsumer { .. }
@@ -224,6 +225,13 @@ impl HistoryIndex {
                 self.assigned_controls_issued
                     .contains_key(&action.operation_id),
             ),
+            ScenarioAction::ObserveAssignedConsumerEvent(action) => {
+                Some(self.commands.iter().any(|(_, _, command)| {
+                    matches!(command,
+                    testlab_schema::AdapterCommand::ObserveAssignedConsumerEvent(command)
+                        if command.operation_id == action.operation_id)
+                }))
+            }
             ScenarioAction::Receive { receive_id, .. }
             | ScenarioAction::GroupReceive { receive_id, .. } => {
                 Some(self.receives_issued.contains(receive_id))

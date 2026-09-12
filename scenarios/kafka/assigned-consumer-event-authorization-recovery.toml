@@ -1,0 +1,207 @@
+schema_version = 95
+id = "kafka.assigned-consumer-event-authorization-recovery"
+title = "packaged assigned-consumer observers expose topic denial and recovery"
+description = "Independent topic READ policy evidence drives exact Broker(29) position-resolution events through both public observers before policy removal permits an exact assigned-consumer record recovery."
+timeout_ms = 180000
+requires = ["producer", "assigned_consumer", "assigned_consumer_events", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-waiting-client"
+kind = "create_client"
+client_id = "client-waiting"
+
+[[steps]]
+id = "await-waiting-client"
+kind = "await_client_ready"
+client_id = "client-waiting"
+
+[[steps]]
+id = "create-immediate-client"
+kind = "create_client"
+client_id = "client-immediate"
+
+[[steps]]
+id = "await-immediate-client"
+kind = "await_client_ready"
+client_id = "client-immediate"
+
+[[steps]]
+id = "create-recovery-client"
+kind = "create_client"
+client_id = "client-recovery"
+
+[[steps]]
+id = "await-recovery-client"
+kind = "await_client_ready"
+client_id = "client-recovery"
+
+[[steps]]
+id = "create-seed-producer"
+kind = "create_producer"
+client_id = "client-waiting"
+producer_id = "producer-seed"
+
+[[steps]]
+id = "send-seed"
+kind = "send"
+producer_id = "producer-seed"
+operation_id = "op-event-seed"
+
+[steps.record]
+topic = "testlab-kafkars-assigned-event-policy"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "assigned-event" }
+value = { encoding = "utf8", data = "authorization-recovery" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-event-seed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-seed"
+kind = "flush"
+producer_id = "producer-seed"
+
+[[steps]]
+id = "close-seed-producer"
+kind = "close_producer"
+producer_id = "producer-seed"
+
+[[steps]]
+id = "deny-topic-read"
+kind = "alter_broker_policy"
+state = "present"
+timeout_ms = 20000
+
+[steps.policy]
+policy_kind = "acl"
+operation = "read"
+
+[steps.policy.resource]
+resource_kind = "topic"
+name = "testlab-kafkars-assigned-event-policy"
+
+[[steps]]
+id = "create-waiting-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-waiting"
+consumer_id = "consumer-waiting"
+
+[[steps]]
+id = "assign-waiting-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-waiting"
+topic = "testlab-kafkars-assigned-event-policy"
+partition = 0
+
+[[steps]]
+id = "observe-waiting-event"
+kind = "observe_assigned_consumer_event"
+operation_id = "observe-next-event"
+consumer_id = "consumer-waiting"
+timeout_ms = 20000
+
+[steps.expected]
+event_kind = "position_resolution_failed"
+topic = "testlab-kafkars-assigned-event-policy"
+partition = 0
+failure = { failure_kind = "broker", code = 29 }
+
+[[steps]]
+id = "close-waiting-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-waiting"
+
+[[steps]]
+id = "create-immediate-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-immediate"
+consumer_id = "consumer-immediate"
+
+[[steps]]
+id = "assign-immediate-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-immediate"
+topic = "testlab-kafkars-assigned-event-policy"
+partition = 0
+
+[[steps]]
+id = "observe-immediate-event"
+kind = "observe_assigned_consumer_event"
+operation_id = "observe-try-take-event"
+consumer_id = "consumer-immediate"
+method = "try_take_event"
+timeout_ms = 20000
+
+[steps.expected]
+event_kind = "position_resolution_failed"
+topic = "testlab-kafkars-assigned-event-policy"
+partition = 0
+failure = { failure_kind = "broker", code = 29 }
+
+[[steps]]
+id = "close-immediate-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-immediate"
+
+[[steps]]
+id = "restore-topic-read"
+kind = "alter_broker_policy"
+state = "absent"
+timeout_ms = 20000
+
+[steps.policy]
+policy_kind = "acl"
+operation = "read"
+
+[steps.policy.resource]
+resource_kind = "topic"
+name = "testlab-kafkars-assigned-event-policy"
+
+[[steps]]
+id = "create-recovery-consumer"
+kind = "create_assigned_consumer"
+client_id = "client-recovery"
+consumer_id = "consumer-recovery"
+
+[[steps]]
+id = "assign-recovery-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-recovery"
+topic = "testlab-kafkars-assigned-event-policy"
+partition = 0
+
+[[steps]]
+id = "receive-recovered-record"
+kind = "receive"
+consumer_id = "consumer-recovery"
+receive_id = "receive-event-recovery"
+expected_operation_id = "op-event-seed"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-recovery-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-recovery"
+
+[[steps]]
+id = "shutdown-waiting-client"
+kind = "shutdown_client"
+client_id = "client-waiting"
+
+[[steps]]
+id = "shutdown-immediate-client"
+kind = "shutdown_client"
+client_id = "client-immediate"
+
+[[steps]]
+id = "shutdown-recovery-client"
+kind = "shutdown_client"
+client_id = "client-recovery"
+
+[[assertions]]
+operation_id = "op-event-seed"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

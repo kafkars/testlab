@@ -5,6 +5,7 @@ mod admission_retry;
 mod assigned_consumer_configuration;
 #[cfg(test)]
 mod assigned_consumer_configuration_test;
+mod assigned_consumer_event_observe;
 mod assigned_consumer_positions;
 #[cfg(test)]
 mod assigned_consumer_positions_test;

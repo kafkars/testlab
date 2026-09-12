@@ -64,6 +64,8 @@ mod admin_user_scram_validation;
 mod admin_validate_only_validation;
 mod assigned_consumer_control;
 mod assigned_consumer_control_validation;
+mod assigned_consumer_event;
+mod assigned_consumer_event_validation;
 mod broker_policy;
 mod broker_role;
 mod broker_state;
@@ -130,11 +132,8 @@ mod verdict;
 pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_exports::*;
 pub use assigned_consumer_control::*;
-pub use broker_policy::{
-    ADMIN_TOPIC_AUTHORIZATION_ERROR_CODE, BrokerAclOperation, BrokerAclResource, BrokerPolicy,
-    BrokerPolicyAction, BrokerPolicyState, BrokerQuotaDirection, GROUP_AUTHORIZATION_ERROR_CODE,
-    PRODUCER_TOPIC_AUTHORIZATION_ERROR_CODE, TRANSACTIONAL_ID_AUTHORIZATION_ERROR_CODE,
-};
+pub use assigned_consumer_event::*;
+pub use broker_policy::*;
 pub use broker_role::BrokerRoleTarget;
 pub use broker_state::{
     BrokerClusterState, BrokerConsumerGroupOffset, BrokerConsumerGroupState,

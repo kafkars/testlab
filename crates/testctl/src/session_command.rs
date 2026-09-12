@@ -60,6 +60,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::AssignBeginning { .. }
         | ScenarioAction::AssignBeginningBatch(_)
         | ScenarioAction::ControlAssignedConsumer(_)
+        | ScenarioAction::ObserveAssignedConsumerEvent(_)
         | ScenarioAction::Receive { .. }
         | ScenarioAction::CloseAssignedConsumer { .. }
         | ScenarioAction::CreateGroupConsumer { .. }

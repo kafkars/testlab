@@ -77,7 +77,7 @@ pub enum ScenarioAction {
     },
     AssignBeginningBatch(crate::AssignBeginningBatchAction),
     ControlAssignedConsumer(crate::AssignedConsumerControlAction),
-    /// Bounded receive that must expose one previously sent exact record.
+    ObserveAssignedConsumerEvent(crate::ObserveAssignedConsumerEventAction),
     Receive {
         consumer_id: ConsumerId,
         /// Exact public retained-batch observation method.

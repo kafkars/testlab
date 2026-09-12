@@ -51,9 +51,11 @@ mod admin_validate_only;
 mod admin_validate_only_evidence;
 mod adversary;
 mod assigned_consumer_controls;
+mod assigned_consumer_events;
 mod assigned_consumer_receive_method;
 mod broker_policy;
 mod broker_policy_acl;
+mod broker_policy_assigned_consumer;
 mod broker_policy_control;
 mod broker_policy_recovery;
 mod broker_role_recovery;
@@ -204,9 +206,13 @@ mod adversary_test;
 #[cfg(test)]
 mod assigned_consumer_controls_test;
 #[cfg(test)]
+mod assigned_consumer_events_test;
+#[cfg(test)]
 mod assigned_consumer_receive_method_test;
 #[cfg(test)]
 mod assigned_cursor_test;
+#[cfg(test)]
+mod broker_policy_assigned_consumer_test;
 #[cfg(test)]
 mod broker_policy_test;
 #[cfg(test)]
