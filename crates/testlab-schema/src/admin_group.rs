@@ -94,6 +94,9 @@ pub struct DescribeShareGroupAction {
     pub expected_state: String,
     /// Exact public and independently observed member count.
     pub expected_member_count: u32,
+    /// Exact public member rack identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_rack_id: Option<String>,
     /// Topic that must appear in the public member subscription and assignment.
     pub expected_topic: String,
     /// Partition that must appear in the public member assignment.
@@ -184,6 +187,8 @@ pub struct AdminConsumerGroupDescription {
 pub struct AdminShareGroupMember {
     /// Stable broker-issued member identity.
     pub member_id: String,
+    /// Rack identity returned by Kafka.
+    pub rack_id: Option<String>,
     /// Exact signed member epoch.
     pub member_epoch: i32,
     /// Public client identity reported by Kafka.

@@ -59,6 +59,7 @@ fn action() -> DescribeShareGroupsAction {
                 group_id: group_id.to_owned(),
                 expected_state: "Stable".to_owned(),
                 expected_member_count: 1,
+                expected_rack_id: None,
                 expected_topic: topic.to_owned(),
                 expected_partition: 0,
             })

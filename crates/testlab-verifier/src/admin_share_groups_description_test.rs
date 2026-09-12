@@ -165,6 +165,7 @@ fn description(group_id: &str, topic: &str, topic_id: u8) -> AdminShareGroupDesc
         assignor_name: "simple".to_owned(),
         members: vec![AdminShareGroupMember {
             member_id: format!("member-{topic_id}"),
+            rack_id: None,
             member_epoch: 5,
             client_id: format!("client-{topic_id}"),
             subscribed_topics: vec![topic.to_owned()],

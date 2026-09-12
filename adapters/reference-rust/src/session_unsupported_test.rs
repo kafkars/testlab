@@ -176,6 +176,7 @@ fn share_commands_require_share_consumer_capability() {
             .unwrap_or_else(|error| panic!("consumer id: {error}")),
         group_id: "share-group".to_owned(),
         topics: vec!["orders".to_owned()],
+        rack: None,
         membership_timeout_ms: 1_000,
         close_timeout_ms: 1_000,
         configuration: None,

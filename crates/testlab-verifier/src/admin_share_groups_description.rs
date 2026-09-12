@@ -16,6 +16,7 @@ use crate::support::violation;
 struct LiveShare {
     group_id: String,
     topics: Vec<String>,
+    rack: Option<String>,
     retained: BTreeSet<OperationId>,
 }
 
@@ -101,6 +102,7 @@ fn outcome_matches(
                     group_id: expected.group_id.clone(),
                     expected_state: expected.expected_state.clone(),
                     expected_member_count: expected.expected_member_count,
+                    expected_rack_id: expected.expected_rack_id.clone(),
                     expected_topic: expected.expected_topic.clone(),
                     expected_partition: expected.expected_partition,
                     timeout_ms: action.timeout_ms,
@@ -121,6 +123,7 @@ fn exact_live_share_batches(
             .iter()
             .filter(|(_, consumer)| {
                 consumer.group_id == group.group_id
+                    && consumer.rack.as_deref() == group.expected_rack_id.as_deref()
                     && consumer.topics.contains(&group.expected_topic)
             })
             .collect::<Vec<_>>();
@@ -164,6 +167,7 @@ fn live_share_consumers(
                 consumer_id,
                 group_id,
                 topics,
+                rack,
                 ..
             } => {
                 live.insert(
@@ -171,6 +175,7 @@ fn live_share_consumers(
                     LiveShare {
                         group_id: group_id.clone(),
                         topics: topics.clone(),
+                        rack: rack.clone(),
                         retained: BTreeSet::new(),
                     },
                 );

@@ -35,6 +35,8 @@ Protocol v79 and evidence schema v68 retain every caller-ordered Share
 subscription topic at creation. The two-topic scenario requires public
 assignment coverage and one exact accepted acquisition from each topic, with
 both records joined to independent broker observations.
+Protocol v80 and evidence schema v69 retain the optional Share rack selected at
+creation and the rack Kafka reports for every publicly described Share member.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -307,7 +309,7 @@ describe operation IDs, so history order preserves precondition and
 postcondition meaning without trusting an adapter echo.
 
 ADMIN-037 binds one active public Share-group description to the exact expected
-state, epochs, assignor, member subscription, nonzero topic identity, and
+state, epochs, assignor, member rack, subscription, nonzero topic identity, and
 partition assignment. A separate immediate Kafka CLI state query must agree on
 the group, stable state, and member count. The coarse independent snapshot
 cannot manufacture the detailed public assignment, and the public completion
@@ -337,11 +339,12 @@ independent observations retain consecutive ordinals in caller order and must
 report every selected group absent; unrelated listed groups remain irrelevant.
 
 ADMIN-042 binds one caller-ordered public batch to a complete detailed
-description for every selected active Share group. Each modeled member must
-retain an exact acquired public batch with positive member and assignment
-fences before the admin command. Separate immediate read-only Kafka CLI state
-queries retain consecutive history and observation order and must agree on
-every group, stable state, and member count.
+description, including exact configured rack identity, for every selected
+active Share group. Each modeled member must retain an exact acquired public
+batch with positive member and assignment fences before the admin command.
+Separate immediate read-only Kafka CLI state queries retain consecutive history
+and observation order and must agree on every group, stable state, and member
+count.
 
 ADMIN-043 binds one caller-ordered public batch to every selected Share-group
 and topic-partition outcome, including nonzero topic identity, start offset,

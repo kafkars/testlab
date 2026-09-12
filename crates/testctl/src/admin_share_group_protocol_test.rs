@@ -94,6 +94,7 @@ fn action() -> DescribeShareGroupAction {
         group_id: "share-group-1".to_owned(),
         expected_state: "Stable".to_owned(),
         expected_member_count: 1,
+        expected_rack_id: Some("rack-a".to_owned()),
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
         timeout_ms: 1_000,

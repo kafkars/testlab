@@ -41,6 +41,7 @@ pub(crate) struct ShareConsumerRegistration {
     pub(crate) consumer_id: ConsumerId,
     pub(crate) group_id: String,
     pub(crate) topics: Vec<String>,
+    pub(crate) rack: Option<String>,
     pub(crate) membership_timeout: Duration,
     pub(crate) close_timeout: Duration,
     pub(crate) configuration: Option<ShareConsumerFetchConfiguration>,
@@ -69,6 +70,9 @@ impl ShareConsumers {
             .subscribe(registration.topics.iter().map(String::as_str))
             .fetch_config(fetch)
             .close_timeout(registration.close_timeout);
+        if let Some(rack) = registration.rack.as_deref() {
+            builder = builder.rack(rack);
+        }
         let consumer = loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
             match builder.membership_start_timeout(remaining).build() {
@@ -84,6 +88,11 @@ impl ShareConsumers {
                 }
             }
         };
+        if consumer.rack() != registration.rack.as_deref() {
+            return Err(StateError::ShareSurface(
+                "share consumer did not retain its configured rack".to_owned(),
+            ));
+        }
         share_consumers_receive::await_assignment(&consumer, &registration.topics, deadline)?;
         self.owners.insert(
             registration.consumer_id,

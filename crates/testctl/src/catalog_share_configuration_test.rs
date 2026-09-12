@@ -5,7 +5,7 @@ use std::path::Path;
 use crate::catalog::Repository;
 
 #[test]
-fn share_capable_kafkars_packs_retain_subscription_and_fetch_configuration() {
+fn share_capable_kafkars_packs_retain_public_configuration() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let repository = Repository::open(&root)
         .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
@@ -30,8 +30,9 @@ fn share_capable_kafkars_packs_retain_subscription_and_fetch_configuration() {
     }
 }
 
-const SCENARIOS: [&str; 3] = [
+const SCENARIOS: [&str; 4] = [
     "share-group-multi-topic-subscription.toml",
+    "admin-describe-share-group.toml",
     "share-group-fetch-max-records.toml",
     "share-group-fetch-batch-size.toml",
 ];

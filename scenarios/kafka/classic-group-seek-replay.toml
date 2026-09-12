@@ -1,4 +1,4 @@
-schema_version = 82
+schema_version = 83
 id = "kafka.classic-group-seek-replay"
 title = "a classic group seek replays one committed broker record"
 description = "The packaged classic member receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."

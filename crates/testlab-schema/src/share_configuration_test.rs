@@ -58,6 +58,33 @@ fn configured_share_consumer_requires_its_exact_capability() {
 }
 
 #[test]
+fn share_rack_is_nonempty_and_bounded() {
+    let mut scenario = configured_scenario();
+    let Some(ScenarioAction::CreateShareConsumer { rack, .. }) = scenario
+        .steps
+        .iter_mut()
+        .find_map(|step| match &mut step.action {
+            action @ ScenarioAction::CreateShareConsumer { .. } => Some(action),
+            _ => None,
+        })
+    else {
+        panic!("configured Share create missing");
+    };
+    *rack = Some(String::new());
+
+    let error = match scenario.validate() {
+        Ok(()) => panic!("empty Share rack must fail"),
+        Err(error) => error,
+    };
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem.contains("invalid rack"))
+    );
+}
+
+#[test]
 fn share_fetch_configuration_and_acquisition_expectation_are_bounded() {
     let mut scenario = configured_scenario();
     let Some(ScenarioAction::CreateShareConsumer { configuration, .. }) = scenario

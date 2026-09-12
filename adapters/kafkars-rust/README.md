@@ -14,11 +14,12 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v79 over stdin/stdout;
+2. implements protocol v80 over stdin/stdout;
 3. preserves caller-selected record timestamps and returned partitions through
    public delivery receipts, omits explicit partitions for Java-keyed sends,
    preserves consumer records, and passes caller-ordered multi-topic classic,
-   KIP-848, and Share subscriptions through the public builder;
+   KIP-848, and Share subscriptions plus configured Share rack identity through
+   the public builder;
 4. preserves admission rejection separately from accepted delivery;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
@@ -48,7 +49,8 @@ It:
    consumer-only and generic all-group listings, plural offset
    mutations, dedicated classic-group descriptions, caller-ordered plural
    empty classic-group deletion, singleton and
-   caller-ordered plural active Share-group state and assignment descriptions,
+   caller-ordered plural active Share-group state, rack, and assignment
+   descriptions,
    singleton and caller-ordered plural selected Share-group offset listings,
    empty-group alteration, topic-wide offset
    deletion, and caller-ordered empty-group deletion, literal ACL

@@ -103,10 +103,11 @@ pub(crate) fn description_matches(
         && u32::try_from(actual.members.len()).ok() == Some(expected.expected_member_count)
         && valid_members(actual)
         && actual.members.iter().any(|member| {
-            member
-                .subscribed_topics
-                .iter()
-                .any(|topic| topic == &expected.expected_topic)
+            member.rack_id.as_deref() == expected.expected_rack_id.as_deref()
+                && member
+                    .subscribed_topics
+                    .iter()
+                    .any(|topic| topic == &expected.expected_topic)
                 && member.assignments.iter().any(|assignment| {
                     assignment.topic == expected.expected_topic
                         && assignment.partitions.contains(&expected.expected_partition)
@@ -123,6 +124,10 @@ fn valid_members(actual: &AdminShareGroupDescription) -> bool {
             !member.member_id.is_empty()
                 && member.member_epoch >= 0
                 && !member.client_id.is_empty()
+                && member
+                    .rack_id
+                    .as_ref()
+                    .is_none_or(|rack| !rack.is_empty() && rack.len() <= 249)
                 && sorted_unique_nonempty(&member.subscribed_topics)
                 && member.assignments.windows(2).all(|pair| {
                     pair[0].topic_id < pair[1].topic_id

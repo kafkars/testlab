@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v79 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v82 and evidence schema v68.
+Protocol v80 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v83 and evidence schema v69.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -476,7 +476,8 @@ adapter passes the complete list to the public subscription builder. Creation
 completes only after the public assignment contains every requested topic;
 assignments outside that list invalidate the run. Multi-topic scenarios require
 exact publicly acquired records from every topic, each joined to independent
-broker observation.
+broker observation. An optional rack identity is passed to the public builder
+and must be retained by the resulting public handle.
 
 A share receive retains the exact ordered linear acquisition batch behind its
 receive identity until one later acknowledgement, explicit drop, or consumer
@@ -739,13 +740,13 @@ non-secret state to agree; extra users, mechanisms, rows, quota values, or
 malformed CLI output invalidate the claim.
 
 Share-group description selects one exact active group while its public member
-retains an acquired batch. Scenario-owned state, member-count, topic, and
+retains an acquired batch. Scenario-owned state, member-count, rack, topic, and
 partition expectations stay in `testctl`. The completion preserves Kafka's
-public state, group and assignment epochs, assignor, ordered members,
-subscriptions, nonzero topic IDs, and exact partition assignments. An immediate
-pinned `kafka-share-groups.sh --describe --state` query independently confirms
-the stable state and member count; that CLI snapshot cannot substitute for the
-detailed public assignment.
+public state, group and assignment epochs, assignor, ordered members, rack
+identities, subscriptions, nonzero topic IDs, and exact partition assignments.
+An immediate pinned `kafka-share-groups.sh --describe --state` query
+independently confirms the stable state and member count; that CLI snapshot
+cannot substitute for the detailed public assignment.
 
 Plural Share-group description carries two through 32 distinct group
 identities in caller order while each modeled member retains an acquired
@@ -1004,6 +1005,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v79 is an exact semantic contract. New capabilities may be declared
+Protocol v80 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

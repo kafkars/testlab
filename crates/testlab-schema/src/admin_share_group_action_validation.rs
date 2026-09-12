@@ -25,6 +25,7 @@ pub(crate) fn validate(
                 &action.operation_id,
                 &action.expected_state,
                 action.expected_member_count,
+                action.expected_rack_id.as_deref(),
                 &action.expected_topic,
                 action.expected_partition,
                 problems,
@@ -60,6 +61,7 @@ pub(crate) fn validate(
                     &action.operation_id,
                     &group.expected_state,
                     group.expected_member_count,
+                    group.expected_rack_id.as_deref(),
                     &group.expected_topic,
                     group.expected_partition,
                     problems,
@@ -228,6 +230,7 @@ fn description_expectation(
     operation_id: &OperationId,
     state: &str,
     member_count: u32,
+    rack_id: Option<&str>,
     topic: &str,
     partition: i32,
     problems: &mut Vec<String>,
@@ -240,6 +243,11 @@ fn description_expectation(
     if member_count == 0 || member_count > 32 {
         problems.push(format!(
             "admin operation {operation_id} expected_member_count must be between 1 and 32"
+        ));
+    }
+    if rack_id.is_some_and(|rack_id| rack_id.is_empty() || rack_id.len() > 249) {
+        problems.push(format!(
+            "admin operation {operation_id} has invalid expected_rack_id"
         ));
     }
     if topic.is_empty() || topic.len() > 249 {

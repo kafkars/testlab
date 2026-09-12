@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_share_group_offset_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 79);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 82);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 68);
+    assert_eq!(PROTOCOL_VERSION, 80);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 83);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 69);
 }
 
 #[test]
@@ -75,6 +75,7 @@ fn validation_rejects_nonstable_or_unbounded_expectations() {
     let mut invalid = action();
     invalid.expected_state = "Empty".to_owned();
     invalid.expected_member_count = 0;
+    invalid.expected_rack_id = Some(String::new());
     invalid.expected_topic.clear();
     invalid.expected_partition = -1;
     let mut problems = Vec::new();
@@ -87,6 +88,7 @@ fn validation_rejects_nonstable_or_unbounded_expectations() {
     for expected in [
         "expected_state must be Stable",
         "expected_member_count must be between",
+        "invalid expected_rack_id",
         "invalid expected_topic",
         "expected_partition must be nonnegative",
     ] {
@@ -128,6 +130,7 @@ fn action() -> DescribeShareGroupAction {
         group_id: "share-group-1".to_owned(),
         expected_state: "Stable".to_owned(),
         expected_member_count: 1,
+        expected_rack_id: Some("rack-a".to_owned()),
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
         timeout_ms: 1_000,
@@ -153,6 +156,7 @@ fn description() -> AdminShareGroupDescription {
         assignor_name: "simple".to_owned(),
         members: vec![AdminShareGroupMember {
             member_id: "member-1".to_owned(),
+            rack_id: Some("rack-a".to_owned()),
             member_epoch: 5,
             client_id: "client-1".to_owned(),
             subscribed_topics: vec!["share-topic".to_owned()],

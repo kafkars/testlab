@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v79. It is not a
+An adapter translates one packaged client surface to protocol v80. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -48,8 +48,9 @@ runner and not a verifier.
 - Preserve caller order, exact topic keys, and every success or per-topic error
   for plural topic deletion without receiving expected outcomes or replacing
   the public result with later metadata absence.
-- Preserve Share-group state, epochs, assignor, ordered members, subscriptions,
-  topic IDs, and partition assignments without replacing them with CLI state.
+- Preserve Share-group state, epochs, assignor, ordered members, rack identities,
+  subscriptions, topic IDs, and partition assignments without replacing them
+  with CLI state.
 - Preserve caller order, exact outer and inner group identities, full detailed
   descriptions, and per-group errors for plural Share-group descriptions.
 - Preserve caller order across one mixed classic and KIP-848 consumer-group
@@ -94,7 +95,8 @@ runner and not a verifier.
   records.
 - Pass every Share-create topic to the public subscription builder in caller
   order. Do not select only the first topic or infer topics from expected
-  acquisitions.
+  acquisitions. Pass an optional rack through the public builder and require
+  the resulting public handle to retain it.
 - Advertise group-consumer configuration only when missing-offset reset, read
   isolation, and an optional classic assignor are fixed through public builder
   calls before membership starts; reject a classic assignor for KIP-848 and

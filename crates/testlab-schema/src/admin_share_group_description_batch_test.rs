@@ -48,6 +48,7 @@ fn validation_rejects_nonplural_duplicate_and_invalid_expectations() {
                     group_id: "share-b".to_owned(),
                     expected_state: "Unknown".to_owned(),
                     expected_member_count: 0,
+                    expected_rack_id: None,
                     expected_topic: String::new(),
                     expected_partition: -1,
                 },
@@ -141,6 +142,7 @@ fn expectation(group_id: &str, topic: &str) -> ShareGroupDescriptionExpectation 
         group_id: group_id.to_owned(),
         expected_state: "Stable".to_owned(),
         expected_member_count: 1,
+        expected_rack_id: None,
         expected_topic: topic.to_owned(),
         expected_partition: 0,
     }

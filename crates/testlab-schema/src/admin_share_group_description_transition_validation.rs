@@ -8,6 +8,7 @@ use crate::{ConsumerId, OperationId, Scenario, ScenarioAction};
 struct LiveShare {
     group_id: String,
     topics: Vec<String>,
+    rack: Option<String>,
     retained: BTreeSet<OperationId>,
 }
 
@@ -20,6 +21,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 consumer_id,
                 group_id,
                 topics,
+                rack,
                 ..
             } => {
                 consumers.insert(
@@ -27,6 +29,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     LiveShare {
                         group_id: group_id.clone(),
                         topics: topics.clone(),
+                        rack: rack.clone(),
                         retained: BTreeSet::new(),
                     },
                 );
@@ -51,6 +54,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             ScenarioAction::DescribeShareGroup(action) => validate_group(
                 &action.operation_id,
                 &action.group_id,
+                action.expected_rack_id.as_deref(),
                 &action.expected_topic,
                 action.expected_member_count,
                 &consumers,
@@ -61,6 +65,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     validate_group(
                         &action.operation_id,
                         &group.group_id,
+                        group.expected_rack_id.as_deref(),
                         &group.expected_topic,
                         group.expected_member_count,
                         &consumers,
@@ -88,6 +93,7 @@ fn settle(
 fn validate_group(
     operation_id: &OperationId,
     group_id: &str,
+    rack: Option<&str>,
     topic: &str,
     member_count: u32,
     consumers: &BTreeMap<ConsumerId, LiveShare>,
@@ -97,6 +103,7 @@ fn validate_group(
         .values()
         .filter(|consumer| {
             consumer.group_id == group_id
+                && consumer.rack.as_deref() == rack
                 && consumer.topics.iter().any(|candidate| candidate == topic)
                 && !consumer.retained.is_empty()
         })

@@ -14,6 +14,9 @@ pub struct ShareGroupDescriptionExpectation {
     pub expected_state: String,
     /// Exact public and independently observed member count.
     pub expected_member_count: u32,
+    /// Exact public member rack identity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_rack_id: Option<String>,
     /// Topic required in one public member subscription and assignment.
     pub expected_topic: String,
     /// Partition required in one public member assignment.

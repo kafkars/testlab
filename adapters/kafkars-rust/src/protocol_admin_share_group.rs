@@ -176,6 +176,7 @@ pub(crate) fn public_description(
         .iter()
         .map(|member| AdminShareGroupMember {
             member_id: member.member_id().to_owned(),
+            rack_id: member.rack_id().map(str::to_owned),
             member_epoch: member.member_epoch(),
             client_id: member.client_id().to_owned(),
             subscribed_topics: member.subscribed_topic_names().to_vec(),

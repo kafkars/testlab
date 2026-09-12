@@ -181,17 +181,20 @@ fn share_creation_preserves_caller_topic_order() {
         consumer_id: id(ConsumerId::new("share-1")),
         group_id: "share-workers".to_owned(),
         topics: vec!["orders".to_owned(), "returns".to_owned()],
+        rack: Some("rack-a".to_owned()),
         membership_timeout_ms: 30_000,
         close_timeout_ms: 30_000,
         configuration: None,
     };
 
-    let Some((AdapterCommand::CreateShareConsumer { topics, .. }, expected)) = translate(&action)
+    let Some((AdapterCommand::CreateShareConsumer { topics, rack, .. }, expected)) =
+        translate(&action)
     else {
         panic!("Share creation must translate");
     };
 
     assert_eq!(topics, vec!["orders".to_owned(), "returns".to_owned()]);
+    assert_eq!(rack.as_deref(), Some("rack-a"));
     assert!(matches!(expected, ExpectedEvent::ShareConsumerCreated(_)));
 }
 

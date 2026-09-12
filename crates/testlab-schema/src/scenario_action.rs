@@ -135,11 +135,10 @@ pub enum ScenarioAction {
         client_id: ClientId,
         consumer_id: ConsumerId,
         group_id: String,
-        /// Caller-ordered distinct subscribed topics.
         topics: Vec<String>,
-        /// Complete membership-start bound.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        rack: Option<String>,
         membership_timeout_ms: u64,
-        /// Complete close bound.
         close_timeout_ms: u64,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         configuration: Option<crate::ShareConsumerFetchConfiguration>,

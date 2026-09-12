@@ -101,6 +101,7 @@ fn scenario() -> Scenario {
                     consumer_id: consumer(),
                     group_id: "share-group-1".to_owned(),
                     topics: vec!["share-topic".to_owned()],
+                    rack: None,
                     membership_timeout_ms: 1_000,
                     close_timeout_ms: 1_000,
                     configuration: None,

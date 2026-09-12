@@ -121,14 +121,13 @@ pub enum AdapterCommand {
     AbandonGroupConsumer(crate::GroupConsumerAbandonment),
     /// Registers one unique share-group member.
     CreateShareConsumer {
-        /// Existing client that owns the member.
         client_id: ClientId,
-        /// New scenario-local share-consumer identity.
         consumer_id: ConsumerId,
-        /// Exact Kafka share-group identity.
         group_id: String,
         /// Caller-ordered distinct subscribed topics.
         topics: Vec<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        rack: Option<String>,
         /// Complete first-heartbeat bound.
         membership_timeout_ms: u64,
         /// Complete graceful-close bound.

@@ -32,6 +32,19 @@ fn lossy_public_assignment_fails_share_group_contract() {
 }
 
 #[test]
+fn mismatched_public_rack_fails_share_group_contract() {
+    let mut entries = history();
+    let HistoryPayload::AdapterEvent { event } = &mut entries[1].payload else {
+        panic!("Share-group event history kind");
+    };
+    let AdapterEvent::ShareGroupDescribed(value) = &mut event.event else {
+        panic!("Share-group event kind");
+    };
+    value.members[0].rack_id = Some("rack-b".to_owned());
+    assert_contract(&violations(&entries));
+}
+
+#[test]
 fn mismatched_cli_membership_fails_share_group_contract() {
     let mut entries = history();
     let HistoryPayload::BrokerStateObservation { observation } = &mut entries[2].payload else {
@@ -75,6 +88,7 @@ fn description() -> AdminShareGroupDescription {
         assignor_name: "simple".to_owned(),
         members: vec![AdminShareGroupMember {
             member_id: "member-1".to_owned(),
+            rack_id: Some("rack-a".to_owned()),
             member_epoch: 5,
             client_id: "client-1".to_owned(),
             subscribed_topics: vec!["share-topic".to_owned()],
@@ -111,6 +125,7 @@ fn action() -> DescribeShareGroupAction {
         group_id: "share-group-1".to_owned(),
         expected_state: "Stable".to_owned(),
         expected_member_count: 1,
+        expected_rack_id: Some("rack-a".to_owned()),
         expected_topic: "share-topic".to_owned(),
         expected_partition: 0,
         timeout_ms: 1_000,

@@ -36,6 +36,7 @@ pub(crate) fn validate(
             consumer_id,
             group_id,
             topics,
+            rack,
             membership_timeout_ms,
             close_timeout_ms,
             configuration,
@@ -55,6 +56,15 @@ pub(crate) fn validate(
             );
             validate_timeout("membership", *membership_timeout_ms, problems);
             validate_timeout("close", *close_timeout_ms, problems);
+            if let Some(rack) = rack {
+                crate::consumer_action_validation::validate_name(
+                    consumer_id,
+                    "rack",
+                    rack,
+                    249,
+                    problems,
+                );
+            }
             if let Some(configuration) = configuration {
                 validate_configuration(consumer_id, *configuration, problems);
             }
