@@ -505,6 +505,12 @@ statement = "One bounded public Admin sequence exactly describes one and multipl
 category = "admin"
 
 [[contract]]
+id = "ADMIN-075"
+title = "Partition transaction abort preserves producer identity and clears transaction state"
+statement = "One public partition transaction abort preserves the exact active producer identity and sequence while clearing its transaction start offset before ordinary token-drop cleanup, and one immediate independent Kafka CLI snapshot corroborates the cleared state."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
