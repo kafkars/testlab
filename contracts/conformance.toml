@@ -530,8 +530,8 @@ category = "admin"
 
 [[contract]]
 id = "ADMIN-079"
-title = "Legacy topic configuration restoration omits the expected default"
-statement = "Each selected legacy topic configuration restoration emits one exact command with no replacement value, succeeds in caller order, and is followed immediately by independent broker observations of the scenario-only expected defaults after a distinct exact baseline."
+title = "Legacy configuration restoration omits the expected default"
+statement = "Each selected topic-specific or generic-resource legacy configuration restoration emits one exact command with no replacement value, succeeds in caller order, and is followed immediately by independent broker observations of the scenario-only expected defaults after a distinct exact baseline."
 category = "admin"
 
 [[contract]]

@@ -155,7 +155,7 @@ Protocol v108, scenario schema v111, and evidence schema v97 add legacy plural
 configuration default restoration. ADMIN-079 keeps the expected broker default
 scenario-side, requires an absent wire value and exact public restoration call,
 and binds the completion to distinct prior and independently observed final
-values for every selected topic.
+values for every selected topic through both legacy public surfaces.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -717,11 +717,12 @@ commands must select `legacy_topic` or `legacy_resource`, while their baselines
 must use the matching `topic` or `resource` description surface. An incremental
 completion cannot satisfy either legacy contract.
 
-ADMIN-079 applies those plural legacy requirements to default restoration. The
-scenario retains each expected final value for independent comparison, but the
-exact adapter command must omit every replacement value. The selected public
-legacy restoration constructor must therefore establish each distinct final
-value without receiving that expected broker state.
+ADMIN-079 applies those plural legacy requirements to default restoration
+through both topic-specific and generic-resource public surfaces. The scenario
+retains each expected final value for independent comparison, but the exact
+adapter command must omit every replacement value. The selected public legacy
+restoration constructor must therefore establish each distinct final value
+without receiving that expected broker state.
 
 ADMIN-068 binds configured classic static membership to one explicit Admin
 removal. Two unique `group_instance_id` values first participate in a complete

@@ -64,12 +64,17 @@ fn checked_in_legacy_restore_is_exact_and_rejected_for_incremental_apis() {
     restored
         .validate()
         .unwrap_or_else(|error| panic!("validate legacy restoration: {error}"));
-    assert!(restored.steps.iter().any(|step| matches!(
-        &step.action,
-        ScenarioAction::AlterTopicConfigs(action)
-            if action.api == crate::TopicConfigMutationApi::LegacyTopic
-                && action.topics.iter().all(|topic| topic.restore_default)
-    )));
+    for api in [
+        crate::TopicConfigMutationApi::LegacyTopic,
+        crate::TopicConfigMutationApi::LegacyResource,
+    ] {
+        assert!(restored.steps.iter().any(|step| matches!(
+            &step.action,
+            ScenarioAction::AlterTopicConfigs(action)
+                if action.api == api
+                    && action.topics.iter().all(|topic| topic.restore_default)
+        )));
+    }
 
     let mut action = action();
     action.topics[0].restore_default = true;
