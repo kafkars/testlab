@@ -22,6 +22,10 @@ pub(crate) fn dispatch<W: Write>(
     command: AdapterCommand,
 ) -> Result<(), AdapterError> {
     match command {
+        command @ AdapterCommand::ExecuteTransaction {
+            disposition: TransactionDisposition::AdminPartitionAbort,
+            ..
+        } => crate::transaction_admin_abort::dispatch(state, writer, command_id, command),
         AdapterCommand::CreateTransactionalProducer {
             client_id,
             producer_id,
@@ -224,6 +228,9 @@ pub(crate) fn end(
     match disposition {
         TransactionDisposition::Commit => commit(transaction, deadline),
         TransactionDisposition::Abort => abort(transaction, deadline),
+        TransactionDisposition::AdminPartitionAbort => Err(AdapterError::TransactionResult(
+            "admin partition abort reached ordinary transaction end".to_owned(),
+        )),
     }
 }
 

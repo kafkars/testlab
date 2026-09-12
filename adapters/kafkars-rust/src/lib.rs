@@ -101,6 +101,7 @@ mod state_client;
 mod state_consumer;
 mod state_error;
 mod state_share;
+mod transaction_admin_abort;
 mod transaction_execute;
 mod transaction_fence;
 mod transaction_transform;

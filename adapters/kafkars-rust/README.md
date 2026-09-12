@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v86 over stdin/stdout;
+2. implements protocol v87 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -50,6 +50,8 @@ It:
    caller-ordered transaction descriptions, caller-ordered producer fencing
    with independently matched post-fence identities, and singleton Admin force
    termination of an active transaction before replacement initialization,
+   plus broker-derived singleton Admin partition abort with public
+   open-to-cleared producer state captured before transaction-token cleanup,
    selected-replica log-directory description and caller-ordered alteration outcomes,
    classic static membership plus complete session, rebalance, heartbeat, and
    rejoin timing, and caller-ordered static-member removal after owner

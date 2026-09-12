@@ -63,85 +63,6 @@ pub(super) fn classify_group(
     })
 }
 
-pub(super) fn classify_transaction(
-    expected: &ExpectedEvent,
-    event: &AdapterEvent,
-) -> Option<Result<EventDisposition, RunFailure>> {
-    let matches = match (expected, event) {
-        (
-            ExpectedEvent::TransactionalProducerCreated(expected_id),
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: actual,
-            },
-        )
-        | (
-            ExpectedEvent::TransactionalProducerClosed(expected_id),
-            AdapterEvent::TransactionalProducerClosed {
-                producer_id: actual,
-            },
-        ) => return Some(identity_result(expected_id == actual, event, expected)),
-        (
-            ExpectedEvent::TransactionCompleted { operation_ids, .. },
-            AdapterEvent::OperationAccepted { operation_id }
-            | AdapterEvent::OperationRejected { operation_id, .. }
-            | AdapterEvent::OperationTerminal { operation_id, .. },
-        ) => operation_ids.contains(operation_id),
-        (
-            ExpectedEvent::TransactionCompleted { transaction_id, .. },
-            AdapterEvent::TransactionCompleted {
-                transaction_id: actual,
-                ..
-            },
-        )
-        | (
-            ExpectedEvent::TransactionFenceCompleted { transaction_id, .. },
-            AdapterEvent::TransactionFenceCompleted {
-                transaction_id: actual,
-                ..
-            },
-        ) => return Some(identity_result(transaction_id == actual, event, expected)),
-        (
-            ExpectedEvent::TransactionCompleted { transaction_id, .. },
-            AdapterEvent::TransactionalTransformCompleted(actual),
-        ) => {
-            return Some(identity_result(
-                transaction_id == &actual.transaction_id,
-                event,
-                expected,
-            ));
-        }
-        (
-            ExpectedEvent::TransactionFenceCompleted { operation_id, .. },
-            AdapterEvent::OperationAccepted {
-                operation_id: actual,
-            }
-            | AdapterEvent::OperationRejected {
-                operation_id: actual,
-                ..
-            }
-            | AdapterEvent::OperationTerminal {
-                operation_id: actual,
-                ..
-            },
-        ) => operation_id == actual,
-        (
-            ExpectedEvent::TransactionFenceCompleted {
-                replacement_producer_id,
-                ..
-            },
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: actual,
-            },
-        ) => replacement_producer_id == actual,
-        _ => return None,
-    };
-    Some(if matches {
-        Ok(EventDisposition::Continue)
-    } else {
-        Err(identity_mismatch(event, expected))
-    })
-}
-
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
     crate::runner_protocol_concurrent::same_event_family(expected, event)
         || crate::runner_protocol_cancel::same_event_family(expected, event)
@@ -267,10 +188,11 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
             ExpectedEvent::TransactionalProducerCreated(_),
             AdapterEvent::TransactionalProducerCreated { .. }
         ) | (
-            ExpectedEvent::TransactionCompleted { .. },
+            ExpectedEvent::TransactionCompleted(_),
             AdapterEvent::OperationAccepted { .. }
                 | AdapterEvent::OperationRejected { .. }
                 | AdapterEvent::OperationTerminal { .. }
+                | AdapterEvent::ProducersDescribed(_)
                 | AdapterEvent::TransactionCompleted { .. }
                 | AdapterEvent::TransactionalTransformCompleted(_)
         ) | (

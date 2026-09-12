@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v86 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v89 and evidence schema v75.
+Protocol v87 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v90 and evidence schema v76.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -967,16 +967,24 @@ requires an independent not-found group result. Observer errors and timeouts
 invalidate these claims rather than manufacturing absence.
 
 One `execute_transaction` command owns a complete linear begin, ordered send,
-and commit-or-abort sequence because the public transaction token borrows its
-producer until it ends. Each accepted record reports `transaction_staged`, then
-one exact `transaction_completed` event reports the public disposition. The full
-declared operation set must stage exactly once before that completion. The
+and terminal operation because the public transaction token borrows its producer
+until it ends. `commit` and `abort` use that token directly.
+`admin_partition_abort` is restricted to one exact staged record: the adapter
+uses public `DescribeProducers` to obtain its producer and coordinator identity,
+emits the open state, calls public Admin partition abort, and emits the cleared
+state before the token can drop. Each accepted record reports
+`transaction_staged`, then one exact `transaction_completed` event reports the
+requested terminal operation. The full declared operation set must stage exactly
+once before that completion. The
 independent observer uses `read_committed`: every committed operation must appear
 exactly once with matching record bytes, public offset, and strictly increasing
 caller order within a partition, while the complete aborted set must remain
-absent. That absence does not assert whether an aborted record occupied a
-physical log position. A later transaction on the same public producer may not
-begin staging before the prior completion boundary.
+absent. For Admin partition abort, an immediate pinned Kafka CLI producer-state
+snapshot must preserve the cleared public producer identity and sequence while
+allowing a later control-record timestamp. That absence does not assert
+whether an aborted record occupied a physical log position. A later transaction
+on the same public producer may not begin staging before the prior completion
+boundary.
 
 One `execute_transactional_transform` command receives one public group batch,
 retains its public membership metadata and assignment-fenced checkpoint,
@@ -1033,6 +1041,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v86 is an exact semantic contract. New capabilities may be declared
+Protocol v87 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

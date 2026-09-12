@@ -23,11 +23,10 @@ fn transactional_transform_translates_exact_output_identity_set() {
     assert_eq!(command.transaction_id, expected.transaction_id);
     assert_eq!(command.consumer_id, expected.consumer_id);
     assert_eq!(command.operations, expected.operations);
-    assert!(matches!(event, ExpectedEvent::TransactionCompleted {
-        transaction_id,
-        operation_ids,
-    } if transaction_id == expected.transaction_id
-        && operation_ids.contains(&expected.operations[0].operation_id)));
+    assert!(matches!(event, ExpectedEvent::TransactionCompleted(value)
+        if value.transaction_id == expected.transaction_id
+            && value.disposition == expected.disposition
+            && value.operation_ids.contains(&expected.operations[0].operation_id)));
 }
 
 #[test]

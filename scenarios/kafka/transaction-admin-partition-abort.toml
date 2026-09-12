@@ -1,0 +1,102 @@
+schema_version = 90
+id = "kafka.transaction-admin-partition-abort"
+title = "public Admin partition abort clears one staged transaction"
+description = "One packaged transaction stages an exact record, derives its broker producer identity through public DescribeProducers, aborts that partition through public Admin, proves the transaction offset cleared before token cleanup, and leaves only a later sentinel visible to the independent read-committed observer."
+timeout_ms = 120000
+requires = ["producer", "transactions", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-kafkars-admin-partition-abort-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "admin-abort-record"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-admin-partition-abort-1"
+disposition = "admin_partition_abort"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-transaction-admin-partition-aborted"
+
+[steps.operations.record]
+topic = "testlab-kafkars-admin-partition-abort"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "admin-aborted" }
+value = { encoding = "hex", data = "0061646d696e2d706172746974696f6e2d61626f72746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-transaction-admin-partition-aborted" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-sentinel-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "sentinel-producer-1"
+
+[[steps]]
+id = "send-sentinel"
+kind = "send"
+producer_id = "sentinel-producer-1"
+operation_id = "op-admin-partition-abort-sentinel"
+
+[steps.record]
+topic = "testlab-kafkars-admin-partition-abort"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "sentinel" }
+value = { encoding = "hex", data = "0073656e74696e6cff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-admin-partition-abort-sentinel" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-sentinel-producer"
+kind = "flush"
+producer_id = "sentinel-producer-1"
+
+[[steps]]
+id = "close-sentinel-producer"
+kind = "close_producer"
+producer_id = "sentinel-producer-1"
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-transaction-admin-partition-aborted"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-admin-partition-abort-sentinel"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

@@ -144,7 +144,9 @@ fn validate_transaction(
         TransactionRecordOutcome::Completed(TransactionDisposition::Commit) => {
             VisibilityExpectation::ExactlyOnce
         }
-        TransactionRecordOutcome::Completed(TransactionDisposition::Abort)
+        TransactionRecordOutcome::Completed(
+            TransactionDisposition::Abort | TransactionDisposition::AdminPartitionAbort,
+        )
         | TransactionRecordOutcome::Fenced => VisibilityExpectation::Absent,
     };
     if assertion.visibility != expected {

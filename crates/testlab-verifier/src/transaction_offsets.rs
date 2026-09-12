@@ -35,7 +35,7 @@ pub(crate) fn verify(
     verify_public_input(scenario, action, transform, observed, violations);
     match action.disposition {
         TransactionDisposition::Commit => verify_committed(scenario, transform, index, violations),
-        TransactionDisposition::Abort => {
+        TransactionDisposition::Abort | TransactionDisposition::AdminPartitionAbort => {
             verify_aborted(scenario, action, transform, index, violations);
         }
     }

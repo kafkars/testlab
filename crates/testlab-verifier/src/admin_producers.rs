@@ -71,7 +71,7 @@ fn exact_match(
         )
 }
 
-fn canonical(producers: &[ProducerStateSnapshot]) -> bool {
+pub(crate) fn canonical(producers: &[ProducerStateSnapshot]) -> bool {
     producers.iter().all(|producer| {
         producer.producer_id >= 0
             && producer.producer_epoch >= 0

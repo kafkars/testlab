@@ -250,7 +250,7 @@ pub enum AdapterCommand {
         transaction_id: OperationId,
         /// Ordered records staged by the transaction.
         operations: Vec<BatchRecord>,
-        /// Requested public transaction outcome.
+        /// Requested public transaction terminal operation.
         disposition: crate::TransactionDisposition,
         /// Complete begin, send, and end bound.
         timeout_ms: u64,

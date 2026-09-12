@@ -15,12 +15,12 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 178);
+    assert_eq!(summary.scenarios, 179);
     assert_eq!(summary.packs, 28);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 23);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 164);
+    assert_eq!(summary.contracts, 165);
 }
 
 #[test]
@@ -131,7 +131,8 @@ fn pull_request_pack_excludes_release_disruptions() {
             .iter()
             .any(|scenario| scenario.contains("restart")
                 || scenario.contains("fencing")
-                || scenario.contains("force-termination"))
+                || scenario.contains("force-termination")
+                || scenario.contains("partition-abort"))
     );
     assert!(
         pack.scenarios
@@ -245,6 +246,7 @@ fn kafkars_pack_variants_retain_transaction_sets() {
             for scenario in [
                 "transaction-fencing.toml",
                 "transaction-admin-force-termination.toml",
+                "transaction-admin-partition-abort.toml",
             ] {
                 assert!(
                     pack.scenarios

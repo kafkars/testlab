@@ -12,10 +12,13 @@ use crate::runner_protocol::{EventDisposition, ExpectedEvent};
 #[test]
 fn transform_completion_requires_exact_transaction_identity() {
     let transaction_id = operation("transaction-1");
-    let expected = ExpectedEvent::TransactionCompleted {
-        transaction_id: transaction_id.clone(),
-        operation_ids: BTreeSet::from([operation("output-1")]),
-    };
+    let expected = ExpectedEvent::TransactionCompleted(
+        crate::runner_protocol_transaction::TransactionExpectation {
+            transaction_id: transaction_id.clone(),
+            operation_ids: BTreeSet::from([operation("output-1")]),
+            disposition: TransactionDisposition::Commit,
+        },
+    );
     assert_eq!(
         expected
             .classify(&AdapterEvent::TransactionalTransformCompleted(completion(

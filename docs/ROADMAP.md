@@ -36,7 +36,8 @@
   listings, partition offset alteration/deletion, and
   caller-ordered empty-group deletion, against
   independent Kafka CLI state; transactions, replacement and Admin
-  force-termination fencing, broker restart, rolling restart, and independently
+  force-termination fencing, broker-derived single-partition Admin abort with
+  pre-cleanup state proof, broker restart, rolling restart, and independently
   targeted partition-leader, controller, classic and KIP-848 group-coordinator,
   and transaction-coordinator recovery.
 - Public Admin log-directory coverage preserves selected broker and replica
@@ -134,7 +135,11 @@
 - Multi-record transactions span topics and partitions with the same field and
   header distinctions. Committed sets retain exact independent coordinates and
   per-partition order, aborted sets remain wholly read-committed invisible, and
-  successive commit/abort boundaries on one public producer cannot overlap.
+  successive commit/abort boundaries on one public producer cannot overlap. A
+  separate singleton scenario derives the active producer and coordinator
+  identity through public Admin, aborts that exact partition transaction, proves
+  the public open-to-cleared transition before token cleanup, and confirms the
+  cleared identity through Kafka's pinned CLI.
 - Classic and KIP-848 consume-transform-produce scenarios transfer public
   assignment-fenced checkpoints with `send_offsets`; committed checkpoints are
   independently queried and aborted checkpoints are proved unchanged through

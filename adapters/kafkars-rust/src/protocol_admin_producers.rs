@@ -1,6 +1,7 @@
 //! Active-producer discovery preserves every exact public producer-state field.
 
 use std::io::Write;
+use std::time::Instant;
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminProducersDescription, CommandId,
@@ -9,7 +10,7 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::admission_retry::retry_until_with_remaining;
-use crate::kafkars_api::TopicPartition;
+use crate::kafkars_api::{Client, TopicPartition};
 use crate::protocol::emit;
 use crate::protocol_admin_read::{deadline_after, retry_safe};
 use crate::state::AdapterState;
@@ -22,7 +23,28 @@ pub(crate) fn describe<W: Write>(
 ) -> Result<(), AdapterError> {
     let deadline = deadline_after(command.timeout_ms);
     let client = state.client(&command.client_id)?;
-    let target = TopicPartition::new(command.topic.clone(), command.partition);
+    let producers = query(client, &command.topic, command.partition, deadline)?;
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::ProducersDescribed(AdminProducersDescription {
+                operation_id: command.operation_id,
+                topic: command.topic,
+                partition: command.partition,
+                producers,
+            }),
+        ),
+    )
+}
+
+pub(crate) fn query(
+    client: &Client,
+    topic: &str,
+    partition: i32,
+    deadline: Instant,
+) -> Result<Vec<ProducerStateSnapshot>, AdapterError> {
+    let target = TopicPartition::new(topic.to_owned(), partition);
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
@@ -43,8 +65,8 @@ pub(crate) fn describe<W: Write>(
     let Some((returned, result)) = entries.pop() else {
         return Err(invalid("returned no partition result"));
     };
-    if returned.topic() != command.topic.as_str()
-        || returned.partition() != command.partition
+    if returned.topic() != topic
+        || returned.partition() != partition
         || returned.start_position().is_some()
     {
         return Err(invalid("returned a mismatched partition identity"));
@@ -62,18 +84,7 @@ pub(crate) fn describe<W: Write>(
         })
         .collect::<Vec<_>>();
     validate_producers(&producers)?;
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(
-            command_id,
-            AdapterEvent::ProducersDescribed(AdminProducersDescription {
-                operation_id: command.operation_id,
-                topic: command.topic,
-                partition: command.partition,
-                producers,
-            }),
-        ),
-    )
+    Ok(producers)
 }
 
 fn validate_producers(producers: &[ProducerStateSnapshot]) -> Result<(), AdapterError> {

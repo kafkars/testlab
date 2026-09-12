@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v86. It is not a
+An adapter translates one packaged client surface to protocol v87. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -31,6 +31,10 @@ runner and not a verifier.
 - Preserve canonical unfiltered transaction listings, caller-ordered exact
   transaction descriptions, and caller-ordered producer-fencing identities
   without receiving expected states or fields.
+- For `admin_partition_abort`, derive the exact singleton producer and
+  coordinator identity from public `DescribeProducers`, retain public state on
+  both sides of the Admin mutation, and report completion before transaction
+  cleanup can substitute for that mutation.
 - Preserve selected-partition log-directory broker order, canonical paths,
   optional capacity metadata, and exact replica sizes, lags, and future markers
   without receiving the expected replica count.

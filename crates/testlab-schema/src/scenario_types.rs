@@ -75,7 +75,7 @@ pub enum BrokerBehavior {
     CorruptAndAcknowledge,
 }
 
-/// Requested terminal disposition for one public transaction.
+/// Requested terminal operation for one public transaction.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TransactionDisposition {
@@ -83,6 +83,8 @@ pub enum TransactionDisposition {
     Commit,
     /// Keeps every staged record invisible to read-committed observers.
     Abort,
+    /// Aborts one staged partition through the public Admin API.
+    AdminPartitionAbort,
 }
 
 /// Public operation used to fence one active transactional producer.

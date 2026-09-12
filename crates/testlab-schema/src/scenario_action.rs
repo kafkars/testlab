@@ -260,7 +260,7 @@ pub enum ScenarioAction {
         transaction_id: OperationId,
         /// Ordered staged operations.
         operations: Vec<crate::BatchRecord>,
-        /// Requested transaction outcome.
+        /// Requested transaction terminal operation.
         disposition: crate::TransactionDisposition,
         /// Complete transaction bound.
         timeout_ms: u64,

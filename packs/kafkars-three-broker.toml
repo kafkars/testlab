@@ -122,6 +122,7 @@ scenarios = [
   "scenarios/kafka/transaction-successive-boundaries.toml",
   "scenarios/kafka/transaction-fencing.toml",
   "scenarios/kafka/transaction-admin-force-termination.toml",
+  "scenarios/kafka/transaction-admin-partition-abort.toml",
   "scenarios/kafka/transactional-offset-classic.toml",
   "scenarios/kafka/transactional-offset-consumer.toml",
 ]

@@ -27,6 +27,7 @@ pub(crate) fn verify_transactions(
                 ..
             } => {
                 verify_completion(transaction_id, *disposition, index, violations);
+                crate::transaction_admin_abort::verify(&step.action, index, violations);
                 crate::transaction_boundaries::verify_staging(
                     transaction_id,
                     operations,

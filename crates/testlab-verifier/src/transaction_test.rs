@@ -162,7 +162,9 @@ fn transaction_scenario(
         terminal: Some(TerminalStatus::TransactionStaged),
         visibility: match disposition {
             TransactionDisposition::Commit => VisibilityExpectation::ExactlyOnce,
-            TransactionDisposition::Abort => VisibilityExpectation::Absent,
+            TransactionDisposition::Abort | TransactionDisposition::AdminPartitionAbort => {
+                VisibilityExpectation::Absent
+            }
         },
         expected_error_code: None,
     });

@@ -197,10 +197,13 @@ fn partition_creation_requires_exact_operation_and_topic() {
 fn transaction_waits_for_exact_disposition_identity() {
     let operation_id = id(OperationId::new("transaction-record-1"));
     let transaction_id = id(OperationId::new("transaction-1"));
-    let expected = ExpectedEvent::TransactionCompleted {
-        transaction_id: transaction_id.clone(),
-        operation_ids: BTreeSet::from([operation_id.clone()]),
-    };
+    let expected = ExpectedEvent::TransactionCompleted(
+        crate::runner_protocol_transaction::TransactionExpectation {
+            transaction_id: transaction_id.clone(),
+            operation_ids: BTreeSet::from([operation_id.clone()]),
+            disposition: TransactionDisposition::Abort,
+        },
+    );
 
     assert_eq!(
         expected
@@ -218,11 +221,19 @@ fn transaction_waits_for_exact_disposition_identity() {
     assert_eq!(
         expected
             .classify(&AdapterEvent::TransactionCompleted {
-                transaction_id,
+                transaction_id: transaction_id.clone(),
                 disposition: TransactionDisposition::Abort,
             })
             .unwrap_or_else(|error| panic!("classify transaction completion: {error}")),
         EventDisposition::Complete
+    );
+    assert!(
+        expected
+            .classify(&AdapterEvent::TransactionCompleted {
+                transaction_id,
+                disposition: TransactionDisposition::Commit,
+            })
+            .is_err()
     );
 }
 

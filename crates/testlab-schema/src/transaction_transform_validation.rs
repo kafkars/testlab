@@ -12,6 +12,11 @@ pub(crate) fn validate(
     problems: &mut Vec<String>,
 ) {
     require_open(&action.producer_id, &state.transactions, problems);
+    crate::transaction_abort_validation::transform(
+        &action.transaction_id,
+        action.disposition,
+        problems,
+    );
     match state.consumers.get(&action.consumer_id) {
         Some(consumer) if !consumer.closed && consumer.group.is_some() => {}
         Some(consumer) if consumer.closed => problems.push(format!(

@@ -11,6 +11,9 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         ScenarioAction::FenceTransaction {
             fence_method: crate::TransactionFenceMethod::AdminForceTermination,
             ..
+        } | ScenarioAction::ExecuteTransaction {
+            disposition: crate::TransactionDisposition::AdminPartitionAbort,
+            ..
         }
     ) {
         usage.insert(Capability::Admin);

@@ -84,6 +84,7 @@ mod share;
 mod share_receive;
 mod support;
 mod transaction;
+mod transaction_admin_abort;
 mod transaction_boundaries;
 mod transaction_offsets;
 mod transaction_records;
@@ -247,6 +248,8 @@ mod record_consumers_test;
 mod record_offsets_test;
 #[cfg(test)]
 mod share_test;
+#[cfg(test)]
+mod transaction_admin_abort_test;
 #[cfg(test)]
 mod transaction_boundaries_test;
 #[cfg(test)]

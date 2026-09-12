@@ -58,6 +58,9 @@ successful construction, repeated public readiness, public Admin description,
 and independent librdkafka cluster metadata to the exact environment identity.
 Protocol v86, scenario schema v89, and evidence schema v75 add an exact
 transaction-fencing method to the adapter command.
+Protocol v87, scenario schema v90, and evidence schema v76 add the bounded
+single-partition Admin-abort terminal operation and retain its public producer
+state before and after the mutation.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -635,6 +638,16 @@ successful group deletions in caller order, and nine bounded throttles. The
 public completion is followed immediately by a fail-closed projection of
 Kafka's pinned Streams-group CLI; it retains only the two selected identities'
 presence or absence and must prove both deleted groups absent.
+
+ADMIN-075 binds one exact single-record transaction command to public
+`DescribeProducers` state before and after public Admin partition abort. The
+first state must contain one open transaction. The second must preserve the
+producer ID, epoch, last sequence, and coordinator epoch, advance the timestamp
+monotonically, and clear `current_transaction_start_offset`. It must precede the
+transaction completion so ordinary token-drop cleanup cannot establish the
+transition. One immediate pinned Kafka CLI snapshot before any later command
+must preserve that cleared producer identity, sequence, coordinator epoch, and
+monotonic timestamp; token-drop cleanup may append a later abort marker.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

@@ -2,7 +2,7 @@ use crate::runner_protocol_admin_config::classify as classify_admin_config;
 use crate::runner_protocol_admin_group_batch::classify as classify_admin_group_batch;
 pub(crate) use crate::runner_protocol_event::EventDisposition;
 use crate::runner_protocol_event::classify_core;
-use crate::runner_protocol_family::{classify_group, classify_transaction};
+use crate::runner_protocol_family::classify_group;
 use crate::{run_error::RunFailure, runner_protocol_admin::classify_admin};
 use std::collections::BTreeSet;
 use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
@@ -233,10 +233,7 @@ pub(crate) enum ExpectedEvent {
     UserScramCredentialAltered(OperationId),
     UserScramCredentialDescribed(OperationId),
     TransactionalProducerCreated(ProducerId),
-    TransactionCompleted {
-        transaction_id: OperationId,
-        operation_ids: BTreeSet<OperationId>,
-    },
+    TransactionCompleted(crate::runner_protocol_transaction::TransactionExpectation),
     TransactionFenceCompleted {
         transaction_id: OperationId,
         operation_id: OperationId,
@@ -295,6 +292,7 @@ impl ExpectedEvent {
         if let Some(disposition) = crate::runner_protocol_cancel::classify(self, event) {
             return disposition;
         }
-        classify_transaction(self, event).unwrap_or_else(|| classify_core(self, event))
+        crate::runner_protocol_transaction::classify(self, event)
+            .unwrap_or_else(|| classify_core(self, event))
     }
 }

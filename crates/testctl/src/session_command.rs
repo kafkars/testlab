@@ -210,13 +210,16 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
                 disposition: *disposition,
                 timeout_ms: *timeout_ms,
             },
-            ExpectedEvent::TransactionCompleted {
-                transaction_id: transaction_id.clone(),
-                operation_ids: operations
-                    .iter()
-                    .map(|operation| operation.operation_id.clone())
-                    .collect(),
-            },
+            ExpectedEvent::TransactionCompleted(
+                crate::runner_protocol_transaction::TransactionExpectation {
+                    transaction_id: transaction_id.clone(),
+                    disposition: *disposition,
+                    operation_ids: operations
+                        .iter()
+                        .map(|operation| operation.operation_id.clone())
+                        .collect(),
+                },
+            ),
         ),
         ScenarioAction::ExecuteTransactionalTransform(action) => (
             AdapterCommand::ExecuteTransactionalTransform(
@@ -229,14 +232,17 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
                     timeout_ms: action.timeout_ms,
                 },
             ),
-            ExpectedEvent::TransactionCompleted {
-                transaction_id: action.transaction_id.clone(),
-                operation_ids: action
-                    .operations
-                    .iter()
-                    .map(|operation| operation.operation_id.clone())
-                    .collect(),
-            },
+            ExpectedEvent::TransactionCompleted(
+                crate::runner_protocol_transaction::TransactionExpectation {
+                    transaction_id: action.transaction_id.clone(),
+                    disposition: action.disposition,
+                    operation_ids: action
+                        .operations
+                        .iter()
+                        .map(|operation| operation.operation_id.clone())
+                        .collect(),
+                },
+            ),
         ),
         ScenarioAction::FenceTransaction {
             fence_method,

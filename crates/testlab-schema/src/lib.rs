@@ -120,6 +120,7 @@ mod scenario_validation;
 mod share;
 mod share_action_validation;
 mod subject;
+mod transaction_abort_validation;
 mod transaction_action_validation;
 mod transaction_offsets;
 mod transaction_state_validation;

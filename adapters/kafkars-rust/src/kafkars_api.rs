@@ -1,8 +1,8 @@
 //! Curated imports bind the adapter to Kafkars' public module facades.
 
 pub(crate) use kafkars::admin::{
-    AccessControlEntry, AclBinding, AclBindingFilter, AclOperation, AclPatternType,
-    AclPermissionType, AclResourceType, Admin, ClientQuotaAlteration,
+    AbortTransactionSpec, AccessControlEntry, AclBinding, AclBindingFilter, AclOperation,
+    AclPatternType, AclPermissionType, AclResourceType, Admin, ClientQuotaAlteration,
     ClientQuotaAlterationOperation, ClientQuotaEntity, ClientQuotaEntityComponent,
     ClientQuotaEntry, ClientQuotaFilterComponent, ClusterBroker, ConfigAlteration,
     ConfigResourceAlterations, ConfigResourceQuery, ConfigResourceType, ConsumerGroupAssignment,

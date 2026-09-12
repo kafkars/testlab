@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use crate::scenario_action_validation::ActionStates;
+use crate::transaction_abort_validation::execute as validate_admin_abort;
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction, TransactionDisposition};
 
 pub(crate) type TransactionStates = BTreeMap<ProducerId, TransactionState>;
@@ -168,6 +169,7 @@ fn execute(
     problems: &mut Vec<String>,
 ) {
     require_open(producer_id, &state.transactions, problems);
+    validate_admin_abort(transaction_id, operations, disposition, problems);
     if !state.operation_ids.insert(transaction_id.clone()) {
         problems.push(format!("duplicate operation id {transaction_id}"));
     }

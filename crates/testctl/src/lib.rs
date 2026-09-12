@@ -41,6 +41,7 @@ mod runner_protocol_event;
 mod runner_protocol_family;
 mod runner_protocol_identity;
 mod runner_protocol_share;
+mod runner_protocol_transaction;
 mod session;
 mod session_command;
 mod session_command_admin;
