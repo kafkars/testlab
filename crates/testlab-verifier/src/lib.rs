@@ -75,6 +75,7 @@ mod observations;
 mod producer_cancellation;
 mod producer_error;
 mod producer_records;
+mod producer_timestamp;
 mod protocol;
 mod record_consumers;
 mod record_offsets;
@@ -235,6 +236,8 @@ mod network_proxy_modes_test;
 mod network_proxy_test;
 #[cfg(test)]
 mod producer_cancellation_test;
+#[cfg(test)]
+mod producer_timestamp_test;
 #[cfg(test)]
 mod record_consumers_test;
 #[cfg(test)]

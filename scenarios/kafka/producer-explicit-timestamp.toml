@@ -1,7 +1,7 @@
 schema_version = 78
-id = "kafka.assigned-consumer-round-trip"
-title = "packaged assigned consumer reads exact produced bytes"
-description = "The packaged client produces one record, directly assigns a consumer from the beginning, and returns the exact topic, partition, key, value, and ordered headers."
+id = "kafka.producer-explicit-timestamp"
+title = "an explicit producer timestamp survives broker and consumer boundaries"
+description = "One packaged producer submits a caller-selected timestamp; its public receipt, an independent broker observation, and a directly assigned public consumer must all retain the exact millisecond value."
 timeout_ms = 90000
 requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
 
@@ -22,22 +22,21 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-record"
+id = "send-timestamped-record"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "op-produced"
+operation_id = "op-timestamped"
 
 [steps.record]
-topic = "testlab-kafkars-assigned-consumer"
+topic = "testlab-kafkars-producer-explicit-timestamp"
 partition = 0
 sequence = 1
-key = { encoding = "hex", data = "00636f6e73756d6572ff" }
-value = { encoding = "hex", data = "00726f756e642d74726970ff" }
+timestamp_millis = 1700000000123
+key = { encoding = "utf8", data = "timestamp-key" }
+value = { encoding = "utf8", data = "timestamp-value" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-produced" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-timestamped" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
-  { name = "binary", value = { encoding = "hex", data = "00ff" } },
-  { name = "nullable" },
 ]
 
 [[steps]]
@@ -60,15 +59,15 @@ consumer_id = "consumer-1"
 id = "assign-consumer"
 kind = "assign_beginning"
 consumer_id = "consumer-1"
-topic = "testlab-kafkars-assigned-consumer"
+topic = "testlab-kafkars-producer-explicit-timestamp"
 partition = 0
 
 [[steps]]
-id = "receive-record"
+id = "receive-timestamped-record"
 kind = "receive"
 consumer_id = "consumer-1"
-receive_id = "receive-1"
-expected_operation_id = "op-produced"
+receive_id = "receive-timestamped"
+expected_operation_id = "op-timestamped"
 timeout_ms = 20000
 
 [[steps]]
@@ -82,7 +81,7 @@ kind = "shutdown_client"
 client_id = "client-1"
 
 [[assertions]]
-operation_id = "op-produced"
+operation_id = "op-timestamped"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"

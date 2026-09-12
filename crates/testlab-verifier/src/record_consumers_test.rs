@@ -103,6 +103,40 @@ fn share_coordinates_and_bytes_must_match_independent_record() {
 }
 
 #[test]
+fn public_consumer_timestamp_must_match_independent_record() {
+    let mut scenario = base_scenario();
+    let receive_id = operation("receive-timestamp");
+    scenario.steps.push(step(
+        "receive-timestamp",
+        ScenarioAction::GroupReceive {
+            consumer_id: consumer("group-1"),
+            receive_id: receive_id.clone(),
+            expected_operation_id: operation("op-1"),
+            expected_error_code: None,
+            timeout_ms: 1_000,
+        },
+    ));
+    let mut public = consumed("value", 0);
+    public.timestamp_millis = Some(1_700_000_000_124);
+    let history = [event(
+        0,
+        AdapterEvent::GroupReceiveCompleted {
+            receive_id,
+            records: vec![public],
+            committed: true,
+            group_epoch: Some(GroupMembershipEpoch::Classic { generation_id: 1 }),
+        },
+    )];
+    let mut independent = observed("op-1", "value", 0, 0);
+    independent.record.timestamp_millis = Some(1_700_000_000_123);
+    independent.digest = independent.record.digest().unwrap_or_default();
+
+    let violations = verify(&scenario, &history, &[independent]);
+
+    assert_contract(&violations, "CONS-012");
+}
+
+#[test]
 fn exact_group_set_and_share_records_pass_coordinate_contracts() {
     let (group_scenario, group_receive_id) = receive_set_scenario();
     let group_history = [event(

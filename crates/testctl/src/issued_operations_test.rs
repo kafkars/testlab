@@ -149,6 +149,7 @@ fn record_spec(partition: i32) -> RecordSpec {
         topic: "records".to_owned(),
         partition,
         sequence: 1,
+        timestamp_millis: None,
         key: None,
         value: None,
         headers: Vec::new(),

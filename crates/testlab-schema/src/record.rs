@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::{ByteString, ByteStringError, OperationId};
 
-const RECORD_DIGEST_VERSION: &[u8] = b"testlab-record-v1";
+const RECORD_DIGEST_VERSION: &[u8] = b"testlab-record-v2";
 
 /// One ordered Kafka record header.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -28,6 +28,9 @@ pub struct RecordSpec {
     pub partition: i32,
     /// Scenario-local logical sequence.
     pub sequence: u64,
+    /// Optional caller-selected Kafka record timestamp in Unix milliseconds.
+    #[serde(default)]
+    pub timestamp_millis: Option<i64>,
     /// Nullable key.
     pub key: Option<ByteString>,
     /// Nullable value.
@@ -110,6 +113,13 @@ impl RecordSpec {
         update_bytes(&mut digest, self.topic.as_bytes())?;
         digest.update(self.partition.to_be_bytes());
         digest.update(self.sequence.to_be_bytes());
+        match self.timestamp_millis {
+            Some(timestamp) => {
+                digest.update([1]);
+                digest.update(timestamp.to_be_bytes());
+            }
+            None => digest.update([0]),
+        }
         update_optional(&mut digest, self.key.as_ref())?;
         update_optional(&mut digest, self.value.as_ref())?;
         digest.update(length(self.headers.len())?.to_be_bytes());

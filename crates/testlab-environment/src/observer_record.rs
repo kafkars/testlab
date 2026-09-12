@@ -13,6 +13,7 @@ pub(super) struct CapturedRecord<'a> {
     pub(super) topic: &'a str,
     pub(super) partition: i32,
     pub(super) offset: i64,
+    pub(super) timestamp_millis: Option<i64>,
     pub(super) key: Option<&'a [u8]>,
     pub(super) value: Option<&'a [u8]>,
     pub(super) headers: Vec<(&'a str, Option<&'a [u8]>)>,
@@ -36,6 +37,7 @@ pub(super) fn normalize(
         topic: captured.topic.to_owned(),
         partition: captured.partition,
         sequence,
+        timestamp_millis: captured.timestamp_millis,
         key: captured.key.map(bytes),
         value: captured.value.map(bytes),
         headers: captured

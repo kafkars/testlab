@@ -69,6 +69,7 @@ fn observation_preserves_null_binary_and_ordered_headers() {
             topic: "records",
             partition: 2,
             offset: 11,
+            timestamp_millis: Some(1_700_000_000_123),
             key: Some(&[0, 255]),
             value: None,
             headers: vec![
@@ -82,6 +83,7 @@ fn observation_preserves_null_binary_and_ordered_headers() {
 
     assert_eq!(observed.operation_id.as_str(), "op-7");
     assert_eq!(observed.record.sequence, 42);
+    assert_eq!(observed.record.timestamp_millis, Some(1_700_000_000_123));
     assert_eq!(
         observed.record.key.as_ref().map(|key| key.encoding),
         Some(ByteEncoding::Hex)
@@ -106,6 +108,7 @@ fn duplicate_operation_identity_is_invalid_observer_evidence() {
             topic: "records",
             partition: 0,
             offset: 0,
+            timestamp_millis: None,
             key: None,
             value: Some(b"value"),
             headers: vec![

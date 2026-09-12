@@ -7,6 +7,7 @@ fn record() -> RecordSpec {
         topic: "records".to_owned(),
         partition: 2,
         sequence: 9,
+        timestamp_millis: None,
         key: None,
         value: Some(ByteString::utf8("value")),
         headers: vec![
@@ -54,6 +55,18 @@ fn header_order_changes_the_digest() {
     second.headers.reverse();
 
     assert_ne!(first.digest().ok(), second.digest().ok());
+}
+
+#[test]
+fn explicit_timestamp_changes_the_digest() {
+    let without_timestamp = record();
+    let mut with_timestamp = record();
+    with_timestamp.timestamp_millis = Some(1_700_000_000_123);
+
+    assert_ne!(
+        without_timestamp.digest().ok(),
+        with_timestamp.digest().ok()
+    );
 }
 
 #[test]

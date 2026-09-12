@@ -58,6 +58,7 @@ pub(crate) struct IndexedTerminal {
     pub(crate) status: TerminalStatus,
     pub(crate) code: Option<String>,
     pub(crate) offset: Option<i64>,
+    pub(crate) timestamp_millis: Option<i64>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedOperationError {
@@ -292,9 +293,7 @@ pub(crate) struct HistoryIndex {
 impl HistoryIndex {
     pub(crate) fn build(history: &[testlab_schema::HistoryEntry]) -> Self {
         let mut index = Self::default();
-        for entry in history {
-            index.record(entry);
-        }
+        history.iter().for_each(|entry| index.record(entry));
         index
     }
 }

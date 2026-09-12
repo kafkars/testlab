@@ -147,6 +147,7 @@ fn terminal(sequence: u64, id: &str) -> HistoryEntry {
             status: TerminalStatus::Acknowledged,
             code: None,
             offset: None,
+            timestamp_millis: None,
         },
     )
 }

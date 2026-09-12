@@ -71,6 +71,9 @@ fn exact_receive(
 fn exact_record(actual: &ConsumedRecord, expected: &RecordSpec) -> bool {
     actual.topic == expected.topic
         && actual.partition == expected.partition
+        && expected
+            .timestamp_millis
+            .is_none_or(|timestamp| actual.timestamp_millis == Some(timestamp))
         && exact_bytes(actual.key.as_ref(), expected.key.as_ref())
         && exact_bytes(actual.value.as_ref(), expected.value.as_ref())
         && actual.headers.len() == expected.headers.len()

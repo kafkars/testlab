@@ -48,6 +48,7 @@ fn delete_records_rejects_scenario_writes_to_the_seeded_partition() {
                     topic: action.topic.clone(),
                     partition: action.partition,
                     sequence: 1,
+                    timestamp_millis: None,
                     key: None,
                     value: None,
                     headers: Vec::new(),

@@ -224,6 +224,7 @@ fn terminal(sequence: u64, id: &str, status: TerminalStatus) -> HistoryEntry {
             status,
             code: None,
             offset: None,
+            timestamp_millis: None,
         },
     )
 }

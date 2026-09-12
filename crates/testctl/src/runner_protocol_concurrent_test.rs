@@ -55,6 +55,7 @@ fn join_accepts_only_declared_actor_operations() {
                 status: TerminalStatus::Acknowledged,
                 code: None,
                 offset: Some(1),
+                timestamp_millis: None,
             })
             .unwrap_or_else(|error| panic!("classify terminal: {error}")),
         EventDisposition::Continue

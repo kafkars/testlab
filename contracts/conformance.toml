@@ -596,8 +596,8 @@ category = "producer"
 
 [[contract]]
 id = "PROD-006"
-title = "Broker-visible records preserve exact bytes"
-statement = "Every observation and its recorded digest match the canonical scenario record digest."
+title = "Broker-visible records preserve exact record data"
+statement = "Every observation and its recorded digest match the canonical scenario record data, including an explicit timestamp when selected."
 category = "producer"
 
 [[contract]]
@@ -621,7 +621,7 @@ category = "consumer"
 [[contract]]
 id = "CONS-002"
 title = "Consumer returns the exact produced record"
-statement = "A consumer receive exposes the expected produced topic, partition, key, value, and ordered headers exactly once."
+statement = "A consumer receive exposes the expected produced topic, partition, explicit timestamp, key, value, and ordered headers exactly once."
 category = "consumer"
 
 [[contract]]
@@ -729,7 +729,7 @@ category = "consumer"
 [[contract]]
 id = "SHARE-006"
 title = "Share records match independent broker coordinates and bytes"
-statement = "Every exact public Share acquisition reports the same topic, partition, offset, key, value, and ordered headers as its independently observed producer record."
+statement = "Every exact public Share acquisition reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record."
 category = "consumer"
 
 [[contract]]
@@ -889,9 +889,15 @@ statement = "Two public cancellation requests preserve stage uncertainty, never 
 category = "producer"
 
 [[contract]]
+id = "PROD-013"
+title = "Explicit producer timestamps survive every public boundary"
+statement = "An acknowledged or transaction-staged record with a caller-selected timestamp reports that exact timestamp in its public terminal and independent broker observation."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
-statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."
+statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."
 category = "consumer"
 
 [[contract]]

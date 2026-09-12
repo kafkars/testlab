@@ -106,6 +106,7 @@ pub(super) fn history(replacement: i32, progress: bool) -> Vec<HistoryEntry> {
         status: testlab_schema::TerminalStatus::Acknowledged,
         code: None,
         offset: Some(1),
+        timestamp_millis: None,
     });
     role_history(&target(), replacement, progress)
 }

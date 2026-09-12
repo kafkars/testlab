@@ -45,6 +45,7 @@ pub fn verify(
     verify_transactions(scenario, &index, observations, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
+    crate::producer_timestamp::verify(&sends, &index, &observed, &mut violations);
     crate::record_offsets::verify(scenario, &index, observations, &mut violations);
     verify_consumers(scenario, &index, &mut violations);
     crate::group_ownership::verify(scenario, &index, &mut violations);
@@ -212,19 +213,23 @@ fn verify_integrity(
     observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
     violations: &mut Vec<Violation>,
 ) {
-    let expected_digest = match expected.digest() {
-        Ok(digest) => digest,
-        Err(error) => {
-            violations.push(violation(
-                "PROD-006",
-                format!("scenario record could not be hashed: {error}"),
-                Some(operation_id.clone()),
-                vec![format!("scenario:operation:{operation_id}")],
-            ));
-            return;
-        }
-    };
     for observation in observed.get(operation_id).into_iter().flatten() {
+        let mut comparable_expected = expected.clone();
+        if comparable_expected.timestamp_millis.is_none() {
+            comparable_expected.timestamp_millis = observation.record.timestamp_millis;
+        }
+        let expected_digest = match comparable_expected.digest() {
+            Ok(digest) => digest,
+            Err(error) => {
+                violations.push(violation(
+                    "PROD-006",
+                    format!("scenario record could not be hashed: {error}"),
+                    Some(operation_id.clone()),
+                    vec![format!("scenario:operation:{operation_id}")],
+                ));
+                continue;
+            }
+        };
         let observed_digest = match observation.record.digest() {
             Ok(digest) => digest,
             Err(error) => {

@@ -134,6 +134,7 @@ fn history(policy: &BrokerPolicy, removal_started_ms: u64) -> Vec<HistoryEntry> 
                 status: TerminalStatus::Acknowledged,
                 code: None,
                 offset: Some(0),
+                timestamp_millis: None,
             },
         ),
         environment(

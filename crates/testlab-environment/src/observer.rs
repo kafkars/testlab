@@ -231,6 +231,7 @@ fn normalize_message(
             topic: message.topic(),
             partition: message.partition(),
             offset: message.offset(),
+            timestamp_millis: message.timestamp().to_millis(),
             key: message.key(),
             value: message.payload(),
             headers,

@@ -13,6 +13,9 @@ pub(crate) struct DeliveryFailure {
 
 pub(crate) fn record(spec: RecordSpec) -> Result<Record, AdapterError> {
     let mut record = Record::to(spec.topic).partition(spec.partition);
+    if let Some(timestamp) = spec.timestamp_millis {
+        record = record.timestamp_milliseconds(timestamp);
+    }
     if let Some(key) = spec.key {
         record = record.key(key.decode()?);
     }

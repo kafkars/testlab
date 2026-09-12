@@ -15,12 +15,12 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 174);
-    assert_eq!(summary.packs, 27);
+    assert_eq!(summary.scenarios, 176);
+    assert_eq!(summary.packs, 28);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 23);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 160);
+    assert_eq!(summary.contracts, 162);
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn pull_request_pack_excludes_release_disruptions() {
         Err(error) => panic!("load pull-request pack: {error}"),
     };
 
-    assert_eq!(pack.scenarios.len(), 123);
+    assert_eq!(pack.scenarios.len(), 124);
     assert!(
         !pack
             .scenarios
@@ -191,6 +191,7 @@ fn kafkars_pack_variants_retain_supported_assigned_consumer_cursors() {
             Err(error) => panic!("load {path}: {error}"),
         };
         for scenario in [
+            "producer-explicit-timestamp.toml",
             "assigned-consumer-sequential-cursor.toml",
             "assigned-consumer-replacement.toml",
             "assigned-consumer-beginning-reset.toml",

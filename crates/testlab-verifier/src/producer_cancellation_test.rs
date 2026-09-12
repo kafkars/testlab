@@ -76,6 +76,7 @@ fn verify(
                 status,
                 code: code.map(str::to_owned),
                 offset: (status == TerminalStatus::Acknowledged).then_some(0),
+                timestamp_millis: None,
             },
         ),
         event(

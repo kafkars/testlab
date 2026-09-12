@@ -36,6 +36,7 @@ pub(crate) enum SendOutcome {
         status: TerminalStatus,
         code: Option<String>,
         offset: Option<i64>,
+        timestamp_millis: Option<i64>,
     },
 }
 
@@ -56,18 +57,24 @@ pub(crate) fn execute_send(
             });
         }
     };
-    let (status, code, offset) = match delivery.wait() {
-        Ok(metadata) => (TerminalStatus::Acknowledged, None, Some(metadata.offset())),
+    let (status, code, offset, timestamp_millis) = match delivery.wait() {
+        Ok(metadata) => (
+            TerminalStatus::Acknowledged,
+            None,
+            Some(metadata.offset()),
+            metadata.timestamp_milliseconds(),
+        ),
         Err(error) => {
             eprintln!("Kafkars delivery failed for {operation_id}: {error}");
             let failure = normalize::delivery_failure(&error);
-            (failure.status, Some(failure.code), None)
+            (failure.status, Some(failure.code), None, None)
         }
     };
     Ok(SendOutcome::Accepted {
         status,
         code,
         offset,
+        timestamp_millis,
     })
 }
 
@@ -89,6 +96,7 @@ pub(crate) fn emit_send_outcome<W: Write>(
             status,
             code,
             offset,
+            timestamp_millis,
         } => {
             emit(
                 writer,
@@ -108,6 +116,7 @@ pub(crate) fn emit_send_outcome<W: Write>(
                         status,
                         code,
                         offset,
+                        timestamp_millis,
                     },
                 ),
             )
@@ -213,12 +222,17 @@ fn emit_batch_terminals<W: Write>(
     deliveries: Vec<Result<RecordMetadata, KafkaError>>,
 ) -> Result<(), AdapterError> {
     for (operation_id, delivery) in operation_ids.iter().zip(deliveries) {
-        let (status, code, offset) = match delivery {
-            Ok(metadata) => (TerminalStatus::Acknowledged, None, Some(metadata.offset())),
+        let (status, code, offset, timestamp_millis) = match delivery {
+            Ok(metadata) => (
+                TerminalStatus::Acknowledged,
+                None,
+                Some(metadata.offset()),
+                metadata.timestamp_milliseconds(),
+            ),
             Err(error) => {
                 eprintln!("Kafkars batch delivery failed for {operation_id}: {error}");
                 let failure = normalize::delivery_failure(&error);
-                (failure.status, Some(failure.code), None)
+                (failure.status, Some(failure.code), None, None)
             }
         };
         emit(
@@ -230,6 +244,7 @@ fn emit_batch_terminals<W: Write>(
                     status,
                     code,
                     offset,
+                    timestamp_millis,
                 },
             ),
         )?;

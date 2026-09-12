@@ -9,6 +9,7 @@ scenarios = [
   "scenarios/kafka/producer-null-empty-batch.toml",
   "scenarios/kafka/producer-sequential-ordering.toml",
   "scenarios/kafka/assigned-consumer-round-trip.toml",
+  "scenarios/kafka/producer-explicit-timestamp.toml",
   "scenarios/kafka/assigned-consumer-read-committed.toml",
   "scenarios/kafka/assigned-consumer-end-position.toml",
   "scenarios/kafka/assigned-consumer-exact-offset.toml",

@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v74. It is not a
+An adapter translates one packaged client surface to protocol v75. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -10,6 +10,8 @@ runner and not a verifier.
 - Preserve command and operation IDs exactly.
 - Report admission separately from terminal completion.
 - Preserve delivery certainty rather than collapsing failures.
+- Preserve a caller-selected record timestamp in the public producer receipt
+  and public consumer record whenever those surfaces expose it.
 - Advertise concurrent actors only when public producer calls and directly
   assigned receives can run behind an explicit start barrier, retain exact
   identities, and rejoin without exposing private client state.

@@ -177,16 +177,17 @@ pub(crate) fn send<W: Write>(
             },
         ),
     )?;
-    let (status, code, offset, terminal_error) = match observer.wait() {
+    let (status, code, offset, timestamp_millis, terminal_error) = match observer.wait() {
         Ok(metadata) => (
             TerminalStatus::TransactionStaged,
             None,
             Some(metadata.offset()),
+            metadata.timestamp_milliseconds(),
             None,
         ),
         Err(error) => {
             let failure = normalize::delivery_failure(&error);
-            (failure.status, Some(failure.code), None, Some(error))
+            (failure.status, Some(failure.code), None, None, Some(error))
         }
     };
     emit(
@@ -198,6 +199,7 @@ pub(crate) fn send<W: Write>(
                 status,
                 code,
                 offset,
+                timestamp_millis,
             },
         ),
     )?;

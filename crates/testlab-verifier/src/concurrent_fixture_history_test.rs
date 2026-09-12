@@ -194,6 +194,7 @@ fn joined_events(
             status: TerminalStatus::Acknowledged,
             code: None,
             offset: Some(0),
+            timestamp_millis: None,
         },
     );
     history.event(

@@ -20,14 +20,17 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v63 records the exact environment identity in `manifest.json`,
-retains protocol-v74 direct and hosted-group consumer controls, abandonment,
+Evidence schema v64 records the exact environment identity in `manifest.json`,
+retains protocol-v75 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
 controls and wire observations, and
 independently selected broker-role disruption, broker-policy facts, and
 network-proxy controls and effect observations.
+Protocol v75 and record digest v2 retain an optional caller-selected timestamp
+in commands, public producer terminals, public consumer records, and independent
+broker observations.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -49,16 +52,20 @@ snapshot targets only record-bearing adapter commands actually issued in the
 recorded harness history; an issued concurrent actor group, batch, transaction,
 or fencing command
 contributes every contained operation. The snapshot uses broker watermarks and
-emits structured observations with exact partition, offset, key, value, and
-ordered header bytes.
+emits structured observations with exact partition, offset, timestamp, key,
+value, and ordered header bytes.
 
 The record comparison preserves byte-level distinctions: null and empty keys or
 values are different, a tombstone has a null value, and duplicate headers retain
 their original order with null, empty, text, or binary values. PROD-010 binds an
 acknowledged public terminal offset to its one exact independent observation and
-forbids offsets on uncertain or definitely-unsent terminals. CONS-012 directly
-binds assigned, ordinary group, and every multi-member group receive-set record
-to the independent topic, partition, offset, key, value, and ordered headers.
+forbids offsets on uncertain or definitely-unsent terminals. PROD-013 requires
+an explicit scenario timestamp to equal both the public producer receipt and
+the independent Kafka record. Digest v2 covers the observed timestamp; when a
+scenario omits one, only that field remains unconstrained so existing records
+may retain their client-generated time. CONS-012 directly binds assigned,
+ordinary group, and every multi-member group receive-set record to the
+independent topic, partition, offset, timestamp, key, value, and ordered headers.
 SHARE-006 applies that same independent comparison to each exact Share
 acquisition without replacing delivery-count or membership-fence checks.
 SHARE-007 binds a multi-record acquisition to the complete caller-declared

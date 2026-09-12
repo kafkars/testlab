@@ -87,6 +87,7 @@ pub(crate) fn record(value: &str) -> RecordSpec {
         topic: "records".to_owned(),
         partition: 0,
         sequence: 1,
+        timestamp_millis: None,
         key: None,
         value: Some(ByteString::utf8(value)),
         headers: Vec::new(),
@@ -150,6 +151,7 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
                 status,
                 code: None,
                 offset: (status == TerminalStatus::Acknowledged).then_some(0),
+                timestamp_millis: None,
             },
         ),
         event(

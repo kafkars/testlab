@@ -39,6 +39,7 @@ pub(crate) fn dispatch_send<W: Write>(
                 status: terminal.status,
                 code: terminal.code,
                 offset: terminal.offset,
+                timestamp_millis: None,
             },
         ),
     )
@@ -83,6 +84,7 @@ pub(crate) fn dispatch_batch<W: Write>(
                     status: terminal.status,
                     code: terminal.code,
                     offset: terminal.offset,
+                    timestamp_millis: None,
                 },
             ),
         )?;

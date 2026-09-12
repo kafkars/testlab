@@ -12,6 +12,7 @@ fn record_conversion_preserves_nullable_and_binary_fields() {
         topic: "records".to_owned(),
         partition: 3,
         sequence: 9,
+        timestamp_millis: Some(1_700_000_000_123),
         key: Some(ByteString {
             encoding: testlab_schema::ByteEncoding::Hex,
             data: "00ff".to_owned(),
@@ -26,6 +27,7 @@ fn record_conversion_preserves_nullable_and_binary_fields() {
 
     assert_eq!(converted.topic(), "records");
     assert_eq!(converted.explicit_partition(), Some(3));
+    assert_eq!(converted.timestamp(), Some(1_700_000_000_123));
     assert_eq!(
         converted.key_bytes().map(AsRef::as_ref),
         Some(&[0, 255][..])

@@ -1,4 +1,4 @@
-schema_version = 77
+schema_version = 78
 id = "adversary.metadata-disconnect-after-response"
 title = "complete metadata response survives a following disconnect"
 description = "The external Kafka peer writes one complete valid Metadata response before disconnecting; the packaged public result must retain that exact successful response."

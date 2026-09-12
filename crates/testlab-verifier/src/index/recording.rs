@@ -69,6 +69,7 @@ impl HistoryIndex {
                 status,
                 code,
                 offset,
+                timestamp_millis,
             } => {
                 self.terminals
                     .entry(operation_id.clone())
@@ -78,6 +79,7 @@ impl HistoryIndex {
                         status: *status,
                         code: code.clone(),
                         offset: *offset,
+                        timestamp_millis: *timestamp_millis,
                     });
                 if let Some(code) = code {
                     self.record_operation_error(operation_id, code, sequence);

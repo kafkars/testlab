@@ -9,17 +9,19 @@ observation remain testlab-owned.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v74 over stdin/stdout;
-3. preserves admission rejection separately from accepted delivery;
-4. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
+2. implements protocol v75 over stdin/stdout;
+3. preserves caller-selected record timestamps through public delivery receipts
+   and consumer records;
+4. preserves admission rejection separately from accepted delivery;
+5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
-5. preserves caller order and exact per-resource public outcomes for admin
+6. preserves caller order and exact per-resource public outcomes for admin
    batches, including mixed success and failure;
-6. maps singleton public admin errors to stable normalized `command_failed`
+7. maps singleton public admin errors to stable normalized `command_failed`
    events without receiving scenario expectations;
-7. forwards validate-only topic creation, partition increase, and incremental
+8. forwards validate-only topic creation, partition increase, and incremental
    configuration changes through the packaged public builders;
-8. executes metadata-backed and explicit `DescribeTopicPartitions` singleton
+9. executes metadata-backed and explicit `DescribeTopicPartitions` singleton
    topic descriptions, detailed caller-ordered plural topic descriptions and
    caller-ordered plural name-based topic deletion with mixed outcomes,
    caller-ordered plural selected topic-configuration descriptions and
@@ -47,10 +49,10 @@ It:
    set/describe/remove operations, and named-user SCRAM-SHA-256/512
    upsert/describe/delete operations as one bounded public call with exact
    non-secret outcomes;
-9. explicitly settles flush, close, client shutdown, exact group-owner
+10. explicitly settles flush, close, client shutdown, exact group-owner
    abandonment, and clone-shared hosted group shutdown through public
    event-stream termination;
-10. exposes the exact packaged version in its descriptor and subject metadata.
+11. exposes the exact packaged version in its descriptor and subject metadata.
 
 Do not copy the model-broker client into the production adapter. The reference
 adapter is a harness fixture, not a Kafka implementation template.

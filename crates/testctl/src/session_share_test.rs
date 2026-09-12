@@ -188,6 +188,7 @@ fn fixture() -> (
         topic: "jobs".to_owned(),
         partition: 0,
         sequence: 1,
+        timestamp_millis: None,
         key: Some(ByteString::utf8("key")),
         value: Some(ByteString::utf8("value")),
         headers: Vec::new(),

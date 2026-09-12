@@ -46,6 +46,8 @@ pub enum AdapterEvent {
         code: Option<String>,
         /// Broker offset when exposed by the public surface.
         offset: Option<i64>,
+        /// Broker record timestamp when exposed by the public surface.
+        timestamp_millis: Option<i64>,
     },
     /// Two public cancellation requests completed on one retained observer.
     ProducerCancellationCompleted(crate::ProducerCancellationCompletion),
@@ -292,9 +294,7 @@ pub enum AdapterEvent {
     Aborted,
     /// Adapter cannot continue the session.
     Fatal {
-        /// Stable adapter failure code.
         code: String,
-        /// Bounded diagnostic context.
         diagnostic: String,
     },
 }

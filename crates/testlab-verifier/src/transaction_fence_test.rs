@@ -198,6 +198,7 @@ fn fence_history(
                 status: TerminalStatus::TransactionStaged,
                 code: None,
                 offset: Some(1),
+                timestamp_millis: None,
             },
         ),
         event(

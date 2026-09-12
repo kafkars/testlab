@@ -20,6 +20,7 @@ fn cancellation_waits_through_terminal_for_exact_completion() {
             status: TerminalStatus::DefinitelyNotSent,
             code: Some("cancelled".to_owned()),
             offset: None,
+            timestamp_millis: None,
         },
     ] {
         assert_eq!(

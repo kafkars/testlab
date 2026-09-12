@@ -49,6 +49,7 @@ fn uncertain_terminal_with_offset_fails_public_offset_contract() {
             status: TerminalStatus::PossiblySent,
             code: None,
             offset: Some(3),
+            timestamp_millis: None,
         },
     )];
 

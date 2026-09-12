@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v74 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v77 and evidence schema v63.
+Protocol v75 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v78 and evidence schema v64.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -319,6 +319,13 @@ terminal event. Rejected operations emit no terminal. A batch emits one
 admission outcome per input operation, one terminal per accepted operation, and
 then `batch_completed`. A batch contains at most 31 records so the complete
 command remains within the bounded event budget.
+
+Every record may carry one caller-selected `timestamp_millis`. An adapter maps
+that value through its public record builder without replacing it. A successful
+`operation_terminal` retains the timestamp exposed by the public producer
+receipt, and each public consumer record retains its exposed timestamp. The
+independent broker observer records Kafka's timestamp separately from those
+adapter claims.
 
 A cancellation command first obtains public producer ownership of one exact
 record, retains its sole terminal observer, and invokes public cancellation
@@ -966,6 +973,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v74 is an exact semantic contract. New capabilities may be declared
+Protocol v75 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

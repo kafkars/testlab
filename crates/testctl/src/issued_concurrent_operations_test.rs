@@ -40,6 +40,7 @@ fn actor(actor: &str, operation: &str, partition: i32) -> ConcurrentActorCommand
             topic: "records".to_owned(),
             partition,
             sequence: 1,
+            timestamp_millis: None,
             key: None,
             value: None,
             headers: Vec::new(),

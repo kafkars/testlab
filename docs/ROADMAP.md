@@ -60,6 +60,9 @@
   empty keys and values, tombstones, duplicate nullable binary headers, public
   coordinates, and multi-record receive sets against independent broker records;
   producer scenarios additionally pin sequential and batched partition order.
+  A dedicated producer scenario carries one explicit timestamp through the
+  public delivery receipt, independent Kafka observation, and public assigned
+  consumer record.
   Share batches cover ordered multi-record acquisition, record-specific accept,
   release, and reject decisions, and complete dropped-batch redelivery.
 - Producer cancellation retains one public delivery observer across two

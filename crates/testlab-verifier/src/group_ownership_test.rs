@@ -246,6 +246,7 @@ fn record(partition: i32, value: &str) -> RecordSpec {
         topic: "records".to_owned(),
         partition,
         sequence: u64::from(partition.unsigned_abs()),
+        timestamp_millis: None,
         key: None,
         value: Some(ByteString::utf8(value)),
         headers: Vec::new(),

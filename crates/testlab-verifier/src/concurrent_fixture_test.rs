@@ -174,6 +174,7 @@ fn record() -> RecordSpec {
         topic: "testlab-kafkars-concurrent-producer-consumer".to_owned(),
         partition: 0,
         sequence: 1,
+        timestamp_millis: None,
         key: Some(ByteString::utf8("same-client")),
         value: Some(ByteString::hex(b"\0concurrent\xff")),
         headers: vec![

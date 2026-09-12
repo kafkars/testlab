@@ -15,6 +15,7 @@ fn request() -> ModelBrokerRequest {
             topic: "records".to_owned(),
             partition: 0,
             sequence: 1,
+            timestamp_millis: None,
             key: None,
             value: Some(ByteString::utf8("value")),
             headers: Vec::new(),

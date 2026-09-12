@@ -75,7 +75,11 @@ fn verify_committed_records(
         let Some([observation]) = observed.get(&operation.operation_id).map(Vec::as_slice) else {
             continue;
         };
-        let expected_digest = operation.record.digest();
+        let mut comparable_expected = operation.record.clone();
+        if comparable_expected.timestamp_millis.is_none() {
+            comparable_expected.timestamp_millis = observation.record.timestamp_millis;
+        }
+        let expected_digest = comparable_expected.digest();
         let observed_digest = observation.record.digest();
         let exact_record = expected_digest.as_ref().is_ok_and(|expected| {
             observed_digest

@@ -47,6 +47,7 @@ fn batch_waits_for_explicit_completion_after_known_operation_events() {
                 status: TerminalStatus::Acknowledged,
                 code: None,
                 offset: Some(0),
+                timestamp_millis: None,
             })
             .unwrap_or_else(|error| panic!("terminal batch operation: {error}")),
         EventDisposition::Continue
@@ -207,6 +208,7 @@ fn transaction_waits_for_exact_disposition_identity() {
                 status: TerminalStatus::TransactionStaged,
                 code: None,
                 offset: Some(0),
+                timestamp_millis: None,
             })
             .unwrap_or_else(|error| panic!("classify transaction stage: {error}")),
         EventDisposition::Continue

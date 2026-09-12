@@ -192,6 +192,7 @@ fn operation(
             topic: topic.to_owned(),
             partition,
             sequence,
+            timestamp_millis: None,
             key: Some(ByteString::hex("")),
             value,
             headers: vec![
@@ -224,6 +225,7 @@ fn staged_history(
                     status: TerminalStatus::TransactionStaged,
                     code: None,
                     offset: Some(*offset),
+                    timestamp_millis: None,
                 },
             )
         })
