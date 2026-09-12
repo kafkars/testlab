@@ -197,26 +197,46 @@ fn group_creation_preserves_public_configuration() {
 }
 
 #[test]
-fn share_creation_preserves_caller_topic_order() {
+fn share_creation_preserves_caller_topics_and_configuration() {
+    let configuration = testlab_schema::ShareConsumerFetchConfiguration {
+        max_wait_ms: 250,
+        min_bytes: 2,
+        max_bytes: 524_288,
+        max_records: 3,
+        batch_size: 1,
+        attempt_timeout_ms: 17_000,
+    };
     let action = ScenarioAction::CreateShareConsumer {
         client_id: id(ClientId::new("client-1")),
         consumer_id: id(ConsumerId::new("share-1")),
         group_id: "share-workers".to_owned(),
         topics: vec!["orders".to_owned(), "returns".to_owned()],
         rack: Some("rack-a".to_owned()),
-        membership_timeout_ms: 30_000,
-        close_timeout_ms: 30_000,
-        configuration: None,
+        membership_timeout_ms: 25_000,
+        close_timeout_ms: 20_000,
+        configuration: Some(configuration),
     };
 
-    let Some((AdapterCommand::CreateShareConsumer { topics, rack, .. }, expected)) =
-        translate(&action)
+    let Some((
+        AdapterCommand::CreateShareConsumer {
+            topics,
+            rack,
+            membership_timeout_ms,
+            close_timeout_ms,
+            configuration: selected,
+            ..
+        },
+        expected,
+    )) = translate(&action)
     else {
         panic!("Share creation must translate");
     };
 
     assert_eq!(topics, vec!["orders".to_owned(), "returns".to_owned()]);
     assert_eq!(rack.as_deref(), Some("rack-a"));
+    assert_eq!(membership_timeout_ms, 25_000);
+    assert_eq!(close_timeout_ms, 20_000);
+    assert_eq!(selected, Some(configuration));
     assert!(matches!(expected, ExpectedEvent::ShareConsumerCreated(_)));
 }
 

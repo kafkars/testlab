@@ -184,6 +184,29 @@ fn validate_configuration(
     problems: &mut Vec<String>,
 ) {
     for (name, value) in [
+        ("max_wait_ms", configuration.max_wait_ms),
+        ("max_bytes", configuration.max_bytes),
+        ("attempt_timeout_ms", configuration.attempt_timeout_ms),
+    ] {
+        if !(1..=i32::MAX as u64).contains(&value) {
+            problems.push(format!(
+                "share consumer {consumer_id} {name} must be between 1 and {}",
+                i32::MAX
+            ));
+        }
+    }
+    if configuration.min_bytes > i32::MAX as u64 {
+        problems.push(format!(
+            "share consumer {consumer_id} min_bytes must be at most {}",
+            i32::MAX
+        ));
+    }
+    if configuration.min_bytes > configuration.max_bytes {
+        problems.push(format!(
+            "share consumer {consumer_id} min_bytes must not exceed max_bytes"
+        ));
+    }
+    for (name, value) in [
         ("max_records", configuration.max_records),
         ("batch_size", configuration.batch_size),
     ] {

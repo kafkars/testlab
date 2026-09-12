@@ -48,6 +48,9 @@ Protocol v83 and evidence schema v72 retain the complete optional Fetch and
 retained-delivery capacity blocks for assigned, classic, and KIP-848 consumers.
 All three run non-default policy while delivering exact public records joined
 to independent broker observations.
+Protocol v84 and evidence schema v73 retain all six Share Fetch fields plus
+membership-start and close deadlines. Both bounded-delivery scenarios use
+non-default policy and exact independently observed records.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -173,8 +176,9 @@ its owning client to shut down without a group close, and both static identities
 to remain broker-registered inside the configured session window until the
 exact removal command.
 
-Configured-Share history retains the requested `max_records` and `batch_size`
-policy in the issued create command. The adapter reports only the public batch's
+Configured-Share history retains the complete requested long-poll, byte,
+record, acquisition-range, attempt-timeout, membership-start, and close policy
+in the issued create command. The adapter reports only the public batch's
 acquisition count, records, delivery counts, and membership fences. SHARE-010
 checks the scenario-owned acquisition expectation, while the ordinary Share
 record contracts independently check the delivered broker records.

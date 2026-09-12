@@ -11,9 +11,35 @@ fn configured_scenario() -> Scenario {
 
 #[test]
 fn checked_in_share_fetch_configuration_is_valid() {
-    configured_scenario()
+    let scenario = configured_scenario();
+    scenario
         .validate()
         .unwrap_or_else(|error| panic!("validate configured Share scenario: {error}"));
+    let Some(ScenarioAction::CreateShareConsumer {
+        membership_timeout_ms,
+        close_timeout_ms,
+        configuration: Some(configuration),
+        ..
+    }) = scenario.steps.iter().find_map(|step| match &step.action {
+        action @ ScenarioAction::CreateShareConsumer { .. } => Some(action),
+        _ => None,
+    })
+    else {
+        panic!("configured Share create missing");
+    };
+    assert_eq!(*membership_timeout_ms, 25_000);
+    assert_eq!(*close_timeout_ms, 20_000);
+    assert_eq!(
+        *configuration,
+        ShareConsumerFetchConfiguration {
+            max_wait_ms: 250,
+            min_bytes: 1,
+            max_bytes: 524_288,
+            max_records: 1,
+            batch_size: 1,
+            attempt_timeout_ms: 20_000,
+        }
+    );
 }
 
 #[test]
@@ -98,24 +124,34 @@ fn share_fetch_configuration_and_acquisition_expectation_are_bounded() {
         panic!("configured Share create missing");
     };
     *configuration = Some(ShareConsumerFetchConfiguration {
+        max_wait_ms: 0,
+        min_bytes: i32::MAX as u64 + 1,
+        max_bytes: 0,
         max_records: 0,
         batch_size: 32,
+        attempt_timeout_ms: 0,
     });
 
     let error = match scenario.validate() {
         Ok(()) => panic!("invalid Share configuration must fail"),
         Err(error) => error,
     };
-    assert!(
-        error
-            .problems
-            .iter()
-            .any(|problem| problem.contains("max_records"))
-    );
-    assert!(
-        error
-            .problems
-            .iter()
-            .any(|problem| problem.contains("batch_size"))
-    );
+    for problem in [
+        "max_wait_ms",
+        "min_bytes must be at most",
+        "max_bytes",
+        "min_bytes must not exceed max_bytes",
+        "max_records",
+        "batch_size",
+        "attempt_timeout_ms",
+    ] {
+        assert!(
+            error
+                .problems
+                .iter()
+                .any(|candidate| candidate.contains(problem)),
+            "missing {problem}: {:?}",
+            error.problems
+        );
+    }
 }

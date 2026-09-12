@@ -1,4 +1,4 @@
-schema_version = 86
+schema_version = 87
 id = "kafka.admin-partition-reassignments"
 title = "packaged admin alters and lists partition reassignments"
 description = "A three-broker topic is reassigned through one caller-ordered public mutation that changes replication factor; exact replica order and full ISR must converge in independent metadata before selected and all-active public listings independently agree with Kafka's pinned CLI that no movement remains active."

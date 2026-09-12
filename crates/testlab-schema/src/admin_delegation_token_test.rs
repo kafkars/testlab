@@ -4,9 +4,9 @@ use crate::*;
 
 #[test]
 fn lifecycle_payloads_round_trip_without_a_secret_field() {
-    assert_eq!(PROTOCOL_VERSION, 83);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 86);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 72);
+    assert_eq!(PROTOCOL_VERSION, 84);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 87);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 73);
     let action = ExerciseDelegationTokenLifecycleAction {
         client_id: id("client-1"),
         operation_id: operation(),

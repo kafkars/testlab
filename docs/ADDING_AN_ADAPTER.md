@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v83. It is not a
+An adapter translates one packaged client surface to protocol v84. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -107,9 +107,10 @@ runner and not a verifier.
 - Advertise group-consumer shutdown only when clone-shared public requests are
   idempotent and public event observation can distinguish terminal stream
   closure; never report that closure as broker-visible leave truth.
-- Advertise Share-consumer configuration only when record and acquisition-range
-  limits are fixed through public builder calls before membership starts and
-  the public retained batch exposes its acquisition count; never receive the
+- Advertise Share-consumer configuration only when every supplied long-poll,
+  byte, record, acquisition-range, attempt-timeout, membership-start, and close
+  value is fixed through public builder calls before membership starts and the
+  public retained batch exposes its acquisition count; never receive the
   expected records or acquisition count in the adapter command.
 - Forward the exact validate-only flag for supported admin builders and emit the
   distinct validation completion; never report a mutation completion for a

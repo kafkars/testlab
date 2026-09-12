@@ -236,17 +236,25 @@ impl ShareConsumers {
 pub(crate) fn public_fetch_configuration(
     configuration: Option<ShareConsumerFetchConfiguration>,
 ) -> Result<ShareConsumerFetchConfig, StateError> {
-    let configuration = configuration.unwrap_or(ShareConsumerFetchConfiguration {
-        max_records: MAX_SHARE_BATCH_RECORDS,
-        batch_size: MAX_SHARE_BATCH_RECORDS,
-    });
-    let max_records = usize::try_from(configuration.max_records)
-        .map_err(|error| StateError::ShareSurface(error.to_string()))?;
-    let batch_size = usize::try_from(configuration.batch_size)
-        .map_err(|error| StateError::ShareSurface(error.to_string()))?;
-    Ok(ShareConsumerFetchConfig::default()
-        .with_max_records(max_records)
-        .with_batch_size(batch_size))
+    let Some(configuration) = configuration else {
+        return Ok(ShareConsumerFetchConfig::default()
+            .with_max_records(MAX_SHARE_BATCH_RECORDS as usize)
+            .with_batch_size(MAX_SHARE_BATCH_RECORDS as usize));
+    };
+    Ok(ShareConsumerFetchConfig::new(
+        Duration::from_millis(configuration.max_wait_ms),
+        portable(configuration.min_bytes, "min_bytes")?,
+        portable(configuration.max_bytes, "max_bytes")?,
+        portable(u64::from(configuration.max_records), "max_records")?,
+        portable(u64::from(configuration.batch_size), "batch_size")?,
+        Duration::from_millis(configuration.attempt_timeout_ms),
+    ))
+}
+
+fn portable(value: u64, field: &str) -> Result<usize, StateError> {
+    usize::try_from(value).map_err(|_| {
+        StateError::ShareSurface(format!("Share Fetch {field} exceeds this adapter target"))
+    })
 }
 
 impl std::fmt::Debug for ShareConsumers {

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v83 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v86 and evidence schema v72.
+Protocol v84 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v87 and evidence schema v73.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -492,14 +492,18 @@ and must be retained by the resulting public handle.
 
 A share receive retains the exact ordered linear acquisition batch behind its
 receive identity until one later acknowledgement, explicit drop, or consumer
-close. Share creation may carry immutable `max_records` and `batch_size`
-settings only when `share_consumer_configuration` is advertised; omitted
-configuration retains Testlab's bounded defaults. Expected producer identities
-and expected acquisition counts remain harness-only. The receive event reports
-the public batch's acquisition count. Acknowledgement
-commands carry only one record-ordered public disposition per retained record,
-and the adapter rejects a structural count mismatch. Acknowledgement and close
-events report success or the public delivery certainty of failure; Testlab
+close. Share creation may carry immutable broker long-poll, minimum-byte,
+maximum-byte, maximum-record, acquisition-range, and attempt-timeout settings
+only when `share_consumer_configuration` is advertised; omitted configuration
+retains Testlab's bounded defaults. Kafka byte and time fields use the positive
+signed 32-bit domain except that minimum bytes may be zero. The complete
+membership-start and close bounds are likewise passed through the public
+builder. Expected producer identities and expected acquisition counts remain
+harness-only. The receive event reports the public batch's acquisition count.
+Acknowledgement commands carry only one record-ordered public disposition per
+retained record, and the adapter rejects a structural count mismatch.
+Acknowledgement and close events report success or the public delivery
+certainty of failure; Testlab
 never infers a stronger terminal. Delivery counts, acquisition count, and
 positive membership fences remain in the correlated receive event so exact
 configured range size, release or drop redelivery, and concurrent-member claims
@@ -1016,6 +1020,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v83 is an exact semantic contract. New capabilities may be declared
+Protocol v84 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

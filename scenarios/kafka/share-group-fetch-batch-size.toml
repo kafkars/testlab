@@ -1,7 +1,7 @@
-schema_version = 86
+schema_version = 87
 id = "kafka.share-group-fetch-batch-size"
-title = "configured Share fetches preserve one-record acquisition ranges"
-description = "Three separately flushed Kafka record batches enter one configured Share fetch, whose public batch returns all three independently observed records in three one-record acquisition ranges."
+title = "fully configured Share fetches preserve one-record acquisition ranges"
+description = "Three separately flushed Kafka record batches enter one Share group using non-default public long-poll, byte, record, acquisition-range, attempt, membership, and close policy; its public batch returns all independently observed records in three one-record acquisition ranges."
 timeout_ms = 180000
 requires = ["producer", "share_consumer", "share_consumer_configuration", "lifecycle", "client_readiness"]
 
@@ -64,9 +64,16 @@ client_id = "client-1"
 consumer_id = "share-1"
 group_id = "testlab-share-fetch-batch-size"
 topics = ["testlab-share-fetch-batch-size"]
-membership_timeout_ms = 30000
-close_timeout_ms = 30000
-configuration = { max_records = 3, batch_size = 1 }
+membership_timeout_ms = 25000
+close_timeout_ms = 20000
+
+[steps.configuration]
+max_wait_ms = 250
+min_bytes = 1
+max_bytes = 524288
+max_records = 3
+batch_size = 1
+attempt_timeout_ms = 20000
 
 [[steps]]
 id = "receive-three-acquisitions"
