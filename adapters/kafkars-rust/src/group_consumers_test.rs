@@ -7,7 +7,7 @@ use testlab_schema::{
 };
 
 use crate::group_consumer_configuration::{
-    apply_runtime_configuration, public_classic_group_config,
+    apply_fetch_and_limits, apply_runtime_configuration, public_classic_group_config,
 };
 use crate::group_consumers::{public_classic_assignor, public_offset_reset, public_read_isolation};
 use crate::kafkars_api::{ClassicGroupAssignor, Client, OffsetReset, ReadIsolation};
@@ -54,6 +54,8 @@ fn portable_classic_timing_maps_every_public_selection() {
     let configuration = GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        fetch: None,
+        limits: None,
         processing_timeout_ms: None,
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
@@ -85,6 +87,19 @@ fn portable_group_runtime_maps_every_public_deadline() {
     let configuration = GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        fetch: Some(testlab_schema::ConsumerFetchConfiguration {
+            max_wait_ms: 250,
+            min_bytes: 2,
+            max_bytes: 524_288,
+            partition_max_bytes: 262_144,
+            attempt_timeout_ms: 17_000,
+        }),
+        limits: Some(testlab_schema::ConsumerLimitsConfiguration {
+            in_flight_fetches: 3,
+            buffered_batches: 4,
+            buffered_bytes: 2_097_152,
+            max_batch_bytes: 524_288,
+        }),
         processing_timeout_ms: Some(61_000),
         membership_start_timeout_ms: Some(23_000),
         seek_timeout_ms: Some(17_000),
@@ -103,6 +118,8 @@ fn portable_group_runtime_maps_every_public_deadline() {
         .build()
         .unwrap_or_else(|error| panic!("start lazy public client: {error}"));
     let selected = apply_runtime_configuration(client.consumer("workers"), &configuration);
+    let selected = apply_fetch_and_limits(selected, &configuration)
+        .unwrap_or_else(|error| panic!("apply group Fetch policy: {error}"));
     assert_eq!(
         selected.selected_processing_timeout(),
         Duration::from_secs(61)
@@ -113,6 +130,17 @@ fn portable_group_runtime_maps_every_public_deadline() {
     );
     assert_eq!(selected.selected_seek_timeout(), Duration::from_secs(17));
     assert_eq!(selected.selected_close_timeout(), Duration::from_secs(19));
+    let fetch = selected.selected_fetch_config();
+    assert_eq!(fetch.max_wait(), Duration::from_millis(250));
+    assert_eq!(fetch.min_bytes(), 2);
+    assert_eq!(fetch.max_bytes(), 524_288);
+    assert_eq!(fetch.partition_max_bytes(), 262_144);
+    assert_eq!(fetch.attempt_timeout(), Duration::from_secs(17));
+    let limits = selected.selected_limits();
+    assert_eq!(limits.in_flight_fetches(), 3);
+    assert_eq!(limits.buffered_batches(), 4);
+    assert_eq!(limits.buffered_bytes(), 2_097_152);
+    assert_eq!(limits.max_batch_bytes(), 524_288);
 }
 
 fn request_and_observe_shutdown(consumer: &mut crate::kafkars_api::Consumer) {

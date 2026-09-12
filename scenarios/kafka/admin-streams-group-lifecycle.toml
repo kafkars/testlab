@@ -1,4 +1,4 @@
-schema_version = 85
+schema_version = 86
 id = "kafka.admin-streams-group-lifecycle"
 title = "packaged admin completes the Streams-group lifecycle in caller order"
 description = "On Kafka 4.3.1, two real bundled WordCount Streams applications establish quiescent modern Streams groups, then the packaged client's public Admin describes one and many groups with topology detail, lists one and many stable offsets, alters and deletes one offset, deletes both groups, and is followed by an independent pinned Streams CLI absence check."

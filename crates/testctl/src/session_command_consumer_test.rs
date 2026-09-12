@@ -146,6 +146,19 @@ fn group_creation_preserves_public_configuration() {
     let expected_configuration = GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadCommitted,
+        fetch: Some(testlab_schema::ConsumerFetchConfiguration {
+            max_wait_ms: 250,
+            min_bytes: 2,
+            max_bytes: 524_288,
+            partition_max_bytes: 262_144,
+            attempt_timeout_ms: 17_000,
+        }),
+        limits: Some(testlab_schema::ConsumerLimitsConfiguration {
+            in_flight_fetches: 3,
+            buffered_batches: 4,
+            buffered_bytes: 2_097_152,
+            max_batch_bytes: 524_288,
+        }),
         processing_timeout_ms: Some(60_000),
         membership_start_timeout_ms: Some(25_000),
         seek_timeout_ms: Some(15_000),

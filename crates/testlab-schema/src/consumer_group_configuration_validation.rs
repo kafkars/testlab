@@ -11,6 +11,13 @@ pub(super) fn validate(
     let Some(configuration) = configuration.as_ref() else {
         return;
     };
+    let owner = format!("consumer {consumer_id}");
+    crate::consumer_configuration::validate(
+        &owner,
+        configuration.fetch,
+        configuration.limits,
+        problems,
+    );
     validate_runtime(consumer_id, configuration, problems);
     let timings = [
         (

@@ -23,6 +23,8 @@ pub(crate) enum StateError {
     MissingProducer(ProducerId),
     #[error("producer configuration was not portable: {0}")]
     ProducerConfiguration(String),
+    #[error("consumer configuration was not portable: {0}")]
+    ConsumerConfiguration(String),
     #[error("consumer {0} already exists")]
     DuplicateConsumer(ConsumerId),
     #[error("consumer {0} does not exist")]

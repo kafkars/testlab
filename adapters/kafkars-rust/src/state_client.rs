@@ -51,7 +51,7 @@ impl AdapterState {
         };
         let builder = match assigned_consumer_configuration {
             Some(configuration) => {
-                crate::assigned_consumer_configuration::apply(builder, configuration)
+                crate::assigned_consumer_configuration::apply(builder, configuration)?
             }
             None => builder,
         };

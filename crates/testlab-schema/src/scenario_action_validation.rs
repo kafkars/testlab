@@ -23,6 +23,13 @@ pub(crate) fn validate_action(
             create_client(&action.client_id, &mut state.clients, problems);
         }
         ScenarioAction::CreateAssignedConsumerClient(action) => {
+            let owner = format!("assigned-consumer client {}", action.client_id);
+            crate::consumer_configuration::validate(
+                &owner,
+                action.configuration.fetch,
+                action.configuration.limits,
+                problems,
+            );
             create_client(&action.client_id, &mut state.clients, problems);
         }
         ScenarioAction::AwaitClientReady { client_id } => {

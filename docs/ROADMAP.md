@@ -93,9 +93,10 @@
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
   incremental add/remove with survivor cursors, and read-committed isolation
-  after an independently verified aborted transaction. Repeated lifecycle
-  operations and public controls settle against exact command identities
-  rather than aggregate resource counts.
+  after an independently verified aborted transaction. The read-committed path
+  uses non-default public Fetch and retained-delivery capacity policy. Repeated
+  lifecycle operations and public controls settle against exact command
+  identities rather than aggregate resource counts.
 - Classic and KIP-848 group consumers cover public pause/resume partition
   isolation and assignment-fenced seek replay, with committed public outcomes
   joined to positive protocol epochs and independent broker coordinates.
@@ -114,7 +115,8 @@
   Classic configuration additionally carries non-default public session,
   rebalance, heartbeat, and rejoin timing through live single-broker operation
   and three-broker recovery. Both protocols run seek replay with non-default
-  processing, membership-start, seek, and close deadlines.
+  Fetch and retained-delivery capacity policy plus processing,
+  membership-start, seek, and close deadlines.
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.

@@ -15,7 +15,7 @@ use testlab_schema::{
 
 use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
 use crate::group_consumer_configuration::{
-    apply_runtime_configuration, public_classic_group_config,
+    apply_fetch_and_limits, apply_runtime_configuration, public_classic_group_config,
 };
 use crate::state::StateError;
 
@@ -56,6 +56,8 @@ impl GroupConsumers {
             .unwrap_or(GroupConsumerConfiguration {
                 offset_reset: GroupOffsetReset::Earliest,
                 read_isolation: GroupReadIsolation::ReadUncommitted,
+                fetch: None,
+                limits: None,
                 processing_timeout_ms: None,
                 membership_start_timeout_ms: None,
                 seek_timeout_ms: None,
@@ -82,6 +84,7 @@ impl GroupConsumers {
             .membership_start_timeout(OPERATION_TIMEOUT)
             .close_timeout(OPERATION_TIMEOUT);
         let builder = apply_runtime_configuration(builder, &configuration);
+        let builder = apply_fetch_and_limits(builder, &configuration)?;
         let builder = match configuration.group_instance_id {
             Some(group_instance_id) => builder.group_instance_id(group_instance_id),
             None => builder,

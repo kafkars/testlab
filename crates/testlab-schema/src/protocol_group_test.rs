@@ -16,6 +16,19 @@ fn configured_group_policy_round_trips() {
         configuration: Some(GroupConsumerConfiguration {
             offset_reset: GroupOffsetReset::Latest,
             read_isolation: GroupReadIsolation::ReadCommitted,
+            fetch: Some(crate::ConsumerFetchConfiguration {
+                max_wait_ms: 250,
+                min_bytes: 2,
+                max_bytes: 524_288,
+                partition_max_bytes: 262_144,
+                attempt_timeout_ms: 17_000,
+            }),
+            limits: Some(crate::ConsumerLimitsConfiguration {
+                in_flight_fetches: 3,
+                buffered_batches: 4,
+                buffered_bytes: 2_097_152,
+                max_batch_bytes: 524_288,
+            }),
             processing_timeout_ms: Some(60_000),
             membership_start_timeout_ms: Some(25_000),
             seek_timeout_ms: Some(15_000),
@@ -54,6 +67,8 @@ fn configured_group_requires_its_capability() {
     *configuration = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        fetch: None,
+        limits: None,
         processing_timeout_ms: None,
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
@@ -89,6 +104,8 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
     *group_configuration(&mut modern) = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        fetch: None,
+        limits: None,
         processing_timeout_ms: None,
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
@@ -121,6 +138,8 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
     *group_configuration(&mut classic) = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        fetch: None,
+        limits: None,
         processing_timeout_ms: None,
         membership_start_timeout_ms: None,
         seek_timeout_ms: None,
@@ -159,6 +178,8 @@ fn group_runtime_timing_is_positive() {
     *group_configuration(&mut scenario) = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        fetch: None,
+        limits: None,
         processing_timeout_ms: Some(0),
         membership_start_timeout_ms: Some(0),
         seek_timeout_ms: Some(0),

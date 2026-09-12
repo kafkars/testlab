@@ -61,7 +61,6 @@ mod admin_transition_validation;
 mod admin_user_scram;
 mod admin_user_scram_validation;
 mod admin_validate_only_validation;
-mod assigned_consumer_configuration;
 mod assigned_consumer_control;
 mod assigned_consumer_control_validation;
 mod broker_policy;
@@ -72,6 +71,7 @@ mod client_metrics;
 mod concurrent;
 mod concurrent_validation;
 mod consumer_action_validation;
+mod consumer_configuration;
 mod consumer_control_validation;
 mod consumer_group_ownership;
 mod consumer_group_ownership_validation;
@@ -126,7 +126,6 @@ mod transaction_transform_validation;
 mod verdict;
 pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_exports::*;
-pub use assigned_consumer_configuration::*;
 pub use assigned_consumer_control::*;
 pub use broker_policy::{
     ADMIN_TOPIC_AUTHORIZATION_ERROR_CODE, BrokerAclOperation, BrokerAclResource, BrokerPolicy,
@@ -141,6 +140,7 @@ pub use broker_state::{
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
 pub use client_metrics::*;
 pub use concurrent::*;
+pub use consumer_configuration::*;
 pub use consumer_group_ownership::*;
 pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
 pub use environment::{

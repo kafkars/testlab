@@ -53,6 +53,12 @@ pub struct GroupConsumerConfiguration {
     pub offset_reset: GroupOffsetReset,
     /// Transactional record visibility.
     pub read_isolation: GroupReadIsolation,
+    /// Optional broker Fetch policy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fetch: Option<crate::ConsumerFetchConfiguration>,
+    /// Optional Fetch-call and retained-delivery capacities.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limits: Option<crate::ConsumerLimitsConfiguration>,
     /// Optional maximum application-processing interval apart from membership work.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub processing_timeout_ms: Option<u64>,

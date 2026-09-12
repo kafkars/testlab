@@ -11,6 +11,7 @@ mod assigned_consumer_positions_test;
 mod assigned_consumers;
 mod client_metrics;
 mod connection_security;
+mod consumer_configuration;
 mod group_assignment_observe;
 #[cfg(test)]
 mod group_assignment_observe_test;
@@ -114,6 +115,8 @@ mod admission_retry_test;
 mod client_metrics_test;
 #[cfg(test)]
 mod connection_security_test;
+#[cfg(test)]
+mod consumer_configuration_test;
 #[cfg(test)]
 mod normalize_test;
 #[cfg(test)]

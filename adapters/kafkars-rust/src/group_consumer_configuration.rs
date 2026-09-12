@@ -5,6 +5,20 @@ use std::time::Duration;
 use testlab_schema::GroupConsumerConfiguration;
 
 use crate::kafkars_api::{ClassicGroupConfig, ConsumerBuilder};
+use crate::state::StateError;
+
+pub(crate) fn apply_fetch_and_limits(
+    mut builder: ConsumerBuilder,
+    configuration: &GroupConsumerConfiguration,
+) -> Result<ConsumerBuilder, StateError> {
+    if let Some(fetch) = configuration.fetch {
+        builder = builder.fetch_config(crate::consumer_configuration::public_fetch(fetch)?);
+    }
+    if let Some(limits) = configuration.limits {
+        builder = builder.limits(crate::consumer_configuration::public_limits(limits)?);
+    }
+    Ok(builder)
+}
 
 pub(crate) fn apply_runtime_configuration(
     mut builder: ConsumerBuilder,

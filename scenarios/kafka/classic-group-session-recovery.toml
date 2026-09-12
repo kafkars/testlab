@@ -1,4 +1,4 @@
-schema_version = 85
+schema_version = 86
 id = "kafka.classic-group-session-recovery"
 title = "one fully timed classic member recovers while every broker is disrupted"
 description = "Testlab configures every public classic membership-timing value, stops each broker in turn while the member remains live, observes a valid public assignment after every disruption, and proves committed forward progress after the stop that necessarily disrupts its original group coordinator."

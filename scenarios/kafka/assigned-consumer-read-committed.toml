@@ -1,7 +1,7 @@
-schema_version = 85
+schema_version = 86
 id = "kafka.assigned-consumer-read-committed"
-title = "assigned consumer read committed hides an aborted record"
-description = "A client configured through the packaged public assigned-consumer policy starts its direct assignment at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."
+title = "fetch-configured assigned consumer hides an aborted record"
+description = "A client configured through the packaged public assigned-consumer isolation, Fetch, and retained-capacity policy starts its direct assignment at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."
 timeout_ms = 180000
 requires = ["producer", "assigned_consumer", "assigned_consumer_configuration", "transactions", "lifecycle", "client_readiness"]
 
@@ -12,6 +12,19 @@ client_id = "client-1"
 
 [steps.configuration]
 read_isolation = "read_committed"
+
+[steps.configuration.fetch]
+max_wait_ms = 250
+min_bytes = 1
+max_bytes = 524288
+partition_max_bytes = 262144
+attempt_timeout_ms = 20000
+
+[steps.configuration.limits]
+in_flight_fetches = 2
+buffered_batches = 3
+buffered_bytes = 2097152
+max_batch_bytes = 524288
 
 [[steps]]
 id = "await-client-ready"

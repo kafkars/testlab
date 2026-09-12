@@ -44,6 +44,10 @@ independent broker observations.
 Protocol v82 and evidence schema v71 retain optional processing,
 membership-start, seek, and close durations shared by classic and KIP-848 group
 registrations. Both protocols use non-default values during public seek replay.
+Protocol v83 and evidence schema v72 retain the complete optional Fetch and
+retained-delivery capacity blocks for assigned, classic, and KIP-848 consumers.
+All three run non-default policy while delivering exact public records joined
+to independent broker observations.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -145,9 +149,13 @@ incremental mutation are therefore broker-backed outcomes rather than adapter
 success claims. Two direct consumers may still independently expose the same
 coordinate. LIFE-003 and LIFE-009 evaluate repeated flushes and legacy
 assignments per command rather than by aggregate resource counts.
+The configured read-committed scenario also retains non-default public Fetch
+and capacity policy, then joins its visible sentinel to independent broker and
+aborted-transaction evidence; configuration alone cannot pass.
 
 Configured-group history retains the requested missing-offset and read-isolation
-policy plus any processing, membership-start, seek, and close durations, static
+policy plus any Fetch and retained-delivery policy, processing,
+membership-start, seek, and close durations, static
 group-instance identity, classic assignor, and all six classic
 membership-timing values in the issued protocol command. That
 adapter-reported configuration is not the verdict: exact group receives must
@@ -155,7 +163,8 @@ still join to independently observed records, positive protocol epochs, and
 aborted-transaction visibility evidence. A dedicated three-broker recovery
 scenario runs with every classic timing set to a non-default value.
 Classic and KIP-848 seek scenarios run with every shared runtime duration set
-to a non-default value, then exercise public membership, seek, and close.
+to a non-default value and non-default Fetch and capacity policy, then exercise
+public membership, Fetch, seek, and close.
 The issued group-create command also retains the complete caller-ordered
 subscription, while assignment and record evidence prove that every declared
 topic reached the public consumer.

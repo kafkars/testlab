@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v82 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v85 and evidence schema v71.
+Protocol v83 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v86 and evidence schema v72.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -33,12 +33,15 @@ Durability cannot be downgraded: idempotence and `acks=all` remain client-owned
 invariants outside the protocol vocabulary. Each codec has an independent
 real-Kafka scenario checked by ordinary terminal and broker-observation rules.
 
-Configured assigned-consumer client creation carries one immutable read
-isolation selection: uncommitted or committed. It is fixed through the public
-builder before the client host starts. The adapter receives no expected record;
-read-committed behavior is proved by a direct assignment from the beginning
-returning only a nontransactional sentinel after an independently verified
-aborted transaction.
+Configured assigned-consumer client creation carries immutable read isolation,
+broker Fetch policy, and bounded Fetch-call and retained-delivery capacities.
+Each supplied value is fixed through the public builder before the client host
+starts. Fetch byte fields use Kafka's signed 32-bit domain, and the hard decoded
+batch ceiling must cover the per-partition Fetch ceiling without exceeding the
+total retained-byte capacity. The adapter receives no expected record;
+read-committed behavior and the configured Fetch path are proved by a direct
+assignment from the beginning returning only a nontransactional sentinel after
+an independently verified aborted transaction.
 
 An ordinary `send` carries an explicit partition by default. A `java_keyed`
 selection instead carries the logical topic partition count and a keyed record;
@@ -430,7 +433,9 @@ broker topic, partition, offset, key, value, and ordered headers.
 
 Group creation may carry one capability-gated public configuration block.
 Missing-offset reset selects earliest or latest, and read isolation selects
-uncommitted or committed visibility before membership starts. Optional
+uncommitted or committed visibility before membership starts. Optional Fetch
+and retained-delivery blocks obey the same bounded byte envelope as a directly
+assigned consumer and are fixed before membership starts. Optional
 processing, membership-start, seek, and close durations select the public
 hosted runtime deadlines for either group protocol; every supplied value is
 from one through `i32::MAX` milliseconds. An optional nonempty
@@ -1011,6 +1016,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v82 is an exact semantic contract. New capabilities may be declared
+Protocol v83 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

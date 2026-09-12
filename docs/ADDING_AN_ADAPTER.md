@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v82. It is not a
+An adapter translates one packaged client surface to protocol v83. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -84,9 +84,10 @@ runner and not a verifier.
 - Advertise assigned-consumer controls only when replacement, incremental
   add/remove, seek, pause, and resume use public calls with explicit positions,
   bounded admission, and exact operation-identified completions.
-- Advertise assigned-consumer configuration only when read isolation is fixed
-  through the public builder before the client host starts; never receive the
-  expected record used to prove that selection.
+- Advertise assigned-consumer configuration only when read isolation, every
+  supplied Fetch value, and retained-delivery capacities are fixed through the
+  public builder before the client host starts; never receive the expected
+  record used to prove that selection.
 - Advertise group-consumer controls only when pause, resume, and seek use public
   hosted-consumer calls and retain exact operation, consumer, partition, and
   position identity without receiving later record expectations.
@@ -98,11 +99,11 @@ runner and not a verifier.
   acquisitions. Pass an optional rack through the public builder and require
   the resulting public handle to retain it.
 - Advertise group-consumer configuration only when missing-offset reset, read
-  isolation, every supplied shared runtime deadline, an optional classic
-  assignor, and every supplied classic timing are fixed through public builder
-  calls before membership starts. Reject all classic-only fields for KIP-848
-  and never receive the record or description expected to prove those
-  selections.
+  isolation, every supplied Fetch and retained-delivery value, every shared
+  runtime deadline, an optional classic assignor, and every supplied classic
+  timing are fixed through public builder calls before membership starts.
+  Reject all classic-only fields for KIP-848 and never receive the record or
+  description expected to prove those selections.
 - Advertise group-consumer shutdown only when clone-shared public requests are
   idempotent and public event observation can distinguish terminal stream
   closure; never report that closure as broker-visible leave truth.
