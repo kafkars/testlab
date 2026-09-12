@@ -146,6 +146,10 @@ fn group_creation_preserves_public_configuration() {
     let expected_configuration = GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadCommitted,
+        processing_timeout_ms: Some(60_000),
+        membership_start_timeout_ms: Some(25_000),
+        seek_timeout_ms: Some(15_000),
+        close_timeout_ms: Some(20_000),
         group_instance_id: Some("worker-static-1".to_owned()),
         classic_assignor: Some(testlab_schema::GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(120_000),

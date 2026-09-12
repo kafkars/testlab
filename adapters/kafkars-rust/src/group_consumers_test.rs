@@ -6,9 +6,11 @@ use testlab_schema::{
     GroupClassicAssignor, GroupConsumerConfiguration, GroupOffsetReset, GroupReadIsolation,
 };
 
-use crate::group_consumer_configuration::public_classic_group_config;
+use crate::group_consumer_configuration::{
+    apply_runtime_configuration, public_classic_group_config,
+};
 use crate::group_consumers::{public_classic_assignor, public_offset_reset, public_read_isolation};
-use crate::kafkars_api::{ClassicGroupAssignor, OffsetReset, ReadIsolation};
+use crate::kafkars_api::{ClassicGroupAssignor, Client, OffsetReset, ReadIsolation};
 
 #[test]
 fn public_group_shutdown_surface_is_facade_only() {
@@ -52,6 +54,10 @@ fn portable_classic_timing_maps_every_public_selection() {
     let configuration = GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        processing_timeout_ms: None,
+        membership_start_timeout_ms: None,
+        seek_timeout_ms: None,
+        close_timeout_ms: None,
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: Some(11_000),
@@ -72,6 +78,41 @@ fn portable_classic_timing_maps_every_public_selection() {
     );
     assert_eq!(selected.rejoin_backoff(), Duration::from_secs(2));
     assert_eq!(selected.rejoin_attempt_timeout(), Duration::from_secs(32));
+}
+
+#[test]
+fn portable_group_runtime_maps_every_public_deadline() {
+    let configuration = GroupConsumerConfiguration {
+        offset_reset: GroupOffsetReset::Earliest,
+        read_isolation: GroupReadIsolation::ReadUncommitted,
+        processing_timeout_ms: Some(61_000),
+        membership_start_timeout_ms: Some(23_000),
+        seek_timeout_ms: Some(17_000),
+        close_timeout_ms: Some(19_000),
+        group_instance_id: None,
+        classic_assignor: None,
+        classic_session_timeout_ms: None,
+        classic_rebalance_timeout_ms: None,
+        classic_heartbeat_interval_ms: None,
+        classic_heartbeat_attempt_timeout_ms: None,
+        classic_rejoin_backoff_ms: None,
+        classic_rejoin_attempt_timeout_ms: None,
+    };
+    let client = Client::builder()
+        .bootstrap_servers(["127.0.0.1:1"])
+        .build()
+        .unwrap_or_else(|error| panic!("start lazy public client: {error}"));
+    let selected = apply_runtime_configuration(client.consumer("workers"), &configuration);
+    assert_eq!(
+        selected.selected_processing_timeout(),
+        Duration::from_secs(61)
+    );
+    assert_eq!(
+        selected.selected_membership_start_timeout(),
+        Duration::from_secs(23)
+    );
+    assert_eq!(selected.selected_seek_timeout(), Duration::from_secs(17));
+    assert_eq!(selected.selected_close_timeout(), Duration::from_secs(19));
 }
 
 fn request_and_observe_shutdown(consumer: &mut crate::kafkars_api::Consumer) {

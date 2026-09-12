@@ -53,6 +53,18 @@ pub struct GroupConsumerConfiguration {
     pub offset_reset: GroupOffsetReset,
     /// Transactional record visibility.
     pub read_isolation: GroupReadIsolation,
+    /// Optional maximum application-processing interval apart from membership work.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub processing_timeout_ms: Option<u64>,
+    /// Optional end-to-end timeout for the first successful membership operation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub membership_start_timeout_ms: Option<u64>,
+    /// Optional end-to-end timeout for each later group seek.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seek_timeout_ms: Option<u64>,
+    /// Optional end-to-end timeout for explicit or requested group close.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub close_timeout_ms: Option<u64>,
     /// Optional stable broker-visible member identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group_instance_id: Option<String>,

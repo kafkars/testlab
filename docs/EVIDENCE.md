@@ -41,6 +41,9 @@ Protocol v81 and evidence schema v70 retain all six optional classic membership
 timings. Live single-broker and three-broker recovery scenarios set every value
 through the public builder while exact records and assignments remain joined to
 independent broker observations.
+Protocol v82 and evidence schema v71 retain optional processing,
+membership-start, seek, and close durations shared by classic and KIP-848 group
+registrations. Both protocols use non-default values during public seek replay.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -144,12 +147,15 @@ coordinate. LIFE-003 and LIFE-009 evaluate repeated flushes and legacy
 assignments per command rather than by aggregate resource counts.
 
 Configured-group history retains the requested missing-offset and read-isolation
-policy plus any static group-instance identity, classic assignor, and all six
-classic membership-timing values in the issued protocol command. That
+policy plus any processing, membership-start, seek, and close durations, static
+group-instance identity, classic assignor, and all six classic
+membership-timing values in the issued protocol command. That
 adapter-reported configuration is not the verdict: exact group receives must
 still join to independently observed records, positive protocol epochs, and
 aborted-transaction visibility evidence. A dedicated three-broker recovery
 scenario runs with every classic timing set to a non-default value.
+Classic and KIP-848 seek scenarios run with every shared runtime duration set
+to a non-default value, then exercise public membership, seek, and close.
 The issued group-create command also retains the complete caller-ordered
 subscription, while assignment and record evidence prove that every declared
 topic reached the public consumer.

@@ -5,8 +5,8 @@ use std::collections::BTreeMap;
 use crate::{ClientId, ConsumerId, GroupProtocol, OperationId};
 use crate::{ScenarioAction, scenario_action_validation::ActionStates};
 
-#[path = "consumer_classic_configuration_validation.rs"]
-mod classic_configuration_validation;
+#[path = "consumer_group_configuration_validation.rs"]
+mod group_configuration_validation;
 #[path = "consumer_group_static_validation.rs"]
 mod static_validation;
 #[path = "consumer_subscription_validation.rs"]
@@ -105,7 +105,7 @@ pub(crate) fn validate(
             protocol,
             configuration,
         } => {
-            classic_configuration_validation::validate(
+            group_configuration_validation::validate(
                 consumer_id,
                 *protocol,
                 configuration,

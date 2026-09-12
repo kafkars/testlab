@@ -4,7 +4,26 @@ use std::time::Duration;
 
 use testlab_schema::GroupConsumerConfiguration;
 
-use crate::kafkars_api::ClassicGroupConfig;
+use crate::kafkars_api::{ClassicGroupConfig, ConsumerBuilder};
+
+pub(crate) fn apply_runtime_configuration(
+    mut builder: ConsumerBuilder,
+    configuration: &GroupConsumerConfiguration,
+) -> ConsumerBuilder {
+    if let Some(value) = configuration.processing_timeout_ms {
+        builder = builder.processing_timeout(Duration::from_millis(value));
+    }
+    if let Some(value) = configuration.membership_start_timeout_ms {
+        builder = builder.membership_start_timeout(Duration::from_millis(value));
+    }
+    if let Some(value) = configuration.seek_timeout_ms {
+        builder = builder.seek_timeout(Duration::from_millis(value));
+    }
+    if let Some(value) = configuration.close_timeout_ms {
+        builder = builder.close_timeout(Duration::from_millis(value));
+    }
+    builder
+}
 
 pub(crate) fn public_classic_group_config(
     configuration: &GroupConsumerConfiguration,

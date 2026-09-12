@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v81 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v84 and evidence schema v70.
+Protocol v82 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v85 and evidence schema v71.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -430,8 +430,11 @@ broker topic, partition, offset, key, value, and ordered headers.
 
 Group creation may carry one capability-gated public configuration block.
 Missing-offset reset selects earliest or latest, and read isolation selects
-uncommitted or committed visibility before membership starts. An optional
-nonempty `group_instance_id` selects static membership. Classic membership may
+uncommitted or committed visibility before membership starts. Optional
+processing, membership-start, seek, and close durations select the public
+hosted runtime deadlines for either group protocol; every supplied value is
+from one through `i32::MAX` milliseconds. An optional nonempty
+`group_instance_id` selects static membership. Classic membership may
 also select the range or cooperative-sticky assignor and each public classic
 timing: session timeout, rebalance timeout, heartbeat interval, heartbeat
 attempt timeout, rejoin backoff, and rejoin attempt timeout. Every supplied
@@ -1008,6 +1011,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v81 is an exact semantic contract. New capabilities may be declared
+Protocol v82 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

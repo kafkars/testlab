@@ -14,7 +14,9 @@ use testlab_schema::{
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
-use crate::group_consumer_configuration::public_classic_group_config;
+use crate::group_consumer_configuration::{
+    apply_runtime_configuration, public_classic_group_config,
+};
 use crate::state::StateError;
 
 const OPERATION_TIMEOUT: Duration = Duration::from_secs(30);
@@ -54,6 +56,10 @@ impl GroupConsumers {
             .unwrap_or(GroupConsumerConfiguration {
                 offset_reset: GroupOffsetReset::Earliest,
                 read_isolation: GroupReadIsolation::ReadUncommitted,
+                processing_timeout_ms: None,
+                membership_start_timeout_ms: None,
+                seek_timeout_ms: None,
+                close_timeout_ms: None,
                 group_instance_id: None,
                 classic_assignor: None,
                 classic_session_timeout_ms: None,
@@ -64,13 +70,6 @@ impl GroupConsumers {
                 classic_rejoin_attempt_timeout_ms: None,
             });
         let classic_configuration = public_classic_group_config(&configuration);
-        let GroupConsumerConfiguration {
-            offset_reset,
-            read_isolation,
-            group_instance_id,
-            classic_assignor,
-            ..
-        } = configuration;
         let builder = client
             .consumer(registration.group_id)
             .subscribe(registration.topics)
@@ -78,15 +77,16 @@ impl GroupConsumers {
                 GroupProtocol::Classic => ConsumerGroupProtocol::Classic,
                 GroupProtocol::Consumer => ConsumerGroupProtocol::Consumer,
             })
-            .on_missing_offset(public_offset_reset(offset_reset))
-            .read_isolation(public_read_isolation(read_isolation))
+            .on_missing_offset(public_offset_reset(configuration.offset_reset))
+            .read_isolation(public_read_isolation(configuration.read_isolation))
             .membership_start_timeout(OPERATION_TIMEOUT)
             .close_timeout(OPERATION_TIMEOUT);
-        let builder = match group_instance_id {
+        let builder = apply_runtime_configuration(builder, &configuration);
+        let builder = match configuration.group_instance_id {
             Some(group_instance_id) => builder.group_instance_id(group_instance_id),
             None => builder,
         };
-        let builder = match classic_assignor {
+        let builder = match configuration.classic_assignor {
             Some(assignor) => builder.classic_group_assignor(public_classic_assignor(assignor)),
             None => builder,
         };

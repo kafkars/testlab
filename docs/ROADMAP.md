@@ -113,7 +113,8 @@
   cooperative-sticky selection through a broker-reported public description.
   Classic configuration additionally carries non-default public session,
   rebalance, heartbeat, and rejoin timing through live single-broker operation
-  and three-broker recovery.
+  and three-broker recovery. Both protocols run seek replay with non-default
+  processing, membership-start, seek, and close deadlines.
 - Classic and KIP-848 hosted groups cover clone-shared shutdown, repeated
   request idempotence, public event-stream termination, and independently
   queried zero-member broker state.

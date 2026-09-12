@@ -1,4 +1,4 @@
-schema_version = 84
+schema_version = 85
 id = "kafka.admin-remove-static-group-members"
 title = "offline static consumer-group members are removed in caller order"
 description = "Two configured classic static members establish a complete public assignment, abandon their public handles, stop their owning clients without an explicit member close, remain present in matching public and independent descriptions, and are then removed through one caller-ordered public Admin call with an immediate independent zero-member result."

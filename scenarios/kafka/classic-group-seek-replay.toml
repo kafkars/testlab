@@ -1,9 +1,9 @@
-schema_version = 84
+schema_version = 85
 id = "kafka.classic-group-seek-replay"
-title = "a classic group seek replays one committed broker record"
-description = "The packaged classic member receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."
+title = "a runtime-configured classic group seek replays one committed broker record"
+description = "The packaged classic member uses non-default public processing, membership, seek, and close deadlines, receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."
 timeout_ms = 150000
-requires = ["producer", "consumer_groups", "group_consumer_controls", "lifecycle", "client_readiness"]
+requires = ["producer", "consumer_groups", "group_consumer_configuration", "group_consumer_controls", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -45,6 +45,14 @@ consumer_id = "consumer-1"
 group_id = "testlab-classic-seek-group"
 topics = ["testlab-kafkars-classic-seek"]
 protocol = "classic"
+
+[steps.configuration]
+offset_reset = "earliest"
+read_isolation = "read_uncommitted"
+processing_timeout_ms = 90000
+membership_start_timeout_ms = 45000
+seek_timeout_ms = 20000
+close_timeout_ms = 25000
 
 [[steps]]
 id = "receive-first"

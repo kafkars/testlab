@@ -16,6 +16,10 @@ fn configured_group_policy_round_trips() {
         configuration: Some(GroupConsumerConfiguration {
             offset_reset: GroupOffsetReset::Latest,
             read_isolation: GroupReadIsolation::ReadCommitted,
+            processing_timeout_ms: Some(60_000),
+            membership_start_timeout_ms: Some(25_000),
+            seek_timeout_ms: Some(15_000),
+            close_timeout_ms: Some(20_000),
             group_instance_id: Some("worker-static-1".to_owned()),
             classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
             classic_session_timeout_ms: Some(120_000),
@@ -50,6 +54,10 @@ fn configured_group_requires_its_capability() {
     *configuration = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Latest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        processing_timeout_ms: None,
+        membership_start_timeout_ms: None,
+        seek_timeout_ms: None,
+        close_timeout_ms: None,
         group_instance_id: None,
         classic_assignor: None,
         classic_session_timeout_ms: None,
@@ -81,6 +89,10 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
     *group_configuration(&mut modern) = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        processing_timeout_ms: None,
+        membership_start_timeout_ms: None,
+        seek_timeout_ms: None,
+        close_timeout_ms: None,
         group_instance_id: None,
         classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
         classic_session_timeout_ms: Some(10_000),
@@ -109,6 +121,10 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
     *group_configuration(&mut classic) = Some(GroupConsumerConfiguration {
         offset_reset: GroupOffsetReset::Earliest,
         read_isolation: GroupReadIsolation::ReadUncommitted,
+        processing_timeout_ms: None,
+        membership_start_timeout_ms: None,
+        seek_timeout_ms: None,
+        close_timeout_ms: None,
         group_instance_id: None,
         classic_assignor: Some(GroupClassicAssignor::Range),
         classic_session_timeout_ms: Some(0),
@@ -129,6 +145,42 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
         "classic_heartbeat_attempt_timeout_ms",
         "classic_rejoin_backoff_ms",
         "classic_rejoin_attempt_timeout_ms",
+    ] {
+        assert!(message.contains(field), "{message}");
+    }
+}
+
+#[test]
+fn group_runtime_timing_is_positive() {
+    let mut scenario = scenario("../../../scenarios/kafka/classic-group-round-trip.toml");
+    scenario
+        .requires
+        .insert(Capability::GroupConsumerConfiguration);
+    *group_configuration(&mut scenario) = Some(GroupConsumerConfiguration {
+        offset_reset: GroupOffsetReset::Earliest,
+        read_isolation: GroupReadIsolation::ReadUncommitted,
+        processing_timeout_ms: Some(0),
+        membership_start_timeout_ms: Some(0),
+        seek_timeout_ms: Some(0),
+        close_timeout_ms: Some(0),
+        group_instance_id: None,
+        classic_assignor: None,
+        classic_session_timeout_ms: None,
+        classic_rebalance_timeout_ms: None,
+        classic_heartbeat_interval_ms: None,
+        classic_heartbeat_attempt_timeout_ms: None,
+        classic_rejoin_backoff_ms: None,
+        classic_rejoin_attempt_timeout_ms: None,
+    });
+    let message = scenario
+        .validate()
+        .expect_err("zero group runtime timing must fail")
+        .to_string();
+    for field in [
+        "processing_timeout_ms",
+        "membership_start_timeout_ms",
+        "seek_timeout_ms",
+        "close_timeout_ms",
     ] {
         assert!(message.contains(field), "{message}");
     }
