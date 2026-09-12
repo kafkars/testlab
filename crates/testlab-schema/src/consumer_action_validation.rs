@@ -2,8 +2,10 @@
 
 use std::collections::BTreeMap;
 
-use crate::{ClientId, ConsumerId, GroupProtocol, OperationId, ScenarioAction};
+use crate::{ClientId, ConsumerId, GroupOffsetReset, GroupProtocol, OperationId, ScenarioAction};
 
+#[path = "consumer_expected_failure_validation.rs"]
+mod expected_failure_validation;
 #[path = "consumer_group_configuration_validation.rs"]
 mod group_configuration_validation;
 #[path = "consumer_group_static_validation.rs"]
@@ -26,6 +28,7 @@ pub(crate) struct ConsumerGroupState {
     pub(crate) group_id: String,
     pub(crate) topics: Vec<String>,
     pub(crate) protocol: GroupProtocol,
+    pub(crate) offset_reset: Option<GroupOffsetReset>,
     pub(crate) group_instance_id: Option<String>,
 }
 
@@ -34,6 +37,7 @@ pub(crate) struct ConsumerGroupInput<'a> {
     pub(crate) group_id: &'a str,
     pub(crate) topics: &'a [String],
     pub(crate) protocol: Option<GroupProtocol>,
+    pub(crate) offset_reset: Option<GroupOffsetReset>,
     pub(crate) group_instance_id: Option<&'a str>,
 }
 
@@ -118,6 +122,11 @@ pub(crate) fn validate(
                     group_id,
                     topics,
                     protocol: Some(*protocol),
+                    offset_reset: Some(
+                        configuration
+                            .as_ref()
+                            .map_or(GroupOffsetReset::Earliest, |value| value.offset_reset),
+                    ),
                     group_instance_id: configuration
                         .as_ref()
                         .and_then(|value| value.group_instance_id.as_deref()),
@@ -136,17 +145,7 @@ pub(crate) fn validate(
         }
         _ => {}
     }
-    if let ScenarioAction::GroupReceive {
-        receive_id,
-        expected_error_code: Some(code),
-        ..
-    } = action
-        && code != crate::GROUP_AUTHORIZATION_ERROR_CODE
-    {
-        problems.push(format!(
-            "group receive {receive_id} has unsupported expected error code {code}"
-        ));
-    }
+    expected_failure_validation::validate(action, &state.consumers, problems);
 }
 
 pub(crate) fn create(
@@ -218,6 +217,7 @@ pub(crate) fn create_group(
             group_id: group.group_id.to_owned(),
             topics: group.topics.to_owned(),
             protocol,
+            offset_reset: group.offset_reset,
             group_instance_id: group.group_instance_id.map(str::to_owned),
         });
     }

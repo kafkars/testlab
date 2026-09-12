@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v92 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v95 and evidence schema v81.
+Protocol v93 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v96 and evidence schema v82.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -474,7 +474,8 @@ owner assignment. Each public record is also joined to its exact independent
 broker topic, partition, offset, key, value, and ordered headers.
 
 Group creation may carry one capability-gated public configuration block.
-Missing-offset reset selects earliest or latest, and read isolation selects
+Missing-offset reset selects fail-closed error, earliest, or latest behavior,
+and read isolation selects
 uncommitted or committed visibility before membership starts. Optional Fetch
 and retained-delivery blocks obey the same bounded byte envelope as a directly
 assigned consumer and are fixed before membership starts. Optional
@@ -490,10 +491,11 @@ rejected for KIP-848 membership. Omitted timing fields retain their public
 defaults, and an omitted assignor retains the classic range default. An omitted
 block retains Testlab's established earliest, read-uncommitted, dynamic-member
 behavior. The adapter receives no
-expected record identity: latest reset is proved by a stable assignment that
-skips an independently visible pre-join record, while read-committed isolation
-is proved by returning only a nontransactional sentinel after a separately
-verified aborted transaction.
+expected record identity: fail-closed reset is proved by a correlated public
+`state` failure and no successful receive for a new group with no committed
+offset, latest reset is proved by a stable assignment that skips an independently
+visible pre-join record, and read-committed isolation is proved by returning only
+a nontransactional sentinel after a separately verified aborted transaction.
 
 `control_group_consumer` carries a stable operation and consumer identity plus
 one public pause, resume, or seek mutation. Pause and resume preserve the exact
@@ -1085,6 +1087,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v92 is an exact semantic contract. New capabilities may be declared
+Protocol v93 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

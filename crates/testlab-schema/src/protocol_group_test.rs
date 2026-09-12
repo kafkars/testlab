@@ -51,6 +51,32 @@ fn configured_group_policy_round_trips() {
 }
 
 #[test]
+fn fail_closed_offset_reset_is_portable() {
+    let reset: GroupOffsetReset = serde_json::from_str("\"error\"")
+        .unwrap_or_else(|error| panic!("decode fail-closed offset reset: {error}"));
+    assert_eq!(reset, GroupOffsetReset::Error);
+}
+
+#[test]
+fn missing_offset_failure_requires_fail_closed_policy() {
+    let mut scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/classic-group-missing-offset-error.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse missing-offset scenario: {error}"));
+    scenario
+        .validate()
+        .unwrap_or_else(|error| panic!("validate fail-closed scenario: {error}"));
+    group_configuration(&mut scenario)
+        .as_mut()
+        .unwrap_or_else(|| panic!("missing fail-closed policy"))
+        .offset_reset = GroupOffsetReset::Earliest;
+    let error = scenario
+        .validate()
+        .expect_err("missing-offset failure without fail-closed reset must fail");
+    assert!(error.to_string().contains("offset_reset=error"));
+}
+
+#[test]
 fn configured_group_requires_its_capability() {
     let mut scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/classic-group-round-trip.toml"

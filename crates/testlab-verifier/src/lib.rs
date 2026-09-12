@@ -68,6 +68,7 @@ mod contracts;
 mod group_consumer_controls;
 mod group_consumer_shutdown;
 mod group_ownership;
+mod group_receive_failures;
 mod group_recovery;
 mod group_redistribution;
 mod index;
@@ -237,6 +238,8 @@ mod group_consumer_controls_test;
 mod group_consumer_shutdown_test;
 #[cfg(test)]
 mod group_ownership_test;
+#[cfg(test)]
+mod group_receive_failures_test;
 #[cfg(test)]
 mod group_recovery_share_test;
 #[cfg(test)]

@@ -243,6 +243,7 @@ const fn public_position(position: AssignedStartPosition) -> StartPosition {
 
 pub(crate) const fn public_offset_reset(offset_reset: GroupOffsetReset) -> OffsetReset {
     match offset_reset {
+        GroupOffsetReset::Error => OffsetReset::Error,
         GroupOffsetReset::Earliest => OffsetReset::Earliest,
         GroupOffsetReset::Latest => OffsetReset::Latest,
     }

@@ -4,7 +4,9 @@ title = "packaged Kafkars complete classic and KIP-848 group configuration"
 scenarios = [
   "scenarios/kafka/admin-remove-static-group-members.toml",
   "scenarios/kafka/classic-group-latest-offset-reset.toml",
+  "scenarios/kafka/classic-group-missing-offset-error.toml",
   "scenarios/kafka/consumer-protocol-group-latest-offset-reset.toml",
+  "scenarios/kafka/consumer-protocol-group-missing-offset-error.toml",
   "scenarios/kafka/classic-group-seek-replay.toml",
   "scenarios/kafka/consumer-protocol-group-seek-replay.toml",
   "scenarios/kafka/classic-group-multi-topic-subscription.toml",

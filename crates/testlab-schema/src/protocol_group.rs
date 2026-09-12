@@ -2,6 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Stable public client error emitted when a group has no committed offset.
+pub const GROUP_MISSING_OFFSET_ERROR_CODE: &str = "state";
+
 /// Kafka consumer-group protocol selected through the packaged client.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -16,6 +19,8 @@ pub enum GroupProtocol {
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GroupOffsetReset {
+    /// Fail instead of guessing a position.
+    Error,
     /// Begin at the earliest available offset.
     #[default]
     Earliest,

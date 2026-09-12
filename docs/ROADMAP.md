@@ -120,8 +120,9 @@
   from both topics against independent broker observations. Configured rack
   identity is retained by the public handle and broker-reported singleton and
   caller-ordered plural Share-group descriptions.
-- Classic and KIP-848 configured groups cover latest missing-offset reset and
-  read-committed isolation against pre-membership records and independently
+- Classic and KIP-848 configured groups cover fail-closed, earliest, and latest
+  missing-offset reset behavior plus read-committed isolation against
+  pre-membership records and independently
   verified aborted transactions; classic membership also proves explicit
   cooperative-sticky selection through a broker-reported public description.
   Classic configuration additionally carries non-default public session,

@@ -1,4 +1,4 @@
-schema_version = 95
+schema_version = 96
 id = "kafka.admin-alter-topic-configs"
 title = "packaged admin alters caller-ordered topic configurations"
 description = "A named caller-ordered plural description proves both prior values before one public plural incremental alteration returns every successful topic outcome and polling independent reads confirm both replacements."

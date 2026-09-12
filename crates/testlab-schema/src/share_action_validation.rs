@@ -48,6 +48,7 @@ pub(crate) fn validate(
                     group_id,
                     topics,
                     protocol: None,
+                    offset_reset: None,
                     group_instance_id: None,
                 },
                 &state.clients,

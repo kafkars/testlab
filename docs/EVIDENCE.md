@@ -80,6 +80,11 @@ failure events. CONS-016 binds each selected `next_event` or `try_take_event`
 command to one ordered public completion with the exact consumer, target,
 positive fence generations, terminal category, and broker code while keeping
 the expected failure outside the adapter.
+Protocol v93, scenario schema v96, and evidence schema v82 add the fail-closed
+group missing-offset policy. CONS-017 binds each expected group receive failure
+to one exact configured creation, one correlated command and public error, and
+the absence of a successful receive. Classic and KIP-848 scenarios require the
+normalized public `state` error from new groups rather than an inferred offset.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

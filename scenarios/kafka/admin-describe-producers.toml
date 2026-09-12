@@ -1,4 +1,4 @@
-schema_version = 95
+schema_version = 96
 id = "kafka.admin-describe-producers"
 title = "packaged admin describes independently observed active producer state"
 description = "After one acknowledged idempotent send and producer close, the packaged client's public partition producer-state result must preserve every exact field from the pinned Kafka administration CLI."

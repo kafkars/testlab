@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v92. It is not a
+An adapter translates one packaged client surface to protocol v93. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -120,6 +120,9 @@ runner and not a verifier.
   isolation, every supplied Fetch and retained-delivery value, every shared
   runtime deadline, an optional classic assignor, and every supplied classic
   timing are fixed through public builder calls before membership starts.
+  Preserve all three reset policies: `error` must fail closed with the
+  correlated public `state` error, while `earliest` and `latest` select their
+  exact public positions.
   Reject all classic-only fields for KIP-848 and never receive the record or
   description expected to prove those selections.
 - Advertise group-consumer shutdown only when clone-shared public requests are

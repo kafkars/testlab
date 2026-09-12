@@ -32,6 +32,10 @@ fn portable_group_policy_maps_every_public_selection() {
         ClassicGroupAssignor::CooperativeSticky
     );
     assert_eq!(
+        public_offset_reset(GroupOffsetReset::Error),
+        OffsetReset::Error
+    );
+    assert_eq!(
         public_offset_reset(GroupOffsetReset::Earliest),
         OffsetReset::Earliest
     );
