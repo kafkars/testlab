@@ -20,8 +20,8 @@ digests exist.
 - `reproduction.sh`
 - `digests.json`
 
-Evidence schema v62 records the exact environment identity in `manifest.json`,
-retains protocol-v73 direct and hosted-group consumer controls, abandonment,
+Evidence schema v63 records the exact environment identity in `manifest.json`,
+retains protocol-v74 direct and hosted-group consumer controls, abandonment,
 and shutdown,
 consumer ownership observations, multi-member receive
 completions, and concurrent actor boundaries, ordered protocol-adversary
@@ -555,6 +555,17 @@ separate SASL-authenticated observer listener. A fail-closed shell projection
 emits only the owner-filtered token count, so even unexpected live-token rows
 cannot put CLI HMACs into terminal artifacts. The polled final count must be
 zero and contiguous with the public completion.
+
+ADMIN-074 binds one composite command to all seven public Streams-group Admin
+methods under one deadline. Two genuine `group.protocol=streams` WordCount
+applications first commit the exact fixture position and shut down cleanly.
+The completion must retain the singleton and caller-ordered plural Empty-group
+descriptions with authorization and initialized topology detail, singleton and
+plural stable offsets, the exact altered and deleted-offset post-reads, both
+successful group deletions in caller order, and nine bounded throttles. The
+public completion is followed immediately by a fail-closed projection of
+Kafka's pinned Streams-group CLI; it retains only the two selected identities'
+presence or absence and must prove both deleted groups absent.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

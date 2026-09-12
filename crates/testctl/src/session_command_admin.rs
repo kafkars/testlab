@@ -12,7 +12,8 @@ use testlab_schema::{
 use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
-    crate::session_command_admin_delegation_token::translate(action)
+    crate::session_command_admin_streams_group::translate(action)
+        .or_else(|| crate::session_command_admin_delegation_token::translate(action))
         .or_else(|| crate::session_command_admin_user_scram::translate(action))
         .or_else(|| crate::session_command_admin_replica_log_dirs::translate(action))
         .or_else(|| crate::session_command_admin_leader_election::translate(action))

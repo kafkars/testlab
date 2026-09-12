@@ -39,6 +39,9 @@ impl DockerComposeEnvironment {
         if let Ok(target @ AdminTarget::DelegationTokens(_)) = &target {
             return self.observe_delegation_tokens_with_cli(target, timeout);
         }
+        if let Ok(target @ AdminTarget::StreamsGroupsLifecycle(_)) = &target {
+            return self.observe_streams_groups_with_cli(target, timeout);
+        }
         if let Ok(target @ AdminTarget::ClientMetricsResources(_)) = &target {
             return self.observe_client_metrics_resources_with_cli(target, timeout);
         }

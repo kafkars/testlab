@@ -23,6 +23,7 @@ pub(super) use crate::observer_admin_share_group_offset_batch_target::{
     ShareGroupOffsetSelectionTarget, ShareGroupOffsetsSelectionTarget, ShareGroupsOffsetsTarget,
 };
 use crate::observer_admin_share_group_target;
+use crate::observer_admin_streams_group_target;
 pub(super) use crate::observer_admin_target_support::{invalid, ordinal, unique};
 use crate::observer_admin_topic_deletion_batch_target;
 use crate::observer_admin_topic_description_batch_target;
@@ -38,6 +39,7 @@ pub(super) enum AdminTarget {
     ClientQuota(ClientQuotaTarget),
     UserScramCredential(UserScramCredentialTarget),
     DelegationTokens(observer_admin_delegation_token_target::DelegationTokenTarget),
+    StreamsGroupsLifecycle(observer_admin_streams_group_target::StreamsGroupTarget),
     Topic(TopicTarget),
     Topics(ListTarget),
     ClientMetricsResources(ListTarget),
@@ -144,7 +146,8 @@ impl AdminTarget {
         action: &ScenarioAction,
         command: &AdapterCommand,
     ) -> Result<Option<Self>, ObserverError> {
-        let matched = match observer_admin_user_scram_target::match_action(action)?
+        let matched = match observer_admin_streams_group_target::match_action(action)
+            .or(observer_admin_user_scram_target::match_action(action)?)
             .or_else(|| observer_admin_delegation_token_target::match_action(action))
             .or(observer_admin_share_group_target::match_action(action)?)
             .or(observer_admin_client_quota_target::match_action(action)?)
@@ -189,6 +192,7 @@ impl AdminTarget {
             Self::ClientQuota(target) => &target.operation_id,
             Self::UserScramCredential(target) => &target.operation_id,
             Self::DelegationTokens(target) => &target.operation_id,
+            Self::StreamsGroupsLifecycle(target) => &target.operation_id,
             Self::Topic(target) => &target.operation_id,
             Self::Topics(target)
             | Self::ClientMetricsResources(target)
@@ -231,6 +235,7 @@ impl AdminTarget {
             Self::ClientQuota(_) => 1,
             Self::UserScramCredential(_) => 1,
             Self::DelegationTokens(_) => 1,
+            Self::StreamsGroupsLifecycle(_) => 1,
             Self::Topics(target)
             | Self::TopicIdentities(target)
             | Self::TopicDeletions(target)

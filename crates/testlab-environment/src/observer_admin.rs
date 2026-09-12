@@ -48,6 +48,9 @@ pub(super) fn capture(
         AdminTarget::DelegationTokens(_) => Err(ObserverError::InvalidTarget(
             "delegation-token target requires the pinned Kafka CLI observer".to_owned(),
         )),
+        AdminTarget::StreamsGroupsLifecycle(_) => Err(ObserverError::InvalidTarget(
+            "Streams-group lifecycle requires the pinned Kafka CLI observer".to_owned(),
+        )),
         AdminTarget::ClientMetricsResources(_) => Err(ObserverError::InvalidTarget(
             "client-metrics resource target requires the pinned Kafka CLI observer".to_owned(),
         )),

@@ -145,6 +145,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::DescribeFeatures(_)
         | AdapterCommand::ValidateFeatureUpdates(_)
         | AdapterCommand::ExerciseDelegationTokenLifecycle(_)
+        | AdapterCommand::ExerciseStreamsGroupAdminLifecycle(_)
         | AdapterCommand::DescribeProducers(_)
         | AdapterCommand::DescribeLogDirs(_)
         | AdapterCommand::DescribeReplicaLogDirs(_)

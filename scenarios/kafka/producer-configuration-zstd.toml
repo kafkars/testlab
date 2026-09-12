@@ -1,4 +1,4 @@
-schema_version = 76
+schema_version = 77
 id = "kafka.producer-configuration-zstd"
 title = "configured producer delivers with zstd compression"
 description = "A client built with the complete explicit public producer policy and zstd record-batch compression delivers one exact independently observed record."

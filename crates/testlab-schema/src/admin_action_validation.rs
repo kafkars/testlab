@@ -10,6 +10,9 @@ pub(crate) fn validate(
     operation_ids: &mut BTreeSet<OperationId>,
     problems: &mut Vec<String>,
 ) {
+    if crate::admin_streams_group::validation::validate(action, clients, operation_ids, problems) {
+        return;
+    }
     if crate::admin_delegation_token::validation::validate(action, clients, operation_ids, problems)
     {
         return;
@@ -58,7 +61,7 @@ pub(crate) fn validate(
     if crate::admin_acl_validation::validate(action, clients, operation_ids, problems) {
         return;
     }
-    if crate::admin_create_topics_batch_validation::validate(
+    if crate::admin_create_topics_batch::validation::validate(
         action,
         clients,
         operation_ids,

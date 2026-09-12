@@ -174,6 +174,7 @@ fn has_no_lifecycle_terminal(action: &ScenarioAction) -> bool {
             | ScenarioAction::DescribeFeatures(_)
             | ScenarioAction::ValidateFeatureUpdates(_)
             | ScenarioAction::ExerciseDelegationTokenLifecycle(_)
+            | ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_)
             | ScenarioAction::DescribeProducers(_)
             | ScenarioAction::DescribeLogDirs(_)
             | ScenarioAction::DescribeReplicaLogDirs(_)

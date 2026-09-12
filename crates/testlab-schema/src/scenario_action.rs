@@ -173,7 +173,6 @@ pub enum ScenarioAction {
         /// Complete acknowledgement bound.
         timeout_ms: u64,
     },
-    /// Drops one retained share batch without a broker acknowledgement.
     DropShareBatch {
         /// Existing share consumer.
         consumer_id: ConsumerId,
@@ -208,6 +207,7 @@ pub enum ScenarioAction {
     DescribeFeatures(crate::DescribeFeaturesAction),
     ValidateFeatureUpdates(crate::ValidateFeatureUpdatesAction),
     ExerciseDelegationTokenLifecycle(crate::ExerciseDelegationTokenLifecycleAction),
+    ExerciseStreamsGroupAdminLifecycle(crate::ExerciseStreamsGroupAdminLifecycleAction),
     DescribeProducers(crate::DescribeProducersAction),
     DescribeLogDirs(crate::DescribeLogDirsAction),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsAction),

@@ -12,12 +12,12 @@ mod admin_command_match;
 mod admin_command_router;
 mod admin_config_command_match;
 pub(crate) mod admin_config_resources;
-pub(crate) mod admin_delegation_token;
 mod admin_delete_records_command_match;
 mod admin_feature_update_command_match;
 pub(crate) mod admin_features;
 pub(crate) mod admin_group_batch;
 pub(crate) mod admin_leader_election;
+pub(crate) mod admin_lifecycle;
 pub(crate) mod admin_offset_batch;
 pub(crate) mod admin_partition_reassignments;
 mod admin_recording;
@@ -227,7 +227,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) admin_replica_log_dirs: admin_replica_log_dirs::AdminReplicaLogDirsIndex,
     pub(crate) admin_acls: admin_acl::AdminAclIndex,
     pub(crate) admin_client_quotas: admin_client_quota::AdminClientQuotaIndex,
-    pub(crate) admin_delegation_tokens: admin_delegation_token::AdminDelegationTokenIndex,
+    pub(crate) admin_lifecycles: admin_lifecycle::AdminLifecycleIndex,
     pub(crate) admin_features: admin_features::AdminFeaturesIndex,
     pub(crate) admin_user_scram: admin_user_scram::AdminUserScramIndex,
     pub(crate) admin_share_groups: admin_share_group::AdminShareGroupIndex,

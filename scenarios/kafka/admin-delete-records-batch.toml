@@ -1,4 +1,4 @@
-schema_version = 76
+schema_version = 77
 id = "kafka.admin-delete-records-batch"
 title = "packaged admin deletes caller-ordered record ranges"
 description = "Two independently seeded partitions establish exact zero-based watermarks before one public DeleteRecords batch; the deliberately non-sorted targets exercise both an explicit cutoff and the high-watermark sentinel, and immediate independent queries prove each final range in caller order."

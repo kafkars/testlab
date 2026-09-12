@@ -122,6 +122,7 @@ pub(crate) enum ExpectedEvent {
     FeaturesDescribed(OperationId),
     FeatureUpdatesValidated(OperationId),
     DelegationTokenLifecycleExercised(OperationId),
+    StreamsGroupAdminLifecycleExercised(OperationId),
     MetadataQuorumDescribed(OperationId),
     ProducerStatesDescribed {
         operation_id: OperationId,

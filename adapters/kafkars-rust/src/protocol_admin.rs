@@ -95,6 +95,9 @@ pub(crate) fn dispatch<W: Write>(
         AdapterCommand::ExerciseDelegationTokenLifecycle(command) => {
             crate::protocol_admin_delegation_token::exercise(state, writer, command_id, command)
         }
+        AdapterCommand::ExerciseStreamsGroupAdminLifecycle(command) => {
+            crate::protocol_admin_streams_group::exercise(state, writer, command_id, command)
+        }
         AdapterCommand::DescribeProducers(command) => {
             crate::protocol_admin_producers::describe(state, writer, command_id, command)
         }

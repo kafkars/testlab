@@ -96,6 +96,17 @@ impl DockerComposeEnvironment {
                 phase.fail(failure.code, failure.diagnostic);
             }
         }
+        if phase.succeeded() {
+            let extra = self.provision_streams_groups(
+                scenario,
+                timeout.saturating_sub(operation_started.elapsed()),
+            );
+            phase.operations.extend(extra.operations);
+            phase.artifacts.extend(extra.artifacts);
+            if let Some(failure) = extra.failure {
+                phase.fail(failure.code, failure.diagnostic);
+            }
+        }
         phase
     }
 }

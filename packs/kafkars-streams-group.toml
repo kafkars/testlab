@@ -1,0 +1,4 @@
+schema_version = 1
+id = "kafkars-streams-group"
+title = "packaged Kafkars modern Streams-group Admin qualification"
+scenarios = ["scenarios/kafka/admin-streams-group-lifecycle.toml"]

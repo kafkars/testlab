@@ -499,6 +499,12 @@ statement = "One authenticated public Admin sequence creates an explicitly owned
 category = "admin"
 
 [[contract]]
+id = "ADMIN-074"
+title = "Streams-group administration completes with ordered public results"
+statement = "One bounded public Admin sequence exactly describes one and multiple stopped Streams groups with authorization and topology detail, lists stable selected offsets for one and multiple groups, alters and deletes one offset, deletes both groups in caller order, and is followed immediately by independently polled pinned Kafka Streams CLI evidence proving final absence."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

@@ -134,6 +134,7 @@ pub(crate) fn validate_action(
         | ScenarioAction::DescribeFeatures(_)
         | ScenarioAction::ValidateFeatureUpdates(_)
         | ScenarioAction::ExerciseDelegationTokenLifecycle(_)
+        | ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_)
         | ScenarioAction::DescribeProducers(_)
         | ScenarioAction::DescribeLogDirs(_)
         | ScenarioAction::DescribeReplicaLogDirs(_)

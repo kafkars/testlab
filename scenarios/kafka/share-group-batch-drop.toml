@@ -1,4 +1,4 @@
-schema_version = 76
+schema_version = 77
 id = "kafka.share-group-batch-drop"
 title = "dropping a Share batch redelivers its complete record set"
 description = "One public three-record Share batch is dropped without acknowledgement and the complete ordered set must return with increased delivery counts before being accepted."

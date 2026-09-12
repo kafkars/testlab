@@ -101,6 +101,13 @@ attempts = 1
 gating = true
 
 [[cells]]
+id = "apache-kafka-4-3-1-streams-group-admin"
+environment = "clusters/apache-kafka/4.3.1/three-plaintext.toml"
+pack = "packs/kafkars-streams-group.toml"
+attempts = 1
+gating = true
+
+[[cells]]
 id = "apache-kafka-4-2-1-plaintext"
 environment = "clusters/apache-kafka/4.2.1/single-plaintext.toml"
 pack = "packs/kafkars-share-release.toml"

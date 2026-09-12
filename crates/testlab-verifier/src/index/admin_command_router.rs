@@ -3,7 +3,7 @@
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationId> {
-    super::admin_delegation_token::action_operation_id(action)
+    super::admin_lifecycle::action_operation_id(action)
         .or_else(|| super::admin_leader_election::action_operation_id(action))
         .or_else(|| super::admin_config_resources::action_operation_id(action))
         .or_else(|| super::admin_partition_reassignments::action_operation_id(action))
@@ -22,7 +22,7 @@ pub(super) fn action_operation_id(action: &ScenarioAction) -> Option<&OperationI
 }
 
 pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&OperationId> {
-    super::admin_delegation_token::command_operation_id(command)
+    super::admin_lifecycle::command_operation_id(command)
         .or_else(|| super::admin_leader_election::command_operation_id(command))
         .or_else(|| super::admin_config_resources::command_operation_id(command))
         .or_else(|| super::admin_partition_reassignments::command_operation_id(command))
@@ -41,7 +41,7 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
 }
 
 pub(super) fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
-    super::admin_delegation_token::matches(action, command)
+    super::admin_lifecycle::matches(action, command)
         .or_else(|| super::admin_leader_election::matches(action, command))
         .or_else(|| super::admin_config_resources::matches(action, command))
         .or_else(|| super::admin_partition_reassignments::matches(action, command))

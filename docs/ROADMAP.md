@@ -80,6 +80,10 @@
   owner-filtered describe, renew, and immediate expire under one deadline,
   retains no HMAC bytes, and proves final absence through a secret-free pinned
   CLI projection on an independently authenticated listener.
+- Kafka 4.3.1 modern Streams-group coverage provisions two real bundled
+  WordCount applications, then exercises all seven public description, stable
+  offset, offset-mutation, and group-deletion methods under one deadline with
+  caller-ordered results and an independent pinned CLI final-absence proof.
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
   incremental add/remove with survivor cursors, and read-committed isolation

@@ -10,10 +10,7 @@ use super::{
 
 impl HistoryIndex {
     pub(super) fn record_state(&mut self, observation: &BrokerStateObservation, sequence: u64) {
-        if self
-            .admin_delegation_tokens
-            .record_state(observation, sequence)
-        {
+        if self.admin_lifecycles.record_state(observation, sequence) {
             return;
         }
         if self
@@ -164,6 +161,9 @@ impl HistoryIndex {
             }
             BrokerStateObservation::DelegationTokens(_) => {
                 unreachable!("delegation-token observations are indexed before generic admin state")
+            }
+            BrokerStateObservation::StreamsGroups(_) => {
+                unreachable!("Streams-group observations are indexed before generic admin state")
             }
             BrokerStateObservation::ShareGroup(_) => {
                 unreachable!("Share-group observations are indexed before generic admin state")

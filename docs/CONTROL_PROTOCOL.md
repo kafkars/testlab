@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v73 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v76 and evidence schema v62.
+Protocol v74 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v77 and evidence schema v63.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -98,6 +98,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `describe_features`
 - `validate_feature_updates`
 - `exercise_delegation_token_lifecycle`
+- `exercise_streams_group_admin_lifecycle`
 - `describe_producers`
 - `describe_log_dirs`
 - `describe_replica_log_dirs`
@@ -267,6 +268,7 @@ timeouts invalidate evidence.
 - `features_described`
 - `feature_updates_validated`
 - `delegation_token_lifecycle_exercised`
+- `streams_group_admin_lifecycle_exercised`
 - `producers_described`
 - `transactions_listed`
 - `transactions_described`
@@ -762,6 +764,23 @@ success or failure per requested group in caller order. One immediate pinned
 reports whether each selected group still exists; extra unselected groups do
 not affect the result.
 
+The Streams-group scenario independently provisions two distinct modern
+WordCount applications and their exact stable input offset. The
+`exercise_streams_group_admin_lifecycle` wire command carries only those two
+application IDs, the selected input topic, one different valid replacement
+offset, and one complete deadline; the expected initial offset and fixed output
+topic remain in Testlab. Under that single bound the packaged public
+Admin describes the primary group, describes both groups in caller order,
+lists selected stable offsets through the singleton and plural APIs, alters and
+then deletes the primary offset with public reads after each transition, and
+deletes both groups in caller order. Descriptions retain Empty state, epochs,
+initialized topology sources, requested authorization bits, and a requested v1
+topology-description status with a graph size only when available. Offset results retain nullable
+committed offsets, leader epochs, and bounded metadata. One completion owns all
+nine call results and throttles. An immediate pinned
+`kafka-streams-groups.sh --list` projection then independently proves both
+deleted identities absent without retaining unrelated group rows.
+
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
@@ -947,6 +966,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v73 is an exact semantic contract. New capabilities may be declared
+Protocol v74 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

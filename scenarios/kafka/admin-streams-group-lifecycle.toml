@@ -1,0 +1,35 @@
+schema_version = 77
+id = "kafka.admin-streams-group-lifecycle"
+title = "packaged admin completes the Streams-group lifecycle in caller order"
+description = "On Kafka 4.3.1, two real bundled WordCount Streams applications establish quiescent modern Streams groups, then the packaged client's public Admin describes one and many groups with topology detail, lists one and many stable offsets, alters and deletes one offset, deletes both groups, and is followed by an independent pinned Streams CLI absence check."
+timeout_ms = 180000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "exercise-streams-group-admin-lifecycle"
+kind = "exercise_streams_group_admin_lifecycle"
+client_id = "client-1"
+operation_id = "admin-streams-group-lifecycle"
+primary_group_id = "testlab-streams-primary"
+secondary_group_id = "testlab-streams-secondary"
+input_topic = "streams-plaintext-input"
+output_topic = "streams-wordcount-output"
+expected_initial_offset = 1
+altered_offset = 0
+timeout_ms = 60000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

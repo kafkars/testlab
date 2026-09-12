@@ -22,6 +22,7 @@ use crate::admin_records::verify_records_action;
 use crate::admin_records_batch::verify_records_batch_action;
 use crate::admin_replica_log_dirs::verify_replica_log_dirs_action;
 use crate::admin_share_group::verify_share_group_action;
+use crate::admin_streams_group::verify as verify_streams_group;
 use crate::admin_topic::verify_topic_action;
 use crate::admin_topics_deletion::verify_topics_deletion_action;
 use crate::admin_topics_description::verify_topics_description_action;
@@ -91,6 +92,7 @@ pub(crate) fn verify_admin(
             || verify_client_quota_action(&step.action, index, violations)
             || verify_user_scram_action(&step.action, index, violations)
             || verify_delegation_token(&step.action, index, violations)
+            || verify_streams_group(&step.action, index, violations)
             || verify_share_group_action(scenario, &step.action, index, violations)
             || verify_batch_action(&step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
@@ -215,6 +217,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
         ScenarioAction::ValidateFeatureUpdates(_) => "ADMIN-072",
         ScenarioAction::ExerciseDelegationTokenLifecycle(_) => "ADMIN-073",
+        ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_) => "ADMIN-074",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",
         ScenarioAction::ListTransactions(_) => "ADMIN-052",
         ScenarioAction::DescribeTransactions(_) => "ADMIN-053",

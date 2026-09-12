@@ -55,6 +55,7 @@ mod session_command_admin_partition_reassignments;
 mod session_command_admin_records;
 mod session_command_admin_replica_log_dirs;
 mod session_command_admin_share_group;
+mod session_command_admin_streams_group;
 mod session_command_admin_transactions;
 mod session_command_admin_user_scram;
 mod session_command_concurrent;
@@ -150,6 +151,8 @@ mod catalog_share_batch_test;
 mod catalog_share_configuration_test;
 #[cfg(test)]
 mod catalog_share_group_admin_test;
+#[cfg(test)]
+mod catalog_streams_group_admin_test;
 #[cfg(test)]
 mod catalog_test;
 #[cfg(test)]

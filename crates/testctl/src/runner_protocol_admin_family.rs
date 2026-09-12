@@ -30,6 +30,7 @@ fn expected_is_admin(expected: &ExpectedEvent) -> bool {
             | ExpectedEvent::FeaturesDescribed(_)
             | ExpectedEvent::FeatureUpdatesValidated(_)
             | ExpectedEvent::DelegationTokenLifecycleExercised(_)
+            | ExpectedEvent::StreamsGroupAdminLifecycleExercised(_)
             | ExpectedEvent::MetadataQuorumDescribed(_)
             | ExpectedEvent::ProducerStatesDescribed { .. }
             | ExpectedEvent::LogDirsDescribed { .. }
@@ -72,6 +73,7 @@ fn event_is_admin(event: &AdapterEvent) -> bool {
             | AdapterEvent::FeaturesDescribed(_)
             | AdapterEvent::FeatureUpdatesValidated(_)
             | AdapterEvent::DelegationTokenLifecycleExercised(_)
+            | AdapterEvent::StreamsGroupAdminLifecycleExercised(_)
             | AdapterEvent::MetadataQuorumDescribed(_)
             | AdapterEvent::ProducersDescribed(_)
             | AdapterEvent::LogDirsDescribed(_)

@@ -25,6 +25,7 @@ pub(crate) fn operation_id(action: &ScenarioAction) -> Option<&OperationId> {
         ScenarioAction::DescribeFeatures(value) => &value.operation_id,
         ScenarioAction::ValidateFeatureUpdates(value) => &value.operation_id,
         ScenarioAction::ExerciseDelegationTokenLifecycle(value) => &value.operation_id,
+        ScenarioAction::ExerciseStreamsGroupAdminLifecycle(value) => &value.operation_id,
         ScenarioAction::DescribeProducers(value) => &value.operation_id,
         ScenarioAction::ListTransactions(value) => &value.operation_id,
         ScenarioAction::DescribeTransactions(value) => &value.operation_id,

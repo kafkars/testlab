@@ -40,6 +40,7 @@ mod admin_share_group_offset_mutation;
 mod admin_share_groups_deletion;
 mod admin_share_groups_description;
 mod admin_share_groups_offsets;
+mod admin_streams_group;
 mod admin_topic;
 mod admin_topics_deletion;
 mod admin_topics_description;

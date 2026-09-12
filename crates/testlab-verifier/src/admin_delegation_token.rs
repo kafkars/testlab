@@ -4,7 +4,7 @@ use testlab_schema::{AdminDelegationTokenLifecycle, ScenarioAction, Violation};
 
 use crate::admin::{immediate_after_public, public_after_command};
 use crate::index::HistoryIndex;
-use crate::index::admin_delegation_token::Indexed;
+use crate::index::admin_lifecycle::Indexed;
 use crate::support::violation;
 
 const MAX_HMAC_BYTES: usize = 64 * 1024;
@@ -19,12 +19,12 @@ pub(crate) fn verify(
         return false;
     };
     let public = one(index
-        .admin_delegation_tokens
-        .completed
+        .admin_lifecycles
+        .delegation_completed
         .get(&action.operation_id));
     let independent = one(index
-        .admin_delegation_tokens
-        .observed
+        .admin_lifecycles
+        .delegation_observed
         .get(&action.operation_id));
     let matches = public.is_some_and(|public| {
         independent.is_some_and(|independent| {

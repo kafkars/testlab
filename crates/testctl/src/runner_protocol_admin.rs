@@ -162,6 +162,10 @@ pub(super) fn classify_admin(
             AdapterEvent::DelegationTokenLifecycleExercised(actual),
         ) => operation_id == &actual.operation_id,
         (
+            ExpectedEvent::StreamsGroupAdminLifecycleExercised(operation_id),
+            AdapterEvent::StreamsGroupAdminLifecycleExercised(actual),
+        ) => operation_id == &actual.operation_id,
+        (
             ExpectedEvent::MetadataQuorumDescribed(operation_id),
             AdapterEvent::MetadataQuorumDescribed(actual),
         ) => operation_id == &actual.operation_id,

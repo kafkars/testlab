@@ -16,7 +16,7 @@ impl HistoryIndex {
         reason = "the exhaustive event recorder keeps every public admin result visibly indexed"
     )]
     pub(super) fn record_admin_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
-        if self.admin_delegation_tokens.record_event(event, sequence) {
+        if self.admin_lifecycles.record_event(event, sequence) {
             return true;
         }
         if self.admin_config_resources.record_event(event, sequence) {

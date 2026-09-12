@@ -112,6 +112,7 @@ pub use crate::admin_share_group_offset_batch::{
     ListShareGroupsOffsetsAction, ListShareGroupsOffsetsCommand, ShareGroupOffsetExpectation,
     ShareGroupOffsetSelection, ShareGroupOffsetsExpectation, ShareGroupOffsetsSelection,
 };
+pub use crate::admin_streams_group::*;
 pub use crate::admin_topic::{
     AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription, AdminTopicsListing,
     CreatePartitionsCommand, CreateTopicAction, CreateTopicCommand, DeleteTopicAction,

@@ -181,7 +181,6 @@ pub enum AdapterCommand {
     ListTopics(crate::ListTopicsCommand),
     ListConfigResources(crate::ListConfigResourcesCommand),
     ListOffsets(crate::ListOffsetsCommand),
-    /// Lists ordered offset positions through one public admin call.
     ListOffsetsBatch(crate::ListOffsetsBatchCommand),
     DeleteRecords(crate::DeleteRecordsCommand),
     DeleteRecordsBatch(crate::DeleteRecordsBatchCommand),
@@ -193,6 +192,7 @@ pub enum AdapterCommand {
     DescribeFeatures(crate::DescribeFeaturesCommand),
     ValidateFeatureUpdates(crate::ValidateFeatureUpdatesCommand),
     ExerciseDelegationTokenLifecycle(crate::ExerciseDelegationTokenLifecycleCommand),
+    ExerciseStreamsGroupAdminLifecycle(crate::ExerciseStreamsGroupAdminLifecycleCommand),
     DescribeProducers(crate::DescribeProducersCommand),
     DescribeLogDirs(crate::DescribeLogDirsCommand),
     DescribeReplicaLogDirs(crate::DescribeReplicaLogDirsCommand),

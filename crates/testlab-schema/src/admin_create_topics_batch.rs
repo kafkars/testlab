@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};
 
+#[path = "admin_create_topics_batch_validation.rs"]
+pub(crate) mod validation;
+
 /// Scenario intent for one ordered public batch topic-creation call.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
