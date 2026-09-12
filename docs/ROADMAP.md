@@ -114,7 +114,9 @@
 - Directly assigned consumers cover repeated cursor advance, beginning, end,
   and exact-offset replacement, seek replay, pause/resume partition isolation,
   incremental add/remove with survivor cursors, and read-committed isolation
-  after an independently verified aborted transaction. The read-committed path
+  after an independently verified aborted transaction. One selected batch also
+  exposes its UUID-qualified Fetch offset window, byte charge, and checkpoint
+  against independent topic identity, watermarks, and record progress. The read-committed path
   uses non-default public Fetch and retained-delivery capacity policy. Repeated
   lifecycle operations and public controls settle against exact command
   identities rather than aggregate resource counts.

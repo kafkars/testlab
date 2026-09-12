@@ -79,12 +79,12 @@ pub enum ScenarioAction {
     ObserveAssignedConsumerEvent(crate::ObserveAssignedConsumerEventAction),
     Receive {
         consumer_id: ConsumerId,
-        /// Exact public retained-batch observation method.
         #[serde(default)]
         method: crate::AssignedConsumerReceiveMethod,
+        #[serde(default)]
+        observe_fetch_evidence: bool,
         receive_id: OperationId,
         expected_operation_id: OperationId,
-        /// Complete receive bound.
         timeout_ms: u64,
     },
     TransferAssignedRecord(crate::AssignedRecordTransferAction),

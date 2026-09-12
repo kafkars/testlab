@@ -1009,6 +1009,12 @@ statement = "One direct-consumer batch becomes an owned record, transfers its ti
 category = "consumer"
 
 [[contract]]
+id = "CONS-022"
+title = "Assigned Fetch evidence matches independent broker facts"
+statement = "One selected direct-consumer batch retains the exact nonzero topic UUID, requested and next offsets, log bounds, high watermark, positive byte charge, and matching public checkpoint against prior independent topic-identity, partition-watermark, and record observations."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

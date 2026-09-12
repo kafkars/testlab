@@ -4,7 +4,7 @@ use testlab_schema::AdapterEvent;
 
 use super::{
     HistoryIndex, IndexedAssignedConsumerControl, IndexedGroupAssignments, IndexedGroupReceiveSet,
-    IndexedReceive, push,
+    push,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -17,6 +17,15 @@ pub(crate) struct IndexedGroupConsumerControl {
 pub(crate) struct IndexedAssignedRecordTransfer {
     pub(crate) history_sequence: u64,
     pub(crate) completion: testlab_schema::AssignedRecordTransferCompletion,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedReceive {
+    pub(crate) history_sequence: u64,
+    pub(crate) records: Vec<testlab_schema::ConsumedRecord>,
+    pub(crate) fetch_evidence: Option<testlab_schema::AssignedConsumerFetchEvidence>,
+    pub(crate) committed: Option<bool>,
+    pub(crate) group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
 }
 
 impl HistoryIndex {
@@ -39,7 +48,15 @@ impl HistoryIndex {
             AdapterEvent::ReceiveCompleted {
                 receive_id,
                 records,
-            } => self.record_receive(receive_id, records, None, None, sequence),
+                fetch_evidence,
+            } => self.record_receive(
+                receive_id,
+                records,
+                fetch_evidence.as_ref(),
+                None,
+                None,
+                sequence,
+            ),
             AdapterEvent::AssignedRecordTransferCompleted(completion) => self
                 .assigned_record_transfers
                 .entry(completion.operation_id.clone())
@@ -64,6 +81,7 @@ impl HistoryIndex {
             } => self.record_receive(
                 receive_id,
                 records,
+                None,
                 Some(*committed),
                 *group_epoch,
                 sequence,
@@ -112,6 +130,7 @@ impl HistoryIndex {
         &mut self,
         receive_id: &testlab_schema::OperationId,
         records: &[testlab_schema::ConsumedRecord],
+        fetch_evidence: Option<&testlab_schema::AssignedConsumerFetchEvidence>,
         committed: Option<bool>,
         group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
         sequence: u64,
@@ -122,6 +141,7 @@ impl HistoryIndex {
             .push(IndexedReceive {
                 history_sequence: sequence,
                 records: records.to_vec(),
+                fetch_evidence: fetch_evidence.cloned(),
                 committed,
                 group_epoch,
             });

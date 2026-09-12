@@ -66,6 +66,7 @@ fn receive_step(id: &str, expected: &str) -> testlab_schema::ScenarioStep {
         ScenarioAction::Receive {
             consumer_id: consumer("assigned-1"),
             method: Default::default(),
+            observe_fetch_evidence: false,
             receive_id: operation(id),
             expected_operation_id: operation(expected),
             timeout_ms: 1_000,
@@ -87,6 +88,7 @@ fn receive_event(sequence: u64, id: &str, value: &str, offset: i64) -> HistoryEn
                 value: Some(ByteString::utf8(value)),
                 headers: Vec::new(),
             }],
+            fetch_evidence: None,
         },
     )
 }

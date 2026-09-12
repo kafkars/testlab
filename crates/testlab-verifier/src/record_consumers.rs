@@ -10,12 +10,16 @@ use crate::consumer::{exact_record, sent_record};
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[path = "record_consumer_fetch.rs"]
+mod fetch_evidence;
+
 pub(crate) fn verify(
     scenario: &Scenario,
     index: &HistoryIndex,
     observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
     violations: &mut Vec<Violation>,
 ) {
+    fetch_evidence::verify(scenario, index, observed, violations);
     for step in &scenario.steps {
         match &step.action {
             ScenarioAction::Receive {

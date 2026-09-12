@@ -174,6 +174,7 @@ fn joined_events(
         AdapterEvent::ReceiveCompleted {
             receive_id: receive.clone(),
             records: vec![consumed(record)],
+            fetch_evidence: None,
         },
     );
     history.event(

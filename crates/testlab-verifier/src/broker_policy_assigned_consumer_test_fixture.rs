@@ -76,6 +76,7 @@ pub(super) fn history(scenario: &Scenario) -> Vec<HistoryEntry> {
         AdapterEvent::ReceiveCompleted {
             receive_id: receive_id.clone(),
             records: vec![consumed(scenario)],
+            fetch_evidence: None,
         },
     ));
     history

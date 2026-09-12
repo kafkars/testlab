@@ -60,6 +60,32 @@ pub struct ConsumedRecord {
     pub headers: Vec<HeaderSpec>,
 }
 
+/// Broker-correlated facts retained by one public assigned-consumer Fetch batch.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AssignedConsumerFetchEvidence {
+    /// Exact topic retained by the Fetch lease.
+    pub topic: String,
+    /// Nonzero broker-issued topic UUID.
+    pub topic_uuid: [u8; 16],
+    /// Exact source partition.
+    pub partition: i32,
+    /// Offset requested by this Fetch.
+    pub requested_offset: i64,
+    /// Exclusive next offset after complete broker progress.
+    pub next_offset: i64,
+    /// Next offset reported independently by the public batch checkpoint.
+    pub checkpoint_next_offset: i64,
+    /// Broker log-start offset when supplied.
+    pub log_start_offset: Option<i64>,
+    /// Broker last-stable offset when supplied.
+    pub last_stable_offset: Option<i64>,
+    /// Broker high watermark when supplied.
+    pub high_watermark: Option<i64>,
+    /// Exact stable Fetch-output bytes retained by the lease.
+    pub retained_bytes: usize,
+}
+
 /// Complete public acknowledgement receipt for one produced record.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

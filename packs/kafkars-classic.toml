@@ -32,6 +32,7 @@ scenarios = [
   "scenarios/kafka/assigned-consumer-null-empty.toml",
   "scenarios/kafka/assigned-consumer-header-fidelity.toml",
   "scenarios/kafka/assigned-consumer-owned-record-transfer.toml",
+  "scenarios/kafka/assigned-consumer-fetch-evidence.toml",
   "scenarios/kafka/concurrent-multi-producer.toml",
   "scenarios/kafka/concurrent-producer-consumer.toml",
   "scenarios/kafka/concurrent-two-client-pipeline.toml",

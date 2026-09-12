@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v100 over stdin/stdout;
+2. implements protocol v101 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -28,7 +28,8 @@ It:
    membership-start, seek, and close deadlines, while configured assigned
    clients preserve the same Fetch and capacity envelope; direct receives map
    default `recv` and selected repeated `try_take_batch` to their exact public
-   methods, and an owned direct-consumer record transfers through an ordinary
+   methods, retain public Fetch UUID, offset-window, byte-charge, and checkpoint
+   evidence for independent comparison, and an owned direct-consumer record transfers through an ordinary
    producer while its source lease stays readable after delivery; a selected
    bounded delay publicly acknowledges the retained
    group checkpoint before committing that same batch, and a selected partial

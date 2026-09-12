@@ -70,6 +70,7 @@ fn assigned_receive_preserves_the_selected_public_method() {
     let action = ScenarioAction::Receive {
         consumer_id: id(ConsumerId::new("consumer-1")),
         method: AssignedConsumerReceiveMethod::TryTakeBatch,
+        observe_fetch_evidence: false,
         receive_id: receive_id.clone(),
         expected_operation_id: id(OperationId::new("send-1")),
         timeout_ms: 20_000,

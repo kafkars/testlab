@@ -80,20 +80,15 @@ pub(crate) struct IndexedAssignedConsumerControl {
     pub(crate) completion: testlab_schema::AssignedConsumerControlCompletion,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) use consumer_recording::{IndexedAssignedRecordTransfer, IndexedGroupConsumerControl};
+pub(crate) use consumer_recording::{
+    IndexedAssignedRecordTransfer, IndexedGroupConsumerControl, IndexedReceive,
+};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedCommandFailure {
     pub(crate) history_sequence: u64,
     pub(crate) command_id: CommandId,
     pub(crate) code: String,
     pub(crate) diagnostic: String,
-}
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct IndexedReceive {
-    pub(crate) history_sequence: u64,
-    pub(crate) records: Vec<testlab_schema::ConsumedRecord>,
-    pub(crate) committed: Option<bool>,
-    pub(crate) group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedGroupAssignments {

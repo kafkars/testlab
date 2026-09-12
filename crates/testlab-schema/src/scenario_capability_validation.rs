@@ -83,6 +83,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     }
     if matches!(
         action,
+        ScenarioAction::Receive {
+            observe_fetch_evidence: true,
+            ..
+        }
+    ) {
+        usage.insert(Capability::AssignedConsumerFetchEvidence);
+    }
+    if matches!(
+        action,
         ScenarioAction::GroupReceive {
             method: crate::GroupConsumerReceiveMethod::TryTakeBatch,
             ..

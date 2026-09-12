@@ -74,6 +74,7 @@ fn receive_completion_requires_the_exact_receive_identity() {
             .classify(&AdapterEvent::ReceiveCompleted {
                 receive_id: receive,
                 records: Vec::new(),
+                fetch_evidence: None,
             })
             .unwrap_or_else(|error| panic!("classify receive: {error}")),
         EventDisposition::Complete

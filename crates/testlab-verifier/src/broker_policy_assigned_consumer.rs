@@ -85,6 +85,7 @@ pub(crate) fn recovery(
             receive_id,
             expected_operation_id,
             timeout_ms,
+            ..
         } = &step.action
         else {
             return None;

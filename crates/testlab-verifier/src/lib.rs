@@ -215,7 +215,7 @@ mod assigned_consumer_events_test;
 #[cfg(test)]
 mod assigned_consumer_receive_method_test;
 #[cfg(test)]
-mod assigned_cursor_test;
+mod assigned_consumer_tests;
 #[cfg(test)]
 mod broker_policy_assigned_consumer_test;
 #[cfg(test)]

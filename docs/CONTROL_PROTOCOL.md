@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v100 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v103 and evidence schema v89.
+Protocol v101 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v104 and evidence schema v90.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -56,6 +56,12 @@ A directly assigned `receive` names its exact public retained-batch observer.
 observation and requires the `assigned_consumer_immediate_batch` capability.
 The command retains that selection, consumer identity, receive identity, and
 bound while the expected producer operation remains scenario-only.
+When the scenario selects `observe_fetch_evidence`, the adapter must advertise
+`assigned_consumer_fetch_evidence` and append the public batch's topic, nonzero
+UUID, partition, requested and next offsets, log bounds, high watermark,
+retained-byte charge, and independent checkpoint offset to `receive_completed`.
+Testctl does not send expected values to the adapter; the verifier joins them to
+prior independent topic-ID and watermark snapshots and the broker record.
 
 `transfer_assigned_record` waits for one public direct-consumer batch, consumes
 it through the owned-batch and owned-record boundaries, and transfers its only
@@ -1148,6 +1154,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v100 is an exact semantic contract. New capabilities may be declared
+Protocol v101 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

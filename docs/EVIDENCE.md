@@ -120,6 +120,10 @@ destination admission and terminal, source evidence read again after that
 terminal, and distinct independent source and destination records. A reserved
 transfer-operation header gives the copy its own observation identity without
 removing or replacing any source header.
+Protocol v101, scenario schema v104, and evidence schema v90 add direct-consumer
+Fetch evidence. CONS-022 binds the public batch's topic UUID, requested and next
+offsets, log bounds, high watermark, retained-byte charge, and checkpoint to
+prior independent topic-ID, watermark, and record observations.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -170,6 +174,12 @@ CONS-021 separately binds an owned direct-consumer source record to its original
 independent coordinates and bytes, then binds its transferred producer record
 and receipt to a distinct destination observation. The completion must follow
 the destination terminal and expose the unchanged retained source record.
+CONS-022 separately requires one selected direct receive to retain complete
+broker-correlated Fetch evidence. Its UUID must match the pinned CLI topic
+identity; its requested, progress, log-start, last-stable, and high-watermark
+offsets must match the prior independent watermark window and record; its
+checkpoint must equal Fetch progress; and its retained-byte charge must be
+positive.
 PROD-011 requires strictly increasing independent offsets for sequential sends
 and caller-ordered batch records targeting one partition; concurrent actor
 declarations do not claim an execution order.

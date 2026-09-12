@@ -92,10 +92,10 @@ pub enum AdapterEvent {
     AssignedConsumerControlCompleted(crate::AssignedConsumerControlCompletion),
     AssignedConsumerEventObserved(crate::AssignedConsumerEventObservation),
     ReceiveCompleted {
-        /// Stable receive operation identity.
         receive_id: OperationId,
-        /// Exact records returned through the public API.
         records: Vec<ConsumedRecord>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        fetch_evidence: Option<crate::AssignedConsumerFetchEvidence>,
     },
     AssignedRecordTransferCompleted(crate::AssignedRecordTransferCompletion),
     /// One directly assigned consumer closed.

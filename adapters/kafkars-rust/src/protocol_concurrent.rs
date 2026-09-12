@@ -36,7 +36,7 @@ enum WorkerResult {
     Receive {
         consumer_id: ConsumerId,
         owner: OwnedAssignedConsumer,
-        result: Result<Vec<testlab_schema::ConsumedRecord>, AdapterError>,
+        result: Result<crate::protocol_consumer::AssignedReceiveOutput, AdapterError>,
     },
 }
 

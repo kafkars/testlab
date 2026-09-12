@@ -8,8 +8,9 @@ use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{AssignedConsumer, ConsumerRecord, RecordBatch};
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AssignedConsumerReceiveMethod, ByteString,
-    CommandId, ConsumedRecord, ConsumerId, HeaderSpec, OperationId,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AssignedConsumerFetchEvidence,
+    AssignedConsumerReceiveMethod, ByteString, CommandId, ConsumedRecord, ConsumerId, HeaderSpec,
+    OperationId,
 };
 
 use crate::AdapterError;
@@ -17,6 +18,12 @@ use crate::protocol::emit;
 use crate::state::AdapterState;
 
 const POLL_SLICE: Duration = Duration::from_millis(10);
+
+#[derive(Debug)]
+pub(crate) struct AssignedReceiveOutput {
+    records: Vec<ConsumedRecord>,
+    fetch_evidence: Option<AssignedConsumerFetchEvidence>,
+}
 
 pub(crate) fn dispatch<W: Write>(
     state: &mut AdapterState,
@@ -137,15 +144,15 @@ pub(crate) fn receive<W: Write>(
     receive_id: OperationId,
     timeout_ms: u64,
 ) -> Result<(), AdapterError> {
-    let records = receive_records(state.consumer_mut(consumer_id)?, method, timeout_ms)?;
-    emit_receive(writer, command_id, receive_id, records)
+    let output = receive_records(state.consumer_mut(consumer_id)?, method, timeout_ms)?;
+    emit_receive(writer, command_id, receive_id, output)
 }
 
 pub(crate) fn receive_records(
     consumer: &mut AssignedConsumer,
     method: AssignedConsumerReceiveMethod,
     timeout_ms: u64,
-) -> Result<Vec<ConsumedRecord>, AdapterError> {
+) -> Result<AssignedReceiveOutput, AdapterError> {
     let timeout = Duration::from_millis(timeout_ms);
     let deadline = Instant::now()
         .checked_add(timeout)
@@ -159,10 +166,10 @@ pub(crate) fn receive_records(
 fn receive_waiting(
     consumer: &mut AssignedConsumer,
     deadline: Instant,
-) -> Result<Vec<ConsumedRecord>, AdapterError> {
+) -> Result<AssignedReceiveOutput, AdapterError> {
     match receive_waiting_batch(consumer, deadline)? {
         Some(batch) => normalize_batch(&batch),
-        None => Ok(Vec::new()),
+        None => Ok(empty_output()),
     }
 }
 
@@ -187,7 +194,7 @@ pub(crate) fn receive_waiting_batch(
 fn receive_immediate(
     consumer: &mut AssignedConsumer,
     deadline: Instant,
-) -> Result<Vec<ConsumedRecord>, AdapterError> {
+) -> Result<AssignedReceiveOutput, AdapterError> {
     loop {
         match consumer.try_take_batch() {
             Ok(Some(batch)) => return normalize_batch(&batch),
@@ -195,24 +202,47 @@ fn receive_immediate(
             Err(error) => return Err(AdapterError::Client(error)),
         }
         if Instant::now() >= deadline {
-            return Ok(Vec::new());
+            return Ok(empty_output());
         }
         std::thread::sleep(POLL_SLICE);
     }
 }
 
-fn normalize_batch(batch: &RecordBatch) -> Result<Vec<ConsumedRecord>, AdapterError> {
-    batch
+fn normalize_batch(batch: &RecordBatch) -> Result<AssignedReceiveOutput, AdapterError> {
+    let records = batch
         .records()
         .map(|record| normalize_record(&record))
-        .collect()
+        .collect::<Result<Vec<_>, _>>()?;
+    let evidence = batch.evidence();
+    Ok(AssignedReceiveOutput {
+        records,
+        fetch_evidence: Some(AssignedConsumerFetchEvidence {
+            topic: evidence.topic().to_owned(),
+            topic_uuid: evidence.topic_uuid().into_bytes(),
+            partition: evidence.partition(),
+            requested_offset: evidence.requested_offset(),
+            next_offset: evidence.next_offset(),
+            checkpoint_next_offset: batch.checkpoint_next_offset(),
+            log_start_offset: evidence.log_start_offset(),
+            last_stable_offset: evidence.last_stable_offset(),
+            high_watermark: evidence.high_watermark(),
+            retained_bytes: evidence.retained_bytes(),
+        }),
+    })
+}
+
+fn empty_output() -> AssignedReceiveOutput {
+    AssignedReceiveOutput {
+        records: Vec::new(),
+        fetch_evidence: None,
+    }
 }
 
 pub(crate) fn emit_receive<W: Write>(
     writer: &mut W,
     command_id: CommandId,
     receive_id: OperationId,
-    records: Vec<ConsumedRecord>,
+    output: AssignedReceiveOutput,
 ) -> Result<(), AdapterError> {
     emit(
         writer,
@@ -220,7 +250,8 @@ pub(crate) fn emit_receive<W: Write>(
             command_id,
             AdapterEvent::ReceiveCompleted {
                 receive_id,
-                records,
+                records: output.records,
+                fetch_evidence: output.fetch_evidence,
             },
         ),
     )

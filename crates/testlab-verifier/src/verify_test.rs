@@ -87,6 +87,7 @@ fn assigned_consumer_exact_round_trip_passes() {
             ScenarioAction::Receive {
                 consumer_id: consumer.clone(),
                 method: Default::default(),
+                observe_fetch_evidence: false,
                 receive_id: receive.clone(),
                 expected_operation_id: id(OperationId::new("op-1")),
                 timeout_ms: 1_000,
@@ -128,6 +129,7 @@ fn assigned_consumer_exact_round_trip_passes() {
                     value: Some(ByteString::hex(b"value")),
                     headers: Vec::new(),
                 }],
+                fetch_evidence: None,
             },
         ),
         event(

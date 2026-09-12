@@ -179,6 +179,7 @@ fn mismatched_consumer_offset_fails_public_receive_contract() {
         ScenarioAction::Receive {
             consumer_id: id(ConsumerId::new("consumer-1")),
             method: Default::default(),
+            observe_fetch_evidence: false,
             receive_id: receive_id.clone(),
             expected_operation_id: id(OperationId::new("op-1")),
             timeout_ms: 1_000,
@@ -197,6 +198,7 @@ fn mismatched_consumer_offset_fails_public_receive_contract() {
                 value: Some(testlab_schema::ByteString::utf8("value")),
                 headers: Vec::new(),
             }],
+            fetch_evidence: None,
         },
     )];
     let observations = [observation(0, "value")];

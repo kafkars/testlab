@@ -38,6 +38,8 @@ pub enum Capability {
     ModelBroker,
     /// Assigned-partition consumer operations.
     AssignedConsumer,
+    /// Broker-correlated evidence from one assigned-consumer Fetch lease.
+    AssignedConsumerFetchEvidence,
     /// Owned assigned-record transfer through an ordinary producer terminal.
     AssignedConsumerRecordTransfer,
     /// Immediate retained-batch observation through `try_take_batch`.

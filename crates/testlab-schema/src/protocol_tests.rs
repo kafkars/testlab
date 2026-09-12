@@ -2,6 +2,8 @@
 
 #[path = "protocol_adversary_test.rs"]
 mod adversary;
+#[path = "assigned_fetch_evidence_test.rs"]
+mod assigned_fetch_evidence;
 #[path = "protocol_group_test.rs"]
 mod group;
 #[path = "network_proxy_test.rs"]
