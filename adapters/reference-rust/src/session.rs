@@ -1,6 +1,7 @@
 //! Session interpreter translates protocol commands to one fixture state machine.
 
 use crate::AdapterError;
+use crate::session_output::{emit, emit_fatal};
 use crate::session_producer;
 use crate::session_send;
 use crate::state::AdapterState;
@@ -123,6 +124,7 @@ fn dispatch<W: Write>(
         | AdapterCommand::ControlAssignedConsumer(_)
         | AdapterCommand::ObserveAssignedConsumerEvent(_)
         | AdapterCommand::Receive { .. }
+        | AdapterCommand::TransferAssignedRecord(_)
         | AdapterCommand::CloseAssignedConsumer { .. }
         | AdapterCommand::CreateGroupConsumer { .. }
         | AdapterCommand::GroupReceive { .. }
@@ -271,30 +273,4 @@ fn dispatch_client_ready<W: Write>(
         writer,
         &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientReady { client_id }),
     )
-}
-
-pub(crate) fn emit<W: Write>(
-    writer: &mut W,
-    event: &AdapterEventEnvelope,
-) -> Result<(), AdapterError> {
-    serde_json::to_writer(&mut *writer, event)?;
-    writer.write_all(b"\n")?;
-    writer.flush()?;
-    Ok(())
-}
-
-fn emit_fatal<W: Write>(
-    writer: &mut W,
-    envelope: CommandEnvelope,
-    error: AdapterError,
-) -> Result<(), AdapterError> {
-    let event = AdapterEventEnvelope::new(
-        envelope.command_id,
-        AdapterEvent::Fatal {
-            code: error.code().to_owned(),
-            diagnostic: error.to_string(),
-        },
-    );
-    let _ = emit(writer, &event);
-    Err(error)
 }

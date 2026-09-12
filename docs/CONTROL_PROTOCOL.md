@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v99 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v102 and evidence schema v88.
+Protocol v100 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v103 and evidence schema v89.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -56,6 +56,18 @@ A directly assigned `receive` names its exact public retained-batch observer.
 observation and requires the `assigned_consumer_immediate_batch` capability.
 The command retains that selection, consumer identity, receive identity, and
 bound while the expected producer operation remains scenario-only.
+
+`transfer_assigned_record` waits for one public direct-consumer batch, consumes
+it through the owned-batch and owned-record boundaries, and transfers its only
+record to a caller-selected topic and partition through an ordinary producer.
+It requires the `assigned_consumer_record_transfer` capability.
+The expected source operation remains scenario-only. The adapter appends one
+reserved `testlab-transfer-operation-id` header so independent observation can
+distinguish the destination without removing the preserved source correlation
+or any application header. It emits ordinary admission and terminal events,
+then `assigned_record_transfer_completed` after re-reading the retained source.
+The command timeout bounds the source-batch wait; producer configuration and
+the outer scenario deadline independently bound destination settlement.
 
 `observe_assigned_consumer_event` similarly names one exact public retained-event
 observer. `next_event` is the default waiting path; `try_take_event` selects
@@ -119,6 +131,7 @@ replies `ready` with implementation identity, version, and exact capabilities.
 - `control_assigned_consumer`
 - `observe_assigned_consumer_event`
 - `receive`
+- `transfer_assigned_record`
 - `start_concurrent_actors`
 - `join_concurrent_actors`
 - `close_assigned_consumer`
@@ -365,6 +378,7 @@ timeouts invalidate evidence.
 - `transactional_producer_created`
 - `transaction_completed`
 - `transactional_transform_completed`
+- `assigned_record_transfer_completed`
 - `transaction_fence_completed`
 - `transactional_producer_closed`
 - `flush_completed`
@@ -1134,6 +1148,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v99 is an exact semantic contract. New capabilities may be declared
+Protocol v100 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

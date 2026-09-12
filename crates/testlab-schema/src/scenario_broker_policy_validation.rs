@@ -20,6 +20,11 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 topics.extend(operations.iter().map(|item| item.record.topic.clone()));
                 producer_work = true;
             }
+            ScenarioAction::TransferAssignedRecord(action) => {
+                topics.insert(action.target_topic.clone());
+                producer_work = true;
+                consumer_work = true;
+            }
             ScenarioAction::CreateTopic(action) => {
                 topics.insert(action.topic.clone());
             }

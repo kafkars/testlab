@@ -1003,6 +1003,12 @@ statement = "Each selected classic or KIP-848 receive marks one exact nonempty p
 category = "consumer"
 
 [[contract]]
+id = "CONS-021"
+title = "Owned assigned records transfer through producer settlement"
+statement = "One direct-consumer batch becomes an owned record, transfers its timestamp, nullable bytes, and ordered headers into a destination producer record, and retains the exact source coordinates and bytes through the matching public terminal and independent destination observation."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

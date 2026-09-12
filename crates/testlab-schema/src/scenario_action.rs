@@ -1,4 +1,3 @@
-#![allow(missing_docs, reason = "admin variants use public payload types")]
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -88,6 +87,7 @@ pub enum ScenarioAction {
         /// Complete receive bound.
         timeout_ms: u64,
     },
+    TransferAssignedRecord(crate::AssignedRecordTransferAction),
     /// Closes one directly assigned consumer.
     CloseAssignedConsumer {
         /// Consumer to close.

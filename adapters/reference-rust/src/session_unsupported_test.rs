@@ -2,13 +2,13 @@
 
 use testlab_schema::{
     AdapterCommand, AdminOffsetPosition, AlterConsumerGroupOffsetsCommand, AlterTopicConfigCommand,
-    AlterTopicConfigsCommand, ClientId, ConsumerGroupOffsetAlteration,
-    ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection, ConsumerId,
-    DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsCommand, DescribeTopicCommand,
-    DescribeTopicConfigCommand, DescribeTopicConfigsCommand, ListConfigResourcesCommand,
-    ListConsumerGroupOffsetsBatchCommand, ListConsumerGroupOffsetsCommand,
-    ListConsumerGroupsOffsetsCommand, ListOffsetsCommand, ListTopicsCommand, OperationId,
-    TopicConfigAlteration, TopicConfigSelection,
+    AlterTopicConfigsCommand, AssignedRecordTransferCommand, ClientId,
+    ConsumerGroupOffsetAlteration, ConsumerGroupOffsetSelection, ConsumerGroupOffsetsSelection,
+    ConsumerId, DeleteConsumerGroupOffsetsCommand, DescribeClassicGroupsCommand,
+    DescribeTopicCommand, DescribeTopicConfigCommand, DescribeTopicConfigsCommand,
+    ListConfigResourcesCommand, ListConsumerGroupOffsetsBatchCommand,
+    ListConsumerGroupOffsetsCommand, ListConsumerGroupsOffsetsCommand, ListOffsetsCommand,
+    ListTopicsCommand, OperationId, ProducerId, TopicConfigAlteration, TopicConfigSelection,
 };
 
 use crate::session_unsupported::reason;
@@ -195,6 +195,24 @@ fn expected_cluster_identity_requires_its_capability() {
     assert_eq!(
         reason(&command),
         "expected_cluster_identity capability required"
+    );
+}
+
+#[test]
+fn owned_record_transfer_requires_its_exact_capability() {
+    let command = AdapterCommand::TransferAssignedRecord(AssignedRecordTransferCommand {
+        consumer_id: ConsumerId::new("consumer-1")
+            .unwrap_or_else(|error| panic!("consumer id: {error}")),
+        producer_id: ProducerId::new("producer-1")
+            .unwrap_or_else(|error| panic!("producer id: {error}")),
+        operation_id: operation_id(),
+        target_topic: "destination".to_owned(),
+        target_partition: 0,
+        timeout_ms: 1_000,
+    });
+    assert_eq!(
+        reason(&command),
+        "assigned_consumer_record_transfer capability required"
     );
 }
 

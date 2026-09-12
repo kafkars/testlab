@@ -118,6 +118,70 @@ fn observation_preserves_null_binary_and_ordered_headers() {
 }
 
 #[test]
+fn owned_transfer_has_distinct_target_and_observer_identity() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/assigned-consumer-owned-record-transfer.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse owned transfer scenario: {error}"));
+    let issued = ["owned-transfer-source", "owned-transfer-destination"]
+        .into_iter()
+        .map(|value| id(OperationId::new(value)))
+        .collect();
+    assert_eq!(
+        targets(&scenario, &issued),
+        BTreeSet::from([
+            ("testlab-kafkars-owned-transfer-source".to_owned(), 0),
+            ("testlab-kafkars-owned-transfer-destination".to_owned(), 1),
+        ])
+    );
+    let observed = normalize(
+        8,
+        CapturedRecord {
+            topic: "testlab-kafkars-owned-transfer-destination",
+            partition: 1,
+            offset: 12,
+            timestamp_millis: Some(1_700_000_003_000),
+            key: Some(b""),
+            value: Some(&[0, 255, 16, 32]),
+            headers: vec![
+                ("testlab-operation-id", Some(b"owned-transfer-source")),
+                ("testlab-sequence", Some(b"1")),
+                (
+                    testlab_schema::RECORD_TRANSFER_OPERATION_HEADER,
+                    Some(b"owned-transfer-destination"),
+                ),
+            ],
+        },
+    )
+    .unwrap_or_else(|error| panic!("normalize owned transfer: {error}"));
+    assert_eq!(observed.operation_id.as_str(), "owned-transfer-destination");
+    assert_eq!(observed.record.headers.len(), 3);
+    assert_eq!(
+        observed.record.headers[2].name,
+        testlab_schema::RECORD_TRANSFER_OPERATION_HEADER
+    );
+}
+
+#[test]
+fn malformed_owned_transfer_identity_is_rejected() {
+    let null = transfer_observation_headers(None);
+    let duplicate = vec![
+        ("testlab-operation-id", Some(b"source".as_slice())),
+        ("testlab-sequence", Some(b"1".as_slice())),
+        (
+            testlab_schema::RECORD_TRANSFER_OPERATION_HEADER,
+            Some(b"destination".as_slice()),
+        ),
+        (
+            testlab_schema::RECORD_TRANSFER_OPERATION_HEADER,
+            Some(b"other".as_slice()),
+        ),
+    ];
+    assert!(normalize(0, captured(null)).is_err());
+    assert!(normalize(0, captured(duplicate)).is_err());
+}
+
+#[test]
 fn duplicate_operation_identity_is_invalid_observer_evidence() {
     let result = normalize(
         0,
@@ -137,6 +201,28 @@ fn duplicate_operation_identity_is_invalid_observer_evidence() {
     );
 
     assert!(result.is_err());
+}
+
+fn transfer_observation_headers(
+    transfer: Option<&'static [u8]>,
+) -> Vec<(&'static str, Option<&'static [u8]>)> {
+    vec![
+        ("testlab-operation-id", Some(b"source")),
+        ("testlab-sequence", Some(b"1")),
+        (testlab_schema::RECORD_TRANSFER_OPERATION_HEADER, transfer),
+    ]
+}
+
+fn captured(headers: Vec<(&'static str, Option<&'static [u8]>)>) -> CapturedRecord<'static> {
+    CapturedRecord {
+        topic: "records",
+        partition: 0,
+        offset: 0,
+        timestamp_millis: None,
+        key: None,
+        value: Some(b"value"),
+        headers,
+    }
 }
 
 #[test]

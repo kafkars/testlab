@@ -136,6 +136,12 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
                 AdapterEvent::ReceiveCompleted { .. }
             )
             | (
+                ExpectedEvent::AssignedRecordTransferCompleted(_),
+                AdapterEvent::OperationAccepted { .. }
+                    | AdapterEvent::OperationTerminal { .. }
+                    | AdapterEvent::AssignedRecordTransferCompleted(_)
+            )
+            | (
                 ExpectedEvent::AssignedConsumerClosed(_),
                 AdapterEvent::AssignedConsumerClosed { .. }
             )

@@ -84,6 +84,11 @@ pub(super) fn targets(
             } if issued_operations.contains(operation_id) => {
                 targets.insert((record.topic.clone(), record.partition));
             }
+            ScenarioAction::TransferAssignedRecord(action)
+                if issued_operations.contains(&action.operation_id) =>
+            {
+                targets.insert((action.target_topic.clone(), action.target_partition));
+            }
             ScenarioAction::SendBatch { operations, .. }
             | ScenarioAction::ExecuteTransaction { operations, .. } => targets.extend(
                 operations

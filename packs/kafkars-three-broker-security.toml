@@ -123,6 +123,7 @@ scenarios = [
   "scenarios/kafka/producer-configuration-zstd.toml",
   "scenarios/kafka/producer-cancellation.toml",
   "scenarios/kafka/producer-receipt-metadata.toml",
+  "scenarios/kafka/assigned-consumer-owned-record-transfer.toml",
   "scenarios/kafka/transaction-commit-abort.toml",
   "scenarios/kafka/transaction-multi-record-commit.toml",
   "scenarios/kafka/transaction-multi-record-abort.toml",

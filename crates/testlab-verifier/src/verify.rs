@@ -41,6 +41,7 @@ pub fn verify(
     crate::assigned_consumer_controls::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_events::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_receive_method::verify(scenario, &index, &mut violations);
+    crate::assigned_record_transfer::verify(scenario, &index, observations, &mut violations);
     crate::group_consumer_controls::verify(scenario, &index, &mut violations);
     crate::group_consumer_receive_method::verify(scenario, &index, &mut violations);
     crate::group_consumer_shutdown::verify(scenario, &index, &mut violations);
@@ -72,7 +73,7 @@ pub fn verify(
 }
 
 fn verify_operations(
-    sends: &BTreeMap<OperationId, &RecordSpec>,
+    sends: &BTreeMap<OperationId, RecordSpec>,
     assertions: &BTreeMap<OperationId, &OperationAssertion>,
     index: &HistoryIndex,
     observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,

@@ -126,6 +126,9 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     ) {
         usage.insert(Capability::TransactionTopicUuidValidation);
     }
+    if matches!(action, ScenarioAction::TransferAssignedRecord(_)) {
+        usage.insert(Capability::AssignedConsumerRecordTransfer);
+    }
     let capability = match action {
         ScenarioAction::SetBrokerBehavior { .. } => Some(Capability::ModelBroker),
         ScenarioAction::CreateClient(action) if action.expected_cluster_id.is_some() => {
@@ -150,6 +153,7 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
         | ScenarioAction::AssignBeginning { .. }
         | ScenarioAction::AssignBeginningBatch(_)
         | ScenarioAction::Receive { .. }
+        | ScenarioAction::TransferAssignedRecord(_)
         | ScenarioAction::CloseAssignedConsumer { .. } => Some(Capability::AssignedConsumer),
         ScenarioAction::CreateGroupConsumer {
             protocol,

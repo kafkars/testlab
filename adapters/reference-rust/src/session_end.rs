@@ -5,7 +5,7 @@ use std::io::Write;
 use testlab_schema::{AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandId};
 
 use crate::AdapterError;
-use crate::session::emit;
+use crate::session_output::emit;
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch<W: Write>(

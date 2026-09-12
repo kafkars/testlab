@@ -5,6 +5,7 @@ mod session;
 mod session_descriptor;
 mod session_end;
 mod session_error;
+mod session_output;
 mod session_producer;
 mod session_send;
 mod session_unsupported;

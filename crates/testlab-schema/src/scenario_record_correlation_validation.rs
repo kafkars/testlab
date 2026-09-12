@@ -18,6 +18,51 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 ));
             }
         }
+        if let ScenarioAction::TransferAssignedRecord(action) = &step.action {
+            validate_transfer(scenario, action, problems);
+        }
+    }
+}
+
+fn validate_transfer(
+    scenario: &Scenario,
+    action: &crate::AssignedRecordTransferAction,
+    problems: &mut Vec<String>,
+) {
+    let Some(source) = scenario.steps.iter().find_map(|step| {
+        records(&step.action)
+            .into_iter()
+            .find(|(operation_id, _)| *operation_id == &action.expected_input_operation_id)
+            .map(|(_, record)| record)
+    }) else {
+        problems.push(format!(
+            "assigned-record transfer {} references unsupported source operation {}",
+            action.operation_id, action.expected_input_operation_id
+        ));
+        return;
+    };
+    if source
+        .headers
+        .iter()
+        .any(|header| header.name == crate::RECORD_TRANSFER_OPERATION_HEADER)
+    {
+        problems.push(format!(
+            "assigned-record transfer source {} already contains reserved header {}",
+            action.expected_input_operation_id,
+            crate::RECORD_TRANSFER_OPERATION_HEADER
+        ));
+    }
+    let transferred = crate::transferred_record(
+        source,
+        &action.operation_id,
+        &action.target_topic,
+        action.target_partition,
+    );
+    if let Err(error) = transferred.validate() {
+        problems.push(format!(
+            "assigned-record transfer {} derives an invalid target record: {error}",
+            action.operation_id
+        ));
     }
 }
 

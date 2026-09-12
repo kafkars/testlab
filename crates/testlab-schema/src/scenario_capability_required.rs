@@ -74,6 +74,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "assigned-consumer steps require the assigned_consumer capability",
     ),
     (
+        Capability::AssignedConsumerRecordTransfer,
+        "owned record transfers require the assigned_consumer_record_transfer capability",
+    ),
+    (
         Capability::AssignedConsumerImmediateBatch,
         "immediate assigned-consumer receives require the assigned_consumer_immediate_batch capability",
     ),

@@ -64,6 +64,11 @@
   public method retained in command evidence. Retained direct-consumer failures
   are likewise observed through both `next_event` and `try_take_event`, with
   exact public fences and broker codes joined to independent policy evidence.
+- One direct-consumer batch is consumed into an owned record and transferred
+  through an ordinary producer. Exact source coordinates and bytes are read
+  again after the destination terminal, while independent observations prove
+  the original and transferred records, preserved timestamp and nullable
+  bytes, and ordered source headers.
 - Producer, assigned, classic, KIP-848, and Share scenarios preserve null versus
   empty keys and values, tombstones, duplicate nullable binary headers, public
   coordinates, and multi-record receive sets against independent broker records;

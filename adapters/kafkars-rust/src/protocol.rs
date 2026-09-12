@@ -116,6 +116,9 @@ fn dispatch<W: Write>(
         AdapterCommand::CancelProducerSend(command) => {
             crate::protocol_cancel::dispatch(state, writer, command_id, command)?;
         }
+        AdapterCommand::TransferAssignedRecord(command) => {
+            crate::assigned_record_transfer::execute(state, writer, command_id, command)?;
+        }
         AdapterCommand::SendBatch {
             producer_id,
             operations,

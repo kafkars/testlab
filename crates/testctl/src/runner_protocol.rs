@@ -1,11 +1,6 @@
-use crate::runner_protocol_admin_config::classify as classify_admin_config;
-use crate::runner_protocol_admin_group_batch::classify as classify_admin_group_batch;
 pub(crate) use crate::runner_protocol_event::EventDisposition;
-use crate::runner_protocol_event::classify_core;
-use crate::runner_protocol_family::classify_group;
-use crate::{run_error::RunFailure, runner_protocol_admin::classify_admin};
 use std::collections::BTreeSet;
-use testlab_schema::{AdapterEvent, ClientId, ConsumerId, OperationId, ProducerId};
+use testlab_schema::{ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug)]
 pub(crate) enum ExpectedEvent {
     Ready,
@@ -26,6 +21,7 @@ pub(crate) enum ExpectedEvent {
     AssignedConsumerControlCompleted(testlab_schema::AssignedConsumerControlCompletion),
     AssignedConsumerEventObserved(OperationId),
     ReceiveCompleted(OperationId),
+    AssignedRecordTransferCompleted(OperationId),
     AssignedConsumerClosed(ConsumerId),
     GroupConsumerCreated(ConsumerId),
     GroupReceiveCompleted(OperationId),
@@ -247,54 +243,4 @@ pub(crate) enum ExpectedEvent {
     ClientShutdown(ClientId),
     Finished,
     Aborted,
-}
-impl ExpectedEvent {
-    pub(crate) fn classify(&self, event: &AdapterEvent) -> Result<EventDisposition, RunFailure> {
-        if matches!(event, AdapterEvent::CommandFailed { .. }) {
-            return Ok(EventDisposition::Complete);
-        }
-        if let Some(disposition) = crate::runner_protocol_concurrent::classify(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = classify_group(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_share::classify(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = classify_admin_config(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = classify_admin_group_batch(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_admin_acl::classify(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_admin_client_quota::classify(self, event)
-        {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_admin_user_scram::classify(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_admin_share_group::classify(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_admin_producers::classify(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_admin_transactions::classify(self, event)
-        {
-            return disposition;
-        }
-        if let Some(disposition) = classify_admin(self, event) {
-            return disposition;
-        }
-        if let Some(disposition) = crate::runner_protocol_cancel::classify(self, event) {
-            return disposition;
-        }
-        crate::runner_protocol_transaction::classify(self, event)
-            .unwrap_or_else(|| classify_core(self, event))
-    }
 }

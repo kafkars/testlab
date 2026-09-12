@@ -8,7 +8,7 @@ use crate::index::HistoryIndex;
 use crate::support::violation;
 
 pub(crate) fn verify(
-    sends: &BTreeMap<OperationId, &RecordSpec>,
+    sends: &BTreeMap<OperationId, RecordSpec>,
     index: &HistoryIndex,
     observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
     violations: &mut Vec<Violation>,

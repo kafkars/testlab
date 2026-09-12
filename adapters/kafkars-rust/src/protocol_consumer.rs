@@ -160,17 +160,25 @@ fn receive_waiting(
     consumer: &mut AssignedConsumer,
     deadline: Instant,
 ) -> Result<Vec<ConsumedRecord>, AdapterError> {
+    match receive_waiting_batch(consumer, deadline)? {
+        Some(batch) => normalize_batch(&batch),
+        None => Ok(Vec::new()),
+    }
+}
+
+pub(crate) fn receive_waiting_batch(
+    consumer: &mut AssignedConsumer,
+    deadline: Instant,
+) -> Result<Option<RecordBatch>, AdapterError> {
     let mut receive = pin!(consumer.recv());
     let mut context = Context::from_waker(Waker::noop());
     loop {
         match receive.as_mut().poll(&mut context) {
-            Poll::Ready(Ok(Some(batch))) => return normalize_batch(&batch),
-            Poll::Ready(Ok(None)) => return Ok(Vec::new()),
-            Poll::Ready(Err(error)) => return Err(AdapterError::Client(error)),
+            Poll::Ready(result) => return result.map_err(AdapterError::Client),
             Poll::Pending => {}
         }
         if Instant::now() >= deadline {
-            return Ok(Vec::new());
+            return Ok(None);
         }
         std::thread::sleep(POLL_SLICE);
     }

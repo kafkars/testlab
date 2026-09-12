@@ -64,6 +64,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         | ScenarioAction::ControlAssignedConsumer(_)
         | ScenarioAction::ObserveAssignedConsumerEvent(_)
         | ScenarioAction::Receive { .. }
+        | ScenarioAction::TransferAssignedRecord(_)
         | ScenarioAction::CloseAssignedConsumer { .. }
         | ScenarioAction::CreateGroupConsumer { .. }
         | ScenarioAction::GroupReceive { .. }

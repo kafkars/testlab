@@ -22,6 +22,11 @@ pub(crate) fn from_history(history: &[HistoryEntry]) -> IssuedOperations {
             AdapterCommand::Send { operation_id, .. } => {
                 issued.record_operations.insert(operation_id.clone());
             }
+            AdapterCommand::TransferAssignedRecord(command) => {
+                issued
+                    .record_operations
+                    .insert(command.operation_id.clone());
+            }
             AdapterCommand::SendBatch { operations, .. }
             | AdapterCommand::ExecuteTransaction { operations, .. } => {
                 issued.record_operations.extend(

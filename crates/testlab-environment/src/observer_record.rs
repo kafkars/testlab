@@ -23,11 +23,19 @@ pub(super) fn normalize(
     observation: u64,
     captured: CapturedRecord<'_>,
 ) -> Result<BrokerObservation, ObserverError> {
-    let operation = required_header(&captured.headers, OPERATION_HEADER)?;
+    let source_operation = required_header(&captured.headers, OPERATION_HEADER)?;
+    let transfer_operation = optional_header(
+        &captured.headers,
+        testlab_schema::RECORD_TRANSFER_OPERATION_HEADER,
+    )?;
+    let (operation, operation_header) = transfer_operation
+        .map_or((source_operation, OPERATION_HEADER), |operation| {
+            (operation, testlab_schema::RECORD_TRANSFER_OPERATION_HEADER)
+        });
     let operation =
-        std::str::from_utf8(operation).map_err(|error| invalid(OPERATION_HEADER, error))?;
+        std::str::from_utf8(operation).map_err(|error| invalid(operation_header, error))?;
     let operation_id =
-        OperationId::new(operation).map_err(|error| invalid(OPERATION_HEADER, error))?;
+        OperationId::new(operation).map_err(|error| invalid(operation_header, error))?;
     let sequence = required_header(&captured.headers, SEQUENCE_HEADER)?;
     let sequence = std::str::from_utf8(sequence)
         .map_err(|error| invalid(SEQUENCE_HEADER, error))?
@@ -74,6 +82,23 @@ fn required_header<'a>(
         return Err(invalid(name, "duplicated"));
     }
     value.ok_or_else(|| invalid(name, "null"))
+}
+
+fn optional_header<'a>(
+    headers: &'a [(&str, Option<&[u8]>)],
+    name: &str,
+) -> Result<Option<&'a [u8]>, ObserverError> {
+    let mut values = headers
+        .iter()
+        .filter(|(candidate, _)| *candidate == name)
+        .map(|(_, value)| *value);
+    let Some(value) = values.next() else {
+        return Ok(None);
+    };
+    if values.next().is_some() {
+        return Err(invalid(name, "duplicated"));
+    }
+    value.map(Some).ok_or_else(|| invalid(name, "null"))
 }
 
 fn bytes(value: &[u8]) -> ByteString {

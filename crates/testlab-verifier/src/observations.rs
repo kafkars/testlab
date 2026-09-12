@@ -7,7 +7,7 @@ use testlab_schema::{BrokerObservation, OperationId, RecordSpec, Violation};
 use crate::support::{observation_references, violation};
 
 pub(crate) fn verify_unknown(
-    sends: &BTreeMap<OperationId, &RecordSpec>,
+    sends: &BTreeMap<OperationId, RecordSpec>,
     observed: &BTreeMap<OperationId, Vec<&BrokerObservation>>,
     violations: &mut Vec<Violation>,
 ) {

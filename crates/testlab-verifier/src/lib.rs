@@ -51,6 +51,7 @@ mod adversary;
 mod assigned_consumer_controls;
 mod assigned_consumer_events;
 mod assigned_consumer_receive_method;
+mod assigned_record_transfer;
 mod broker_policy;
 mod broker_policy_acl;
 mod broker_policy_assigned_consumer;
@@ -75,6 +76,7 @@ mod group_redistribution;
 mod index;
 mod lifecycle;
 mod lifecycle_commands;
+mod lifecycle_nonterminal;
 mod network_proxy;
 mod network_proxy_progress;
 mod observations;
@@ -100,10 +102,8 @@ mod transaction_send_method;
 mod transaction_topic_uuid;
 mod verify;
 mod verify_index;
-
 pub use contracts::known_contract_ids;
 pub use verify::verify;
-
 #[cfg(test)]
 mod admin_acl_test;
 #[cfg(test)]

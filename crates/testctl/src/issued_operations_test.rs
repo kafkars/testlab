@@ -1,9 +1,10 @@
 //! Issued-operation tests retain record and independently observed admin identities.
 
 use testlab_schema::{
-    AdapterCommand, BatchRecord, ClientId, CommandEnvelope, CommandId, ConsumerId,
-    CreatePartitionsCommand, HistoryEntry, HistoryPayload, ListConsumerGroupOffsetsCommand,
-    OperationId, ProducerId, RecordSpec, TransactionDisposition, TransactionalTransformCommand,
+    AdapterCommand, AssignedRecordTransferCommand, BatchRecord, ClientId, CommandEnvelope,
+    CommandId, ConsumerId, CreatePartitionsCommand, HistoryEntry, HistoryPayload,
+    ListConsumerGroupOffsetsCommand, OperationId, ProducerId, RecordSpec, TransactionDisposition,
+    TransactionalTransformCommand,
 };
 
 use crate::issued_operations::from_history;
@@ -47,9 +48,10 @@ fn recorded_commands_retain_every_observed_operation() {
         ),
         entry(4, "fence", fence_transaction()),
         entry(5, "transform", transactional_transform()),
-        entry(6, "group-offsets", group_offset_command("group-1")),
+        entry(6, "transfer", assigned_record_transfer()),
+        entry(7, "group-offsets", group_offset_command("group-1")),
         entry(
-            7,
+            8,
             "group-offsets-duplicate",
             group_offset_command("other-group"),
         ),
@@ -65,6 +67,7 @@ fn recorded_commands_retain_every_observed_operation() {
             "fenced-record-1",
             "send-1",
             "transaction-record-1",
+            "transfer-record-1",
             "transform-record-1",
         ]
         .into_iter()
@@ -78,6 +81,17 @@ fn recorded_commands_retain_every_observed_operation() {
             group_offset_payload("other-group"),
         ]
     );
+}
+
+fn assigned_record_transfer() -> AdapterCommand {
+    AdapterCommand::TransferAssignedRecord(AssignedRecordTransferCommand {
+        consumer_id: id(ConsumerId::new("consumer-1")),
+        producer_id: id(ProducerId::new("producer-1")),
+        operation_id: id(OperationId::new("transfer-record-1")),
+        target_topic: "transferred-records".to_owned(),
+        target_partition: 1,
+        timeout_ms: 1_000,
+    })
 }
 
 fn transactional_transform() -> AdapterCommand {

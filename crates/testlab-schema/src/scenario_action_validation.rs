@@ -68,6 +68,9 @@ pub(crate) fn validate_action(
         ScenarioAction::ObserveAssignedConsumerEvent(action) => {
             crate::assigned_consumer_event_validation::validate(action, state, problems);
         }
+        ScenarioAction::TransferAssignedRecord(action) => {
+            crate::assigned_record_transfer_validation::validate(action, state, problems);
+        }
         ScenarioAction::SendBatch {
             producer_id,
             operations: batch,

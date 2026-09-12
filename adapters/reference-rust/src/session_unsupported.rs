@@ -13,6 +13,9 @@ pub(super) fn reason(command: &AdapterCommand) -> &'static str {
             "assigned_consumer_configuration capability required"
         }
         AdapterCommand::ObserveClientMetrics(_) => "client_metrics capability required",
+        AdapterCommand::TransferAssignedRecord(_) => {
+            "assigned_consumer_record_transfer capability required"
+        }
         AdapterCommand::CreateAssignedConsumer { .. }
         | AdapterCommand::AssignBeginning { .. }
         | AdapterCommand::AssignBeginningBatch(_)

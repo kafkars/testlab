@@ -25,6 +25,9 @@ impl HistoryIndex {
             | AdapterCommand::GroupReceive { receive_id, .. } => {
                 self.receives_issued.insert(receive_id.clone());
             }
+            AdapterCommand::TransferAssignedRecord(command) => {
+                self.operations_issued.insert(command.operation_id.clone());
+            }
             AdapterCommand::CloseAssignedConsumer { consumer_id } => {
                 self.consumers_close_issued.insert(consumer_id.clone());
             }

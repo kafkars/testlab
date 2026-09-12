@@ -66,6 +66,8 @@ mod assigned_consumer_control;
 mod assigned_consumer_control_validation;
 mod assigned_consumer_event;
 mod assigned_consumer_event_validation;
+mod assigned_record_transfer;
+mod assigned_record_transfer_validation;
 mod broker_policy;
 mod broker_role;
 mod broker_state;
@@ -100,6 +102,7 @@ mod producer_configuration_validation;
 mod protocol;
 mod protocol_adversary;
 mod protocol_command;
+#[allow(missing_docs, reason = "typed payload variants are self-describing")]
 mod protocol_event;
 mod protocol_group;
 mod protocol_security;
@@ -108,6 +111,7 @@ mod qualification_evidence;
 mod receive_action_validation;
 mod record;
 mod scenario;
+#[allow(missing_docs, reason = "admin variants use public payload types")]
 mod scenario_action;
 mod scenario_action_lifecycle_validation;
 mod scenario_action_state;
@@ -133,6 +137,7 @@ pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_exports::*;
 pub use assigned_consumer_control::*;
 pub use assigned_consumer_event::*;
+pub use assigned_record_transfer::*;
 pub use broker_policy::*;
 pub use broker_role::BrokerRoleTarget;
 pub use broker_state::{
@@ -278,15 +283,11 @@ mod group_consumer_control_test;
 #[cfg(test)]
 mod group_consumer_shutdown_test;
 #[cfg(test)]
-mod network_proxy_test;
-#[cfg(test)]
 mod producer_cancellation_test;
 #[cfg(test)]
 mod producer_configuration_test;
 #[cfg(test)]
-mod protocol_adversary_test;
-#[cfg(test)]
-mod protocol_group_test;
+mod protocol_tests;
 #[cfg(test)]
 mod qualification_evidence_test;
 #[cfg(test)]

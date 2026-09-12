@@ -38,6 +38,7 @@ impl HistoryIndex {
             | AdapterCommand::ControlAssignedConsumer(_)
             | AdapterCommand::ObserveAssignedConsumerEvent(_)
             | AdapterCommand::Receive { .. }
+            | AdapterCommand::TransferAssignedRecord(_)
             | AdapterCommand::GroupReceive { .. }
             | AdapterCommand::CloseAssignedConsumer { .. }
             | AdapterCommand::CreateGroupConsumer { .. }

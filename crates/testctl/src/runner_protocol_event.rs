@@ -96,6 +96,15 @@ pub(super) fn classify_core(
             },
         ) if expected == actual => Ok(EventDisposition::Complete),
         (
+            ExpectedEvent::AssignedRecordTransferCompleted(expected),
+            AdapterEvent::OperationAccepted { operation_id }
+            | AdapterEvent::OperationTerminal { operation_id, .. },
+        ) if expected == operation_id => Ok(EventDisposition::Continue),
+        (
+            ExpectedEvent::AssignedRecordTransferCompleted(expected),
+            AdapterEvent::AssignedRecordTransferCompleted(completion),
+        ) if expected == &completion.operation_id => Ok(EventDisposition::Complete),
+        (
             ExpectedEvent::AssignedConsumerClosed(expected),
             AdapterEvent::AssignedConsumerClosed {
                 consumer_id: actual,

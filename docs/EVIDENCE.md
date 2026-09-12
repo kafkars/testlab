@@ -114,6 +114,12 @@ ordinary sends and typed producer receipts. PROD-018 joins the prior public and
 independent topic identity to the exact validation-enabled send, then preserves
 the public topic, UUID, optional leader epoch, and nullable serialized sizes
 alongside independently checked coordinates and timestamp.
+Protocol v100, scenario schema v103, and evidence schema v89 add owned direct-
+consumer record transfer. CONS-021 requires one exact transfer command, ordinary
+destination admission and terminal, source evidence read again after that
+terminal, and distinct independent source and destination records. A reserved
+transfer-operation header gives the copy its own observation identity without
+removing or replacing any source header.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -133,7 +139,7 @@ packaged client.
 Real-Kafka runs also record one `broker_observe` operation. Its librdkafka
 snapshot targets only record-bearing adapter commands actually issued in the
 recorded harness history; an issued concurrent actor group, batch, transaction,
-or fencing command
+fencing, or owned-record transfer command
 contributes every contained operation. The snapshot uses broker watermarks and
 emits structured observations with exact partition, offset, timestamp, key,
 value, and ordered header bytes.
@@ -160,6 +166,10 @@ return with increased delivery counts without accepting settled siblings as
 substitutes. SHARE-010 requires the exact scenario-declared public acquisition
 count for a configured Share receive while SHARE-006 still binds every record
 in that batch to independent broker coordinates and bytes.
+CONS-021 separately binds an owned direct-consumer source record to its original
+independent coordinates and bytes, then binds its transferred producer record
+and receipt to a distinct destination observation. The completion must follow
+the destination terminal and expose the unchanged retained source record.
 PROD-011 requires strictly increasing independent offsets for sequential sends
 and caller-ordered batch records targeting one partition; concurrent actor
 declarations do not claim an execution order.

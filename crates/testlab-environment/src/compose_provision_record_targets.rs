@@ -37,6 +37,12 @@ pub(super) fn record(
         ScenarioAction::FenceTransaction { operation, .. } => {
             record_topic(topics, subject_created, &operation.record);
         }
+        ScenarioAction::TransferAssignedRecord(action) => require_topic(
+            topics,
+            subject_created,
+            &action.target_topic,
+            action.target_partition.saturating_add(1),
+        ),
         ScenarioAction::StartConcurrentActors(action) => {
             for actor in &action.actors {
                 if let testlab_schema::ConcurrentActor::ProducerSend { record, .. } = actor {

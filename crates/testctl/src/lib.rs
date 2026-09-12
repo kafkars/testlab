@@ -38,6 +38,7 @@ mod runner_protocol_admin_user_scram;
 mod runner_protocol_cancel;
 mod runner_protocol_concurrent;
 mod runner_protocol_event;
+mod runner_protocol_expected;
 mod runner_protocol_family;
 mod runner_protocol_identity;
 mod runner_protocol_share;
@@ -223,6 +224,8 @@ mod session_command_producer_cancellation_test;
 mod session_command_producer_configuration_test;
 #[cfg(test)]
 mod session_command_transaction_test;
+#[cfg(test)]
+mod session_command_transfer_test;
 #[cfg(test)]
 mod session_share_test;
 #[cfg(test)]

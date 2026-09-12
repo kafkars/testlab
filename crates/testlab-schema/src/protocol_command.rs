@@ -81,6 +81,7 @@ pub enum AdapterCommand {
         /// Maximum public observation duration.
         timeout_ms: u64,
     },
+    TransferAssignedRecord(crate::AssignedRecordTransferCommand),
     /// Closes one directly assigned consumer.
     CloseAssignedConsumer {
         /// Consumer to close.

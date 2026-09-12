@@ -13,6 +13,12 @@ pub(crate) struct IndexedGroupConsumerControl {
     pub(crate) completion: testlab_schema::GroupConsumerControlCompletion,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct IndexedAssignedRecordTransfer {
+    pub(crate) history_sequence: u64,
+    pub(crate) completion: testlab_schema::AssignedRecordTransferCompletion,
+}
+
 impl HistoryIndex {
     pub(super) fn record_consumer_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
         match event {
@@ -34,6 +40,14 @@ impl HistoryIndex {
                 receive_id,
                 records,
             } => self.record_receive(receive_id, records, None, None, sequence),
+            AdapterEvent::AssignedRecordTransferCompleted(completion) => self
+                .assigned_record_transfers
+                .entry(completion.operation_id.clone())
+                .or_default()
+                .push(IndexedAssignedRecordTransfer {
+                    history_sequence: sequence,
+                    completion: completion.clone(),
+                }),
             AdapterEvent::AssignedConsumerClosed { consumer_id } => {
                 push(&mut self.consumers_closed, consumer_id.clone(), sequence);
             }

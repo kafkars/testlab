@@ -152,6 +152,8 @@ mod compose_disruption_test;
 #[cfg(test)]
 mod compose_observe_admin_test;
 #[cfg(test)]
+mod compose_owned_transfer_provision_test;
+#[cfg(test)]
 mod compose_plural_group_provision_test;
 #[cfg(test)]
 mod compose_ports_test;

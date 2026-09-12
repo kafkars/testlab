@@ -80,7 +80,7 @@ pub(crate) struct IndexedAssignedConsumerControl {
     pub(crate) completion: testlab_schema::AssignedConsumerControlCompletion,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) use consumer_recording::IndexedGroupConsumerControl;
+pub(crate) use consumer_recording::{IndexedAssignedRecordTransfer, IndexedGroupConsumerControl};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedCommandFailure {
     pub(crate) history_sequence: u64,
@@ -267,6 +267,7 @@ pub(crate) struct HistoryIndex {
     pub(crate) assignments: BTreeMap<ConsumerId, Vec<u64>>,
     pub(crate) assigned_controls: BTreeMap<OperationId, Vec<IndexedAssignedConsumerControl>>,
     pub(crate) receives: BTreeMap<OperationId, Vec<IndexedReceive>>,
+    pub(crate) assigned_record_transfers: BTreeMap<OperationId, Vec<IndexedAssignedRecordTransfer>>,
     pub(crate) group_assignments: BTreeMap<OperationId, Vec<IndexedGroupAssignments>>,
     pub(crate) group_receive_sets: BTreeMap<OperationId, Vec<IndexedGroupReceiveSet>>,
     pub(crate) group_controls: BTreeMap<OperationId, Vec<IndexedGroupConsumerControl>>,

@@ -20,6 +20,7 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         Capability::ExpectedClusterIdentity,
         Capability::ClientMetrics,
         Capability::AssignedConsumer,
+        Capability::AssignedConsumerRecordTransfer,
         Capability::AssignedConsumerImmediateBatch,
         Capability::AssignedConsumerEvents,
         Capability::AssignedConsumerConfiguration,

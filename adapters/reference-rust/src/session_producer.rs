@@ -7,7 +7,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
-use crate::session::emit;
+use crate::session_output::emit;
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch<W: Write>(

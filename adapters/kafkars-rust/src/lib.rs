@@ -10,6 +10,7 @@ mod assigned_consumer_positions;
 #[cfg(test)]
 mod assigned_consumer_positions_test;
 mod assigned_consumers;
+mod assigned_record_transfer;
 mod client_metrics;
 mod connection_security;
 mod consumer_configuration;

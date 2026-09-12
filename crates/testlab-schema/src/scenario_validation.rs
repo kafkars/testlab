@@ -175,6 +175,9 @@ fn record_partitions(action: &crate::ScenarioAction) -> Vec<(String, i32)> {
         crate::ScenarioAction::FenceTransaction { operation, .. } => {
             vec![(operation.record.topic.clone(), operation.record.partition)]
         }
+        crate::ScenarioAction::TransferAssignedRecord(action) => {
+            vec![(action.target_topic.clone(), action.target_partition)]
+        }
         crate::ScenarioAction::StartConcurrentActors(action) => action
             .actors
             .iter()

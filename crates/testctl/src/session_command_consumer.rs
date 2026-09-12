@@ -45,6 +45,17 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             },
             ExpectedEvent::ReceiveCompleted(receive_id.clone()),
         ),
+        ScenarioAction::TransferAssignedRecord(action) => (
+            AdapterCommand::TransferAssignedRecord(testlab_schema::AssignedRecordTransferCommand {
+                consumer_id: action.consumer_id.clone(),
+                producer_id: action.producer_id.clone(),
+                operation_id: action.operation_id.clone(),
+                target_topic: action.target_topic.clone(),
+                target_partition: action.target_partition,
+                timeout_ms: action.timeout_ms,
+            }),
+            ExpectedEvent::AssignedRecordTransferCompleted(action.operation_id.clone()),
+        ),
         ScenarioAction::ObserveAssignedConsumerEvent(action) => (
             AdapterCommand::ObserveAssignedConsumerEvent(
                 testlab_schema::ObserveAssignedConsumerEventCommand {

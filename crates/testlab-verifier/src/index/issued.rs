@@ -196,6 +196,7 @@ impl HistoryIndex {
             | ScenarioAction::ControlAssignedConsumer(_)
             | ScenarioAction::ObserveAssignedConsumerEvent(_)
             | ScenarioAction::Receive { .. }
+            | ScenarioAction::TransferAssignedRecord(_)
             | ScenarioAction::CloseAssignedConsumer { .. }
             | ScenarioAction::CreateGroupConsumer { .. }
             | ScenarioAction::GroupReceive { .. }
@@ -235,6 +236,13 @@ impl HistoryIndex {
             ScenarioAction::Receive { receive_id, .. }
             | ScenarioAction::GroupReceive { receive_id, .. } => {
                 Some(self.receives_issued.contains(receive_id))
+            }
+            ScenarioAction::TransferAssignedRecord(action) => {
+                Some(self.commands.iter().any(|(_, _, command)| {
+                    matches!(command,
+                    testlab_schema::AdapterCommand::TransferAssignedRecord(actual)
+                        if actual.operation_id == action.operation_id)
+                }))
             }
             ScenarioAction::CloseAssignedConsumer { consumer_id } => {
                 Some(self.consumers_close_issued.contains(consumer_id))

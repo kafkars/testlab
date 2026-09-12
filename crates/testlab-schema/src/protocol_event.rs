@@ -1,4 +1,3 @@
-#![allow(missing_docs, reason = "typed payload variants are self-describing")]
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
     ProducerId, ProducerReceipt, ShareConsumedRecord, ShareDisposition, TerminalStatus,
@@ -98,6 +97,7 @@ pub enum AdapterEvent {
         /// Exact records returned through the public API.
         records: Vec<ConsumedRecord>,
     },
+    AssignedRecordTransferCompleted(crate::AssignedRecordTransferCompletion),
     /// One directly assigned consumer closed.
     AssignedConsumerClosed {
         /// Closed consumer.

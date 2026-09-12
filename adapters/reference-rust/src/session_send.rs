@@ -9,7 +9,7 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::broker_client;
-use crate::session::emit;
+use crate::session_output::emit;
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch_send<W: Write>(
