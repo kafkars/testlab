@@ -518,8 +518,8 @@ category = "transaction"
 
 [[contract]]
 id = "TXN-003"
-title = "Replacement ownership fences an active transaction"
-statement = "A replacement transactional producer makes the old commit report fenced and the old staged records remain absent from read-committed observation."
+title = "A declared public operation fences an active transaction"
+statement = "Replacement initialization or Admin force termination makes the old commit report fenced and the old staged records remain absent from read-committed observation."
 category = "transaction"
 
 [[contract]]

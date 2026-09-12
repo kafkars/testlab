@@ -257,8 +257,10 @@ pub enum AdapterCommand {
     },
     /// Atomically transforms one public group batch and its checkpoint.
     ExecuteTransactionalTransform(crate::TransactionalTransformCommand),
-    /// Stages one record and initializes a replacement owner before the old commit.
+    /// Stages one record, applies one public fence, and proves replacement use.
     FenceTransaction {
+        /// Public operation that fences the active transaction.
+        fence_method: crate::TransactionFenceMethod,
         /// Existing transactional producer whose active transaction is fenced.
         producer_id: ProducerId,
         /// Stable fenced transaction identity.

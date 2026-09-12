@@ -85,6 +85,17 @@ pub enum TransactionDisposition {
     Abort,
 }
 
+/// Public operation used to fence one active transactional producer.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TransactionFenceMethod {
+    /// Initializes a replacement producer with the same transactional ID.
+    #[default]
+    ReplacementInitialization,
+    /// Uses the Admin singleton transaction-termination operation.
+    AdminForceTermination,
+}
+
 /// Expected public and broker-visible result for one send.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]

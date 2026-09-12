@@ -1,0 +1,101 @@
+schema_version = 89
+id = "kafka.transaction-admin-force-termination"
+title = "Admin force termination fences an active transaction"
+description = "A packaged producer stages one exact record, public Admin force-terminates its active transactional identity before any replacement exists, and the old commit must report fenced while read-committed observation excludes the staged record and a later replacement commits normally."
+timeout_ms = 150000
+requires = ["producer", "transactions", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-original-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-original"
+transactional_id = "testlab-kafkars-admin-terminated-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+
+[[steps]]
+id = "force-terminate-active-transaction"
+kind = "fence_transaction"
+fence_method = "admin_force_termination"
+producer_id = "transactional-producer-original"
+transaction_id = "transaction-admin-force-terminated"
+replacement_client_id = "client-1"
+replacement_producer_id = "transactional-producer-replacement"
+transactional_id = "testlab-kafkars-admin-terminated-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 30000
+timeout_ms = 60000
+
+[steps.operation]
+operation_id = "op-admin-force-terminated"
+
+[steps.operation.record]
+topic = "testlab-kafkars-transaction-admin-force-termination"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "terminated" }
+value = { encoding = "hex", data = "0061646d696e2d7465726d696e61746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-admin-force-terminated" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "replacement-commit"
+kind = "execute_transaction"
+producer_id = "transactional-producer-replacement"
+transaction_id = "transaction-replacement-commit"
+disposition = "commit"
+timeout_ms = 30000
+
+[[steps.operations]]
+operation_id = "op-replacement-committed"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-admin-force-termination"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "replacement" }
+value = { encoding = "hex", data = "007265706c6163656d656e742d636f6d6d6974746564ff" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-replacement-committed" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "close-original-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-original"
+
+[[steps]]
+id = "close-replacement-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-replacement"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-admin-force-terminated"
+accepted = true
+terminal = "transaction_staged"
+visibility = "absent"
+
+[[assertions]]
+operation_id = "op-replacement-committed"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

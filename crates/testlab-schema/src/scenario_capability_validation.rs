@@ -8,6 +8,15 @@ use crate::{Capability, ChildHandleOwnership, GroupProtocol, Scenario, ScenarioA
 pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
     if matches!(
         action,
+        ScenarioAction::FenceTransaction {
+            fence_method: crate::TransactionFenceMethod::AdminForceTermination,
+            ..
+        }
+    ) {
+        usage.insert(Capability::Admin);
+    }
+    if matches!(
+        action,
         ScenarioAction::CreateProducer {
             ownership: ChildHandleOwnership::Independent,
             ..

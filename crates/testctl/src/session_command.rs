@@ -239,6 +239,7 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
             },
         ),
         ScenarioAction::FenceTransaction {
+            fence_method,
             producer_id,
             transaction_id,
             operation,
@@ -250,6 +251,7 @@ fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent
             timeout_ms,
         } => (
             AdapterCommand::FenceTransaction {
+                fence_method: *fence_method,
                 producer_id: producer_id.clone(),
                 transaction_id: transaction_id.clone(),
                 operation: operation.clone(),

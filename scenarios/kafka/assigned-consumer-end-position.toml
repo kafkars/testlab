@@ -1,4 +1,4 @@
-schema_version = 88
+schema_version = 89
 id = "kafka.assigned-consumer-end-position"
 title = "an assigned consumer starts at the resolved log end"
 description = "The packaged client resolves an empty partition end through the public replacement control and receives only a record produced afterward."

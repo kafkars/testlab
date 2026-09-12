@@ -1,6 +1,6 @@
 //! Transaction command translation strips harness-only source expectations.
 
-use testlab_schema::{AdapterCommand, Scenario, ScenarioAction};
+use testlab_schema::{AdapterCommand, Scenario, ScenarioAction, TransactionFenceMethod};
 
 use crate::runner_protocol::ExpectedEvent;
 
@@ -28,4 +28,29 @@ fn transactional_transform_translates_exact_output_identity_set() {
         operation_ids,
     } if transaction_id == expected.transaction_id
         && operation_ids.contains(&expected.operations[0].operation_id)));
+}
+
+#[test]
+fn transaction_fence_translation_preserves_explicit_and_default_methods() {
+    let explicit: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transaction-admin-force-termination.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse Admin termination scenario: {error}"));
+    let legacy: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transaction-fencing.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse replacement fencing scenario: {error}"));
+
+    for (scenario, expected) in [
+        (explicit, TransactionFenceMethod::AdminForceTermination),
+        (legacy, TransactionFenceMethod::ReplacementInitialization),
+    ] {
+        let action = &scenario.steps[3].action;
+        let Some((AdapterCommand::FenceTransaction { fence_method, .. }, _)) =
+            crate::session_command::translate(action)
+        else {
+            panic!("fence translation missing");
+        };
+        assert_eq!(fence_method, expected);
+    }
 }

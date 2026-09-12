@@ -5,7 +5,10 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{ErrorKind, KafkaError, RetryAdvice, Transaction, TransactionalProducer};
-use testlab_schema::{AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandId, ProducerId};
+use testlab_schema::{
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, ClientId, CommandId, ProducerId,
+    TransactionFenceMethod,
+};
 
 use crate::AdapterError;
 use crate::normalize;
@@ -20,6 +23,7 @@ pub(crate) fn dispatch<W: Write>(
     command: AdapterCommand,
 ) -> Result<(), AdapterError> {
     let AdapterCommand::FenceTransaction {
+        fence_method,
         producer_id,
         transaction_id,
         operation,
@@ -41,6 +45,7 @@ pub(crate) fn dispatch<W: Write>(
         state,
         writer,
         command_id,
+        fence_method,
         transaction_id,
         operation,
         replacement_client_id,
@@ -63,6 +68,7 @@ fn execute<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
     command_id: CommandId,
+    fence_method: TransactionFenceMethod,
     transaction_id: testlab_schema::OperationId,
     operation: testlab_schema::BatchRecord,
     replacement_client_id: testlab_schema::ClientId,
@@ -83,6 +89,7 @@ fn execute<W: Write>(
                     state,
                     writer,
                     command_id,
+                    fence_method,
                     transaction_id,
                     operation,
                     replacement_client_id,
@@ -112,6 +119,7 @@ fn execute_started<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
     command_id: CommandId,
+    fence_method: TransactionFenceMethod,
     transaction_id: testlab_schema::OperationId,
     operation: testlab_schema::BatchRecord,
     replacement_client_id: testlab_schema::ClientId,
@@ -122,9 +130,75 @@ fn execute_started<W: Write>(
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     transaction_execute::send(&mut transaction, writer, &command_id, operation, deadline)?;
+    let commit_error_code = match fence_method {
+        TransactionFenceMethod::ReplacementInitialization => {
+            create_replacement(
+                state,
+                writer,
+                &command_id,
+                &replacement_client_id,
+                &replacement_producer_id,
+                transactional_id,
+                transaction_timeout,
+                initialization_timeout,
+                deadline,
+            )?;
+            commit_result(transaction, deadline)?
+        }
+        TransactionFenceMethod::AdminForceTermination => {
+            state
+                .client(&replacement_client_id)?
+                .admin()
+                .force_terminate_transaction(transactional_id)
+                .deadline_after(remaining(deadline)?)
+                .submit()
+                .wait()
+                .map_err(AdapterError::Client)?;
+            let result = commit_result(transaction, deadline)?;
+            create_replacement(
+                state,
+                writer,
+                &command_id,
+                &replacement_client_id,
+                &replacement_producer_id,
+                transactional_id,
+                transaction_timeout,
+                initialization_timeout,
+                deadline,
+            )?;
+            result
+        }
+    };
+    emit(
+        writer,
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::TransactionFenceCompleted {
+                transaction_id,
+                commit_error_code,
+            },
+        ),
+    )
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "replacement initialization retains the command's exact public inputs"
+)]
+fn create_replacement<W: Write>(
+    state: &mut AdapterState,
+    writer: &mut W,
+    command_id: &CommandId,
+    client_id: &ClientId,
+    producer_id: &ProducerId,
+    transactional_id: &str,
+    transaction_timeout: Duration,
+    initialization_timeout: Duration,
+    deadline: Instant,
+) -> Result<(), AdapterError> {
     state.create_transactional_producer(
-        replacement_client_id,
-        replacement_producer_id.clone(),
+        client_id.clone(),
+        producer_id.clone(),
         transactional_id,
         transaction_timeout,
         initialization_timeout.min(remaining(deadline)?),
@@ -134,18 +208,7 @@ fn execute_started<W: Write>(
         &AdapterEventEnvelope::new(
             command_id.clone(),
             AdapterEvent::TransactionalProducerCreated {
-                producer_id: replacement_producer_id,
-            },
-        ),
-    )?;
-    let commit_error_code = commit_result(transaction, deadline)?;
-    emit(
-        writer,
-        &AdapterEventEnvelope::new(
-            command_id,
-            AdapterEvent::TransactionFenceCompleted {
-                transaction_id,
-                commit_error_code,
+                producer_id: producer_id.clone(),
             },
         ),
     )

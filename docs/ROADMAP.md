@@ -35,9 +35,10 @@
   descriptions, singleton and caller-ordered plural selected partition offset
   listings, partition offset alteration/deletion, and
   caller-ordered empty-group deletion, against
-  independent Kafka CLI state; transactions, fencing, broker restart, rolling restart, and independently targeted
-  partition-leader, controller, classic and KIP-848 group-coordinator, and
-  transaction-coordinator recovery.
+  independent Kafka CLI state; transactions, replacement and Admin
+  force-termination fencing, broker restart, rolling restart, and independently
+  targeted partition-leader, controller, classic and KIP-848 group-coordinator,
+  and transaction-coordinator recovery.
 - Public Admin log-directory coverage preserves selected broker and replica
   placement details, then proves caller-ordered two-directory replica moves
   through independently polled Kafka CLI state with no remaining future copy.

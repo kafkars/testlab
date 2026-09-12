@@ -10,7 +10,7 @@ use crate::compose_provision_targets::topics;
 fn every_plural_offset_selection_contributes_its_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 88
+schema_version = 89
 id = "admin.plural-group-provisioning"
 title = "plural group provisioning"
 description = "plural group provisioning fixture"

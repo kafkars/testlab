@@ -266,8 +266,11 @@ pub enum ScenarioAction {
         timeout_ms: u64,
     },
     ExecuteTransactionalTransform(crate::TransactionalTransformAction),
-    /// Stages one record, initializes a replacement owner, and observes the old commit result.
+    /// Stages one record, fences its owner, and proves replacement use.
     FenceTransaction {
+        /// Public operation that fences the active transaction.
+        #[serde(default)]
+        fence_method: crate::TransactionFenceMethod,
         /// Existing transactional producer.
         producer_id: ProducerId,
         /// Stable transaction identity.

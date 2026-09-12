@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v85 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v88 and evidence schema v74.
+Protocol v86 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v89 and evidence schema v75.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -989,11 +989,16 @@ checkpoint is immediately corroborated by public Admin plus an independent
 librdkafka group-offset query. An aborted checkpoint is proved unadvanced only
 when a replacement group member receives the exact source record again.
 
-One `fence_transaction` command keeps the original public transaction open
-while it initializes a replacement producer with the same transactional ID.
-It reports the staged record, replacement producer creation, and the normalized
-old-commit result separately. The verifier requires `fenced` and independently
-requires the staged record to remain absent under `read_committed` isolation.
+One `fence_transaction` command keeps the original public transaction open and
+carries an exact `fence_method`. `replacement_initialization`, the scenario
+default, initializes a replacement producer with the same transactional ID
+before the old commit. `admin_force_termination` instead invokes the singleton
+public Admin termination operation before the old commit and does not initialize
+the replacement until that commit result has been obtained. Both methods report
+the staged record, replacement producer creation, and normalized old-commit
+result separately. The verifier requires `fenced`, independently requires the
+staged record to remain absent under `read_committed` isolation, and requires a
+later replacement transaction to commit normally.
 
 Lifecycle commands target one exact public handle. Repeated readiness probes
 and producer flushes retain distinct command identities. Closing one independent
@@ -1028,6 +1033,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v85 is an exact semantic contract. New capabilities may be declared
+Protocol v86 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

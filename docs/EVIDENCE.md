@@ -56,6 +56,8 @@ client creation while the normalized mismatch oracle remains scenario-only.
 The cluster scenario proves rejection and same-identity reuse before joining a
 successful construction, repeated public readiness, public Admin description,
 and independent librdkafka cluster metadata to the exact environment identity.
+Protocol v86, scenario schema v89, and evidence schema v75 add an exact
+transaction-fencing method to the adapter command.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -208,6 +210,12 @@ independent topic-partition-offset coordinates, and caller order within each
 partition. TXN-006 prevents staging for a successive transaction on one public
 producer from crossing the prior completion. No aborted-record contract infers
 a physical append from public staging metadata or read-committed absence.
+TXN-003 requires the old active transaction to report an explicit broker fence
+and its staged record to remain absent from independent read-committed
+observation. Separate scenarios use replacement initialization and singleton
+public Admin force termination; in the Admin case no replacement exists until
+after the old commit result is obtained. Each scenario additionally requires a
+later replacement transaction to commit normally under TXN-001 and TXN-002.
 TXN-007 binds each consume-transform-produce command to one exact independently
 observed input record, positive classic or KIP-848 membership fence, and the
 public assignment-fenced next-offset checkpoint. TXN-008 requires a committed

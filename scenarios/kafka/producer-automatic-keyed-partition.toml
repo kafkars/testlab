@@ -1,4 +1,4 @@
-schema_version = 88
+schema_version = 89
 id = "kafka.producer-automatic-keyed-partition"
 title = "automatic keyed producer routing matches Kafka partitioning"
 description = "One packaged producer omits an explicit partition for a keyed record; its public receipt, an independent broker observation, and a directly assigned public consumer must agree with the Java-compatible partition oracle."

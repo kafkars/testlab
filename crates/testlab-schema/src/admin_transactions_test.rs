@@ -5,9 +5,51 @@ use crate::{AdapterCommand, AdapterEvent, BrokerStateObservation, ScenarioAction
 
 #[test]
 fn transaction_discovery_versions_are_explicit() {
-    assert_eq!(crate::PROTOCOL_VERSION, 85);
-    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 88);
-    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 74);
+    assert_eq!(crate::PROTOCOL_VERSION, 86);
+    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 89);
+    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 75);
+}
+
+#[test]
+fn transaction_fence_methods_are_explicit_and_admin_is_declared() {
+    let replacement: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transaction-fencing.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse replacement fencing: {error}"));
+    let mut admin: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/transaction-admin-force-termination.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse Admin termination: {error}"));
+
+    assert!(matches!(
+        &replacement.steps[3].action,
+        ScenarioAction::FenceTransaction {
+            fence_method: TransactionFenceMethod::ReplacementInitialization,
+            ..
+        }
+    ));
+    assert!(matches!(
+        &admin.steps[3].action,
+        ScenarioAction::FenceTransaction {
+            fence_method: TransactionFenceMethod::AdminForceTermination,
+            ..
+        }
+    ));
+    round_trip(&replacement.steps[3].action);
+    round_trip(&admin.steps[3].action);
+    admin
+        .validate()
+        .unwrap_or_else(|error| panic!("validate Admin termination: {error}"));
+    admin.requires.remove(&Capability::Admin);
+    let error = admin
+        .validate()
+        .expect_err("Admin force termination must require Admin capability");
+    assert!(
+        error
+            .problems
+            .iter()
+            .any(|problem| problem == "admin steps require the admin capability")
+    );
 }
 
 #[test]

@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v85 over stdin/stdout;
+2. implements protocol v86 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -47,9 +47,10 @@ It:
    boundaries, cluster feature discovery and validation-only finalized-feature
    updates with caller-ordered outcomes, exact partition active-producer
    state, canonical metadata-quorum discovery, canonical transaction listing,
-   caller-ordered transaction descriptions, and caller-ordered producer
-   fencing with independently matched post-fence identities, selected-replica
-   log-directory description and caller-ordered alteration outcomes,
+   caller-ordered transaction descriptions, caller-ordered producer fencing
+   with independently matched post-fence identities, and singleton Admin force
+   termination of an active transaction before replacement initialization,
+   selected-replica log-directory description and caller-ordered alteration outcomes,
    classic static membership plus complete session, rebalance, heartbeat, and
    rejoin timing, and caller-ordered static-member removal after owner
    abandonment,

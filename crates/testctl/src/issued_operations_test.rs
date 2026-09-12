@@ -100,6 +100,7 @@ fn create_partitions() -> AdapterCommand {
 
 fn fence_transaction() -> AdapterCommand {
     AdapterCommand::FenceTransaction {
+        fence_method: Default::default(),
         producer_id: id(ProducerId::new("transactional-2")),
         transaction_id: id(OperationId::new("transaction-2")),
         operation: record("fenced-record-1", 0),
