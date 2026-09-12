@@ -65,6 +65,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     }
     if matches!(
         action,
+        ScenarioAction::Send {
+            topic_identity_operation_id: Some(_),
+            ..
+        }
+    ) {
+        usage.insert(Capability::ProducerReceiptMetadata);
+    }
+    if matches!(
+        action,
         ScenarioAction::Receive {
             method: crate::AssignedConsumerReceiveMethod::TryTakeBatch,
             ..

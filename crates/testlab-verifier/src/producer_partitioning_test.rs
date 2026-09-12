@@ -102,6 +102,7 @@ fn fixture() -> (
                 operation_id: operation_id.clone(),
                 method: Default::default(),
                 partitioning,
+                validate_topic_uuid: false,
                 record,
             },
         ),
@@ -114,6 +115,7 @@ fn fixture() -> (
                 partition: Some(2),
                 offset: Some(0),
                 timestamp_millis: None,
+                receipt: None,
             },
         ),
     ];

@@ -72,6 +72,7 @@ fn uncertain_terminal_with_partition_fails_public_partition_contract() {
             partition: Some(0),
             offset: None,
             timestamp_millis: None,
+            receipt: None,
         },
     )];
 
@@ -95,6 +96,7 @@ fn uncertain_terminal_with_offset_fails_public_offset_contract() {
             partition: None,
             offset: Some(3),
             timestamp_millis: None,
+            receipt: None,
         },
     )];
 
@@ -118,6 +120,7 @@ fn reversed_same_partition_offsets_fail_declared_order() {
                 operation_id: id(OperationId::new("op-2")),
                 method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                topic_identity_operation_id: None,
                 record: record("second"),
             },
         ),

@@ -191,7 +191,7 @@ pub use qualification_evidence::{
     QUALIFICATION_EVIDENCE_SCHEMA_VERSION, QualificationCellEvidence, QualificationEvidenceError,
     QualificationEvidenceManifest, QualificationRunEvidence,
 };
-pub use record::{ConsumedRecord, HeaderSpec, RecordError, RecordSpec};
+pub use record::{ConsumedRecord, HeaderSpec, ProducerReceipt, RecordError, RecordSpec};
 pub use scenario::{SCENARIO_SCHEMA_VERSION, Scenario};
 pub use scenario_action::ScenarioAction;
 pub use scenario_error::ScenarioError;

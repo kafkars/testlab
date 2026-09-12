@@ -33,9 +33,8 @@ pub enum AdapterCommand {
         operation_id: OperationId,
         /// Exact public single-record producer method.
         method: crate::ProducerSendMethod,
-        /// Exact public partition-selection path.
         partitioning: crate::ProducerPartitioning,
-        /// Exact logical record.
+        validate_topic_uuid: bool,
         record: crate::RecordSpec,
     },
     /// Accepts one send and requests cancellation twice without losing its observer.

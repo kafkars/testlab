@@ -150,6 +150,7 @@ fn emit_terminal<W: Write>(
                 partition,
                 offset,
                 timestamp_millis,
+                receipt: None,
             },
         ),
     )

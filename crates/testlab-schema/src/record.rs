@@ -60,6 +60,22 @@ pub struct ConsumedRecord {
     pub headers: Vec<HeaderSpec>,
 }
 
+/// Complete public acknowledgement receipt for one produced record.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProducerReceipt {
+    /// Exact topic name retained by the public receipt.
+    pub topic: String,
+    /// Nonzero topic UUID proven before the Produce attempt, when requested.
+    pub topic_uuid: Option<[u8; 16]>,
+    /// Acknowledged leader epoch when supplied by Kafka.
+    pub leader_epoch: Option<i32>,
+    /// Exact serialized key length, distinguishing null from present empty bytes.
+    pub serialized_key_size: Option<usize>,
+    /// Exact serialized value length, distinguishing null from present empty bytes.
+    pub serialized_value_size: Option<usize>,
+}
+
 impl RecordSpec {
     /// Validates portable Kafka record constraints used by testlab.
     pub fn validate(&self) -> Result<(), RecordError> {

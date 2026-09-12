@@ -13,6 +13,7 @@ pub(crate) fn descriptor() -> Result<AdapterDescriptor, AdapterError> {
         Capability::ProducerCancellation,
         Capability::ProducerConfiguration,
         Capability::ProducerBatch,
+        Capability::ProducerReceiptMetadata,
         Capability::ConcurrentActors,
         Capability::Lifecycle,
         Capability::ClientReadiness,

@@ -1,7 +1,8 @@
 #![allow(missing_docs, reason = "typed payload variants are self-describing")]
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
-    ProducerId, ShareConsumedRecord, ShareDisposition, TerminalStatus, TransactionDisposition,
+    ProducerId, ProducerReceipt, ShareConsumedRecord, ShareDisposition, TerminalStatus,
+    TransactionDisposition,
 };
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -33,21 +34,20 @@ pub enum AdapterEvent {
     OperationRejected {
         /// Rejected operation.
         operation_id: OperationId,
-        /// Stable normalized rejection code.
         code: String,
     },
     /// One accepted operation reached its only terminal outcome.
     OperationTerminal {
         operation_id: OperationId,
         status: TerminalStatus,
-        /// Stable normalized outcome code.
         code: Option<String>,
-        /// Broker partition when exposed by the public surface.
         partition: Option<i32>,
         /// Broker offset when exposed by the public surface.
         offset: Option<i64>,
         /// Broker record timestamp when exposed by the public surface.
         timestamp_millis: Option<i64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        receipt: Option<ProducerReceipt>,
     },
     /// Two public cancellation requests completed on one retained observer.
     ProducerCancellationCompleted(crate::ProducerCancellationCompletion),

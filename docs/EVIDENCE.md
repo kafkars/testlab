@@ -109,6 +109,11 @@ transaction commits. TXN-010 joins caller-ordered public and independent topic
 IDs to the exact validation-enabled transaction command and its matching fresh
 commit seal; ordinary staging and read-committed record contracts still prove
 the resulting record set.
+Protocol v99, scenario schema v102, and evidence schema v88 add UUID-bound
+ordinary sends and typed producer receipts. PROD-018 joins the prior public and
+independent topic identity to the exact validation-enabled send, then preserves
+the public topic, UUID, optional leader epoch, and nullable serialized sizes
+alongside independently checked coordinates and timestamp.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -197,6 +202,14 @@ definitely-not-sent `cancelled` truth, and leaves `too_late` broker visibility
 uncertain until ordinary terminal and independent observation contracts resolve
 it. PROD-017 separately requires one exact issued cancellation command retaining
 the scenario-selected observer type, producer, record, and timeout.
+
+PROD-018 requires each selected ordinary send's public and independent nonzero
+topic ID evidence to precede one exact `validate_topic_uuid` command. Its sole
+acknowledged terminal must preserve that ID and topic, a nonnegative leader
+epoch when Kafka supplies one, and exact serialized key/value lengths with
+`None` distinct from `Some(0)`. The existing independent record contracts prove
+the same partition, offset, timestamp, and bytes; receipt metadata alone cannot
+manufacture broker truth.
 
 Client metrics history retains the expectation-free command and one exact
 correlated public snapshot. METRICS-001 binds that snapshot to its client and

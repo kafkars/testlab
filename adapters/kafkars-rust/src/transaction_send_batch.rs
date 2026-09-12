@@ -85,6 +85,7 @@ pub(crate) fn send<W: Write>(
                             partition: None,
                             offset: None,
                             timestamp_millis: None,
+                            receipt: None,
                         },
                     ),
                 )?;
@@ -171,6 +172,7 @@ fn emit_successes<W: Write>(
                     partition: Some(partition),
                     offset: Some(offset),
                     timestamp_millis: metadata.timestamp(),
+                    receipt: None,
                 },
             ),
         )?;

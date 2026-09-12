@@ -227,6 +227,7 @@ fn staged_history(
                     partition: Some(operation.record.partition),
                     offset: Some(*offset),
                     timestamp_millis: None,
+                    receipt: None,
                 },
             )
         })

@@ -57,6 +57,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
                     operation_id: operation.clone(),
                     method: Default::default(),
                     partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                    topic_identity_operation_id: None,
                     record: record("value"),
                 },
             ),
@@ -158,6 +159,7 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
                 partition: (status == TerminalStatus::Acknowledged).then_some(0),
                 offset: (status == TerminalStatus::Acknowledged).then_some(0),
                 timestamp_millis: None,
+                receipt: None,
             },
         ),
         event(

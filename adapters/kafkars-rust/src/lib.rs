@@ -29,6 +29,7 @@ mod group_receive_set;
 mod kafkars_api;
 mod normalize;
 mod producer_configuration;
+mod producer_topic_uuid;
 mod protocol;
 mod protocol_admin;
 mod protocol_admin_acl;
@@ -87,6 +88,7 @@ mod protocol_failure;
 mod protocol_group;
 mod protocol_lifecycle;
 mod protocol_send;
+mod protocol_send_outcome;
 #[cfg(kafkars_share_candidate)]
 mod protocol_share;
 #[cfg(kafkars_share_candidate)]

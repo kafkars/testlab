@@ -25,6 +25,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             operation_id,
             method,
             partitioning,
+            topic_identity_operation_id,
             record,
         } => (
             AdapterCommand::Send {
@@ -32,6 +33,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 operation_id: operation_id.clone(),
                 method: *method,
                 partitioning: *partitioning,
+                validate_topic_uuid: topic_identity_operation_id.is_some(),
                 record: record.clone(),
             },
             ExpectedEvent::SendSettled(operation_id.clone()),

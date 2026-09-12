@@ -12,6 +12,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             operation_id,
             method: ProducerSendMethod::Send,
             partitioning,
+            topic_identity_operation_id,
             record,
         } = &step.action
         else {
@@ -26,12 +27,14 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     operation_id: actual_operation,
                     method,
                     partitioning: actual_partitioning,
+                    validate_topic_uuid,
                     record: actual_record,
                 } if actual_operation == operation_id => Some((
                     *sequence,
                     actual_producer,
                     *method,
                     *actual_partitioning,
+                    *validate_topic_uuid,
                     actual_record,
                 )),
                 _ => None,
@@ -39,9 +42,10 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             .collect::<Vec<_>>();
         let exact = matches!(
             commands.as_slice(),
-            [(_, actual_producer, ProducerSendMethod::Send, actual_partitioning, actual_record)]
+            [(_, actual_producer, ProducerSendMethod::Send, actual_partitioning, validate_topic_uuid, actual_record)]
                 if *actual_producer == producer_id
                     && *actual_partitioning == *partitioning
+                    && *validate_topic_uuid == topic_identity_operation_id.is_some()
                     && *actual_record == record
         );
         if exact {

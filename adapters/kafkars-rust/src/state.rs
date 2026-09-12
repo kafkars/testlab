@@ -10,7 +10,7 @@ use crate::assigned_consumers::AssignedConsumers;
 use crate::connection_security::resolve;
 use crate::group_consumers::{GroupConsumerRegistration, GroupConsumers};
 use crate::kafkars_api::{
-    Client, Consumer, ErrorKind, KafkaError, Producer, Security, TransactionalProducer,
+    Client, Consumer, ErrorKind, KafkaError, Security, TransactionalProducer,
 };
 #[cfg(kafkars_share_candidate)]
 use crate::share_consumers::ShareConsumers;
@@ -19,7 +19,8 @@ use testlab_schema::{AdapterSecurity, ChildHandleOwnership, ClientId, ConsumerId
 
 pub(crate) use crate::state_error::StateError;
 
-const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
+mod producer;
+use producer::ProducerOwner;
 
 #[derive(Debug, Default)]
 pub(crate) struct AdapterState {
@@ -37,12 +38,6 @@ pub(crate) struct AdapterState {
     pub(crate) concurrent_group: Option<crate::protocol_concurrent::RunningConcurrentGroup>,
 }
 
-#[derive(Debug)]
-struct ProducerOwner {
-    client_id: ClientId,
-    producer: Producer,
-}
-
 impl AdapterState {
     pub(crate) fn hello(
         &mut self,
@@ -56,55 +51,6 @@ impl AdapterState {
         self.broker_endpoints = Some(endpoints);
         self.security = Some(security);
         Ok(())
-    }
-
-    pub(crate) fn create_producer(
-        &mut self,
-        client_id: ClientId,
-        producer_id: ProducerId,
-        ownership: ChildHandleOwnership,
-    ) -> Result<(), StateError> {
-        if self.producers.contains_key(&producer_id)
-            || self.transactional_producers.contains(&producer_id)
-        {
-            return Err(StateError::DuplicateProducer(producer_id));
-        }
-        let client = self
-            .clients
-            .get(&client_id)
-            .ok_or_else(|| StateError::MissingClient(client_id.clone()))?;
-        let builder = match ownership {
-            ChildHandleOwnership::Shared => client.producer(),
-            ChildHandleOwnership::Independent => {
-                #[cfg(kafkars_independent_handles_candidate)]
-                {
-                    client.independent_producer()
-                }
-                #[cfg(not(kafkars_independent_handles_candidate))]
-                {
-                    return Err(StateError::IndependentHandlesUnavailable);
-                }
-            }
-        };
-        let producer = builder
-            .delivery_timeout(DELIVERY_TIMEOUT)
-            .build()
-            .map_err(StateError::Client)?;
-        self.producers.insert(
-            producer_id,
-            ProducerOwner {
-                client_id,
-                producer,
-            },
-        );
-        Ok(())
-    }
-
-    pub(crate) fn producer(&self, producer_id: &ProducerId) -> Result<&Producer, StateError> {
-        self.producers
-            .get(producer_id)
-            .map(|owner| &owner.producer)
-            .ok_or_else(|| StateError::MissingProducer(producer_id.clone()))
     }
 
     pub(crate) fn create_transactional_producer(

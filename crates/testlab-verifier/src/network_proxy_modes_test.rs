@@ -126,6 +126,7 @@ fn send(id: &str) -> ScenarioAction {
         operation_id: operation(id),
         method: Default::default(),
         partitioning: testlab_schema::ProducerPartitioning::Explicit,
+        topic_identity_operation_id: None,
         record: record(id),
     }
 }
@@ -138,6 +139,7 @@ fn send_command(sequence: u64, id: &str) -> HistoryEntry {
             operation_id: operation(id),
             method: Default::default(),
             partitioning: testlab_schema::ProducerPartitioning::Explicit,
+            validate_topic_uuid: false,
             record: record(id),
         },
     )
@@ -153,6 +155,7 @@ fn terminal(sequence: u64, id: &str) -> HistoryEntry {
             partition: Some(0),
             offset: None,
             timestamp_millis: None,
+            receipt: None,
         },
     )
 }

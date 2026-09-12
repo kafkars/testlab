@@ -49,7 +49,6 @@ pub(crate) fn verify(
         ));
     }
 }
-
 fn denial(
     scenario: &Scenario,
     resource: &BrokerAclResource,
@@ -113,7 +112,6 @@ fn producer_denial(
         && error.code == testlab_schema::PRODUCER_TOPIC_AUTHORIZATION_ERROR_CODE)
         .then_some(error.history_sequence)
 }
-
 fn group_denial(
     action: &ScenarioAction,
     group_id: &str,
@@ -208,6 +206,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
                 method,
                 partitioning,
                 record,
+                ..
             },
             AdapterCommand::Send {
                 producer_id: actual_producer,
@@ -215,6 +214,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
                 method: actual_method,
                 partitioning: actual_partitioning,
                 record: actual_record,
+                ..
             },
         ) => {
             producer_id == actual_producer

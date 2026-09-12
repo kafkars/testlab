@@ -1,4 +1,4 @@
-schema_version = 101
+schema_version = 102
 id = "kafka.assigned-consumer-immediate-batch"
 title = "packaged assigned consumer exposes an immediate retained batch"
 description = "The packaged client produces one exact record, directly assigns from the beginning, and returns that record through repeated public try_take_batch calls without substituting the waiting recv observer."

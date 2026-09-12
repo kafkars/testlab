@@ -39,6 +39,7 @@ fn missing_or_wrong_staging_terminal_fails_declared_set() {
             partition: Some(0),
             offset: Some(2),
             timestamp_millis: None,
+            receipt: None,
         },
     ));
     let index = HistoryIndex::build(&history);
@@ -67,6 +68,7 @@ fn duplicate_staging_event_fails_declared_set() {
             partition: Some(0),
             offset: Some(0),
             timestamp_millis: None,
+            receipt: None,
         },
     ));
     let index = HistoryIndex::build(&history);
@@ -217,6 +219,7 @@ fn transaction_history(
                 partition: Some(operation.record.partition),
                 offset: Some(offset(index)),
                 timestamp_millis: None,
+                receipt: None,
             },
         ));
     }

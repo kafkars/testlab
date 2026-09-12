@@ -71,6 +71,7 @@ impl HistoryIndex {
                 partition,
                 offset,
                 timestamp_millis,
+                receipt,
             } => {
                 self.terminals
                     .entry(operation_id.clone())
@@ -82,6 +83,7 @@ impl HistoryIndex {
                         partition: *partition,
                         offset: *offset,
                         timestamp_millis: *timestamp_millis,
+                        receipt: receipt.clone(),
                     });
                 if let Some(code) = code {
                     self.record_operation_error(operation_id, code, sequence);

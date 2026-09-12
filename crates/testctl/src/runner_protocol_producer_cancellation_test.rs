@@ -22,6 +22,7 @@ fn cancellation_waits_through_terminal_for_exact_completion() {
             partition: None,
             offset: None,
             timestamp_millis: None,
+            receipt: None,
         },
     ] {
         assert_eq!(

@@ -1,7 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use testlab_schema::{
-    ClientId, CommandId, ConsumedRecord, ConsumerId, OperationId, ProducerId, TerminalStatus,
-};
+use testlab_schema::{ClientId, CommandId, ConsumerId, OperationId, ProducerId, TerminalStatus};
 pub(crate) mod admin_acl;
 mod admin_acl_command_match;
 mod admin_batch_command_match;
@@ -59,6 +57,7 @@ pub(crate) struct IndexedTerminal {
     pub(crate) partition: Option<i32>,
     pub(crate) offset: Option<i64>,
     pub(crate) timestamp_millis: Option<i64>,
+    pub(crate) receipt: Option<testlab_schema::ProducerReceipt>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedOperationError {
@@ -92,7 +91,7 @@ pub(crate) struct IndexedCommandFailure {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedReceive {
     pub(crate) history_sequence: u64,
-    pub(crate) records: Vec<ConsumedRecord>,
+    pub(crate) records: Vec<testlab_schema::ConsumedRecord>,
     pub(crate) committed: Option<bool>,
     pub(crate) group_epoch: Option<testlab_schema::GroupMembershipEpoch>,
 }

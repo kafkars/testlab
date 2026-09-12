@@ -14,12 +14,13 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v98 over stdin/stdout;
+2. implements protocol v99 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
-   cluster metadata; preserves caller-selected record timestamps and returned
-   partitions through public delivery receipts, omits explicit partitions for Java-keyed sends,
+   cluster metadata; preserves caller-selected record timestamps, returned
+   partitions, topics, UUIDs, optional leader epochs, and nullable serialized
+   sizes through public delivery receipts, omits explicit partitions for Java-keyed sends,
    preserves consumer records, and passes caller-ordered multi-topic classic,
    KIP-848, and Share subscriptions plus complete Share Fetch, runtime, and rack
    configuration through the public builder; group registrations also preserve
@@ -39,8 +40,9 @@ It:
    observer;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent
    without inventing certainty;
-6. resolves UUID-bound transaction topics through public Admin, applies each
-   public `expected_topic_uuid` record guard, and waits for a fresh
+6. resolves selected ordinary and transactional record topics through public
+   Admin and applies each public `expected_topic_uuid` guard; ordinary sends
+   return that UUID in their receipt, while transactions wait for a fresh
    `validate_for_commit` seal before committing the exact current revision;
 7. preserves caller order and exact per-resource public outcomes for admin
    batches, including mixed success and failure;

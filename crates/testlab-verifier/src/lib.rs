@@ -81,6 +81,7 @@ mod observations;
 mod producer_cancellation;
 mod producer_error;
 mod producer_partitioning;
+mod producer_receipt;
 mod producer_records;
 mod producer_send_method;
 mod producer_timestamp;

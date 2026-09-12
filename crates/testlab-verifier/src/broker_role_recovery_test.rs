@@ -108,6 +108,7 @@ pub(super) fn history(replacement: i32, progress: bool) -> Vec<HistoryEntry> {
         partition: Some(0),
         offset: Some(1),
         timestamp_millis: None,
+        receipt: None,
     });
     role_history(&target(), replacement, progress)
 }

@@ -198,6 +198,7 @@ fn fixture() -> (
         operation_id: operation.clone(),
         method: Default::default(),
         partitioning: testlab_schema::ProducerPartitioning::Explicit,
+        topic_identity_operation_id: None,
         record: expected.clone(),
     };
     let action = ScenarioAction::ShareReceive {

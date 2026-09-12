@@ -100,6 +100,7 @@ fn dispatch<W: Write>(
             operation_id,
             method,
             partitioning,
+            validate_topic_uuid,
             record,
         } => protocol_send::dispatch_send(
             state,
@@ -109,6 +110,7 @@ fn dispatch<W: Write>(
             operation_id,
             method,
             partitioning,
+            validate_topic_uuid,
             record,
         )?,
         AdapterCommand::CancelProducerSend(command) => {

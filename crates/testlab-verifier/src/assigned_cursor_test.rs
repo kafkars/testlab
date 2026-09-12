@@ -37,6 +37,7 @@ fn successive_direct_receives_cannot_swap_broker_records() {
                 operation_id: operation("op-2"),
                 method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                topic_identity_operation_id: None,
                 record: record("second"),
             },
         ),

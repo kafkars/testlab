@@ -199,6 +199,7 @@ fn joined_events(
             partition: Some(record.partition),
             offset: Some(0),
             timestamp_millis: None,
+            receipt: None,
         },
     );
     history.event(

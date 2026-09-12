@@ -133,6 +133,7 @@ fn history(
                         partition: (status == TerminalStatus::Acknowledged).then_some(0),
                         offset: (status == TerminalStatus::Acknowledged).then_some(0),
                         timestamp_millis: None,
+                        receipt: None,
                     },
                 ),
                 event(

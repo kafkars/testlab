@@ -86,6 +86,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
                 partitioning: testlab_schema::ProducerPartitioning::JavaKeyed {
                     partition_count: 3,
                 },
+                validate_topic_uuid: false,
                 record: automatic_record(),
             },
         ),

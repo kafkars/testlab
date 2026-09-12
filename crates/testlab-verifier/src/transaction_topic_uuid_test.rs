@@ -169,6 +169,7 @@ fn operation_event(sequence: u64, index: usize, accepted: bool) -> HistoryEntry 
                     i64::try_from(index).unwrap_or_else(|error| panic!("record offset: {error}")),
                 ),
                 timestamp_millis: None,
+                receipt: None,
             },
         )
     }

@@ -79,6 +79,7 @@ fn public_client_failure_is_valid_semantic_evidence() {
                 operation_id: operation_id("op-1"),
                 method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                validate_topic_uuid: false,
                 record: record("value"),
             },
         ),

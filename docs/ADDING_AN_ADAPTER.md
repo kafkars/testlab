@@ -1,6 +1,6 @@
 # Adding an adapter
 
-An adapter translates one packaged client surface to protocol v98. It is not a
+An adapter translates one packaged client surface to protocol v99. It is not a
 runner and not a verifier.
 
 ## Checklist
@@ -21,6 +21,11 @@ runner and not a verifier.
   for commands that select `shared`.
 - Preserve a caller-selected record timestamp in the public producer receipt
   and public consumer record whenever those surfaces expose it.
+- Advertise `producer_receipt_metadata` only when a selected ordinary send
+  freshly resolves its topic through the producer's public client, applies the
+  nonzero UUID before admission, and returns the public topic, UUID, optional
+  leader epoch, and nullable serialized key/value sizes. Do not receive the
+  expected UUID from the scenario.
 - For `java_keyed` sends, omit the scenario record's expected partition from
   the public producer call and return the public receipt's selected partition.
 - Advertise concurrent actors only when public producer calls and directly

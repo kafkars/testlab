@@ -20,6 +20,8 @@ pub enum Capability {
     ProducerConfiguration,
     /// Public batch-producer operations.
     ProducerBatch,
+    /// Complete public producer receipts and UUID-bound ordinary admission.
+    ProducerReceiptMetadata,
     /// Harness-scheduled concurrent packaged-client actors.
     ConcurrentActors,
     /// Explicit close, shutdown, and finish behavior.

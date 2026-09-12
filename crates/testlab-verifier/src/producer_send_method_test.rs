@@ -42,6 +42,7 @@ fn fixture(method: ProducerSendMethod) -> (Scenario, Vec<HistoryEntry>) {
                 operation_id: operation_id.clone(),
                 method,
                 partitioning: *partitioning,
+                validate_topic_uuid: false,
                 record: record.clone(),
             }),
             _ => None,

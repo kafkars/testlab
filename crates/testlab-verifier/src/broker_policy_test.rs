@@ -76,6 +76,7 @@ fn scenario(policy: BrokerPolicy) -> Scenario {
                     operation_id: operation(),
                     method: Default::default(),
                     partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                    topic_identity_operation_id: None,
                     record: record("quota"),
                 },
             ),
@@ -128,6 +129,7 @@ fn history(policy: &BrokerPolicy, removal_started_ms: u64) -> Vec<HistoryEntry> 
                 operation_id: operation(),
                 method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                validate_topic_uuid: false,
                 record: record("quota"),
             },
         ),
@@ -140,6 +142,7 @@ fn history(policy: &BrokerPolicy, removal_started_ms: u64) -> Vec<HistoryEntry> 
                 partition: Some(0),
                 offset: Some(0),
                 timestamp_millis: None,
+                receipt: None,
             },
         ),
         environment(

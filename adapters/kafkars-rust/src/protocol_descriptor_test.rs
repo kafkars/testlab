@@ -54,4 +54,9 @@ fn descriptor_reports_the_packaged_client_version() {
             .capabilities
             .contains(&Capability::TransactionTopicUuidValidation)
     );
+    assert!(
+        descriptor
+            .capabilities
+            .contains(&Capability::ProducerReceiptMetadata)
+    );
 }

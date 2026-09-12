@@ -1,4 +1,4 @@
-schema_version = 101
+schema_version = 102
 id = "kafka.admin-list-topics-multiple"
 title = "packaged admin lists multiple independently observed Kafka topics"
 description = "The packaged client's public admin creates three topics and then lists all three from one expectation-free command; the public result must be byte-sorted and independent metadata observations confirm every required topic."

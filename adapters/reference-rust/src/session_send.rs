@@ -46,6 +46,7 @@ pub(crate) fn dispatch_send<W: Write>(
                 partition: terminal.partition,
                 offset: terminal.offset,
                 timestamp_millis: None,
+                receipt: None,
             },
         ),
     )
@@ -92,6 +93,7 @@ pub(crate) fn dispatch_batch<W: Write>(
                     partition: terminal.partition,
                     offset: terminal.offset,
                     timestamp_millis: None,
+                    receipt: None,
                 },
             ),
         )?;

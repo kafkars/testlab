@@ -1,4 +1,4 @@
-schema_version = 101
+schema_version = 102
 id = "kafka.share-group-mixed-reject"
 title = "Share batches apply record-specific reject decisions"
 description = "One public Share batch rejects only its middle record, then a later sentinel acquisition proves forward progress without normal redelivery of any settled batch member."

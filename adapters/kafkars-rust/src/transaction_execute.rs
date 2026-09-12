@@ -275,6 +275,7 @@ pub(crate) fn send<W: Write>(
                 partition,
                 offset,
                 timestamp_millis,
+                receipt: None,
             },
         ),
     )?;

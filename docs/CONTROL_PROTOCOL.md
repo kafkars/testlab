@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v98 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v101 and evidence schema v87.
+Protocol v99 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v102 and evidence schema v88.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -71,6 +71,12 @@ and requires the `producer_waiting_send` capability. The command retains that
 selection so an adapter cannot silently substitute one public method for the
 other. A cancellation command retains the same selection and invokes
 `Delivery::cancel` for `try_send` or `Send::cancel` for `send`.
+
+An ordinary send may reference one prior singleton `topic_id` description.
+The expected ID remains scenario-only; the command sets `validate_topic_uuid`
+and requires `producer_receipt_metadata`. The adapter freshly resolves that
+topic through the producer's originating public client and applies its nonzero
+ID through `Record::expected_topic_uuid` before admission.
 
 An ordinary `send` carries an explicit partition by default. A `java_keyed`
 selection instead carries the logical topic partition count and a keyed record;
@@ -381,6 +387,14 @@ that value through its public record builder without replacing it. A successful
 receipt, and each public consumer record retains its exposed timestamp. The
 independent broker observer records Kafka's timestamp separately from those
 adapter claims.
+
+A successful ordinary or batch producer terminal may additionally retain a
+typed receipt with the public topic, optional topic UUID and leader epoch, and
+nullable serialized key and value sizes. `None` distinguishes a null key or
+value from `Some(0)` for present empty bytes. UUID-selected ordinary sends
+require this receipt and join its ID to the prior public and independent topic
+identity before independent record coordinates and timestamp establish the
+acknowledgement.
 
 A cancellation command names whether it obtains public producer ownership
 through immediate `try_send` or bounded waiting `send`, retains that method's
@@ -1120,6 +1134,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v98 is an exact semantic contract. New capabilities may be declared
+Protocol v99 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

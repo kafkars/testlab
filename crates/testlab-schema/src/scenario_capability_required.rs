@@ -66,6 +66,10 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
         "batch-send steps require the producer_batch capability",
     ),
     (
+        Capability::ProducerReceiptMetadata,
+        "UUID-bound sends require the producer_receipt_metadata capability",
+    ),
+    (
         Capability::AssignedConsumer,
         "assigned-consumer steps require the assigned_consumer capability",
     ),

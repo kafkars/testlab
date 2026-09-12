@@ -49,6 +49,7 @@ fn batch_waits_for_explicit_completion_after_known_operation_events() {
                 partition: Some(0),
                 offset: Some(0),
                 timestamp_millis: None,
+                receipt: None,
             })
             .unwrap_or_else(|error| panic!("terminal batch operation: {error}")),
         EventDisposition::Continue
@@ -214,6 +215,7 @@ fn transaction_waits_for_exact_disposition_identity() {
                 partition: Some(0),
                 offset: Some(0),
                 timestamp_millis: None,
+                receipt: None,
             })
             .unwrap_or_else(|error| panic!("classify transaction stage: {error}")),
         EventDisposition::Continue

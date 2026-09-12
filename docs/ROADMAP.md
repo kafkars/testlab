@@ -74,6 +74,10 @@
   A second scenario omits the public explicit partition for a keyed record and
   binds Kafkars's receipt and broker placement to an independent Java-compatible
   positive-Murmur2 partition oracle.
+  A UUID-bound ordinary-send scenario preserves the complete public receipt,
+  including topic identity, optional leader epoch, and null-versus-empty
+  serialized sizes, against prior public and independent topic identity plus
+  independent record truth.
   Share batches cover ordered multi-record acquisition, record-specific accept,
   release, and reject decisions, and complete dropped-batch redelivery.
 - Producer cancellation separately retains public `Delivery` and waiting

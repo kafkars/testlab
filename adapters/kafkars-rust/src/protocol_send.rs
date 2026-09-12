@@ -9,9 +9,11 @@ use testlab_schema::{
 
 use crate::AdapterError;
 use crate::admission_retry::{retry_owned_safe, retry_unadmitted_batch_safe};
-use crate::kafkars_api::{KafkaError, Producer, RecordMetadata, TrySendError};
+use crate::kafkars_api::{KafkaError, Producer, RecordMetadata, TopicUuid, TrySendError};
 use crate::normalize;
 use crate::protocol::emit;
+use crate::protocol_send_outcome::metadata_receipt;
+pub(crate) use crate::protocol_send_outcome::{SendOutcome, emit_send_outcome};
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch_send<W: Write>(
@@ -22,28 +24,24 @@ pub(crate) fn dispatch_send<W: Write>(
     operation_id: OperationId,
     method: ProducerSendMethod,
     partitioning: ProducerPartitioning,
+    validate_topic_uuid: bool,
     record: RecordSpec,
 ) -> Result<(), AdapterError> {
+    let topic_uuid = validate_topic_uuid
+        .then(|| {
+            crate::producer_topic_uuid::resolve(state, producer_id, &operation_id, &record.topic)
+        })
+        .transpose()?;
     let producer = state.producer(producer_id)?;
     let outcome = match method {
-        ProducerSendMethod::TrySend => execute_send(producer, &operation_id, partitioning, record)?,
-        ProducerSendMethod::Send => execute_waiting_send(producer, partitioning, record)?,
+        ProducerSendMethod::TrySend => {
+            execute_send_with_topic_uuid(producer, &operation_id, partitioning, topic_uuid, record)?
+        }
+        ProducerSendMethod::Send => {
+            execute_waiting_send(producer, partitioning, topic_uuid, record)?
+        }
     };
     emit_send_outcome(writer, command_id, operation_id, outcome)
-}
-
-#[derive(Debug)]
-pub(crate) enum SendOutcome {
-    Rejected {
-        code: String,
-    },
-    Accepted {
-        status: TerminalStatus,
-        code: Option<String>,
-        partition: Option<i32>,
-        offset: Option<i64>,
-        timestamp_millis: Option<i64>,
-    },
 }
 
 pub(crate) fn execute_send(
@@ -52,7 +50,20 @@ pub(crate) fn execute_send(
     partitioning: ProducerPartitioning,
     record: RecordSpec,
 ) -> Result<SendOutcome, AdapterError> {
-    let record = normalize::producer_record(record, partitioning)?;
+    execute_send_with_topic_uuid(producer, operation_id, partitioning, None, record)
+}
+
+fn execute_send_with_topic_uuid(
+    producer: &Producer,
+    operation_id: &OperationId,
+    partitioning: ProducerPartitioning,
+    topic_uuid: Option<TopicUuid>,
+    record: RecordSpec,
+) -> Result<SendOutcome, AdapterError> {
+    let mut record = normalize::producer_record(record, partitioning)?;
+    if let Some(topic_uuid) = topic_uuid {
+        record = record.expected_topic_uuid(topic_uuid);
+    }
     let delivery = match retry_owned_safe(record, |record| {
         producer.try_send(record).map_err(TrySendError::into_parts)
     }) {
@@ -64,103 +75,35 @@ pub(crate) fn execute_send(
             });
         }
     };
-    let (status, code, partition, offset, timestamp_millis) = match delivery.wait() {
-        Ok(metadata) => (
-            TerminalStatus::Acknowledged,
-            None,
-            Some(metadata.partition()),
-            Some(metadata.offset()),
-            metadata.timestamp_milliseconds(),
-        ),
+    let outcome = match delivery.wait() {
+        Ok(metadata) => SendOutcome::acknowledged(metadata),
         Err(error) => {
             eprintln!("Kafkars delivery failed for {operation_id}: {error}");
             let failure = normalize::delivery_failure(&error);
-            (failure.status, Some(failure.code), None, None, None)
+            SendOutcome::failed(failure.status, failure.code)
         }
     };
-    Ok(SendOutcome::Accepted {
-        status,
-        code,
-        partition,
-        offset,
-        timestamp_millis,
-    })
+    Ok(outcome)
 }
 
 fn execute_waiting_send(
     producer: &Producer,
     partitioning: ProducerPartitioning,
+    topic_uuid: Option<TopicUuid>,
     record: RecordSpec,
 ) -> Result<SendOutcome, AdapterError> {
-    let record = normalize::producer_record(record, partitioning)?;
-    let (status, code, partition, offset, timestamp_millis) = match producer.send(record).wait() {
-        Ok(metadata) => (
-            TerminalStatus::Acknowledged,
-            None,
-            Some(metadata.partition()),
-            Some(metadata.offset()),
-            metadata.timestamp_milliseconds(),
-        ),
+    let mut record = normalize::producer_record(record, partitioning)?;
+    if let Some(topic_uuid) = topic_uuid {
+        record = record.expected_topic_uuid(topic_uuid);
+    }
+    let outcome = match producer.send(record).wait() {
+        Ok(metadata) => SendOutcome::acknowledged(metadata),
         Err(error) => {
             let failure = normalize::delivery_failure(&error);
-            (failure.status, Some(failure.code), None, None, None)
+            SendOutcome::failed(failure.status, failure.code)
         }
     };
-    Ok(SendOutcome::Accepted {
-        status,
-        code,
-        partition,
-        offset,
-        timestamp_millis,
-    })
-}
-
-pub(crate) fn emit_send_outcome<W: Write>(
-    writer: &mut W,
-    command_id: CommandId,
-    operation_id: OperationId,
-    outcome: SendOutcome,
-) -> Result<(), AdapterError> {
-    match outcome {
-        SendOutcome::Rejected { code } => emit(
-            writer,
-            &AdapterEventEnvelope::new(
-                command_id,
-                AdapterEvent::OperationRejected { operation_id, code },
-            ),
-        ),
-        SendOutcome::Accepted {
-            status,
-            code,
-            partition,
-            offset,
-            timestamp_millis,
-        } => {
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id.clone(),
-                    AdapterEvent::OperationAccepted {
-                        operation_id: operation_id.clone(),
-                    },
-                ),
-            )?;
-            emit(
-                writer,
-                &AdapterEventEnvelope::new(
-                    command_id,
-                    AdapterEvent::OperationTerminal {
-                        operation_id,
-                        status,
-                        code,
-                        partition,
-                        offset,
-                        timestamp_millis,
-                    },
-                ),
-            )
-        }
-    }
+    Ok(outcome)
 }
 
 pub(crate) fn dispatch_batch<W: Write>(
@@ -261,18 +204,22 @@ fn emit_batch_terminals<W: Write>(
     deliveries: Vec<Result<RecordMetadata, KafkaError>>,
 ) -> Result<(), AdapterError> {
     for (operation_id, delivery) in operation_ids.iter().zip(deliveries) {
-        let (status, code, partition, offset, timestamp_millis) = match delivery {
-            Ok(metadata) => (
-                TerminalStatus::Acknowledged,
-                None,
-                Some(metadata.partition()),
-                Some(metadata.offset()),
-                metadata.timestamp_milliseconds(),
-            ),
+        let (status, code, partition, offset, timestamp_millis, receipt) = match delivery {
+            Ok(metadata) => {
+                let receipt = metadata_receipt(&metadata);
+                (
+                    TerminalStatus::Acknowledged,
+                    None,
+                    Some(metadata.partition()),
+                    Some(metadata.offset()),
+                    metadata.timestamp_milliseconds(),
+                    Some(receipt),
+                )
+            }
             Err(error) => {
                 eprintln!("Kafkars batch delivery failed for {operation_id}: {error}");
                 let failure = normalize::delivery_failure(&error);
-                (failure.status, Some(failure.code), None, None, None)
+                (failure.status, Some(failure.code), None, None, None, None)
             }
         };
         emit(
@@ -286,6 +233,7 @@ fn emit_batch_terminals<W: Write>(
                     partition,
                     offset,
                     timestamp_millis,
+                    receipt,
                 },
             ),
         )?;

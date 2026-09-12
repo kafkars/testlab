@@ -1,4 +1,4 @@
-schema_version = 101
+schema_version = 102
 id = "kafka.share-group-record-fidelity"
 title = "Share acquisitions preserve exact record fidelity"
 description = "One Share member acquires and accepts a tombstone, distinct empty fields, and duplicate nullable binary headers while retaining delivery counts, membership fences, and independent Kafka coordinates."

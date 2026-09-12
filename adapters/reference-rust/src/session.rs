@@ -94,9 +94,9 @@ fn dispatch<W: Write>(
         AdapterCommand::Send {
             producer_id,
             operation_id,
-            method: _,
             partitioning,
             record,
+            ..
         } => session_send::dispatch_send(
             state,
             writer,

@@ -46,6 +46,7 @@ fn delete_records_rejects_scenario_writes_to_the_seeded_partition() {
                 operation_id: operation("target-write"),
                 method: Default::default(),
                 partitioning: super::ProducerPartitioning::Explicit,
+                topic_identity_operation_id: None,
                 record: RecordSpec {
                     topic: action.topic.clone(),
                     partition: action.partition,

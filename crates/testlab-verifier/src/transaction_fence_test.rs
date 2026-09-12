@@ -201,6 +201,7 @@ fn fence_history(
                 partition: Some(0),
                 offset: Some(1),
                 timestamp_millis: None,
+                receipt: None,
             },
         ),
         event(

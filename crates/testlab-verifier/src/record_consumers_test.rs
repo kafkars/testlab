@@ -188,6 +188,7 @@ fn receive_set_scenario() -> (testlab_schema::Scenario, OperationId) {
                 operation_id: operation("op-2"),
                 method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                topic_identity_operation_id: None,
                 record: record("second"),
             },
         ),

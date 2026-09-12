@@ -20,6 +20,7 @@ fn recorded_commands_retain_every_observed_operation() {
                 operation_id: id(OperationId::new("send-1")),
                 method: Default::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
+                validate_topic_uuid: false,
                 record: record_spec(2),
             },
         ),

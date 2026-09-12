@@ -43,18 +43,18 @@ pub enum ScenarioAction {
     RestoreBrokerRole {
         /// Exact role target used by the paired stop.
         target: crate::BrokerRoleTarget,
-        /// Complete restoration bound.
         timeout_ms: u64,
     },
     AlterBrokerPolicy(crate::BrokerPolicyAction),
     Send {
         producer_id: ProducerId,
         operation_id: OperationId,
-        /// Exact public single-record producer method.
         #[serde(default)]
         method: crate::ProducerSendMethod,
         #[serde(default)]
         partitioning: crate::ProducerPartitioning,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        topic_identity_operation_id: Option<OperationId>,
         record: crate::RecordSpec,
     },
     CancelProducerSend(crate::CancelProducerSendCommand),
