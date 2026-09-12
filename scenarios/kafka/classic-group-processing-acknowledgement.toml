@@ -1,4 +1,4 @@
-schema_version = 106
+schema_version = 107
 id = "kafka.classic-group-processing-acknowledgement"
 title = "classic processing acknowledgement renews the commit window"
 description = "A classic member processes one exact record for longer than its configured processing window, acknowledges the assignment-fenced checkpoint midway, and still commits the same batch with independent broker truth."

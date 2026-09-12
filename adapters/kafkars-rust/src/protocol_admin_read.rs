@@ -141,6 +141,7 @@ pub(crate) const fn offset_spec(
     match (position, timestamp_millis) {
         (AdminOffsetSelector::Earliest, None) => Some(OffsetSpec::earliest()),
         (AdminOffsetSelector::Latest, None) => Some(OffsetSpec::latest()),
+        (AdminOffsetSelector::MaxTimestamp, None) => Some(OffsetSpec::max_timestamp()),
         (AdminOffsetSelector::Timestamp, Some(timestamp)) if timestamp >= 0 => {
             Some(OffsetSpec::for_timestamp(timestamp))
         }

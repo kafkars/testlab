@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v103 over stdin/stdout;
+2. implements protocol v104 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -63,8 +63,8 @@ It:
    topic-convenience and generic resource APIs, plus filtered canonical generic
    topic-resource and dedicated client-metrics resource listings,
    caller-ordered topic-partition and consumer-group offset batches; singleton
-   earliest, latest, and exact-timestamp offset selection with returned public
-   timestamps; and singleton and caller-ordered plural record deletion with explicit and high-watermark
+   earliest, latest, maximum-timestamp, and exact-timestamp offset selection
+   with returned public timestamps; and singleton and caller-ordered plural record deletion with explicit and high-watermark
    boundaries, cluster feature discovery and validation-only finalized-feature
    updates with caller-ordered outcomes, exact partition active-producer
    state, canonical metadata-quorum discovery, canonical transaction listing,

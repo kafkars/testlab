@@ -10,8 +10,8 @@ use super::{
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 103);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 106);
+    assert_eq!(PROTOCOL_VERSION, 104);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 107);
 }
 
 #[test]
@@ -207,6 +207,27 @@ fn list_offsets_preserves_a_timestamp_selector_and_result() {
         timestamp_millis: Some(1_700_000_000_123),
     }));
     assert!(event.contains("timestamp_millis = 1700000000123"));
+}
+
+#[test]
+fn list_offsets_preserves_a_max_timestamp_selector() {
+    let command = AdapterCommand::ListOffsets(ListOffsetsCommand {
+        client_id: client(),
+        operation_id: operation("admin-offset-max-timestamp"),
+        topic: "records".to_owned(),
+        partition: 0,
+        position: AdminOffsetSelector::MaxTimestamp,
+        timestamp_millis: None,
+        timeout_ms: 1_000,
+    });
+    let encoded = encode(&command);
+    assert_eq!(
+        toml::from_str::<AdapterCommand>(&encoded)
+            .unwrap_or_else(|error| panic!("deserialize max timestamp command: {error}")),
+        command
+    );
+    assert!(encoded.contains("position = \"max_timestamp\""));
+    assert!(!encoded.contains("timestamp_millis"));
 }
 
 #[test]

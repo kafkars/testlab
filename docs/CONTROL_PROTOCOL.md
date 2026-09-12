@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v103 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v106 and evidence schema v92.
+Protocol v104 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v107 and evidence schema v93.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -686,14 +686,17 @@ ID-keyed deletion, the exact UUID deletion fence. After the public result,
 independent metadata is polled within the original observation bound until
 every selected name is absent, then recorded with consecutive ordinals.
 
-Offset listing selects `earliest`, `latest`, or one exact nonnegative timestamp
+Offset listing selects `earliest`, `latest`, the record carrying the greatest
+timestamp, or the earliest record at or after one exact nonnegative timestamp
 for an isolated partition after two acknowledged records or deterministic
 environment seeding. An immediate independent librdkafka query captures both
 low and high watermarks after the public result. Boundary selections must equal
-the corresponding watermark. A timestamp selection must preserve its exact
-wire timestamp and return the matching independently observed record offset and
-timestamp strictly inside those watermarks. Other broker-relative positions
-and leader epochs are outside this slice.
+the corresponding watermark. Record-timestamp selections return an offset and
+associated timestamp matching independent record truth. The maximum-timestamp
+fixture places its greatest timestamp before a later lower timestamp; the
+caller-timestamp fixture places a lower timestamp before its selected record.
+Those orderings distinguish both paths from earliest and latest selection.
+Other broker-relative positions and leader epochs are outside this slice.
 
 `list_offsets_batch` carries two through 32 unique topic-partition selections
 in caller order and invokes one public Admin operation. Scenario-only expected
@@ -1159,6 +1162,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v103 is an exact semantic contract. New capabilities may be declared
+Protocol v104 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

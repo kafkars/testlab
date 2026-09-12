@@ -85,7 +85,7 @@ fn record_baseline(
                 *baseline = Baseline::Complete(expected_offset);
             }
         }
-        AdminOffsetSelector::Timestamp => {}
+        AdminOffsetSelector::MaxTimestamp | AdminOffsetSelector::Timestamp => {}
     }
 }
 

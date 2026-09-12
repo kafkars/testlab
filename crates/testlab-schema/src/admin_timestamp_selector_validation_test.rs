@@ -40,6 +40,12 @@ fn timestamp_selector_requires_one_nonnegative_timestamp() {
         &mut operation_ids,
         &mut valid_problems,
     );
+    super::validate(
+        &action("valid-max", AdminOffsetSelector::MaxTimestamp, None),
+        &clients,
+        &mut operation_ids,
+        &mut valid_problems,
+    );
     assert!(valid_problems.is_empty(), "{valid_problems:?}");
 }
 

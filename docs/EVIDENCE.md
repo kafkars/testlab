@@ -132,6 +132,11 @@ Protocol v103, scenario schema v106, and evidence schema v92 add singleton
 timestamp offset selection. ADMIN-077 binds the exact public selector and
 returned timestamp to an independently observed record and immediate partition
 watermarks that rule out earliest- or latest-offset substitution.
+Protocol v104, scenario schema v107, and evidence schema v93 add singleton
+maximum-timestamp offset selection. ADMIN-078 binds the exact public selector,
+offset, and returned timestamp to the unique independently observed record with
+the greatest timestamp. A later lower-timestamp record and immediate watermarks
+rule out earliest- or latest-offset substitution.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -780,6 +785,13 @@ offset and returned timestamp must equal one exact independent broker record,
 and an earlier timestamped record must be present so an earliest selector cannot
 satisfy the same evidence. The selected offset below the high watermark also
 prevents a latest-offset substitution from passing.
+
+ADMIN-078 binds one exact public maximum-timestamp `ListOffsets` command to the
+unique independently observed record carrying the greatest timestamp. The
+public offset and returned timestamp must match that record and lie within
+immediate independent partition watermarks. A later record with a lower
+timestamp makes the greatest-timestamp result differ from both the earliest
+boundary result and the latest offset.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

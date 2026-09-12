@@ -189,7 +189,7 @@ fn verify_offset(
     observations: &[BrokerObservation],
     violations: &mut Vec<Violation>,
 ) {
-    if expected.position == AdminOffsetSelector::Timestamp {
+    if timestamp_offset::applies(expected.position) {
         timestamp_offset::verify(
             expected,
             completions,
@@ -217,7 +217,7 @@ fn verify_offset(
     let independent_offset = state.map(|value| match position {
         AdminOffsetSelector::Earliest => value.low_watermark,
         AdminOffsetSelector::Latest => value.high_watermark,
-        AdminOffsetSelector::Timestamp => unreachable!("timestamp selectors return above"),
+        _ => unreachable!("record-timestamp selectors return above"),
     });
     let public_matches = public.is_some_and(|value| {
         value.topic == topic

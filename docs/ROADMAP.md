@@ -20,8 +20,9 @@
   detailed plural topic descriptions and name-based deletion with mixed resource
   outcomes, scoped topic, cluster,
   consumer-only, and generic all-group discovery, singleton earliest-, latest-,
-  and timestamp-offset administration plus caller-ordered batch earliest and
-  latest selection, consumer-group offset listing, alteration, and
+  maximum-timestamp-, and caller-timestamp-offset administration plus
+  caller-ordered batch earliest and latest selection, consumer-group offset
+  listing, alteration, and
   deletion, caller-ordered mixed classic/KIP-848 group descriptions, static
   classic-member removal, singleton record-prefix deletion and caller-ordered plural record
   deletion with explicit and high-watermark boundaries, singleton and caller-ordered plural

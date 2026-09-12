@@ -1,4 +1,4 @@
-schema_version = 106
+schema_version = 107
 id = "adversary.metadata-disconnect-after-request"
 title = "metadata disconnect after request preserves request ownership"
 description = "The external Kafka peer reads the complete Metadata request and disconnects before constructing a response; the public client must report the declared transport failure."

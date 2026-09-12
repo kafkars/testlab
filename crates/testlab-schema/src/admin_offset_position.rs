@@ -20,6 +20,8 @@ pub enum AdminOffsetSelector {
     Earliest,
     /// Selects the latest available offset.
     Latest,
+    /// Selects the record offset carrying the greatest timestamp.
+    MaxTimestamp,
     /// Selects the earliest record carrying at least the supplied timestamp.
     Timestamp,
 }

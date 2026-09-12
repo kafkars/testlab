@@ -206,6 +206,8 @@ mod observer_admin_group_target_test;
 #[cfg(test)]
 mod observer_admin_group_test;
 #[cfg(test)]
+mod observer_admin_max_timestamp_target_test;
+#[cfg(test)]
 mod observer_admin_offset_batch_target_test;
 #[cfg(test)]
 mod observer_admin_plural_group_target_test;

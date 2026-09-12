@@ -147,7 +147,7 @@ pub struct ListOffsetsCommand {
     pub partition: i32,
     /// Broker-relative offset position to query.
     pub position: AdminOffsetSelector,
-    /// Caller-selected timestamp for the timestamp selector.
+    /// Caller-selected timestamp for the caller-timestamp selector.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timestamp_millis: Option<i64>,
     /// Complete public operation bound.

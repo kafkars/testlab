@@ -1,4 +1,4 @@
-schema_version = 106
+schema_version = 107
 id = "kafka.assigned-consumer-event-authorization-recovery"
 title = "packaged assigned-consumer observers expose topic denial and recovery"
 description = "Independent topic READ policy evidence drives exact Broker(29) position-resolution events through both public observers before policy removal permits an exact assigned-consumer record recovery."

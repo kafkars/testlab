@@ -97,6 +97,7 @@ scenarios = [
   "scenarios/kafka/admin-list-offsets.toml",
   "scenarios/kafka/admin-list-earliest-offset.toml",
   "scenarios/kafka/admin-list-offset-for-timestamp.toml",
+  "scenarios/kafka/admin-list-max-timestamp-offset.toml",
   "scenarios/kafka/admin-list-offsets-paired.toml",
   "scenarios/kafka/admin-list-offsets-batch.toml",
   "scenarios/kafka/admin-list-offsets-invalid-partition.toml",

@@ -19,11 +19,19 @@ fn offset_positions_map_to_exact_public_specs() {
         Some(OffsetSpec::latest())
     );
     assert_eq!(
+        offset_spec(AdminOffsetSelector::MaxTimestamp, None),
+        Some(OffsetSpec::max_timestamp())
+    );
+    assert_eq!(
         offset_spec(AdminOffsetSelector::Timestamp, Some(1_700_000_000_123)),
         Some(OffsetSpec::for_timestamp(1_700_000_000_123))
     );
     assert_eq!(offset_spec(AdminOffsetSelector::Timestamp, None), None);
     assert_eq!(offset_spec(AdminOffsetSelector::Timestamp, Some(-1)), None);
+    assert_eq!(
+        offset_spec(AdminOffsetSelector::MaxTimestamp, Some(1)),
+        None
+    );
     assert_eq!(offset_spec(AdminOffsetSelector::Latest, Some(1)), None);
 }
 
