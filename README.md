@@ -120,6 +120,9 @@ scenario retains independent aborted-transaction and visible-record truth.
 Every classic and KIP-848 group member now requires one exact registration
 command retaining its identities, caller-ordered topics, selected protocol, and
 complete optional public policy before assignment and record evidence applies.
+Every Share member likewise requires one exact registration retaining its
+identities, caller-ordered topics, optional rack, deadlines, and complete
+optional acquisition policy before Share delivery evidence applies.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

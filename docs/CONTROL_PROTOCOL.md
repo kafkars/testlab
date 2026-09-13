@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v134 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v138 and evidence schema v124.
+Protocol v135 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v139 and evidence schema v125.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -619,7 +619,11 @@ completes only after the public assignment contains every requested topic;
 assignments outside that list invalidate the run. Multi-topic scenarios require
 exact publicly acquired records from every topic, each joined to independent
 broker observation. An optional rack identity is passed to the public builder
-and must be retained by the resulting public handle.
+and must be retained by the resulting public handle. Every registration
+requires one exact command preserving client, member, and group identities,
+caller-ordered topics, optional rack, both deadlines, and the complete optional
+acquisition policy; a same-ID direct or ordinary group consumer is not
+equivalent.
 
 A share receive retains the exact ordered linear acquisition batch behind its
 receive identity until one later acknowledgement, explicit drop, or consumer
@@ -1298,6 +1302,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v134 is an exact semantic contract. New capabilities may be declared
+Protocol v135 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

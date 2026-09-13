@@ -293,6 +293,10 @@ Protocol v134, scenario schema v138, and evidence schema v124 add exact hosted
 group registration retention. CONS-028 requires one command preserving client,
 member, and group identities, caller-ordered topics, classic or KIP-848
 protocol, and the complete optional public policy for every group member.
+Protocol v135, scenario schema v139, and evidence schema v125 add exact Share
+registration retention. SHARE-012 requires one command preserving client,
+member, and group identities, caller-ordered topics, optional rack, membership
+and close deadlines, and the complete optional acquisition policy.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -464,7 +468,10 @@ exact removal command.
 
 Configured-Share history retains the complete requested long-poll, byte,
 record, acquisition-range, attempt-timeout, membership-start, and close policy
-in the issued create command. Its acknowledgement command also retains whether
+in the issued create command. SHARE-012 requires exactly one registration with
+the complete client, member, group, caller-ordered subscription, optional rack,
+deadlines, and acquisition policy, rejecting altered fields, another consumer
+kind, or duplicate creation. Its acknowledgement command also retains whether
 the public batch used explicit decisions or `accept_all`. The adapter reports
 only the public batch's acquisition count, records, delivery counts, and
 membership fences. SHARE-010 checks the scenario-owned acquisition expectation,

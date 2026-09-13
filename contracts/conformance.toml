@@ -1225,6 +1225,12 @@ statement = "Each Share acknowledgement command preserves the scenario-selected 
 category = "consumer"
 
 [[contract]]
+id = "SHARE-012"
+title = "Share consumers preserve the exact registration"
+statement = "Each Share consumer has exactly one issued creation command preserving its client, member, and group identities, caller-ordered subscription, optional rack, membership and close deadlines, and complete optional public acquisition policy."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-015"
 title = "Hosted group shutdown observes public termination"
 statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."
