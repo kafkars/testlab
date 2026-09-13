@@ -110,7 +110,10 @@ enum ReceiveKind {
     Share,
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "parameters mirror the complete public receive contract"
+)]
 fn verify_receive(
     receive_id: &OperationId,
     kind: ReceiveKind,

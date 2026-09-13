@@ -110,7 +110,10 @@ pub(crate) fn kafka_uuid(source: [u8; 16]) -> String {
     encoded
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "parameters mirror one metadata-quorum state record"
+)]
 fn validate(
     operation_id: &OperationId,
     leader_id: Option<i32>,
