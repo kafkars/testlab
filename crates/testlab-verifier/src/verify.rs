@@ -28,6 +28,8 @@ mod group_consumer_registration;
 mod producer_configuration_method;
 #[path = "share_consumer_registration.rs"]
 mod share_consumer_registration;
+#[path = "transactional_producer_registration.rs"]
+mod transactional_producer_registration;
 
 /// Deterministically verifies one validly executed scenario.
 pub fn verify(
@@ -71,6 +73,7 @@ pub fn verify(
     child_handle_registration::verify(scenario, &index, &mut violations);
     group_consumer_registration::verify(scenario, &index, &mut violations);
     share_consumer_registration::verify(scenario, &index, &mut violations);
+    transactional_producer_registration::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_send_method::verify(scenario, &index, &mut violations);
     crate::producer_receipt::verify(scenario, &index, observations, &mut violations);

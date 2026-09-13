@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v137 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v141 and evidence schema v127.
+Protocol v138 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v142 and evidence schema v128.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1220,6 +1220,13 @@ by a public description of zero members and an exact offset listing, then
 requires an independent not-found group result. Observer errors and timeouts
 invalidate these claims rather than manufacturing absence.
 
+One `create_transactional_producer` command retains the exact client and producer
+identities, transactional ID, broker-side transaction timeout, and public
+initialization deadline applied through `Client::transactional_producer`,
+`transaction_timeout`, and `deadline_after`. Repeated denied then recovered
+initialization of one producer identity requires the same ordered command twice;
+an ordinary producer, a fencing command, or an altered field cannot substitute.
+
 One `execute_transaction` command owns a complete linear begin, ordered staging,
 and terminal operation because the public transaction token borrows its producer
 until it ends. The default `send` method stages each record independently;
@@ -1307,6 +1314,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v137 is an exact semantic contract. New capabilities may be declared
+Protocol v138 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

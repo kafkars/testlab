@@ -122,6 +122,9 @@ scenario retains independent aborted-transaction and visible-record truth.
 Every ordinary producer and assigned consumer also requires one exact creation
 command retaining its client, child identity, and shared or independent public
 owner path before later lifecycle and broker-visible behavior can qualify it.
+Transactional producer initialization likewise requires exact client and
+producer identities, transactional ID, broker transaction timeout, and public
+initialization deadline, including a denied then recovered repeated identity.
 Every classic and KIP-848 group member now requires one exact registration
 command retaining its identities, caller-ordered topics, selected protocol, and
 complete optional public policy before assignment and record evidence applies.

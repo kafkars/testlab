@@ -11,9 +11,9 @@ use super::{
 
 #[test]
 fn delete_records_versions_and_wire_facts_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 137);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 141);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 127);
+    assert_eq!(PROTOCOL_VERSION, 138);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 142);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 128);
 
     let action = ScenarioAction::DeleteRecords(delete_action());
     let command = AdapterCommand::DeleteRecords(delete_command());

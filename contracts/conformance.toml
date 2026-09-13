@@ -697,6 +697,12 @@ statement = "Each UUID-bound transaction stages its exact ordered topic set agai
 category = "transaction"
 
 [[contract]]
+id = "TXN-011"
+title = "Transactional producers preserve exact initialization input"
+statement = "Each requested transactional producer initialization has exactly one ordered command preserving its client and producer identities, transactional ID, broker transaction timeout, and public initialization deadline, including denied then recovered reuse of one producer identity."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

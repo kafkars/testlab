@@ -308,6 +308,11 @@ child-handle registration. PROD-020 and CONS-029 require one creation command
 preserving the complete client, child identity, and shared or independent owner
 selection before existing lifecycle and broker-visible behavior can qualify the
 handle.
+Protocol v138, scenario schema v142, and evidence schema v128 add exact
+transactional producer initialization. TXN-011 requires caller-selected client,
+producer, transactional ID, broker transaction timeout, and public initialization
+deadline commands in scenario order, including denied then recovered identity
+reuse.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -504,7 +509,12 @@ transactional producer, hosted consumer, Share consumer, altered owner, or
 duplicate command cannot substitute for the requested ordinary child handle.
 
 Transaction evidence keeps public staging, public disposition, and independent
-visibility separate. TXN-004 requires every declared member to have one exact
+visibility separate. TXN-011 first requires every transactional producer
+initialization command to preserve its exact client and producer identities,
+transactional ID, transaction timeout, and initialization deadline in scenario
+order. This includes the two identical commands surrounding an independently
+applied and removed authorization denial; a later successful event cannot erase
+the missing denied attempt. TXN-004 requires every declared member to have one exact
 accepted-to-`transaction_staged` history before its completion. TXN-002 treats
 visibility as a complete set: every committed member appears exactly once under
 the observer's `read_committed` isolation and every aborted member is absent.

@@ -1,4 +1,4 @@
-schema_version = 141
+schema_version = 142
 id = "kafka.consumer-protocol-group-membership-ownership"
 title = "two KIP-848 members redistribute one complete disjoint assignment"
 description = "Public assignment snapshots prove complete pairwise-disjoint ownership before and after a second KIP-848 member joins and leaves, while exact committed records and independent group descriptions corroborate live progress."
