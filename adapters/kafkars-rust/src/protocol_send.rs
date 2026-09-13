@@ -16,6 +16,10 @@ use crate::protocol_send_outcome::metadata_receipt;
 pub(crate) use crate::protocol_send_outcome::{SendOutcome, emit_send_outcome};
 use crate::state::AdapterState;
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the send boundary retains every command identity and public option"
+)]
 pub(crate) fn dispatch_send<W: Write>(
     state: &AdapterState,
     writer: &mut W,
@@ -76,7 +80,7 @@ fn execute_send_with_topic_uuid(
         }
     };
     let outcome = match delivery.wait() {
-        Ok(metadata) => SendOutcome::acknowledged(metadata),
+        Ok(metadata) => SendOutcome::acknowledged(&metadata),
         Err(error) => {
             eprintln!("Kafkars delivery failed for {operation_id}: {error}");
             let failure = normalize::delivery_failure(&error);
@@ -97,7 +101,7 @@ fn execute_waiting_send(
         record = record.expected_topic_uuid(topic_uuid);
     }
     let outcome = match producer.send(record).wait() {
-        Ok(metadata) => SendOutcome::acknowledged(metadata),
+        Ok(metadata) => SendOutcome::acknowledged(&metadata),
         Err(error) => {
             let failure = normalize::delivery_failure(&error);
             SendOutcome::failed(failure.status, failure.code)

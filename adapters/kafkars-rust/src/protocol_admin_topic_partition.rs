@@ -31,12 +31,10 @@ pub(crate) fn paginated(
         leader_epoch: partition.leader_epoch(),
         replicas: partition.replicas().to_vec(),
         in_sync_replicas: partition.in_sync_replicas().to_vec(),
-        eligible_leader_replicas: partition
-            .eligible_leader_replicas()
-            .map(|replicas| replicas.to_vec()),
+        eligible_leader_replicas: partition.eligible_leader_replicas().map(<[i32]>::to_vec),
         last_known_eligible_leader_replicas: partition
             .last_known_eligible_leader_replicas()
-            .map(|replicas| replicas.to_vec()),
+            .map(<[i32]>::to_vec),
         offline_replicas: partition.offline_replicas().to_vec(),
     }
 }

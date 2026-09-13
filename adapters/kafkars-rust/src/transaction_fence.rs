@@ -48,8 +48,8 @@ pub(crate) fn dispatch<W: Write>(
         fence_method,
         transaction_id,
         operation,
-        replacement_client_id,
-        replacement_producer_id,
+        &replacement_client_id,
+        &replacement_producer_id,
         &transactional_id,
         Duration::from_millis(transaction_timeout_ms),
         Duration::from_millis(initialization_timeout_ms),
@@ -71,8 +71,8 @@ fn execute<W: Write>(
     fence_method: TransactionFenceMethod,
     transaction_id: testlab_schema::OperationId,
     operation: testlab_schema::BatchRecord,
-    replacement_client_id: testlab_schema::ClientId,
-    replacement_producer_id: ProducerId,
+    replacement_client_id: &testlab_schema::ClientId,
+    replacement_producer_id: &ProducerId,
     transactional_id: &str,
     transaction_timeout: Duration,
     initialization_timeout: Duration,
@@ -122,8 +122,8 @@ fn execute_started<W: Write>(
     fence_method: TransactionFenceMethod,
     transaction_id: testlab_schema::OperationId,
     operation: testlab_schema::BatchRecord,
-    replacement_client_id: testlab_schema::ClientId,
-    replacement_producer_id: ProducerId,
+    replacement_client_id: &testlab_schema::ClientId,
+    replacement_producer_id: &ProducerId,
     transactional_id: &str,
     transaction_timeout: Duration,
     initialization_timeout: Duration,
@@ -143,8 +143,8 @@ fn execute_started<W: Write>(
                 state,
                 writer,
                 &command_id,
-                &replacement_client_id,
-                &replacement_producer_id,
+                replacement_client_id,
+                replacement_producer_id,
                 transactional_id,
                 transaction_timeout,
                 initialization_timeout,
@@ -154,7 +154,7 @@ fn execute_started<W: Write>(
         }
         TransactionFenceMethod::AdminForceTermination => {
             state
-                .client(&replacement_client_id)?
+                .client(replacement_client_id)?
                 .admin()
                 .force_terminate_transaction(transactional_id)
                 .deadline_after(remaining(deadline)?)
@@ -166,8 +166,8 @@ fn execute_started<W: Write>(
                 state,
                 writer,
                 &command_id,
-                &replacement_client_id,
-                &replacement_producer_id,
+                replacement_client_id,
+                replacement_producer_id,
                 transactional_id,
                 transaction_timeout,
                 initialization_timeout,

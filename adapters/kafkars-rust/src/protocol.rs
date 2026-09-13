@@ -1,3 +1,5 @@
+//! Versioned JSON Lines dispatch keeps adapter stdout protocol-only and bounded.
+
 use crate::AdapterError;
 use crate::protocol_client;
 use crate::protocol_consumer;
@@ -16,6 +18,7 @@ use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandEnvelope, PROTOCOL_VERSION,
 };
 const MAX_COMMAND_BYTES: usize = 4 * 1024 * 1024;
+/// Runs one adapter session over locked standard input and output streams.
 pub fn run_stdio() -> Result<(), AdapterError> {
     let (stdin, stdout) = (io::stdin(), io::stdout());
     run_session(stdin.lock(), stdout.lock())

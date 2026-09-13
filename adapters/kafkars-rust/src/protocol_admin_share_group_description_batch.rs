@@ -46,7 +46,7 @@ pub(crate) fn describe<W: Write>(
         .into_iter()
         .map(|group| match group.result {
             ResourceResult::Success(value) => {
-                let description = public_description(command.operation_id.clone(), value);
+                let description = public_description(command.operation_id.clone(), &value);
                 if description.group_id != group.group_id {
                     return Err(AdapterError::AdminResult(format!(
                         "admin operation {} returned mismatched inner Share-group identity",

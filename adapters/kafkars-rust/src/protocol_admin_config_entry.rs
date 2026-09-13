@@ -18,11 +18,15 @@ pub(crate) struct SelectedConfig {
 
 pub(crate) type TopicConfigResult = (String, Result<Vec<SelectedConfig>, KafkaError>);
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the mapper receives owned successful results from the public Admin response"
+)]
 pub(crate) fn normalize_entries(entries: Vec<ConfigEntry>) -> Vec<SelectedConfig> {
-    entries.into_iter().map(normalize_entry).collect()
+    entries.iter().map(normalize_entry).collect()
 }
 
-fn normalize_entry(entry: ConfigEntry) -> SelectedConfig {
+fn normalize_entry(entry: &ConfigEntry) -> SelectedConfig {
     SelectedConfig {
         name: entry.name().to_owned(),
         value: entry.value().map(str::to_owned),

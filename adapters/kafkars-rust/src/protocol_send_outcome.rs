@@ -26,8 +26,8 @@ pub(crate) enum SendOutcome {
 }
 
 impl SendOutcome {
-    pub(crate) fn acknowledged(metadata: RecordMetadata) -> Self {
-        let receipt = metadata_receipt(&metadata);
+    pub(crate) fn acknowledged(metadata: &RecordMetadata) -> Self {
+        let receipt = metadata_receipt(metadata);
         Self::Accepted {
             status: TerminalStatus::Acknowledged,
             code: None,
@@ -53,7 +53,9 @@ impl SendOutcome {
 pub(crate) fn metadata_receipt(metadata: &RecordMetadata) -> ProducerReceipt {
     ProducerReceipt {
         topic: metadata.topic().to_owned(),
-        topic_uuid: metadata.topic_uuid().map(|value| value.into_bytes()),
+        topic_uuid: metadata
+            .topic_uuid()
+            .map(kafkars::topic::TopicUuid::into_bytes),
         leader_epoch: metadata.leader_epoch(),
         serialized_key_size: metadata.serialized_key_size(),
         serialized_value_size: metadata.serialized_value_size(),

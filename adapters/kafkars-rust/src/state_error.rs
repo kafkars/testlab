@@ -31,8 +31,6 @@ pub(crate) enum StateError {
     MissingConsumer(ConsumerId),
     #[error("independent_handles capability is unavailable in this adapter build")]
     IndependentHandlesUnavailable,
-    #[error("packaged Kafkars client surface was invalid: {0}")]
-    ClientSurface(String),
     #[cfg(kafkars_share_candidate)]
     #[error("share batch {0} already exists")]
     DuplicateShareBatch(OperationId),

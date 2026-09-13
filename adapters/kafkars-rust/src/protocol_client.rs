@@ -16,7 +16,7 @@ pub(crate) fn dispatch<W: Write>(
 ) -> Result<(), AdapterError> {
     let event = match command {
         AdapterCommand::CreateClient(command) => AdapterEvent::ClientCreated(
-            state.create_client(command.client_id, command.expected_cluster_id)?,
+            state.create_client(command.client_id, command.expected_cluster_id.as_deref())?,
         ),
         AdapterCommand::CreateConfiguredClient(action) => {
             AdapterEvent::ClientCreated(state.create_configured_client(

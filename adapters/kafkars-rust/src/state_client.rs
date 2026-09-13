@@ -13,7 +13,7 @@ impl AdapterState {
     pub(crate) fn create_client(
         &mut self,
         client_id: ClientId,
-        expected_cluster_id: Option<String>,
+        expected_cluster_id: Option<&str>,
     ) -> Result<ClientConfigurationObservation, StateError> {
         self.create_client_with_configuration(client_id, expected_cluster_id, None, None)
     }
@@ -38,7 +38,7 @@ impl AdapterState {
     fn create_client_with_configuration(
         &mut self,
         client_id: ClientId,
-        expected_cluster_id: Option<String>,
+        expected_cluster_id: Option<&str>,
         producer_configuration: Option<(ProducerConfigurationMethod, ProducerConfiguration)>,
         assigned_consumer_configuration: Option<AssignedConsumerConfiguration>,
     ) -> Result<ClientConfigurationObservation, StateError> {
@@ -55,7 +55,7 @@ impl AdapterState {
             .bootstrap_servers(endpoints.iter().map(String::as_str))
             .client_id(client_id.as_str())
             .security(security);
-        let builder = match expected_cluster_id.as_deref() {
+        let builder = match expected_cluster_id {
             Some(cluster_id) => builder.expected_cluster_id(cluster_id),
             None => builder,
         };

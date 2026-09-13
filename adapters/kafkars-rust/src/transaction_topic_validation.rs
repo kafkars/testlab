@@ -76,7 +76,7 @@ impl TopicValidation {
         loop {
             let result = transaction
                 .validate_for_commit(crate::transaction_end::remaining(deadline)?)
-                .and_then(|validation| validation.wait());
+                .and_then(kafkars::transaction::ValidateTransaction::wait);
             match result {
                 Ok(()) => return Ok(()),
                 Err(error)

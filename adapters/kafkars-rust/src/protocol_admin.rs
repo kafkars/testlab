@@ -16,6 +16,10 @@ use crate::protocol_admin_read;
 use crate::protocol_admin_write;
 use crate::state::AdapterState;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive Admin routing keeps every public command family explicit"
+)]
 pub(crate) fn dispatch<W: Write>(
     state: &AdapterState,
     writer: &mut W,

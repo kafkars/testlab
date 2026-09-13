@@ -36,7 +36,7 @@ pub(crate) fn checkpoint(
         |checkpoint| {
             consumer
                 .acknowledge(checkpoint)
-                .map_err(|error| error.into_parts())
+                .map_err(kafkars::consumer::ConsumerAcknowledgeError::into_parts)
         },
         |error| error.retry_advice() == RetryAdvice::RetrySafe,
     )

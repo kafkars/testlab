@@ -83,7 +83,7 @@ pub(crate) fn dispatch<W: Write>(
                 operations,
                 method,
                 disposition,
-                validation,
+                &validation,
                 deadline,
             )
         }
@@ -103,6 +103,10 @@ pub(crate) fn dispatch<W: Write>(
     }
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the transaction boundary retains every command identity and disposition option"
+)]
 fn execute<W: Write>(
     producer: &mut TransactionalProducer,
     writer: &mut W,
@@ -111,7 +115,7 @@ fn execute<W: Write>(
     operations: Vec<BatchRecord>,
     method: TransactionSendMethod,
     disposition: TransactionDisposition,
-    validation: crate::transaction_topic_validation::TopicValidation,
+    validation: &crate::transaction_topic_validation::TopicValidation,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     loop {
@@ -139,6 +143,10 @@ fn execute<W: Write>(
     }
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the active transaction retains every command identity and disposition option"
+)]
 fn execute_started<W: Write>(
     mut transaction: Transaction<'_>,
     writer: &mut W,
@@ -147,7 +155,7 @@ fn execute_started<W: Write>(
     operations: Vec<BatchRecord>,
     method: TransactionSendMethod,
     disposition: TransactionDisposition,
-    validation: crate::transaction_topic_validation::TopicValidation,
+    validation: &crate::transaction_topic_validation::TopicValidation,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
     match method {

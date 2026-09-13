@@ -16,7 +16,7 @@ use crate::protocol_admin_plural_result::{
 };
 
 pub(crate) fn singular_description(
-    result: DescribeStreamsGroupResult,
+    result: &DescribeStreamsGroupResult,
     operation_id: &OperationId,
 ) -> Result<(u64, AdminStreamsGroupDescription), AdapterError> {
     let throttle = throttle_ms(result.throttle_time(), operation_id, "describe-one")?;
@@ -179,14 +179,16 @@ fn summarize_description(
         state: value.state().to_owned(),
         group_epoch: value.group_epoch(),
         assignment_epoch: value.assignment_epoch(),
-        topology_epoch: value.topology().map(|topology| topology.epoch()),
+        topology_epoch: value
+            .topology()
+            .map(kafkars::admin::StreamsGroupTopology::epoch),
         topology_source_topics,
         topology_subtopology_count,
         member_count: count(value.members().len(), operation_id, "members")?,
         authorized_operations: value.authorized_operations(),
         topology_description_status: value
             .topology_description_status()
-            .map(|status| status.as_raw()),
+            .map(kafkars::admin::StreamsGroupTopologyDescriptionStatus::as_raw),
         topology_description_subtopology_count,
     })
 }

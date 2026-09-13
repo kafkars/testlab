@@ -41,7 +41,7 @@ pub(crate) fn describe<W: Write>(
         retry_safe,
     )
     .map_err(AdapterError::Client)?;
-    let description = public_description(command.operation_id, result.into_description());
+    let description = public_description(command.operation_id, &result.into_description());
     emit(
         writer,
         &AdapterEventEnvelope::new(command_id, AdapterEvent::ShareGroupDescribed(description)),
@@ -169,7 +169,7 @@ pub(crate) fn alter_offsets<W: Write>(
 
 pub(crate) fn public_description(
     operation_id: testlab_schema::OperationId,
-    description: ShareGroupDescription,
+    description: &ShareGroupDescription,
 ) -> AdminShareGroupDescription {
     let members = description
         .members()

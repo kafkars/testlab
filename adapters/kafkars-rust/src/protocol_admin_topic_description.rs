@@ -20,6 +20,12 @@ use crate::protocol_admin_result::{
 use crate::state::AdapterState;
 
 const MAX_PAGINATION_PAGES: usize = 10_000;
+type MetadataEntries = Vec<(String, Result<DescribedTopicResult, KafkaError>)>;
+type PartitionPages = (
+    Vec<i32>,
+    Vec<testlab_schema::AdminTopicPartitionDescriptionOutcome>,
+    Vec<AdminTopicDescriptionPage>,
+);
 
 pub(crate) fn dispatch<W: Write>(
     state: &AdapterState,
@@ -64,7 +70,7 @@ fn metadata_entries(
     client: &Client,
     topic: &str,
     deadline: Instant,
-) -> Result<Vec<(String, Result<DescribedTopicResult, KafkaError>)>, AdapterError> {
+) -> Result<MetadataEntries, AdapterError> {
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
@@ -90,14 +96,7 @@ fn partition_pages(
     command: &DescribeTopicCommand,
     pagination: TopicDescriptionPagination,
     deadline: Instant,
-) -> Result<
-    (
-        Vec<i32>,
-        Vec<testlab_schema::AdminTopicPartitionDescriptionOutcome>,
-        Vec<AdminTopicDescriptionPage>,
-    ),
-    AdapterError,
-> {
+) -> Result<PartitionPages, AdapterError> {
     let mut requested_cursor = None::<DescribeTopicPartitionsCursor>;
     let mut seen_cursors = BTreeSet::new();
     let mut all_partitions = Vec::new();

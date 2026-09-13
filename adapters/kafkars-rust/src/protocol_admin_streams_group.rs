@@ -17,6 +17,10 @@ use crate::protocol::emit;
 use crate::protocol_admin_streams_group_result as result;
 use crate::state::AdapterState;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the bounded Streams-group lifecycle keeps its ordered public calls explicit"
+)]
 pub(crate) fn exercise<W: Write>(
     state: &AdapterState,
     writer: &mut W,
@@ -42,7 +46,7 @@ pub(crate) fn exercise<W: Write>(
         .wait()
         .map_err(AdapterError::Client)?;
     let (throttle, singular_description) =
-        result::singular_description(described, &command.operation_id)?;
+        result::singular_description(&described, &command.operation_id)?;
     throttles[0] = throttle;
 
     let described = admin

@@ -52,12 +52,12 @@ fn legacy_set_and_restoration_map_without_incremental_substitution() {
         TopicConfigMutationMethod::RestoreDefault,
         None,
     );
-    let set =
+    let mapped_set =
         legacy_entry(&set, &operation()).unwrap_or_else(|error| panic!("map legacy set: {error}"));
-    let restore = legacy_entry(&restore, &operation())
+    let mapped_restore = legacy_entry(&restore, &operation())
         .unwrap_or_else(|error| panic!("map legacy restoration: {error}"));
-    assert_eq!(set.value(), Some("compact"));
-    assert_eq!(restore.value(), None);
+    assert_eq!(mapped_set.value(), Some("compact"));
+    assert_eq!(mapped_restore.value(), None);
     assert!(incremental_alteration(&restore, &operation()).is_err());
 }
 

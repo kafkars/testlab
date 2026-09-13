@@ -39,7 +39,7 @@ pub(crate) fn dispatch<W: Write>(
     let mut owner = state.take_transactional_producer(&producer_id)?;
     let result = state
         .client(&owner.client_id)
-        .map(Clone::clone)
+        .cloned()
         .map_err(AdapterError::from)
         .and_then(|client| {
             execute(

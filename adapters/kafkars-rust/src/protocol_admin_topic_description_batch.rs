@@ -116,7 +116,7 @@ fn outcomes(
                 ));
             }
             match result {
-                Ok(description) => successful_outcome(topic, None, description, operation_id),
+                Ok(description) => successful_outcome(topic, None, &description, operation_id),
                 Err(error) => Ok(AdminTopicDescriptionOutcome {
                     topic,
                     topic_id: None,
@@ -151,7 +151,7 @@ pub(crate) fn outcomes_by_id(
             }
             match result {
                 Ok(description) => {
-                    successful_outcome(topic.clone(), Some(topic_id), description, operation_id)
+                    successful_outcome(topic.clone(), Some(topic_id), &description, operation_id)
                 }
                 Err(error) => Ok(AdminTopicDescriptionOutcome {
                     topic: topic.clone(),
@@ -167,7 +167,7 @@ pub(crate) fn outcomes_by_id(
 fn successful_outcome(
     topic: String,
     requested_topic_id: Option<[u8; 16]>,
-    description: TopicDescription,
+    description: &TopicDescription,
     operation_id: &OperationId,
 ) -> Result<AdminTopicDescriptionOutcome, AdapterError> {
     if description.name() != topic {

@@ -15,7 +15,7 @@ fn idle_client_normalizes_every_public_metrics_family() {
         .hello(vec!["127.0.0.1:1".to_owned()], AdapterSecurity::Plaintext)
         .unwrap_or_else(|error| panic!("hello: {error}"));
     state
-        .create_client(client_id.clone())
+        .create_client(client_id.clone(), None)
         .unwrap_or_else(|error| panic!("create client: {error}"));
 
     let observation = state

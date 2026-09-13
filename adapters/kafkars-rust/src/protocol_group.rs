@@ -1,3 +1,5 @@
+//! Group-consumer protocol translation preserves public receive and checkpoint ownership.
+
 use std::io::Write;
 use std::time::{Duration, Instant};
 
@@ -17,6 +19,10 @@ pub(crate) use crate::group_receive_events::receive_batch;
 use crate::protocol::emit;
 use crate::state::AdapterState;
 const POLL_SLICE: Duration = Duration::from_millis(10);
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive group-consumer routing keeps each public lifecycle command explicit"
+)]
 pub(crate) fn dispatch<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,
@@ -129,6 +135,10 @@ pub(crate) fn dispatch<W: Write>(
         )),
     }
 }
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the receive boundary retains every command identity and checkpoint control"
+)]
 fn receive<W: Write>(
     state: &mut AdapterState,
     writer: &mut W,

@@ -28,7 +28,7 @@ pub(crate) fn send<W: Write>(
         .collect::<Vec<_>>();
     let mut records = operations
         .into_iter()
-        .map(|operation| {
+        .map(|operation| -> Result<_, AdapterError> {
             let record = normalize::record(operation.record)?;
             Ok(match topic_uuid {
                 Some(topic_uuid) => record.expected_topic_uuid(topic_uuid),
@@ -69,7 +69,7 @@ pub(crate) fn send<W: Write>(
             &operation_ids,
             &topic,
             partition,
-            metadata,
+            &metadata,
         ),
         Err(error) => {
             let failure = normalize::delivery_failure(&error);
@@ -138,7 +138,7 @@ fn emit_successes<W: Write>(
     operation_ids: &[OperationId],
     topic: &str,
     partition: i32,
-    metadata: crate::kafkars_api::TransactionBatchMetadata,
+    metadata: &crate::kafkars_api::TransactionBatchMetadata,
 ) -> Result<(), AdapterError> {
     let count = operation_ids.len();
     let offset_span = i64::try_from(count.saturating_sub(1))
