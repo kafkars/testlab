@@ -43,6 +43,7 @@ fn exact_description_matches_independent_metadata() {
                 operation_id: operation_id.clone(),
                 topic: "described".to_owned(),
                 partitions: vec![0, 1, 2],
+                partition_details: crate::admin_topic::topology::partitions(&[0, 1, 2]),
                 pages: paginated_description_pages(),
             }),
         ),
@@ -73,6 +74,7 @@ fn description_missing_independent_partition_fails() {
                 operation_id: operation_id.clone(),
                 topic: "described".to_owned(),
                 partitions: vec![0, 1, 2],
+                partition_details: crate::admin_topic::topology::partitions(&[0, 1, 2]),
                 pages: Vec::new(),
             }),
         ),
@@ -205,6 +207,7 @@ fn paginated_description_pages() -> Vec<AdminTopicDescriptionPage> {
     vec![
         AdminTopicDescriptionPage {
             partitions: vec![0, 1],
+            partition_details: crate::admin_topic::topology::partitions(&[0, 1]),
             next_cursor: Some(AdminTopicPageCursor {
                 topic_name: "described".to_owned(),
                 partition_index: 2,
@@ -212,6 +215,7 @@ fn paginated_description_pages() -> Vec<AdminTopicDescriptionPage> {
         },
         AdminTopicDescriptionPage {
             partitions: vec![2],
+            partition_details: crate::admin_topic::topology::partitions(&[2]),
             next_cursor: None,
         },
     ]

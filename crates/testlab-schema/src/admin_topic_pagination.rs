@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::AdminTopicPartitionDescriptionOutcome;
+
 /// Caller-selected controls for explicit `DescribeTopicPartitions` pages.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -28,6 +30,8 @@ pub struct AdminTopicPageCursor {
 pub struct AdminTopicDescriptionPage {
     /// Sorted partition identifiers carried by this page.
     pub partitions: Vec<i32>,
+    /// Complete public partition facts carried by this page.
+    pub partition_details: Vec<AdminTopicPartitionDescriptionOutcome>,
     /// Public continuation cursor, when Kafka reports another page.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub next_cursor: Option<AdminTopicPageCursor>,

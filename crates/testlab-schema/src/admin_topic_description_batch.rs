@@ -82,6 +82,22 @@ pub struct AdminTopicPartitionDescriptionOutcome {
     pub partition: i32,
     /// Stable normalized partition error, when Kafka supplied one.
     pub error_code: Option<String>,
+    /// Current leader broker after Kafka sentinel normalization.
+    pub leader_id: Option<i32>,
+    /// Current leader epoch after Kafka sentinel normalization.
+    pub leader_epoch: Option<i32>,
+    /// Replica broker identities in Kafka order.
+    pub replicas: Vec<i32>,
+    /// In-sync replica broker identities in Kafka order.
+    pub in_sync_replicas: Vec<i32>,
+    /// Nullable eligible-leader replica identities in Kafka order.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eligible_leader_replicas: Option<Vec<i32>>,
+    /// Nullable last-known eligible-leader identities in Kafka order.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_known_eligible_leader_replicas: Option<Vec<i32>>,
+    /// Offline replica broker identities in Kafka order.
+    pub offline_replicas: Vec<i32>,
 }
 
 /// One successful public topic description.

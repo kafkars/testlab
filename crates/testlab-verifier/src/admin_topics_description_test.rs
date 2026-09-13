@@ -2,9 +2,9 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
-    AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, BrokerStateObservation,
-    BrokerTopicState, ClientId, DescribeTopicsCommand, HistoryEntry, HistoryPayload, OperationId,
-    Scenario, TopicSelection, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    AdminTopicsDescription, BrokerStateObservation, BrokerTopicState, ClientId,
+    DescribeTopicsCommand, HistoryEntry, HistoryPayload, OperationId, Scenario, TopicSelection,
+    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 use crate::admin::verify_admin;
@@ -146,10 +146,7 @@ fn successful(topic: &str, partitions: Vec<i32>, topic_id: u8) -> AdminTopicDesc
             authorized_operations: Some(1),
             partitions: partitions
                 .into_iter()
-                .map(|partition| AdminTopicPartitionDescriptionOutcome {
-                    partition,
-                    error_code: None,
-                })
+                .map(crate::admin_topic::topology::partition)
                 .collect(),
         }),
         error_code: None,

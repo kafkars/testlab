@@ -2,9 +2,9 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
-    AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, BrokerStateObservation,
-    BrokerTopicIdentityState, DescribeTopicsCommand, HistoryEntry, HistoryPayload, Scenario,
-    ScenarioAction, TransactionDisposition,
+    AdminTopicsDescription, BrokerStateObservation, BrokerTopicIdentityState,
+    DescribeTopicsCommand, HistoryEntry, HistoryPayload, Scenario, ScenarioAction,
+    TransactionDisposition,
 };
 
 use crate::index::HistoryIndex;
@@ -105,10 +105,7 @@ fn description(topic: &str, topic_id: [u8; 16]) -> AdminTopicDescriptionOutcome 
             topic_id: Some(topic_id),
             internal: false,
             authorized_operations: None,
-            partitions: vec![AdminTopicPartitionDescriptionOutcome {
-                partition: 0,
-                error_code: None,
-            }],
+            partitions: vec![crate::admin_topic::topology::partition(0)],
         }),
         error_code: None,
     }

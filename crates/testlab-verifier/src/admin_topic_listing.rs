@@ -30,6 +30,17 @@ pub(super) fn verify(
     let public = completions
         .filter(|values| values.len() == 1)
         .and_then(|values| values.first());
+    if let Some(public) = public {
+        crate::admin_topic::topology::verify_values(
+            operation_id,
+            public
+                .outcomes
+                .iter()
+                .filter_map(|outcome| outcome.description.as_ref()),
+            public.history_sequence,
+            violations,
+        );
+    }
     let independent_matches = independent.is_some_and(|values| {
         values.len() == expected.len()
             && independently_present.len() == expected.len()

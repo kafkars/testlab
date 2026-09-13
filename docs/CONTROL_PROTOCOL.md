@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v163 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v167 and evidence schema v153.
+Protocol v164 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v168 and evidence schema v154.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -780,14 +780,17 @@ complete metadata-backed public operation or `DescribeTopicPartitions` with an
 exact positive response-partition limit and cursor-following selection. Each
 returned continuation cursor starts one separately submitted public page only
 when requested. The single completion preserves every page's exact partition
-subset and returned cursor as well as the sorted aggregate partition set. The
-verifier requires the declared page boundaries, exact next-topic and
-next-partition cursors, and immediate independent metadata for the aggregate.
+subset and returned cursor as well as the sorted aggregate partition set. Each
+aggregate and page entry also retains the public partition error, leader,
+leader epoch, replica, ISR, eligible-leader, last-known-eligible, and offline-
+replica getters. The verifier requires the declared page boundaries, exact
+next-topic and next-partition cursors, internally consistent topology, and
+immediate independent metadata for the aggregate.
 An all-topic listing carries the exact
 `include_internal` and `include_authorized_operations` options. Its single
 completion preserves one byte-sorted unique outcome per returned name,
 including the full successful topic ID, internal marker, authorization bitfield,
-and error-aware partition description, or one normalized resource error. Every
+and complete error-aware partition topology, or one normalized resource error. Every
 expected topic is observed independently and must follow its declared public
 inclusion; each included topic must be a success whose partition topology
 matches that observation exactly. Every successful outcome has authorization
@@ -805,7 +808,7 @@ under the same deadline and invokes the public ID-keyed operation with the
 resulting nonzero unique UUIDs. Scenario-only partitions and expected errors
 stay in Testlab. Its single `topics_described` completion preserves the same
 outer order, exact request UUID when ID-keyed, complete successful partition
-results, matching nonzero inner topic IDs, internal-topic flags, the requested
+topology, matching nonzero inner topic IDs, internal-topic flags, the requested
 authorization bitfields, and per-topic or per-partition errors. Name-keyed calls
 use immediate independent metadata. ID-keyed calls use one immediate pinned
 Kafka topic-CLI snapshot per topic to prove both UUID and topology in caller
@@ -1391,6 +1394,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v163 is an exact semantic contract. New capabilities may be declared
+Protocol v164 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

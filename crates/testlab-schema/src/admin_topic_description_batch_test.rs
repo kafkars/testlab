@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 163);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 167);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 153);
+    assert_eq!(PROTOCOL_VERSION, 164);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 168);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 154);
 }
 
 #[test]
@@ -231,6 +231,13 @@ fn described(topic: &str, partitions: Vec<i32>, topic_id: u8) -> AdminTopicDescr
                 .map(|partition| AdminTopicPartitionDescriptionOutcome {
                     partition,
                     error_code: None,
+                    leader_id: Some(1),
+                    leader_epoch: Some(1),
+                    replicas: vec![1],
+                    in_sync_replicas: vec![1],
+                    eligible_leader_replicas: None,
+                    last_known_eligible_leader_replicas: None,
+                    offline_replicas: Vec::new(),
                 })
                 .collect(),
         }),

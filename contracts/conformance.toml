@@ -655,6 +655,12 @@ statement = "Each successful configured item in one caller-ordered public topic-
 category = "admin"
 
 [[contract]]
+id = "ADMIN-097"
+title = "Topic descriptions preserve complete partition topology"
+statement = "Every successful public metadata description, explicit DescribeTopicPartitions page, and detailed all-topic listing retains each partition error, leader, epoch, replica, in-sync, eligible-leader, last-known-eligible, and offline-replica getter in exact partition order; duplicated aggregate and page identities agree and the retained topology is internally consistent."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

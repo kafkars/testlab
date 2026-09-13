@@ -28,6 +28,18 @@ fn verify(
 ) {
     let window = index.admin_command_window(scenario_action);
     let public = one(index.topics_batch_described.get(&action.operation_id));
+    if let Some(public) = public {
+        crate::admin_topic::topology::verify_values(
+            &action.operation_id,
+            public
+                .value
+                .outcomes
+                .iter()
+                .filter_map(|outcome| outcome.description.as_ref()),
+            public.history_sequence,
+            violations,
+        );
+    }
     let independent = index.topics_observed.get(&action.operation_id);
     let public_matches = public.is_some_and(|indexed| {
         public_after_command(window, indexed.history_sequence)

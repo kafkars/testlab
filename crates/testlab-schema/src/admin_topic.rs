@@ -7,7 +7,8 @@ pub use pagination::{AdminTopicDescriptionPage, AdminTopicPageCursor, TopicDescr
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AdminOffsetSelector, AdminTopicDescriptionValue, ClientId, OperationId, TopicDescriptionApi,
+    AdminOffsetSelector, AdminTopicDescriptionValue, AdminTopicPartitionDescriptionOutcome,
+    ClientId, OperationId, TopicDescriptionApi,
 };
 
 #[cfg(test)]
@@ -229,6 +230,8 @@ pub struct AdminTopicDescription {
     pub topic: String,
     /// Sorted partition identifiers reported by the adapter.
     pub partitions: Vec<i32>,
+    /// Complete public partition facts in the same sorted order.
+    pub partition_details: Vec<AdminTopicPartitionDescriptionOutcome>,
     /// Ordered facts from each separately submitted topic-partition page.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub pages: Vec<AdminTopicDescriptionPage>,

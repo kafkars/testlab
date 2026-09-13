@@ -1,7 +1,7 @@
 //! Topic discovery normalization tests preserve public ordering and failures.
 
 use crate::kafkars_api::{ErrorKind, KafkaError};
-use testlab_schema::OperationId;
+use testlab_schema::{AdminTopicPartitionDescriptionOutcome, OperationId};
 
 use crate::AdapterError;
 use crate::protocol_admin_result::{DescribedTopicResult, described_partitions};
@@ -19,7 +19,13 @@ fn described_topic_canonicalizes_public_partition_order() {
     );
 
     let partitions = result.unwrap_or_else(|error| panic!("describe topic: {error}"));
-    assert_eq!(partitions, vec![0, 1, 2]);
+    assert_eq!(
+        partitions
+            .iter()
+            .map(|partition| partition.partition)
+            .collect::<Vec<_>>(),
+        vec![0, 1, 2]
+    );
 }
 
 #[test]
@@ -157,15 +163,39 @@ fn listed_description(name: &str, authorized_operations: Option<i32>) -> ListedT
         topic_id: Some([1; 16]),
         internal: name.starts_with("__"),
         authorized_operations,
-        partitions: vec![(0, None)],
+        partitions: vec![partition(0, None).0],
     }
 }
 
 fn description(name: &str, partitions: Vec<(i32, Option<KafkaError>)>) -> DescribedTopicResult {
     DescribedTopicResult {
         name: name.to_owned(),
-        partitions,
+        partitions: partitions
+            .into_iter()
+            .map(|(index, error)| partition(index, error))
+            .collect(),
     }
+}
+
+fn partition(
+    index: i32,
+    error: Option<KafkaError>,
+) -> (AdminTopicPartitionDescriptionOutcome, Option<KafkaError>) {
+    let error_code = error.as_ref().map(|_| "broker:test".to_owned());
+    (
+        AdminTopicPartitionDescriptionOutcome {
+            partition: index,
+            error_code,
+            leader_id: Some(1),
+            leader_epoch: Some(1),
+            replicas: vec![1],
+            in_sync_replicas: vec![1],
+            eligible_leader_replicas: None,
+            last_known_eligible_leader_replicas: None,
+            offline_replicas: Vec::new(),
+        },
+        error,
+    )
 }
 
 fn client_error(message: &str) -> KafkaError {

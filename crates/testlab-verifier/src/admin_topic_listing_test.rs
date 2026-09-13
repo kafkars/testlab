@@ -2,8 +2,8 @@
 
 use super::*;
 use testlab_schema::{
-    AdminListedTopicOutcome, AdminTopicDescriptionValue, AdminTopicPartitionDescriptionOutcome,
-    AdminTopicsListing, ListTopicsAction, TopicListingExpectation,
+    AdminListedTopicOutcome, AdminTopicDescriptionValue, AdminTopicsListing, ListTopicsAction,
+    TopicListingExpectation,
 };
 
 #[test]
@@ -234,10 +234,7 @@ fn outcome(
             authorized_operations: authorization,
             partitions: partitions
                 .into_iter()
-                .map(|partition| AdminTopicPartitionDescriptionOutcome {
-                    partition,
-                    error_code: None,
-                })
+                .map(crate::admin_topic::topology::partition)
                 .collect(),
         }),
         error_code: None,

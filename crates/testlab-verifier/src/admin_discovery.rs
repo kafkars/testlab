@@ -85,6 +85,17 @@ fn verify_description(
     let public = completions
         .filter(|values| values.len() == 1)
         .and_then(|values| values.first());
+    if let Some(public) = public {
+        crate::admin_topic::topology::verify_single(
+            operation_id,
+            action.api,
+            &public.partitions,
+            &public.partition_details,
+            &public.pages,
+            public.history_sequence,
+            violations,
+        );
+    }
     let public_matches = public.is_some_and(|value| {
         value.topic == topic
             && value.partitions == expected_partitions

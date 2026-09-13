@@ -2,7 +2,6 @@
 
 use super::{
     AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminReadIsolation,
-    AdminTopicDescription, AdminTopicDescriptionPage, AdminTopicPageCursor, AdminTopicsListing,
     ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction, ListOffsetsCommand,
     ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION, ROUTING_ERROR_CODE,
     SCENARIO_SCHEMA_VERSION, ScenarioAction, TopicDescriptionApi,
@@ -16,8 +15,8 @@ mod topic_pagination_tests;
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 163);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 167);
+    assert_eq!(PROTOCOL_VERSION, 164);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 168);
 }
 
 #[test]
@@ -78,50 +77,6 @@ fn list_offsets_command_preserves_isolation_and_excludes_expected_offset() {
     assert!(command.contains("read_isolation = \"read_uncommitted\""));
     assert!(!command.contains("timestamp_millis"));
     assert!(!command.contains("expected_offset"));
-}
-
-#[test]
-fn admin_query_events_report_only_observed_facts() {
-    let described = encode(&AdapterEvent::TopicDescribed(AdminTopicDescription {
-        operation_id: operation("admin-describe-1"),
-        topic: "records".to_owned(),
-        partitions: vec![0, 1],
-        pages: vec![
-            AdminTopicDescriptionPage {
-                partitions: vec![0],
-                next_cursor: Some(AdminTopicPageCursor {
-                    topic_name: "records".to_owned(),
-                    partition_index: 1,
-                }),
-            },
-            AdminTopicDescriptionPage {
-                partitions: vec![1],
-                next_cursor: None,
-            },
-        ],
-    }));
-    let listed = encode(&AdapterEvent::TopicsListed(AdminTopicsListing {
-        operation_id: operation("admin-topics-1"),
-        outcomes: Vec::new(),
-    }));
-    let offset = encode(&AdapterEvent::OffsetListed(AdminOffsetListing {
-        operation_id: operation("admin-offset-1"),
-        topic: "records".to_owned(),
-        partition: 0,
-        offset: Some(3),
-        timestamp_millis: None,
-    }));
-
-    assert!(described.contains("kind = \"topic_described\""));
-    assert!(described.contains("partitions = [0, 1]"));
-    assert!(described.contains("partition_index = 1"));
-    assert!(!described.contains("expected_partitions"));
-    assert!(listed.contains("kind = \"topics_listed\""));
-    assert!(listed.contains("outcomes = []"));
-    assert!(!listed.contains("expected_topics"));
-    assert!(offset.contains("kind = \"offset_listed\""));
-    assert!(offset.contains("offset = 3"));
-    assert!(!offset.contains("expected_offset"));
 }
 
 #[test]

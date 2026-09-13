@@ -12,8 +12,8 @@ pub(crate) use kafkars::admin::{
     CreateAclOutcome, CreateAclResult, DelegationToken, DelegationTokenHmac,
     DelegationTokenPrincipal, DeleteAclFilterOutcome, DeleteAclFilterResult, DeleteAclMatchResult,
     DeleteRecordsTarget, DescribeStreamsGroupResult, DescribeStreamsGroupsResult,
-    DescribeTopicPartitionsCursor, DescribeTopicPartitionsTopic, FeatureUpdate,
-    LeaderElectionTarget, LeaderElectionType, LegacyConfigResourceReplacement,
+    DescribeTopicPartition, DescribeTopicPartitionsCursor, DescribeTopicPartitionsTopic,
+    FeatureUpdate, LeaderElectionTarget, LeaderElectionType, LegacyConfigResourceReplacement,
     LegacyTopicConfigEntry, LegacyTopicConfigReplacement, ListConsumerGroupOffsetsQuery,
     ListConsumerGroupOffsetsResult, ListOffsetsQuery, ListShareGroupOffsetsQuery,
     ListShareGroupOffsetsResult, ListStreamsGroupOffsetsQuery, ListStreamsGroupOffsetsResult,
@@ -22,7 +22,8 @@ pub(crate) use kafkars::admin::{
     PartitionReassignmentChange, ReplicaLogDirAssignment, ResourcePattern, ScramCredentialInfo,
     ScramMechanism, ShareGroupDescription, ShareGroupOffset, ShareGroupOffsetAlteration,
     StreamsGroupDescription, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
-    TopicPartitionReplica, TopicReplicaAssignment, UserScramCredentialAlteration,
+    TopicPartitionDescription, TopicPartitionReplica, TopicReplicaAssignment,
+    UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{

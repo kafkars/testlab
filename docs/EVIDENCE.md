@@ -428,6 +428,14 @@ Share builder attempt self-describing. SHARE-016 requires its selected rack,
 complete explicit Fetch policy, and close timeout to match the command exactly;
 the exact retry-adjusted membership-start duration must be positive and no
 greater than the original command deadline.
+Protocol v164, scenario schema v168, and evidence schema v154 retain complete
+public partition topology for metadata descriptions, explicit
+`DescribeTopicPartitions` pages, and detailed all-topic listings. ADMIN-097
+requires exact aggregate and page identities plus internally consistent leader,
+epoch, replica, ISR, eligible-leader, last-known-eligible, offline-replica, and
+partition-error getter values. Immediate metadata remains the authority for the
+declared partition set; retained public details do not become independent broker
+truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -777,7 +785,11 @@ authorization failures, and timeouts invalidate the run rather than manufacture
 a client result. ADMIN-003 accepts only the explicitly selected metadata-backed
 or `DescribeTopicPartitions` public command, requires exact public page and
 cursor evidence when pagination is selected, and joins its aggregate partition
-set to an immediate independent metadata snapshot. ADMIN-006 through ADMIN-016 compare
+set to an immediate independent metadata snapshot. ADMIN-097 separately
+requires complete internally consistent public partition details for every
+successful singleton, plural, or all-topic description, including exact
+agreement between paginated aggregate and page details. Those additional public
+facts do not replace the independent partition-set observation. ADMIN-006 through ADMIN-016 compare
 public results and temporal mutations with these independently observed facts.
 ADMIN-017 additionally
 requires a distinct pre-deletion watermark baseline and an unchanged high

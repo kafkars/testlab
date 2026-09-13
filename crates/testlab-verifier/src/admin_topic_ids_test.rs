@@ -2,10 +2,10 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminTopicDeletionOutcome, AdminTopicDescriptionOutcome,
-    AdminTopicDescriptionValue, AdminTopicPartitionDescriptionOutcome, AdminTopicsDeletion,
-    AdminTopicsDescription, BrokerStateObservation, BrokerTopicIdentityState, BrokerTopicState,
-    ClientId, DeleteTopicsCommand, DescribeTopicsCommand, HistoryEntry, HistoryPayload,
-    OperationId, Scenario, TopicSelection,
+    AdminTopicDescriptionValue, AdminTopicsDeletion, AdminTopicsDescription,
+    BrokerStateObservation, BrokerTopicIdentityState, BrokerTopicState, ClientId,
+    DeleteTopicsCommand, DescribeTopicsCommand, HistoryEntry, HistoryPayload, OperationId,
+    Scenario, TopicSelection,
 };
 
 use crate::admin::verify_admin;
@@ -113,10 +113,7 @@ fn description(
             authorized_operations: Some(1),
             partitions: partitions
                 .into_iter()
-                .map(|partition| AdminTopicPartitionDescriptionOutcome {
-                    partition,
-                    error_code: None,
-                })
+                .map(crate::admin_topic::topology::partition)
                 .collect(),
         }),
         error_code: None,

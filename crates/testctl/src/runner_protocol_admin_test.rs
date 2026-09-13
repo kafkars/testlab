@@ -21,6 +21,7 @@ fn describe_completion_checks_identity_but_not_semantic_partitions() {
                 operation_id: operation_id.clone(),
                 topic: "orders".to_owned(),
                 partitions: vec![9],
+                partition_details: Vec::new(),
                 pages: Vec::new(),
             }))
             .unwrap_or_else(|error| panic!("describe classification: {error}")),
@@ -32,6 +33,7 @@ fn describe_completion_checks_identity_but_not_semantic_partitions() {
                 operation_id,
                 topic: "payments".to_owned(),
                 partitions: vec![0],
+                partition_details: Vec::new(),
                 pages: Vec::new(),
             }))
             .is_err()

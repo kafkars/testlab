@@ -1,4 +1,4 @@
-schema_version = 167
+schema_version = 168
 id = "kafka.classic-transactional-transform-network-connection-cut-recovery"
 title = "classic transactional transform recovers after an external connection cut"
 description = "A classic member and transactional producer transfer one exact baseline checkpoint, the external proxy cuts their live broker connections, and the same handles consume, transform, commit, and independently expose the next checkpoint after reconnecting."

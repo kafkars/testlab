@@ -15,7 +15,7 @@ pub(crate) struct ListedTopicResult {
     pub(crate) topic_id: Option<[u8; 16]>,
     pub(crate) internal: bool,
     pub(crate) authorized_operations: Option<i32>,
-    pub(crate) partitions: Vec<(i32, Option<KafkaError>)>,
+    pub(crate) partitions: Vec<AdminTopicPartitionDescriptionOutcome>,
 }
 
 impl From<TopicDescription> for ListedTopicResult {
@@ -28,7 +28,7 @@ impl From<TopicDescription> for ListedTopicResult {
             partitions: description
                 .partitions()
                 .iter()
-                .map(|partition| (partition.partition_index(), partition.error().cloned()))
+                .map(crate::protocol_admin_topic_partition::metadata)
                 .collect(),
         }
     }
@@ -87,16 +87,9 @@ fn outcome(
 }
 
 fn partitions(
-    values: Vec<(i32, Option<KafkaError>)>,
+    mut values: Vec<AdminTopicPartitionDescriptionOutcome>,
     operation_id: &OperationId,
 ) -> Result<Vec<AdminTopicPartitionDescriptionOutcome>, AdapterError> {
-    let mut values = values
-        .into_iter()
-        .map(|(partition, error)| AdminTopicPartitionDescriptionOutcome {
-            partition,
-            error_code: error.as_ref().map(normalize::error_code),
-        })
-        .collect::<Vec<_>>();
     values.sort_by_key(|value| value.partition);
     if values.iter().any(|value| value.partition < 0)
         || values

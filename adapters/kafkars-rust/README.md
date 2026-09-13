@@ -70,9 +70,11 @@ It:
    assignments to newly added partitions;
 10. executes metadata-backed, explicit single-page, and separately submitted
    cursor-followed `DescribeTopicPartitions` topic descriptions with exact
-   page/cursor evidence, detailed caller-ordered plural topic descriptions with
-   requested authorization bitfields, detailed byte-sorted all-topic listing
-   outcomes with requested authorization metadata, independently anchored
+   page/cursor evidence and complete public partition topology, detailed
+   caller-ordered plural topic descriptions with requested authorization
+   bitfields and complete public partition topology, detailed byte-sorted
+   all-topic listing outcomes with requested authorization metadata and complete
+   public partition topology, independently anchored
    expected-topic partitions, and paired canonical internal-topic exclusion and
    inclusion, and
    caller-ordered plural name-based topic deletion with mixed outcomes,

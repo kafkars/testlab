@@ -1,4 +1,4 @@
-schema_version = 167
+schema_version = 168
 id = "kafka.transaction-network-connection-cut-recovery"
 title = "packaged transactional producer reconnects after an external connection cut"
 description = "The external proxy proves a live Kafka connection was cut after one committed transaction, an exact ordinary producer probe acknowledges after reconnection, and the same packaged transactional producer stages an exact public batch and commits every record through re-established connections."

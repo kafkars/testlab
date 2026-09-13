@@ -4,8 +4,7 @@ use std::io::Write;
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,
-    AdminTopicPartitionDescriptionOutcome, AdminTopicsDescription, CommandId,
-    DescribeTopicsCommand, OperationId, TopicSelection,
+    AdminTopicsDescription, CommandId, DescribeTopicsCommand, OperationId, TopicSelection,
 };
 
 use crate::AdapterError;
@@ -186,10 +185,7 @@ fn successful_outcome(
     let partitions = description
         .partitions()
         .iter()
-        .map(|partition| AdminTopicPartitionDescriptionOutcome {
-            partition: partition.partition_index(),
-            error_code: partition.error().map(|error| normalize::error_code(error)),
-        })
+        .map(crate::protocol_admin_topic_partition::metadata)
         .collect();
     Ok(AdminTopicDescriptionOutcome {
         topic,

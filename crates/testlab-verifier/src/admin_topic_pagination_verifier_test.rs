@@ -57,6 +57,7 @@ fn history(
                 operation_id: operation_id.clone(),
                 topic: "paginated".to_owned(),
                 partitions: vec![0, 1, 2],
+                partition_details: crate::admin_topic::topology::partitions(&[0, 1, 2]),
                 pages,
             }),
         ),
@@ -68,6 +69,7 @@ fn pages() -> Vec<AdminTopicDescriptionPage> {
     vec![
         AdminTopicDescriptionPage {
             partitions: vec![0, 1],
+            partition_details: crate::admin_topic::topology::partitions(&[0, 1]),
             next_cursor: Some(AdminTopicPageCursor {
                 topic_name: "paginated".to_owned(),
                 partition_index: 2,
@@ -75,6 +77,7 @@ fn pages() -> Vec<AdminTopicDescriptionPage> {
         },
         AdminTopicDescriptionPage {
             partitions: vec![2],
+            partition_details: crate::admin_topic::topology::partitions(&[2]),
             next_cursor: None,
         },
     ]

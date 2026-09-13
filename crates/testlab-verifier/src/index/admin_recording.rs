@@ -9,10 +9,7 @@ use super::{
 };
 use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
 impl HistoryIndex {
-    #[allow(
-        clippy::too_many_lines,
-        reason = "the exhaustive event recorder keeps every public admin result visibly indexed"
-    )]
+    #[allow(clippy::too_many_lines)]
     pub(super) fn record_admin_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
         if self.admin_lifecycles.record_event(event, sequence) {
             return true;
@@ -102,6 +99,7 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     topic: value.topic.clone(),
                     partitions: value.partitions.clone(),
+                    partition_details: value.partition_details.clone(),
                     pages: value.pages.clone(),
                 }),
             AdapterEvent::TopicsDescribed(value) => self

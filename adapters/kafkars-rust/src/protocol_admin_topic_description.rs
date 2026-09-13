@@ -29,13 +29,11 @@ pub(crate) fn dispatch<W: Write>(
 ) -> Result<(), AdapterError> {
     let deadline = deadline_after(command.timeout_ms);
     let client = state.client(&command.client_id)?;
-    let (partitions, pages) = match (command.api, command.pagination) {
+    let (partitions, partition_details, pages) = match (command.api, command.pagination) {
         (TopicDescriptionApi::Metadata, None) => {
             let entries = metadata_entries(client, &command.topic, deadline)?;
-            (
-                described_partitions(entries, &command.operation_id, &command.topic)?,
-                Vec::new(),
-            )
+            let details = described_partitions(entries, &command.operation_id, &command.topic)?;
+            (partition_ids(&details), details, Vec::new())
         }
         (TopicDescriptionApi::DescribeTopicPartitions, Some(pagination)) => {
             partition_pages(client, &command, pagination, deadline)?
@@ -55,6 +53,7 @@ pub(crate) fn dispatch<W: Write>(
                 operation_id: command.operation_id,
                 topic: command.topic,
                 partitions,
+                partition_details,
                 pages,
             }),
         ),
@@ -91,10 +90,18 @@ fn partition_pages(
     command: &DescribeTopicCommand,
     pagination: TopicDescriptionPagination,
     deadline: Instant,
-) -> Result<(Vec<i32>, Vec<AdminTopicDescriptionPage>), AdapterError> {
+) -> Result<
+    (
+        Vec<i32>,
+        Vec<testlab_schema::AdminTopicPartitionDescriptionOutcome>,
+        Vec<AdminTopicDescriptionPage>,
+    ),
+    AdapterError,
+> {
     let mut requested_cursor = None::<DescribeTopicPartitionsCursor>;
     let mut seen_cursors = BTreeSet::new();
     let mut all_partitions = Vec::new();
+    let mut all_details = Vec::new();
     let mut pages = Vec::new();
     loop {
         let page = retry_until_with_remaining(
@@ -116,10 +123,13 @@ fn partition_pages(
         .map_err(AdapterError::Client)?;
         let (_, topics, next_cursor) = page.into_parts();
         let entries = topics.into_iter().map(topic_entry).collect();
-        let page_partitions = described_partitions(entries, &command.operation_id, &command.topic)?;
+        let page_details = described_partitions(entries, &command.operation_id, &command.topic)?;
+        let page_partitions = partition_ids(&page_details);
         all_partitions.extend(page_partitions.iter().copied());
+        all_details.extend(page_details.iter().cloned());
         pages.push(AdminTopicDescriptionPage {
             partitions: page_partitions,
+            partition_details: page_details,
             next_cursor: next_cursor.as_ref().map(cursor_fact),
         });
         let Some(next_cursor) = next_cursor else {
@@ -148,7 +158,18 @@ fn partition_pages(
         &command.operation_id,
         "paginated topic partitions",
     )?;
-    Ok((all_partitions, pages))
+    all_details.sort_by_key(|value| value.partition);
+    if partition_ids(&all_details) != all_partitions {
+        return Err(invalid_pagination(
+            command,
+            "returned partition detail outside the aggregate",
+        ));
+    }
+    Ok((all_partitions, all_details, pages))
+}
+
+fn partition_ids(values: &[testlab_schema::AdminTopicPartitionDescriptionOutcome]) -> Vec<i32> {
+    values.iter().map(|value| value.partition).collect()
 }
 
 fn topic_entry(

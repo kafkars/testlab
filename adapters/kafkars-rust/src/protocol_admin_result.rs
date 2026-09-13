@@ -3,14 +3,14 @@
 use crate::kafkars_api::{
     DescribeTopicPartitionsTopic, KafkaError, TopicDescription, TopicPartition,
 };
-use testlab_schema::{AdminBrokerError, OperationId};
+use testlab_schema::{AdminBrokerError, AdminTopicPartitionDescriptionOutcome, OperationId};
 
 use crate::AdapterError;
 
 #[derive(Debug)]
 pub(crate) struct DescribedTopicResult {
     pub(crate) name: String,
-    pub(crate) partitions: Vec<(i32, Option<KafkaError>)>,
+    pub(crate) partitions: Vec<(AdminTopicPartitionDescriptionOutcome, Option<KafkaError>)>,
 }
 
 impl From<TopicDescription> for DescribedTopicResult {
@@ -20,7 +20,12 @@ impl From<TopicDescription> for DescribedTopicResult {
             partitions: description
                 .partitions()
                 .iter()
-                .map(|partition| (partition.partition_index(), partition.error().cloned()))
+                .map(|partition| {
+                    (
+                        crate::protocol_admin_topic_partition::metadata(partition),
+                        partition.error().cloned(),
+                    )
+                })
                 .collect(),
         }
     }
@@ -33,7 +38,12 @@ impl From<DescribeTopicPartitionsTopic> for DescribedTopicResult {
             partitions: description
                 .partitions()
                 .iter()
-                .map(|partition| (partition.partition_index(), partition.error().cloned()))
+                .map(|partition| {
+                    (
+                        crate::protocol_admin_topic_partition::paginated(partition),
+                        partition.error().cloned(),
+                    )
+                })
                 .collect(),
         }
     }
@@ -56,7 +66,7 @@ pub(crate) fn described_partitions(
     entries: Vec<(String, Result<DescribedTopicResult, KafkaError>)>,
     operation_id: &OperationId,
     expected_topic: &str,
-) -> Result<Vec<i32>, AdapterError> {
+) -> Result<Vec<AdminTopicPartitionDescriptionOutcome>, AdapterError> {
     let description = take_single_result(
         entries,
         operation_id,
@@ -77,7 +87,30 @@ pub(crate) fn described_partitions(
             None => Ok(partition),
         })
         .collect::<Result<Vec<_>, _>>()?;
-    sorted_unique_nonnegative(partitions, operation_id, "topic partitions")
+    sorted_unique_partition_details(partitions, operation_id)
+}
+
+fn sorted_unique_partition_details(
+    mut values: Vec<AdminTopicPartitionDescriptionOutcome>,
+    operation_id: &OperationId,
+) -> Result<Vec<AdminTopicPartitionDescriptionOutcome>, AdapterError> {
+    if values.iter().any(|value| value.partition < 0) {
+        return Err(invalid_result(
+            operation_id,
+            "returned a negative topic partition identity",
+        ));
+    }
+    values.sort_by_key(|value| value.partition);
+    if values
+        .windows(2)
+        .any(|pair| pair[0].partition == pair[1].partition)
+    {
+        return Err(invalid_result(
+            operation_id,
+            "returned duplicate topic partition identities",
+        ));
+    }
+    Ok(values)
 }
 
 pub(crate) fn sorted_unique_strings(

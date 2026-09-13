@@ -16,6 +16,8 @@ mod manual_placement_test;
 mod partition_manual_placement;
 #[path = "admin_topic_creation_config.rs"]
 mod topic_creation_config;
+#[path = "admin_topic_topology.rs"]
+pub(crate) mod topology;
 
 pub(crate) fn contract(action: &CreateTopicAction) -> &'static str {
     if action.expected_error_code.is_some() {
