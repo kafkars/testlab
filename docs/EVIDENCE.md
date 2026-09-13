@@ -363,6 +363,10 @@ ordinary producer handle policy. PROD-022 preserves every producer creation in
 scenario order with its client, producer, ownership, and optional per-handle
 delivery timeout; omission is distinct from selecting a value and retains
 client-policy inheritance.
+Protocol v151, scenario schema v155, and evidence schema v141 add exact public
+consumer progress after an independently recorded network recovery control.
+NET-005 preserves the receive kind and identity, exact command multiplicity,
+nonempty completion, ordering after the control, and successful group commit.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1292,9 +1296,11 @@ observations. NET-002 requires one successful supervised proxy process with
 the exact terminal artifacts. NET-003 binds each exact active fault window to
 its required public producer outcome: `possibly_sent` for a blackhole and
 `acknowledged` for bounded one-way delay. NET-004 requires a later acknowledged
-send after every removal or connection cut. Proxy facts cannot manufacture a
-client result, and adapter success cannot establish that a transport fault
-occurred.
+send after every removal or connection cut. NET-005 binds every subsequent
+declared assigned, group, or Share receive before the next network control to
+one exact command and a later nonempty public completion; group progress must
+also commit. Proxy facts cannot manufacture a client result, and adapter
+success cannot establish that a transport fault occurred.
 
 Protocol-adversary runs additionally retain `protocol-adversary.jsonl` and
 `protocol-adversary.stderr.txt`, named from one terminal

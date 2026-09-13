@@ -1,4 +1,4 @@
-schema_version = 154
+schema_version = 155
 id = "kafka.assigned-consumer-read-committed"
 title = "fetch-configured assigned consumer hides an aborted record"
 description = "A client configured through the packaged public assigned-consumer isolation, Fetch, and retained-capacity policy starts its direct assignment at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."

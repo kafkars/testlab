@@ -1,4 +1,4 @@
-schema_version = 154
+schema_version = 155
 id = "kafka.admin-unregister-broker"
 title = "public Admin unregisters and restores one stopped broker"
 description = "Testlab proves the complete three-broker identity, stops broker 3, invokes the packaged public broker-unregistration API, independently observes only brokers 1 and 2, restarts broker 3, and proves the original cluster identity and broker set are restored."

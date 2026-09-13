@@ -11,6 +11,12 @@ use testlab_schema::{
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[path = "network_consumer_progress.rs"]
+mod consumer_progress;
+#[cfg(test)]
+#[path = "network_proxy_progress_test.rs"]
+mod progress_test;
+
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     let declared = declared_controls(scenario);
     if declared.is_empty() {
@@ -22,6 +28,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     verify_observations(&declared, index, violations);
     verify_process(index, violations);
     crate::network_proxy_progress::verify(scenario, index, violations);
+    consumer_progress::verify(scenario, index, violations);
 }
 
 fn declared_controls(scenario: &Scenario) -> Vec<NetworkProxyControl> {

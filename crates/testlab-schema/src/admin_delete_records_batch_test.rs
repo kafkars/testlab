@@ -11,9 +11,9 @@ use crate::{
 
 #[test]
 fn record_deletion_batch_advances_every_versioned_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 150);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 154);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 140);
+    assert_eq!(PROTOCOL_VERSION, 151);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 155);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 141);
 }
 
 #[test]

@@ -1033,6 +1033,12 @@ statement = "Every fault removal and connection cut is followed by a later ackno
 category = "network"
 
 [[contract]]
+id = "NET-005"
+title = "Network restoration recovers public consumer progress"
+statement = "Every assigned, group, or Share receive declared after a fault removal or connection cut and before the next network control is issued exactly once and completes with nonempty public progress after that exact recovery control."
+category = "network"
+
+[[contract]]
 id = "PROD-009"
 title = "Producer failures retain the exact declared public code"
 statement = "A producer operation with a declared failure expectation emits exactly one matching normalized rejection or terminal error code."

@@ -24,6 +24,7 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "NET-002",
     "NET-003",
     "NET-004",
+    "NET-005",
     "CONCUR-001",
     "CONCUR-002",
     "CONCUR-003",

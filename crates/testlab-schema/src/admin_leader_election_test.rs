@@ -7,9 +7,9 @@ use crate::{
 
 #[test]
 fn checked_in_leader_election_scenario_is_valid() {
-    assert_eq!(crate::PROTOCOL_VERSION, 150);
-    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 154);
-    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 140);
+    assert_eq!(crate::PROTOCOL_VERSION, 151);
+    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 155);
+    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 141);
     checked_in_scenario()
         .validate()
         .unwrap_or_else(|error| panic!("validate leader-election scenario: {error}"));

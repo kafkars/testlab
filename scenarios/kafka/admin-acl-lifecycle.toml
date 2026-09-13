@@ -1,4 +1,4 @@
-schema_version = 154
+schema_version = 155
 id = "kafka.admin-acl-lifecycle"
 title = "packaged admin creates, describes, and deletes exact ACLs"
 description = "The packaged client's public ACL operations preserve caller order and exact bindings while independent Kafka CLI queries prove the broker state after every terminal."

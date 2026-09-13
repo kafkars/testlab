@@ -1,0 +1,226 @@
+schema_version = 155
+id = "kafka.group-network-connection-cut-recovery"
+title = "packaged group consumers recover after an external connection cut"
+description = "Live classic and KIP-848 members on independent public clients each commit an exact baseline record before the external proxy cuts all broker connections, then the same handles reconnect and commit distinct records produced after that observed cut."
+timeout_ms = 180000
+requires = ["producer", "consumer_groups", "consumer_protocol_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-producer-client"
+kind = "create_client"
+client_id = "producer-client"
+
+[[steps]]
+id = "await-producer-client-ready"
+kind = "await_client_ready"
+client_id = "producer-client"
+
+[[steps]]
+id = "create-classic-client"
+kind = "create_client"
+client_id = "classic-client"
+
+[[steps]]
+id = "await-classic-client-ready"
+kind = "await_client_ready"
+client_id = "classic-client"
+
+[[steps]]
+id = "create-consumer-protocol-client"
+kind = "create_client"
+client_id = "consumer-protocol-client"
+
+[[steps]]
+id = "await-consumer-protocol-client-ready"
+kind = "await_client_ready"
+client_id = "consumer-protocol-client"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "producer-client"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-classic-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "classic-before-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-classic"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "classic-baseline" }
+value = { encoding = "utf8", data = "before-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-before-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "send-consumer-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "consumer-before-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-consumer"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "consumer-baseline" }
+value = { encoding = "utf8", data = "before-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "consumer-before-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "flush-baselines"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-classic-consumer"
+kind = "create_group_consumer"
+client_id = "classic-client"
+consumer_id = "classic-consumer"
+group_id = "testlab-network-classic"
+topics = ["testlab-kafkars-network-classic"]
+protocol = "classic"
+
+[[steps]]
+id = "receive-classic-baseline"
+kind = "group_receive"
+consumer_id = "classic-consumer"
+receive_id = "classic-receive-before-cut"
+expected_operation_id = "classic-before-cut"
+timeout_ms = 45000
+
+[[steps]]
+id = "create-consumer-protocol-consumer"
+kind = "create_group_consumer"
+client_id = "consumer-protocol-client"
+consumer_id = "consumer-protocol-consumer"
+group_id = "testlab-network-consumer-protocol"
+topics = ["testlab-kafkars-network-consumer"]
+protocol = "consumer"
+
+[[steps]]
+id = "receive-consumer-baseline"
+kind = "group_receive"
+consumer_id = "consumer-protocol-consumer"
+receive_id = "consumer-receive-before-cut"
+expected_operation_id = "consumer-before-cut"
+timeout_ms = 45000
+
+[[steps]]
+id = "cut-live-connections"
+kind = "cut_network_connections"
+operation_id = "group-network-cut-live-connections"
+broker_ordinal = 1
+timeout_ms = 5000
+
+[[steps]]
+id = "send-classic-after-cut"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "classic-after-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-classic"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "classic-recovered" }
+value = { encoding = "utf8", data = "after-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-after-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "receive-classic-after-cut"
+kind = "group_receive"
+consumer_id = "classic-consumer"
+receive_id = "classic-receive-after-cut"
+expected_operation_id = "classic-after-cut"
+timeout_ms = 45000
+
+[[steps]]
+id = "send-consumer-after-cut"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "consumer-after-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-consumer"
+partition = 0
+sequence = 4
+key = { encoding = "utf8", data = "consumer-recovered" }
+value = { encoding = "utf8", data = "after-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "consumer-after-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+]
+
+[[steps]]
+id = "receive-consumer-after-cut"
+kind = "group_receive"
+consumer_id = "consumer-protocol-consumer"
+receive_id = "consumer-receive-after-cut"
+expected_operation_id = "consumer-after-cut"
+timeout_ms = 45000
+
+[[steps]]
+id = "close-classic-consumer"
+kind = "close_group_consumer"
+consumer_id = "classic-consumer"
+
+[[steps]]
+id = "close-consumer-protocol-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-protocol-consumer"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-producer-client"
+kind = "shutdown_client"
+client_id = "producer-client"
+
+[[steps]]
+id = "shutdown-classic-client"
+kind = "shutdown_client"
+client_id = "classic-client"
+
+[[steps]]
+id = "shutdown-consumer-protocol-client"
+kind = "shutdown_client"
+client_id = "consumer-protocol-client"
+
+[[assertions]]
+operation_id = "classic-before-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "consumer-before-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "classic-after-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "consumer-after-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

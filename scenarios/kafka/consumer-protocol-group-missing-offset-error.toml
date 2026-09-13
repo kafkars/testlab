@@ -1,4 +1,4 @@
-schema_version = 154
+schema_version = 155
 id = "kafka.consumer-protocol-group-missing-offset-error"
 title = "KIP-848 group fails closed when no committed offset exists"
 description = "A new KIP-848 group configured with the public error reset policy reports the exact state failure instead of guessing an initial position."
