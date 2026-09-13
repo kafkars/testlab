@@ -20,6 +20,8 @@ use crate::verify_index::{assertions, observations_by_operation};
 
 #[path = "assigned_consumer_configuration_command.rs"]
 mod assigned_consumer_configuration_command;
+#[path = "group_consumer_registration.rs"]
+mod group_consumer_registration;
 #[path = "producer_configuration_method.rs"]
 mod producer_configuration_method;
 
@@ -62,6 +64,7 @@ pub fn verify(
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
     producer_configuration_method::verify(scenario, &index, &mut violations);
     assigned_consumer_configuration_command::verify(scenario, &index, &mut violations);
+    group_consumer_registration::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_send_method::verify(scenario, &index, &mut violations);
     crate::producer_receipt::verify(scenario, &index, observations, &mut violations);

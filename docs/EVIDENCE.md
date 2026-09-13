@@ -289,6 +289,10 @@ configured assigned-consumer policy retention. CONS-027 requires one exact
 client-creation command containing immutable read isolation, the complete Fetch
 policy, and every retained-delivery limit. Ordinary direct-consumer and
 transaction contracts retain broker-visible truth.
+Protocol v134, scenario schema v138, and evidence schema v124 add exact hosted
+group registration retention. CONS-028 requires one command preserving client,
+member, and group identities, caller-ordered topics, classic or KIP-848
+protocol, and the complete optional public policy for every group member.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1099,6 +1103,12 @@ CONS-024 separately retains each exact individual or aggregate
 operation-configuration method and its durations in the group-create command.
 CONS-014 and LIFE-012 then bind the selected registration's public seek and
 explicit close outcomes.
+CONS-028 requires every hosted group registration to retain one exact command,
+including client, member, and group identities, caller-ordered subscriptions,
+protocol, and the complete optional policy. It rejects altered fields,
+assigned- or Share-consumer substitution, and duplicate registration; later
+assignment, record, checkpoint, and independent broker contracts retain
+behavioral truth.
 CONS-025 retains the exact `into_checkpoint` selector on one full-batch group
 receive. Its successful commit, positive group epoch, exact public record, and
 independent broker observation remain required by the ordinary consumer

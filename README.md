@@ -117,6 +117,9 @@ broker-visible delivery proof.
 Configured assigned-consumer creation likewise preserves one exact immutable
 read-isolation, Fetch, and retained-delivery policy command. Its read-committed
 scenario retains independent aborted-transaction and visible-record truth.
+Every classic and KIP-848 group member now requires one exact registration
+command retaining its identities, caller-ordered topics, selected protocol, and
+complete optional public policy before assignment and record evidence applies.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

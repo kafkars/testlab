@@ -1165,6 +1165,12 @@ statement = "Each configured assigned-consumer client has exactly one issued cre
 category = "consumer"
 
 [[contract]]
+id = "CONS-028"
+title = "Group consumers preserve the exact registration"
+statement = "Each group consumer has exactly one issued creation command preserving its client and member identities, group ID, caller-ordered subscription, selected classic or KIP-848 protocol, and complete optional public policy."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

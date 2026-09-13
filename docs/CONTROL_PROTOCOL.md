@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v133 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v137 and evidence schema v123.
+Protocol v134 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v138 and evidence schema v124.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -554,6 +554,10 @@ owner assignment. Each public record is also joined to its exact independent
 broker topic, partition, offset, key, value, and ordered headers.
 
 Group creation may carry one capability-gated public configuration block.
+Every registration requires one exact command preserving the client, member,
+and group identities, caller-ordered subscription, selected protocol, and
+complete optional configuration; a same-ID direct or Share consumer is not
+equivalent.
 Missing-offset reset selects fail-closed error, earliest, or latest behavior,
 and read isolation selects
 uncommitted or committed visibility before membership starts. Optional Fetch
@@ -1294,6 +1298,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v123 is an exact semantic contract. New capabilities may be declared
+Protocol v134 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -1,4 +1,4 @@
-schema_version = 137
+schema_version = 138
 id = "kafka.admin-describe-features"
 title = "packaged admin describes independently observed Kafka features"
 description = "The packaged client's public feature discovery reports canonical supported and finalized ranges whose names, numeric levels, and finalized epoch agree with the pinned Kafka administration CLI."
