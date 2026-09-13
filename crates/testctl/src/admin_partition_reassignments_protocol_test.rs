@@ -1,3 +1,5 @@
+//! Partition-reassignment protocol tests pin command and event identities.
+
 use testlab_schema::{
     AdapterCommand, AlterPartitionReassignmentsAction, ClientId, ListPartitionReassignmentsAction,
     OperationId, PartitionReassignmentChangeSpec, ScenarioAction,

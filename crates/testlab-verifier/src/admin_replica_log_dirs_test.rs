@@ -1,3 +1,5 @@
+//! Replica log-directory verifier tests pin exact observations and failures.
+
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminReplicaLogDirDescription, AdminReplicaLogDirsDescription,
     BrokerLogDirState, BrokerLogDirsBrokerState, BrokerLogDirsState, BrokerStateObservation,

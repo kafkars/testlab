@@ -1,3 +1,5 @@
+//! Evidence indexing provides deterministic lookups for verifier contracts.
+
 use std::collections::{BTreeMap, BTreeSet};
 use testlab_schema::{ClientId, CommandId, ConsumerId, OperationId, ProducerId, TerminalStatus};
 pub(crate) mod admin_acl;

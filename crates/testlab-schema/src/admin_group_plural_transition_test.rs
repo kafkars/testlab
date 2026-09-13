@@ -1,3 +1,5 @@
+//! Plural group transition tests pin ordered administrative lifecycles.
+
 use std::collections::BTreeSet;
 
 use super::{

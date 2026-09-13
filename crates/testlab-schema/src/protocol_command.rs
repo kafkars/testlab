@@ -1,3 +1,5 @@
+//! Adapter commands define the complete harness-to-subject request protocol.
+
 #![allow(missing_docs, reason = "typed payload variants are self-describing")]
 use crate::{BatchRecord, ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]

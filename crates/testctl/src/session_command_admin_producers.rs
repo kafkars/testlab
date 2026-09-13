@@ -1,3 +1,5 @@
+//! Producer administration translation preserves exact public identities.
+
 use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{AdapterCommand, DescribeProducersCommand, ScenarioAction};
 

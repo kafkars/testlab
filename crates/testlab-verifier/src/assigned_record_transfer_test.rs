@@ -1,3 +1,5 @@
+//! Assigned-record transfer tests pin ownership and delivery invariants.
+
 use testlab_schema::{
     AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId,
     AssignedRecordTransferAction, AssignedRecordTransferCommand, AssignedRecordTransferCompletion,

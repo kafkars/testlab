@@ -1,3 +1,5 @@
+//! Administrative transition validation enforces legal scenario ordering.
+
 use crate::{Scenario, ScenarioAction};
 use std::collections::{BTreeMap, BTreeSet};
 #[path = "admin_create_topics_batch_transition_validation.rs"]

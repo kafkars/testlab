@@ -1,3 +1,5 @@
+//! Log-directory transition tests pin legal scenario ordering.
+
 use std::collections::BTreeSet;
 
 use crate::{

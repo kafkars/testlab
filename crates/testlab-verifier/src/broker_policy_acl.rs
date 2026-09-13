@@ -1,3 +1,5 @@
+//! Broker ACL policy verification pins the required denial window.
+
 use crate::broker_policy::{PolicyWindow, active};
 use crate::broker_policy_control::references;
 use crate::index::HistoryIndex;

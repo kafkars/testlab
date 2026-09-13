@@ -1,3 +1,5 @@
+//! Administrative session translation routes actions to focused translators.
+
 use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,

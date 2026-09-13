@@ -1,3 +1,5 @@
+//! Runner protocol exports the command-to-event matching boundary.
+
 pub(crate) use crate::runner_protocol_event::EventDisposition;
 use std::collections::BTreeSet;
 use testlab_schema::{ClientId, ConsumerId, OperationId, ProducerId};

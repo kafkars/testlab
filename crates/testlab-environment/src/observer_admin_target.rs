@@ -1,3 +1,5 @@
+//! Administrative observation targets retain exact scenario intent.
+
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 use crate::observer_admin_acl_target;

@@ -1,3 +1,5 @@
+//! Manual partition-expansion adapter tests pin exact replica assignments.
+
 use testlab_schema::{ClientId, CreatePartitionsCommand, OperationId};
 
 #[test]

@@ -1,3 +1,5 @@
+//! Adapter events define the complete subject-to-harness observation protocol.
+
 use crate::{
     AdapterDescriptor, ClientId, ConsumedRecord, ConsumerId, GroupMembershipEpoch, OperationId,
     ProducerId, ProducerReceipt, ShareConsumedRecord, ShareDisposition, TerminalStatus,

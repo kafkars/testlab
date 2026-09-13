@@ -1,3 +1,5 @@
+//! Manual topic-placement tests pin schema and command separation.
+
 use crate::{
     AdapterCommand, CreateTopicCommand, Scenario, ScenarioAction, TopicReplicaAssignmentSpec,
 };

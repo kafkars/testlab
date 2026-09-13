@@ -1,3 +1,5 @@
+//! Log-directory verifier tests pin exact observations and failures.
+
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminBrokerLogDirsDescription, AdminLogDirDescription,
     AdminLogDirsDescription, BrokerLogDirState, BrokerLogDirsBrokerState, BrokerLogDirsState,

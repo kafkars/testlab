@@ -1,3 +1,5 @@
+//! Manual partition-placement tests pin schema and command separation.
+
 use crate::{AdapterCommand, CreatePartitionsCommand, Scenario, ScenarioAction};
 
 #[test]

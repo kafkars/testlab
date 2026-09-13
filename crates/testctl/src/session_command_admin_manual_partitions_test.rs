@@ -1,3 +1,5 @@
+//! Manual partition translation tests preserve requested replica placement.
+
 use testlab_schema::{ClientId, CreatePartitionsAction, OperationId, ScenarioAction};
 
 #[test]

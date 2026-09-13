@@ -1,3 +1,5 @@
+//! Partition-reassignment schema tests pin serializable public contracts.
+
 use crate::{
     AdapterCommand, AdapterEvent, AlterPartitionReassignmentsAction,
     AlterPartitionReassignmentsCommand, BrokerPartitionAssignmentsState,

@@ -1,3 +1,5 @@
+//! Scenario actions describe public operations independently of wire commands.
+
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]

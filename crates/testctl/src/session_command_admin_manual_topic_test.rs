@@ -1,3 +1,5 @@
+//! Manual topic translation tests preserve requested replica placement.
+
 use testlab_schema::{
     AdapterCommand, ClientId, CreateTopicAction, OperationId, ScenarioAction,
     TopicReplicaAssignmentSpec,

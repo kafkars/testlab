@@ -1,3 +1,5 @@
+//! Manual topic-placement verifier tests pin exact observation contracts.
+
 use testlab_schema::{
     AdapterCommand, AdapterEvent, BrokerPartitionAssignment, BrokerPartitionAssignmentsState,
     BrokerStateObservation, Capability, CreateTopicAction, CreateTopicCommand, HistoryEntry,

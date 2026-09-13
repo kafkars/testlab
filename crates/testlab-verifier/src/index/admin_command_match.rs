@@ -1,3 +1,5 @@
+//! Administrative command matching retains exact operation identities.
+
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 #[path = "admin_group_listing_command_match.rs"]
 mod group_listing;

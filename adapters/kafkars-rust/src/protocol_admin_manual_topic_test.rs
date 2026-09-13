@@ -1,3 +1,5 @@
+//! Manual topic-creation adapter tests pin exact replica assignments.
+
 use kafkars::admin::NewTopicPlacement;
 use testlab_schema::{
     ClientId, CreateTopicCommand, OperationId, TopicCreationConfig, TopicReplicaAssignmentSpec,

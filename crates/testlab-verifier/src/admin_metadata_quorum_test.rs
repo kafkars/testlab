@@ -1,3 +1,5 @@
+//! Metadata-quorum verifier tests pin exact observations and failures.
+
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminMetadataQuorumDescription, BrokerMetadataQuorumState,
     BrokerStateObservation, DescribeMetadataQuorumAction, DescribeMetadataQuorumCommand,

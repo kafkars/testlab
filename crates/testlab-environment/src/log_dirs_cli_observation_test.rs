@@ -1,3 +1,5 @@
+//! Log-directory observation tests pin accepted Kafka CLI output.
+
 use testlab_schema::{BrokerStateObservation, OperationId};
 
 use super::*;

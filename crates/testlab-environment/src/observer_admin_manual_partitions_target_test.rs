@@ -1,3 +1,5 @@
+//! Manual partition observation tests pin exact requested targets.
+
 use testlab_schema::{
     AdapterCommand, ClientId, CreatePartitionsAction, OperationId, ScenarioAction,
 };

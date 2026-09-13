@@ -1,3 +1,5 @@
+//! Administrative verification dispatches actions to focused contract checks.
+
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
 use crate::admin_broker_unregistration::verify as verify_broker_unregistration;

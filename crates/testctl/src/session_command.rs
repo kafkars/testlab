@@ -1,3 +1,5 @@
+//! Session command translation maps scenario actions to wire requests.
+
 use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{AdapterCommand, ScenarioAction};
 #[path = "session_command_creation.rs"]

@@ -1,3 +1,5 @@
+//! Log-directory schema tests pin serializable public contracts.
+
 use crate::{
     AdapterCommand, AdapterEvent, AdminBrokerLogDirsDescription, AdminLogDirDescription,
     AdminLogDirsDescription, BrokerLogDirState, BrokerLogDirsBrokerState, BrokerLogDirsState,

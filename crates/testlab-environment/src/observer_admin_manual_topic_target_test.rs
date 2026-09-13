@@ -1,3 +1,5 @@
+//! Manual topic observation tests pin exact requested targets.
+
 use testlab_schema::{
     AdapterCommand, ClientId, CreateTopicAction, OperationId, ScenarioAction,
     TopicReplicaAssignmentSpec,

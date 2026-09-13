@@ -1,3 +1,5 @@
+//! Metadata-quorum observation tests pin accepted Kafka CLI output.
+
 use testlab_schema::BrokerStateObservation;
 
 use super::normalize;

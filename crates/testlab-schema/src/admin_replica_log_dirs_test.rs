@@ -1,3 +1,5 @@
+//! Replica log-directory schema tests pin serializable public contracts.
+
 use crate::{
     AdapterCommand, AdapterEvent, AdminReplicaLogDirAlterationOutcome,
     AdminReplicaLogDirDescription, AdminReplicaLogDirsAlteration, AdminReplicaLogDirsDescription,
