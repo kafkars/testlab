@@ -144,6 +144,8 @@ public handle, including replacement owners created by both fencing methods.
 Every classic and KIP-848 group member now requires one exact registration
 command retaining its identities, caller-ordered topics, selected protocol, and
 complete optional public policy before assignment and record evidence applies.
+Each successful registration also records the exact group ID and caller-ordered
+subscription read from the returned public consumer handle.
 Every hosted group receive also preserves its exact consumer, receive identity,
 waiting or immediate observer, checkpoint conversion, processing plan, and
 complete timeout in scenario order.
@@ -153,6 +155,8 @@ and scenario order while expected producer identities remain harness-only.
 Every Share member likewise requires one exact registration retaining its
 identities, caller-ordered topics, optional rack, deadlines, and complete
 optional acquisition policy before Share delivery evidence applies.
+Each successful registration also records the exact group ID, caller-ordered
+subscription, and optional rack read from the returned public Share handle.
 Every Share receive also preserves its exact consumer, retained-batch identity,
 timeout, multiplicity, and scenario order before acquisition and independent
 record evidence applies.

@@ -1,4 +1,4 @@
-schema_version = 162
+schema_version = 163
 id = "kafka.admin-describe-consumer-groups"
 title = "packaged admin describes caller-ordered mixed consumer groups and selected assignors"
 description = "One explicitly cooperative-sticky classic member and one KIP-848 member each consume and commit an exact marker before one packaged public description call returns both groups in reverse creation order with requested authorization bitfields and exact protocol, state, selected assignor, epoch, member, subscription, and assignment facts; an immediate independent query confirms both member counts in the same order."

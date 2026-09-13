@@ -1,4 +1,4 @@
-schema_version = 162
+schema_version = 163
 id = "kafka.transaction-admin-partition-abort"
 title = "public Admin partition abort clears one staged transaction"
 description = "One packaged transaction stages an exact record, derives its broker producer identity through public DescribeProducers, aborts that partition through public Admin, proves the transaction offset cleared before token cleanup, and leaves only a later sentinel visible to the independent read-committed observer."

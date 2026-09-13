@@ -2,6 +2,10 @@
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+#[path = "group_consumer_control_test.rs"]
+mod tests;
+
 use crate::{AssignedStartPosition, ConsumerId, OperationId, TopicPartitionIdentity};
 
 /// One public runtime mutation for a hosted group consumer.

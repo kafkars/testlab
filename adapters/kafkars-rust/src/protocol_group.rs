@@ -32,9 +32,9 @@ pub(crate) fn dispatch<W: Write>(
             protocol,
             configuration,
         } => {
-            state.create_group_consumer(GroupConsumerRegistration {
+            let observation = state.create_group_consumer(GroupConsumerRegistration {
                 client_id,
-                consumer_id: consumer_id.clone(),
+                consumer_id,
                 group_id,
                 topics,
                 protocol,
@@ -44,7 +44,7 @@ pub(crate) fn dispatch<W: Write>(
                 writer,
                 &AdapterEventEnvelope::new(
                     command_id,
-                    AdapterEvent::GroupConsumerCreated { consumer_id },
+                    AdapterEvent::GroupConsumerCreated(observation),
                 ),
             )
         }

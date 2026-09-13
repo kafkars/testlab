@@ -22,11 +22,9 @@ pub(super) fn classify_group(
         ) => expected == &actual.operation_id,
         (
             ExpectedEvent::GroupConsumerCreated(expected),
-            AdapterEvent::GroupConsumerCreated {
-                consumer_id: actual,
-            },
-        )
-        | (
+            AdapterEvent::GroupConsumerCreated(actual),
+        ) => expected == &actual.consumer_id,
+        (
             ExpectedEvent::GroupConsumerClosed(expected),
             AdapterEvent::GroupConsumerClosed {
                 consumer_id: actual,
@@ -147,7 +145,7 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
             )
             | (
                 ExpectedEvent::GroupConsumerCreated(_),
-                AdapterEvent::GroupConsumerCreated { .. }
+                AdapterEvent::GroupConsumerCreated(_)
             )
             | (
                 ExpectedEvent::GroupReceiveCompleted(_),
@@ -185,7 +183,7 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
         (expected, event),
         (
             ExpectedEvent::ShareConsumerCreated(_),
-            AdapterEvent::ShareConsumerCreated { .. }
+            AdapterEvent::ShareConsumerCreated(_)
         ) | (
             ExpectedEvent::ShareReceiveCompleted(_),
             AdapterEvent::ShareReceiveCompleted { .. }

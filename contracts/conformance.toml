@@ -1285,6 +1285,12 @@ statement = "Every group receive-set command appears exactly once in scenario or
 category = "consumer"
 
 [[contract]]
+id = "CONS-034"
+title = "Group-consumer registration exposes its public identity"
+statement = "Each successful classic or KIP-848 registration emits one later correlated observation whose exact group ID and caller-ordered subscription are read from the returned public consumer handle."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
@@ -1354,6 +1360,12 @@ category = "consumer"
 id = "SHARE-014"
 title = "Share lifecycle commands preserve exact caller input"
 statement = "Every explicit Share batch-drop or consumer-close command appears exactly once in scenario order, preserving its command kind, consumer identity, and retained-batch identity when applicable before terminal evidence applies."
+category = "consumer"
+
+[[contract]]
+id = "SHARE-015"
+title = "Share registration exposes its public identity"
+statement = "Each successful Share registration emits one later correlated observation whose exact group ID, caller-ordered subscription, and optional rack are read from the returned public Share consumer handle."
 category = "consumer"
 
 [[contract]]

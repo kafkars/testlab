@@ -9,8 +9,8 @@ use crate::kafkars_api::{
 };
 use testlab_schema::{
     AssignedStartPosition, ClientId, ConsumerId, GroupClassicAssignor, GroupConsumerConfiguration,
-    GroupConsumerControl, GroupConsumerControlCommand, GroupOffsetReset,
-    GroupOperationConfigMethod, GroupProtocol, GroupReadIsolation,
+    GroupConsumerControl, GroupConsumerControlCommand, GroupConsumerRegistrationObservation,
+    GroupOffsetReset, GroupOperationConfigMethod, GroupProtocol, GroupReadIsolation,
 };
 
 use crate::admission_retry::{retry_owned_safe, retry_owned_until, retry_until};
@@ -47,7 +47,7 @@ impl GroupConsumers {
         &mut self,
         client: &Client,
         registration: GroupConsumerRegistration,
-    ) -> Result<(), StateError> {
+    ) -> Result<GroupConsumerRegistrationObservation, StateError> {
         if self.contains(&registration.consumer_id) {
             return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
@@ -102,6 +102,11 @@ impl GroupConsumers {
             builder.build().map_err(ConsumerBuildError::into_parts)
         })
         .map_err(|(_, error)| StateError::Client(error))?;
+        let observation = GroupConsumerRegistrationObservation {
+            consumer_id: registration.consumer_id.clone(),
+            group_id: consumer.group_id().to_owned(),
+            subscription: consumer.subscription().to_vec(),
+        };
         self.owners.insert(
             registration.consumer_id,
             ConsumerOwner {
@@ -109,7 +114,7 @@ impl GroupConsumers {
                 consumer,
             },
         );
-        Ok(())
+        Ok(observation)
     }
 
     pub(crate) fn get_mut(

@@ -401,6 +401,11 @@ later correlated event populated through the returned public handle with its
 exact transactional ID, nonnegative broker-issued producer ID and epoch, and
 active owner state. Replacement owners created by either fencing method carry
 the same observation requirement.
+Protocol v159, scenario schema v163, and evidence schema v149 make successful
+classic, KIP-848, and Share registration self-describing. CONS-034 and SHARE-015
+require one later correlated creation event populated through each returned
+public handle with its exact group ID and caller-ordered subscription; Share
+also retains its optional rack.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -609,6 +614,9 @@ SHARE-013 first requires every Share receive command exactly once in scenario
 order with its consumer, retained-batch identity, and complete timeout. Expected
 producer identities and acquisition counts remain scenario-side; public batches
 and independent broker records remain authoritative.
+SHARE-015 additionally requires each successful registration to emit one later
+correlated creation observation whose group ID, caller-ordered subscription,
+and optional rack come from the returned public Share consumer handle.
 
 Lifecycle-isolation scenarios retain every readiness, flush, close, and
 shutdown completion under its originating command. A later send on a sibling,
@@ -1270,6 +1278,9 @@ protocol, and the complete optional policy. It rejects altered fields,
 assigned- or Share-consumer substitution, and duplicate registration; later
 assignment, record, checkpoint, and independent broker contracts retain
 behavioral truth.
+CONS-034 additionally requires each successful classic or KIP-848 registration
+to emit one later correlated creation observation whose group ID and
+caller-ordered subscription come from the returned public consumer handle.
 CONS-025 retains the exact `into_checkpoint` selector on one full-batch group
 receive. Its successful commit, positive group epoch, exact public record, and
 independent broker observation remain required by the ordinary consumer

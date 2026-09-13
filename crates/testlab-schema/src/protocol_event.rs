@@ -101,11 +101,8 @@ pub enum AdapterEvent {
         /// Closed consumer.
         consumer_id: ConsumerId,
     },
-    /// One consumer-group member registered.
-    GroupConsumerCreated {
-        /// Created consumer.
-        consumer_id: ConsumerId,
-    },
+    /// One consumer-group member registered with exact returned configuration.
+    GroupConsumerCreated(crate::GroupConsumerRegistrationObservation),
     /// One group batch observation and checkpoint attempt completed.
     GroupReceiveCompleted {
         /// Stable receive operation identity.
@@ -127,11 +124,8 @@ pub enum AdapterEvent {
         consumer_id: ConsumerId,
     },
     GroupConsumerAbandoned(crate::GroupConsumerAbandonment),
-    /// One share-group member registered.
-    ShareConsumerCreated {
-        /// Created share consumer.
-        consumer_id: ConsumerId,
-    },
+    /// One Share-group member registered with exact returned configuration.
+    ShareConsumerCreated(crate::ShareConsumerRegistrationObservation),
     /// One share batch was retained behind its receive identity.
     ShareReceiveCompleted {
         /// Share consumer that retained the batch.

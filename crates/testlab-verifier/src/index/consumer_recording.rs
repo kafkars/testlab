@@ -68,9 +68,9 @@ impl HistoryIndex {
             AdapterEvent::AssignedConsumerClosed { consumer_id } => {
                 push(&mut self.consumers_closed, consumer_id.clone(), sequence);
             }
-            AdapterEvent::GroupConsumerCreated { consumer_id } => push(
+            AdapterEvent::GroupConsumerCreated(observation) => push(
                 &mut self.group_consumers_created,
-                consumer_id.clone(),
+                observation.consumer_id.clone(),
                 sequence,
             ),
             AdapterEvent::GroupReceiveCompleted {

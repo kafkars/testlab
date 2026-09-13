@@ -12,11 +12,9 @@ pub(crate) fn classify(
     let matches = match (expected, event) {
         (
             ExpectedEvent::ShareConsumerCreated(expected),
-            AdapterEvent::ShareConsumerCreated {
-                consumer_id: actual,
-            },
-        )
-        | (
+            AdapterEvent::ShareConsumerCreated(actual),
+        ) => expected == &actual.consumer_id,
+        (
             ExpectedEvent::ShareConsumerClosed(expected),
             AdapterEvent::ShareConsumerClosed {
                 consumer_id: actual,

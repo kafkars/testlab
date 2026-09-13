@@ -42,6 +42,7 @@ pub fn verify(
     verify_client_failures(scenario, &index, &mut violations);
     crate::client_configuration::verify(scenario, &index, &mut violations);
     crate::client_metrics::verify(scenario, &index, &mut violations);
+    crate::consumer_registration_observation::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_controls::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_events::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_receive_method::verify(scenario, &index, &mut violations);

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v158 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v162 and evidence schema v148.
+Protocol v159 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v163 and evidence schema v149.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -597,6 +597,9 @@ Every registration requires one exact command preserving the client, member,
 and group identities, caller-ordered subscription, selected protocol, and
 complete optional configuration; a same-ID direct or Share consumer is not
 equivalent.
+Its correlated `group_consumer_created` event carries the scenario-local member
+identity plus the exact group ID and caller-ordered subscription read from the
+returned public consumer handle.
 Missing-offset reset selects fail-closed error, earliest, or latest behavior,
 and read isolation selects
 uncommitted or committed visibility before membership starts. Optional Fetch
@@ -663,6 +666,9 @@ requires one exact command preserving client, member, and group identities,
 caller-ordered topics, optional rack, both deadlines, and the complete optional
 acquisition policy; a same-ID direct or ordinary group consumer is not
 equivalent.
+Its correlated `share_consumer_created` event carries the scenario-local member
+identity plus the exact group ID, caller-ordered subscription, and optional rack
+read from the returned public Share consumer handle.
 
 A share receive command retains its consumer, retained-batch identity, and
 complete observation timeout exactly once in scenario order. Its public result
@@ -1369,6 +1375,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v158 is an exact semantic contract. New capabilities may be declared
+Protocol v159 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

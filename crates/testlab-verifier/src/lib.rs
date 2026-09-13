@@ -64,6 +64,7 @@ mod client_metrics;
 mod concurrent;
 mod concurrent_support;
 mod consumer;
+mod consumer_registration_observation;
 mod contracts;
 mod group_consumer_controls;
 mod group_consumer_receive_method;
@@ -236,8 +237,6 @@ mod concurrent_fixture_test;
 mod concurrent_test;
 #[cfg(test)]
 mod contract_test;
-#[cfg(test)]
-mod group_consumer_controls_test;
 #[cfg(test)]
 mod group_consumer_receive_method_test;
 #[cfg(test)]

@@ -1,4 +1,4 @@
-schema_version = 162
+schema_version = 163
 id = "kafka.assigned-consumer-leader-failover"
 title = "assigned consumer recovers across an observed partition leader election"
 description = "Testlab independently stops the exact leader after a directly assigned consumer advances its cursor, then a distinct replacement serves the same public consumer an exact newly produced record while the original owner remains offline."

@@ -9,7 +9,7 @@ use crate::kafkars_api::{
 };
 use testlab_schema::{
     ClientId, ConsumerId, OperationId, ShareAcknowledgementMethod, ShareConsumerFetchConfiguration,
-    ShareDisposition,
+    ShareConsumerRegistrationObservation, ShareDisposition,
 };
 
 use crate::share_consumers_acknowledge;
@@ -57,7 +57,7 @@ impl ShareConsumers {
         &mut self,
         client: &Client,
         registration: ShareConsumerRegistration,
-    ) -> Result<(), StateError> {
+    ) -> Result<ShareConsumerRegistrationObservation, StateError> {
         if self.owners.contains_key(&registration.consumer_id) {
             return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
@@ -95,6 +95,12 @@ impl ShareConsumers {
             ));
         }
         share_consumers_receive::await_assignment(&consumer, &registration.topics, deadline)?;
+        let observation = ShareConsumerRegistrationObservation {
+            consumer_id: registration.consumer_id.clone(),
+            group_id: consumer.group_id().to_owned(),
+            subscription: consumer.subscription().to_vec(),
+            rack: consumer.rack().map(str::to_owned),
+        };
         self.owners.insert(
             registration.consumer_id,
             ShareOwner {
@@ -103,7 +109,7 @@ impl ShareConsumers {
                 close_timeout: registration.close_timeout,
             },
         );
-        Ok(())
+        Ok(observation)
     }
 
     pub(crate) fn receive(

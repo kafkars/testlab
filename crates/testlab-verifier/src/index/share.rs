@@ -9,10 +9,10 @@ use super::{
 impl HistoryIndex {
     pub(super) fn record_share_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
         match event {
-            AdapterEvent::ShareConsumerCreated { consumer_id } => {
+            AdapterEvent::ShareConsumerCreated(observation) => {
                 push(
                     &mut self.share_consumers_created,
-                    consumer_id.clone(),
+                    observation.consumer_id.clone(),
                     sequence,
                 );
             }

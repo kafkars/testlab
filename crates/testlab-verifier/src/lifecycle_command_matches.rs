@@ -50,12 +50,12 @@ impl ExpectedLifecycle<'_> {
             | (
                 Identity::Consumer(expected, ConsumerEvent::AssignedClosed),
                 AdapterEvent::AssignedConsumerClosed { consumer_id },
-            )
-            | (
+            ) => *expected == consumer_id,
+            (
                 Identity::Consumer(expected, ConsumerEvent::GroupCreated),
-                AdapterEvent::GroupConsumerCreated { consumer_id },
-            )
-            | (
+                AdapterEvent::GroupConsumerCreated(observation),
+            ) => *expected == &observation.consumer_id,
+            (
                 Identity::Consumer(expected, ConsumerEvent::GroupClosed),
                 AdapterEvent::GroupConsumerClosed { consumer_id },
             ) => *expected == consumer_id,

@@ -158,13 +158,15 @@
   second path marks and commits only an ordered processed prefix, independently
   proves its offset, and resumes the exact suffix with a replacement member.
 - Classic and KIP-848 group consumers preserve caller-ordered multi-topic
-  subscriptions, expose an assignment for every subscribed topic, and commit
-  exact records from both topics against independent broker observations.
+  subscriptions through returned-handle readback, expose an assignment for
+  every subscribed topic, and commit exact records from both topics against
+  independent broker observations.
 - Share consumers preserve caller-ordered multi-topic subscriptions, expose an
   assignment for every subscribed topic, and acquire and accept exact records
-  from both topics against independent broker observations. Configured rack
-  identity is retained by the public handle and broker-reported singleton and
-  caller-ordered plural Share-group descriptions.
+  from both topics against independent broker observations. Returned-handle
+  readback retains the subscription and configured rack identity, which is also
+  retained by broker-reported singleton and caller-ordered plural Share-group
+  descriptions.
 - Classic and KIP-848 configured groups cover fail-closed, earliest, and latest
   missing-offset reset behavior plus read-committed isolation against
   pre-membership records and independently

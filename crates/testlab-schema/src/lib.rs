@@ -82,6 +82,7 @@ mod consumer_configuration;
 mod consumer_control_validation;
 mod consumer_group_ownership;
 mod consumer_group_ownership_validation;
+mod consumer_registration_observation;
 mod contract;
 mod environment;
 mod environment_adversary_validation;
@@ -152,6 +153,7 @@ pub use client_metrics::*;
 pub use concurrent::*;
 pub use consumer_configuration::*;
 pub use consumer_group_ownership::*;
+pub use consumer_registration_observation::*;
 pub use contract::{ContractDefinition, ContractRegistry, ContractRegistryError};
 pub use environment::{
     Authentication, BrokerIdentity, ENVIRONMENT_SCHEMA_VERSION, EnvironmentDriver,
@@ -280,8 +282,6 @@ mod concurrent_test;
 mod consumer_group_ownership_test;
 #[cfg(test)]
 mod environment_test;
-#[cfg(test)]
-mod group_consumer_control_test;
 #[cfg(test)]
 mod group_consumer_shutdown_test;
 #[cfg(test)]

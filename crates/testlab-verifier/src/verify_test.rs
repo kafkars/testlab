@@ -202,9 +202,13 @@ fn classic_group_exact_round_trip_requires_commit() {
     events.extend([
         event(
             8,
-            AdapterEvent::GroupConsumerCreated {
-                consumer_id: consumer.clone(),
-            },
+            AdapterEvent::GroupConsumerCreated(
+                testlab_schema::GroupConsumerRegistrationObservation {
+                    consumer_id: consumer.clone(),
+                    group_id: "group-1".to_owned(),
+                    subscription: vec!["topic-a".to_owned()],
+                },
+            ),
         ),
         event(
             9,

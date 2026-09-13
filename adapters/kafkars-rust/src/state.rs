@@ -138,7 +138,7 @@ impl AdapterState {
     pub(crate) fn create_group_consumer(
         &mut self,
         registration: GroupConsumerRegistration,
-    ) -> Result<(), StateError> {
+    ) -> Result<testlab_schema::GroupConsumerRegistrationObservation, StateError> {
         if self.consumers.contains(&registration.consumer_id)
             || self.share_contains(&registration.consumer_id)
         {

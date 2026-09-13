@@ -5,6 +5,10 @@ use testlab_schema::{GroupConsumerControlCommand, Scenario, ScenarioAction, Viol
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[cfg(test)]
+#[path = "group_consumer_controls_test.rs"]
+mod tests;
+
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     for step in &scenario.steps {
         let ScenarioAction::ControlGroupConsumer(action) = &step.action else {

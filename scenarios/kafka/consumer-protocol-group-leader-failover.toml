@@ -1,4 +1,4 @@
-schema_version = 162
+schema_version = 163
 id = "kafka.consumer-protocol-group-leader-failover"
 title = "KIP-848 Fetch recovers across an observed partition leader election"
 description = "A KIP-848 member commits a baseline, then the same live member commits an exact new record through a distinct replacement partition leader while the independently selected original owner remains offline."

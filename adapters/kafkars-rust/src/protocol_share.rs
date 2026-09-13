@@ -32,11 +32,11 @@ pub(crate) fn dispatch<W: Write>(
             configuration,
         } => {
             let client = state.client(&client_id)?.clone();
-            state.share_consumers.create(
+            let observation = state.share_consumers.create(
                 &client,
                 ShareConsumerRegistration {
                     client_id,
-                    consumer_id: consumer_id.clone(),
+                    consumer_id,
                     group_id,
                     topics,
                     rack,
@@ -45,7 +45,7 @@ pub(crate) fn dispatch<W: Write>(
                     configuration,
                 },
             )?;
-            AdapterEvent::ShareConsumerCreated { consumer_id }
+            AdapterEvent::ShareConsumerCreated(observation)
         }
         AdapterCommand::ShareReceive {
             consumer_id,
