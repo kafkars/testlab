@@ -35,7 +35,8 @@ literal deny ACL or user quota with an independently queried removal.
 
 `apache-kafka/4.3.1/single-plaintext-network.toml` separates the packaged
 client's proxy listener, a hidden broker upstream listener, and the direct
-observer listener. `packs/kafkars-network-faults.toml` covers producer plus
-classic and KIP-848 group recovery after a live connection cut, a bidirectional
-producer blackhole, and both one-way producer delay directions without granting
-the proxy or adapter ownership of broker-visible truth.
+observer listener. `packs/kafkars-network-faults.toml` covers producer, directly
+assigned consumer, and classic plus KIP-848 group recovery after a live
+connection cut, a bidirectional producer blackhole, and both one-way producer
+delay directions without granting the proxy or adapter ownership of
+broker-visible truth.

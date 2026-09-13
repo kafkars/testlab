@@ -1,0 +1,134 @@
+schema_version = 155
+id = "kafka.assigned-consumer-network-connection-cut-recovery"
+title = "packaged assigned consumer recovers after an external connection cut"
+description = "A directly assigned consumer on an independent public client reads an exact baseline record before the external proxy cuts all broker connections, then the same cursor owner reconnects and reads the record produced after that observed cut."
+timeout_ms = 120000
+requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-producer-client"
+kind = "create_client"
+client_id = "producer-client"
+
+[[steps]]
+id = "await-producer-client-ready"
+kind = "await_client_ready"
+client_id = "producer-client"
+
+[[steps]]
+id = "create-consumer-client"
+kind = "create_client"
+client_id = "consumer-client"
+
+[[steps]]
+id = "await-consumer-client-ready"
+kind = "await_client_ready"
+client_id = "consumer-client"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "producer-client"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "assigned-before-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-assigned"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "assigned-baseline" }
+value = { encoding = "utf8", data = "before-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "assigned-before-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-consumer"
+kind = "create_assigned_consumer"
+client_id = "consumer-client"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "assign-consumer"
+kind = "assign_beginning"
+consumer_id = "consumer-1"
+topic = "testlab-kafkars-network-assigned"
+partition = 0
+
+[[steps]]
+id = "receive-baseline"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "assigned-receive-before-cut"
+expected_operation_id = "assigned-before-cut"
+timeout_ms = 30000
+
+[[steps]]
+id = "cut-live-connections"
+kind = "cut_network_connections"
+operation_id = "assigned-network-cut-live-connections"
+broker_ordinal = 1
+timeout_ms = 5000
+
+[[steps]]
+id = "send-after-cut"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "assigned-after-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-assigned"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "assigned-recovered" }
+value = { encoding = "utf8", data = "after-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "assigned-after-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-after-cut"
+kind = "receive"
+consumer_id = "consumer-1"
+receive_id = "assigned-receive-after-cut"
+expected_operation_id = "assigned-after-cut"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-consumer"
+kind = "close_assigned_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-consumer-client"
+kind = "shutdown_client"
+client_id = "consumer-client"
+
+[[steps]]
+id = "shutdown-producer-client"
+kind = "shutdown_client"
+client_id = "producer-client"
+
+[[assertions]]
+operation_id = "assigned-before-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "assigned-after-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
