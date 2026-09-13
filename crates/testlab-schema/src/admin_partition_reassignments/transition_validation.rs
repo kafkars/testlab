@@ -19,7 +19,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                     (action.partitions, action.replication_factor),
                 );
             }
-            ScenarioAction::CreateTopicsBatch(action) if !action.validate_only => {
+            ScenarioAction::CreateTopicsBatch(action) => {
                 for topic in &action.topics {
                     if topic.expected_error_code.is_none() {
                         topics.insert(
