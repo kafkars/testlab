@@ -20,6 +20,7 @@ fn delete_records_requires_a_harness_owned_topic() {
                 topic: action.topic.clone(),
                 partitions: 1,
                 replication_factor: 1,
+                replica_assignments: None,
                 validate_only: false,
                 expected_error_code: None,
                 timeout_ms: 1_000,

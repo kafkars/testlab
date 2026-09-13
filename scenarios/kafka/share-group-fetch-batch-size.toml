@@ -1,4 +1,4 @@
-schema_version = 123
+schema_version = 124
 id = "kafka.share-group-fetch-batch-size"
 title = "fully configured Share fetches accept all one-record acquisition ranges"
 description = "Three separately flushed Kafka record batches enter one Share group using non-default public long-poll, byte, record, acquisition-range, attempt, membership, and close policy; its public batch returns all independently observed records in three one-record acquisition ranges and consumes them through accept_all."

@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 119);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 123);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 109);
+    assert_eq!(PROTOCOL_VERSION, 120);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 124);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 110);
 }
 
 #[test]
@@ -67,6 +67,7 @@ fn missing_topic_expectation_rejects_a_prior_successful_creation() {
                 topic: "testlab-kafkars-admin-describe-topics-missing".to_owned(),
                 partitions: 1,
                 replication_factor: 1,
+                replica_assignments: None,
                 validate_only: false,
                 expected_error_code: None,
                 timeout_ms: 1_000,

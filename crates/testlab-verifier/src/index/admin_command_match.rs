@@ -51,8 +51,8 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 && a.topic == c.topic
                 && a.partitions == c.partitions
                 && a.replication_factor == c.replication_factor
-                && a.validate_only == c.validate_only
-                && a.timeout_ms == c.timeout_ms
+                && a.replica_assignments == c.replica_assignments
+                && (a.validate_only, a.timeout_ms) == (c.validate_only, c.timeout_ms)
         }
         (ScenarioAction::CreatePartitions(a), AdapterCommand::CreatePartitions(c)) => {
             same_topic(

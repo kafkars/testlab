@@ -156,7 +156,17 @@ pub struct BrokerPartitionAssignment {
     pub in_sync_replicas: Vec<i32>,
 }
 
-/// Independent metadata state after one reassignment mutation.
+/// One complete independently observed topic partition set.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BrokerTopicPartitionSet {
+    /// Exact topic name.
+    pub topic: String,
+    /// Canonical ascending broker-visible partition indices.
+    pub partitions: Vec<i32>,
+}
+
+/// Independent metadata state after one replica-placement mutation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BrokerPartitionAssignmentsState {
@@ -164,6 +174,8 @@ pub struct BrokerPartitionAssignmentsState {
     pub observation: u64,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Complete canonical topic partition sets represented by the assignments.
+    pub topic_partitions: Vec<BrokerTopicPartitionSet>,
     /// Assignments in original mutation request order.
     pub assignments: Vec<BrokerPartitionAssignment>,
 }

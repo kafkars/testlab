@@ -99,6 +99,7 @@ fn alter_history() -> Vec<HistoryEntry> {
             BrokerStateObservation::PartitionAssignments(BrokerPartitionAssignmentsState {
                 observation: 7,
                 operation_id: alter_operation(),
+                topic_partitions: Vec::new(),
                 assignments: changes
                     .iter()
                     .map(|change| BrokerPartitionAssignment {

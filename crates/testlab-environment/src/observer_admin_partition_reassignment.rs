@@ -7,11 +7,14 @@ use std::time::Duration;
 use rdkafka::metadata::Metadata;
 use testlab_schema::{
     BrokerPartitionAssignment, BrokerPartitionAssignmentsState, BrokerStateObservation,
+    BrokerTopicPartitionSet,
 };
 
 use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
-use crate::observer_admin_partition_reassignment_target::PartitionAssignmentsTarget;
+use crate::observer_admin_partition_reassignment_target::{
+    ExpectedPartitionAssignment, PartitionAssignmentsTarget,
+};
 use crate::observer_error::ObserverError;
 
 const POLL_SLICE: Duration = Duration::from_millis(50);
@@ -59,17 +62,66 @@ fn normalize(
         .iter()
         .map(|expected| assignment(metadata, &brokers, expected))
         .collect::<Result<Vec<_>, _>>()?;
+    let topic_partitions = target
+        .assignments
+        .iter()
+        .map(|assignment| assignment.topic.as_str())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .map(|topic| complete_topic_partitions(metadata, topic))
+        .collect::<Result<Vec<_>, _>>()?;
     Ok(BrokerPartitionAssignmentsState {
         observation: request.first_observation,
         operation_id: target.operation_id.clone(),
+        topic_partitions,
         assignments,
+    })
+}
+
+fn complete_topic_partitions(
+    metadata: &Metadata,
+    expected_topic: &str,
+) -> Result<BrokerTopicPartitionSet, ObserverError> {
+    let mut topics = metadata
+        .topics()
+        .iter()
+        .filter(|topic| topic.name() == expected_topic);
+    let topic = topics
+        .next()
+        .ok_or_else(|| invalid(format!("metadata omitted topic {expected_topic}")))?;
+    if topics.next().is_some() || topic.error().is_some() {
+        return Err(invalid(format!(
+            "metadata repeated or rejected topic {expected_topic}"
+        )));
+    }
+    let mut partitions = topic
+        .partitions()
+        .iter()
+        .map(|partition| {
+            if partition.id() < 0 || partition.error().is_some() {
+                return Err(invalid(format!(
+                    "metadata returned malformed partition for topic {expected_topic}"
+                )));
+            }
+            Ok(partition.id())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    partitions.sort_unstable();
+    if partitions.is_empty() || partitions.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err(invalid(format!(
+            "metadata returned an invalid partition set for topic {expected_topic}"
+        )));
+    }
+    Ok(BrokerTopicPartitionSet {
+        topic: expected_topic.to_owned(),
+        partitions,
     })
 }
 
 fn assignment(
     metadata: &Metadata,
     brokers: &BTreeSet<i32>,
-    expected: &testlab_schema::PartitionReassignmentChangeSpec,
+    expected: &ExpectedPartitionAssignment,
 ) -> Result<BrokerPartitionAssignment, ObserverError> {
     let mut topics = metadata
         .topics()

@@ -1,10 +1,14 @@
 //! Topic mutation verification requires one public result and one immediate metadata snapshot.
 
-use testlab_schema::{OperationId, ScenarioAction, Violation};
+use testlab_schema::{CreateTopicAction, OperationId, ScenarioAction, Violation};
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{HistoryIndex, IndexedAdminTopicCompletion, IndexedTopicObservation};
 use crate::support::violation;
+
+#[cfg(test)]
+#[path = "admin_topic_manual_placement_test.rs"]
+mod manual_placement_test;
 
 pub(crate) fn verify_topic_action(
     action: &ScenarioAction,
@@ -16,17 +20,21 @@ pub(crate) fn verify_topic_action(
         ScenarioAction::CreateTopic(action)
             if action.expected_error_code.is_none() && !action.validate_only =>
         {
-            verify(
-                "ADMIN-001",
-                "topic creation",
-                &action.operation_id,
-                &action.topic,
-                Some((0..action.partitions).collect()),
-                index.topics_created.get(&action.operation_id),
-                index.topics_observed.get(&action.operation_id),
-                command_window,
-                violations,
-            );
+            if action.replica_assignments.is_some() {
+                verify_manual_topic_creation(action, index, command_window, violations);
+            } else {
+                verify(
+                    "ADMIN-001",
+                    "topic creation",
+                    &action.operation_id,
+                    &action.topic,
+                    Some((0..action.partitions).collect()),
+                    index.topics_created.get(&action.operation_id),
+                    index.topics_observed.get(&action.operation_id),
+                    command_window,
+                    violations,
+                );
+            }
         }
         ScenarioAction::CreatePartitions(action)
             if action.expected_error_code.is_none() && !action.validate_only =>
@@ -57,6 +65,81 @@ pub(crate) fn verify_topic_action(
         _ => return false,
     }
     true
+}
+
+fn verify_manual_topic_creation(
+    action: &CreateTopicAction,
+    index: &HistoryIndex,
+    command_window: Option<AdminCommandWindow>,
+    violations: &mut Vec<Violation>,
+) {
+    let public = index
+        .topics_created
+        .get(&action.operation_id)
+        .filter(|values| values.len() == 1)
+        .and_then(|values| values.first());
+    let independent = index
+        .admin_partition_reassignments
+        .assignments_observed
+        .get(&action.operation_id)
+        .filter(|values| values.len() == 1)
+        .and_then(|values| values.first());
+    let expected = action.replica_assignments.as_deref().unwrap_or_default();
+    let matches = public.is_some_and(|public| {
+        public.topic == action.topic
+            && public_after_command(command_window, public.history_sequence)
+            && independent.is_some_and(|independent| {
+                independent.value.operation_id == action.operation_id
+                    && complete_topic_matches(action, &independent.value.topic_partitions)
+                    && independent.value.assignments.len() == expected.len()
+                    && independent.value.assignments.iter().zip(expected).all(
+                        |(actual, expected)| {
+                            let mut expected_isr = expected.broker_ids.clone();
+                            expected_isr.sort_unstable();
+                            actual.topic == action.topic
+                                && actual.partition == expected.partition_index
+                                && actual.replicas == expected.broker_ids
+                                && actual.in_sync_replicas == expected_isr
+                                && actual.replicas.contains(&actual.leader_id)
+                        },
+                    )
+                    && immediate_after_public(
+                        command_window,
+                        public.history_sequence,
+                        independent.history_sequence,
+                    )
+            })
+    });
+    if !matches {
+        violations.push(violation(
+            "ADMIN-084",
+            format!(
+                "admin operation {} expected one exact manually placed topic creation and immediate caller-ordered replica assignments with full ISR",
+                action.operation_id
+            ),
+            Some(action.operation_id.clone()),
+            public
+                .map(|value| format!("history:{}", value.history_sequence))
+                .into_iter()
+                .chain(independent.map(|value| {
+                    format!(
+                        "broker-state-observation:{}",
+                        value.value.observation
+                    )
+                }))
+                .collect(),
+        ));
+    }
+}
+
+fn complete_topic_matches(
+    action: &CreateTopicAction,
+    topics: &[testlab_schema::BrokerTopicPartitionSet],
+) -> bool {
+    let [topic] = topics else {
+        return false;
+    };
+    topic.topic == action.topic && topic.partitions == (0..action.partitions).collect::<Vec<_>>()
 }
 
 #[allow(

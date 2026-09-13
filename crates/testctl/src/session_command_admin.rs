@@ -1,5 +1,4 @@
 //! Admin scenario actions translate into exact bounded wire commands and completions.
-
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
     DeleteConsumerGroupCommand, DeleteConsumerGroupOffsetCommand, DeleteTopicCommand,
@@ -40,6 +39,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 topic: action.topic.clone(),
                 partitions: action.partitions,
                 replication_factor: action.replication_factor,
+                replica_assignments: action.replica_assignments.clone(),
                 validate_only: action.validate_only,
                 timeout_ms: action.timeout_ms,
             }),

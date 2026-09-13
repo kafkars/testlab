@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v119 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v123 and evidence schema v109.
+Protocol v120 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v124 and evidence schema v110.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -637,8 +637,13 @@ Singleton topic creation, ordered batch topic creation, and partition expansion
 use the packaged client's public admin handle. Admin-created scenario topics are
 deliberately excluded from independent environment provisioning, and broker
 auto-creation is disabled. Immediately after each public completion, independent
-metadata queries require the requested partition sets. This slice does not claim
-replica topology.
+metadata queries require the requested partition sets. A singleton creation may
+instead carry one contiguous caller-ordered partition assignment per partition.
+Its declared partition count and replication factor must exactly match those
+assignments, and the adapter calls the packaged manual-placement constructor.
+Immediate independent metadata must then show each exact replica order, a leader
+inside that replica list, and the complete replica set in sync. Automatic
+placement does not claim broker-selected replica topology.
 
 An expected duplicate creation repeats the exact public create-topic command
 after a successful identical creation. The scenario-only expected error never
@@ -1227,6 +1232,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v119 is an exact semantic contract. New capabilities may be declared
+Protocol v120 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

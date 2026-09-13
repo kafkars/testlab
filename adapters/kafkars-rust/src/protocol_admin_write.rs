@@ -3,7 +3,9 @@
 use std::io::Write;
 use std::time::{Duration, Instant};
 
-use crate::kafkars_api::{DeleteRecordsTarget, KafkaError, NewPartitions, NewTopic, RetryAdvice};
+use crate::kafkars_api::{
+    DeleteRecordsTarget, KafkaError, NewPartitions, NewTopic, RetryAdvice, TopicReplicaAssignment,
+};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminRecordsDeleted, AdminTopicCompletion,
     CommandId, CreatePartitionsCommand, CreateTopicCommand, DeleteRecordsCommand,
@@ -57,8 +59,7 @@ fn create_topic<W: Write>(
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
-            let request = NewTopic::new(command.topic.clone(), command.partitions)
-                .replication_factor(command.replication_factor);
+            let request = new_topic(&command);
             client
                 .admin()
                 .create_topics([request])
@@ -82,6 +83,22 @@ fn create_topic<W: Write>(
             },
         ),
     )
+}
+
+pub(crate) fn new_topic(command: &CreateTopicCommand) -> NewTopic {
+    match command.replica_assignments.as_deref() {
+        Some(assignments) => NewTopic::with_replica_assignments(
+            command.topic.clone(),
+            assignments.iter().map(|assignment| {
+                TopicReplicaAssignment::new(
+                    assignment.partition_index,
+                    assignment.broker_ids.iter().copied(),
+                )
+            }),
+        ),
+        None => NewTopic::new(command.topic.clone(), command.partitions)
+            .replication_factor(command.replication_factor),
+    }
 }
 
 fn create_partitions<W: Write>(

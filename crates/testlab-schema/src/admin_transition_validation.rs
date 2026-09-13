@@ -1,6 +1,22 @@
 use crate::{Scenario, ScenarioAction};
 use std::collections::{BTreeMap, BTreeSet};
-type TopicDefinition = (i32, i16);
+
+#[path = "admin_create_topics_batch_transition_validation.rs"]
+mod create_topics_batch;
+
+struct TopicDefinition {
+    partitions: i32,
+    replication_factor: i16,
+    replica_assignments: Option<Vec<crate::TopicReplicaAssignmentSpec>>,
+}
+
+impl TopicDefinition {
+    fn matches(&self, other: &Self) -> bool {
+        self.partitions == other.partitions
+            && self.replication_factor == other.replication_factor
+            && self.replica_assignments == other.replica_assignments
+    }
+}
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     crate::admin_consumer_group_member_removal::validate_transition(scenario, problems);
     crate::admin_group::description_batch::transition_validation::validate(scenario, problems);
@@ -73,7 +89,7 @@ impl TransitionState {
     fn validate_action(&mut self, action: &ScenarioAction, problems: &mut Vec<String>) {
         match action {
             ScenarioAction::CreateTopic(action) => self.validate_create_topic(action, problems),
-            ScenarioAction::CreateTopicsBatch(action) => validate_create_topics_batch(
+            ScenarioAction::CreateTopicsBatch(action) => create_topics_batch::validate(
                 action,
                 &mut self.created_topics,
                 &mut self.singleton_topics,
@@ -103,10 +119,18 @@ impl TransitionState {
         action: &crate::CreateTopicAction,
         problems: &mut Vec<String>,
     ) {
-        let definition = (action.partitions, action.replication_factor);
+        let definition = TopicDefinition {
+            partitions: action.partitions,
+            replication_factor: action.replication_factor,
+            replica_assignments: action.replica_assignments.clone(),
+        };
         match action.expected_error_code.as_deref() {
             Some(crate::TOPIC_ALREADY_EXISTS_ERROR_CODE) => {
-                if self.created_topics.get(&action.topic) != Some(&definition) {
+                if !self
+                    .created_topics
+                    .get(&action.topic)
+                    .is_some_and(|prior| prior.matches(&definition))
+                {
                     problems.push(format!(
                         "admin operation {} requires a prior identical successful topic creation",
                         action.operation_id
@@ -151,12 +175,13 @@ impl TransitionState {
             let actual = self
                 .created_topics
                 .get(&action.topic)
-                .map(|(partitions, _)| *partitions);
+                .map(|definition| definition.partitions);
             crate::admin_validate_only_validation::validate_partition_transition(
                 action, actual, problems,
             );
-        } else if let Some((partitions, _)) = self.created_topics.get_mut(&action.topic) {
-            *partitions = action.total_count;
+        } else if let Some(definition) = self.created_topics.get_mut(&action.topic) {
+            definition.partitions = action.total_count;
+            definition.replica_assignments = None;
         }
     }
 
@@ -228,7 +253,7 @@ impl TransitionState {
         if self
             .created_topics
             .get(&action.topic)
-            .is_some_and(|(count, _)| *count > action.partition)
+            .is_some_and(|definition| definition.partitions > action.partition)
         {
             problems.push(format!(
                 "admin operation {} expects missing partition {} but prior topic {} contains it",
@@ -252,35 +277,6 @@ impl TransitionState {
                 "admin operation {} requires a prior zero-member group description",
                 action.operation_id
             ));
-        }
-    }
-}
-
-fn validate_create_topics_batch(
-    action: &crate::CreateTopicsBatchAction,
-    created_topics: &mut BTreeMap<String, TopicDefinition>,
-    singleton_topics: &mut BTreeSet<String>,
-    problems: &mut Vec<String>,
-) {
-    for item in &action.topics {
-        let definition = (item.partitions, item.replication_factor);
-        if item.expected_error_code.is_some() {
-            let has_singleton = singleton_topics.contains(&item.topic)
-                && created_topics.get(&item.topic) == Some(&definition);
-            if !has_singleton {
-                problems.push(format!(
-                    "admin operation {} batch duplicate {} requires a prior identical successful singleton topic creation",
-                    action.operation_id, item.topic
-                ));
-            }
-        } else if created_topics.contains_key(&item.topic) {
-            problems.push(format!(
-                "admin operation {} expects successful creation of existing topic {}",
-                action.operation_id, item.topic
-            ));
-        } else {
-            created_topics.insert(item.topic.clone(), definition);
-            singleton_topics.remove(&item.topic);
         }
     }
 }

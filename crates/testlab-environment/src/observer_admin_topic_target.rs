@@ -5,6 +5,9 @@ use testlab_schema::{
     DescribeTopicCommand, ListOffsetsCommand, ListTopicsCommand, ScenarioAction,
 };
 
+use crate::observer_admin_partition_reassignment_target::{
+    ExpectedPartitionAssignment, PartitionAssignmentsTarget,
+};
 use crate::observer_admin_target::{AdminTarget, ListTarget, TargetMatch, TopicTarget, unique};
 use crate::observer_error::ObserverError;
 
@@ -17,10 +20,11 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 topic: action.topic.clone(),
                 partitions: action.partitions,
                 replication_factor: action.replication_factor,
+                replica_assignments: action.replica_assignments.clone(),
                 validate_only: action.validate_only,
                 timeout_ms: action.timeout_ms,
             }),
-            AdminTarget::Topic(create_topic_target(action)?),
+            create_topic_target(action)?,
         ),
         ScenarioAction::CreatePartitions(action) => (
             AdapterCommand::CreatePartitions(CreatePartitionsCommand {
@@ -107,16 +111,35 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
 
 fn create_topic_target(
     action: &testlab_schema::CreateTopicAction,
-) -> Result<TopicTarget, ObserverError> {
+) -> Result<AdminTarget, ObserverError> {
     let authorization_denied = action.expected_error_code.as_deref()
         == Some(testlab_schema::ADMIN_TOPIC_AUTHORIZATION_ERROR_CODE);
-    Ok(TopicTarget {
+    if let Some(assignments) = action.replica_assignments.as_deref()
+        && !action.validate_only
+        && !authorization_denied
+        && action.expected_error_code.is_none()
+    {
+        return Ok(AdminTarget::PartitionAssignments(
+            PartitionAssignmentsTarget {
+                operation_id: action.operation_id.clone(),
+                assignments: assignments
+                    .iter()
+                    .map(|assignment| ExpectedPartitionAssignment {
+                        topic: action.topic.clone(),
+                        partition: assignment.partition_index,
+                        replicas: assignment.broker_ids.clone(),
+                    })
+                    .collect(),
+            },
+        ));
+    }
+    Ok(AdminTarget::Topic(TopicTarget {
         operation_id: action.operation_id.clone(),
         topic: action.topic.clone(),
         expected_partitions: create_expected_partitions(action)?,
         expected_exists: !action.validate_only && !authorization_denied,
         poll_expected: !action.validate_only && !authorization_denied,
-    })
+    }))
 }
 
 fn create_expected_partitions(

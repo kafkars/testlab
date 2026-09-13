@@ -15,6 +15,7 @@ fn topic_creation_targets_absence_without_polling() {
         topic: "new-orders".to_owned(),
         partitions: 3,
         replication_factor: 1,
+        replica_assignments: None,
         validate_only: true,
         expected_error_code: None,
         timeout_ms: 500,

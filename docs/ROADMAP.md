@@ -11,7 +11,8 @@
   three-broker clusters, custom-root TLS, SASL/PLAIN, and SCRAM-SHA-256/512,
   including every SASL mechanism over TLS on Kafka 4.3.1.
 - Real-Kafka scenarios cover producing, assigned, group, and share consumption;
-  singleton and ordered partial-batch topic creation, exact duplicate-creation
+  singleton and ordered partial-batch topic creation, exact three-broker manual
+  topic replica placement with full-ISR metadata proof, exact duplicate-creation
   rejection, exact unknown-topic rejection, source-preserving routing failure
   for an independently proven absent partition, partition
   expansion and deletion, validate-only topic creation, partition expansion,

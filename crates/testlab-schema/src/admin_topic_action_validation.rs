@@ -5,6 +5,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::admin_action_validation::{validate_identity, validate_resource, validate_timeout};
 use crate::{ClientId, OperationId, ScenarioAction};
 
+#[path = "admin_topic_replica_assignment_validation.rs"]
+mod replica_assignment;
 #[path = "admin_topic_listing_validation.rs"]
 mod topic_listing;
 #[path = "admin_topic_pagination_validation.rs"]
@@ -235,6 +237,7 @@ fn validate_create_topic(
             action.operation_id
         ));
     }
+    replica_assignment::validate(action, problems);
     if let Some(code) = action.expected_error_code.as_deref()
         && !matches!(
             code,

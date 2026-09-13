@@ -57,6 +57,7 @@ fn duplicate_creation_expectation_stays_out_of_the_wire_command() {
         topic: "orders".to_owned(),
         partitions: 2,
         replication_factor: 1,
+        replica_assignments: None,
         validate_only: false,
         expected_error_code: Some(TOPIC_ALREADY_EXISTS_ERROR_CODE.to_owned()),
         timeout_ms: 20_000,
@@ -74,6 +75,7 @@ fn duplicate_creation_expectation_stays_out_of_the_wire_command() {
             topic: "orders".to_owned(),
             partitions: 2,
             replication_factor: 1,
+            replica_assignments: None,
             validate_only: false,
             timeout_ms: 20_000,
         })

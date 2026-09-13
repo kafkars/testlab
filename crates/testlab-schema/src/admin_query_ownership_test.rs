@@ -111,6 +111,7 @@ fn every_admin_action_records_the_admin_capability() {
             topic: "records".to_owned(),
             partitions: 1,
             replication_factor: 1,
+            replica_assignments: None,
             validate_only: false,
             expected_error_code: None,
             timeout_ms: 1_000,

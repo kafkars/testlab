@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn batch_versions_and_ordered_wire_facts_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 119);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 123);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 109);
+    assert_eq!(PROTOCOL_VERSION, 120);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 124);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 110);
 
     let action = ScenarioAction::CreateTopicsBatch(batch_action());
     let command = AdapterCommand::CreateTopicsBatch(batch_command());
@@ -178,6 +178,7 @@ fn valid_mixed_scenario() -> Scenario {
                     topic: "existing-topic".to_owned(),
                     partitions: 2,
                     replication_factor: 1,
+                    replica_assignments: None,
                     validate_only: false,
                     expected_error_code: None,
                     timeout_ms: 1_000,

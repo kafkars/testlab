@@ -10,12 +10,26 @@ use crate::{
     AdminOffsetSelector, AdminTopicDescriptionValue, ClientId, OperationId, TopicDescriptionApi,
 };
 
+#[cfg(test)]
+#[path = "admin_topic_manual_placement_test.rs"]
+mod manual_placement_test;
+
 /// Normalized public error required for a duplicate topic creation.
 pub const TOPIC_ALREADY_EXISTS_ERROR_CODE: &str = "broker:broker_36";
 /// Normalized Kafka error for a topic or partition that does not exist.
 pub const UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE: &str = "broker:broker_3";
 /// Normalized public error when current metadata cannot route an operation.
 pub const ROUTING_ERROR_CODE: &str = "routing";
+
+/// One exact partition-to-broker assignment for manual topic creation.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TopicReplicaAssignmentSpec {
+    /// Zero-based partition index.
+    pub partition_index: i32,
+    /// Caller-ordered broker IDs for this partition.
+    pub broker_ids: Vec<i32>,
+}
 
 /// Scenario intent for one bounded topic creation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -31,6 +45,9 @@ pub struct CreateTopicAction {
     pub partitions: i32,
     /// Initial positive replication factor.
     pub replication_factor: i16,
+    /// Exact caller-ordered replica placement, or broker-selected placement when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replica_assignments: Option<Vec<TopicReplicaAssignmentSpec>>,
     /// Whether the public API must validate the request without creating the topic.
     pub validate_only: bool,
     /// Exact normalized public error expected instead of a completion.
@@ -54,6 +71,9 @@ pub struct CreateTopicCommand {
     pub partitions: i32,
     /// Initial positive replication factor.
     pub replication_factor: i16,
+    /// Exact caller-ordered replica placement, or broker-selected placement when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replica_assignments: Option<Vec<TopicReplicaAssignmentSpec>>,
     /// Whether the public API validates the request without creating the topic.
     pub validate_only: bool,
     /// Complete public operation bound.

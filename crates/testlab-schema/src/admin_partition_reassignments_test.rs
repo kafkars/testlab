@@ -96,6 +96,7 @@ fn reassignment_evidence_variants_round_trip() {
         BrokerPartitionAssignmentsState {
             observation: 7,
             operation_id: operation("alter"),
+            topic_partitions: Vec::new(),
             assignments: Vec::new(),
         },
     ));

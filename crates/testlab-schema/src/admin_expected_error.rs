@@ -31,10 +31,10 @@ pub fn expected_admin_error(action: &ScenarioAction) -> Option<(&OperationId, &s
     }
 }
 
-pub(crate) fn require_untracked_topic(
+pub(crate) fn require_untracked_topic<T>(
     operation_id: &OperationId,
     topic: &str,
-    created_topics: &BTreeMap<String, (i32, i16)>,
+    created_topics: &BTreeMap<String, T>,
     problems: &mut Vec<String>,
 ) {
     if created_topics.contains_key(topic) {

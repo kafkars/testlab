@@ -151,6 +151,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeTopic(value) if value.expected_error_code.is_some() => "ADMIN-019",
         ScenarioAction::ListOffsets(value) if value.expected_error_code.is_some() => "ADMIN-019",
         ScenarioAction::CreateTopic(value) if value.validate_only => "ADMIN-020",
+        ScenarioAction::CreateTopic(value) if value.replica_assignments.is_some() => "ADMIN-084",
         ScenarioAction::CreatePartitions(value) if value.validate_only => "ADMIN-021",
         ScenarioAction::AlterTopicConfig(value) if value.validate_only => "ADMIN-022",
         ScenarioAction::ListConsumerGroupOffsetsBatch(_) => "ADMIN-023",

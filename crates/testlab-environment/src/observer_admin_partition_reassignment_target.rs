@@ -2,7 +2,7 @@
 
 use testlab_schema::{
     AdapterCommand, AlterPartitionReassignmentsCommand, ListPartitionReassignmentsCommand,
-    OperationId, PartitionReassignmentChangeSpec, ScenarioAction,
+    OperationId, ScenarioAction,
 };
 
 use crate::observer_admin_target::{AdminTarget, TargetMatch};
@@ -10,7 +10,14 @@ use crate::observer_admin_target::{AdminTarget, TargetMatch};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct PartitionAssignmentsTarget {
     pub(super) operation_id: OperationId,
-    pub(super) assignments: Vec<PartitionReassignmentChangeSpec>,
+    pub(super) assignments: Vec<ExpectedPartitionAssignment>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct ExpectedPartitionAssignment {
+    pub(super) topic: String,
+    pub(super) partition: i32,
+    pub(super) replicas: Vec<i32>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,7 +37,15 @@ pub(super) fn match_action(action: &ScenarioAction) -> Option<TargetMatch> {
             }),
             AdminTarget::PartitionAssignments(PartitionAssignmentsTarget {
                 operation_id: action.operation_id.clone(),
-                assignments: action.changes.clone(),
+                assignments: action
+                    .changes
+                    .iter()
+                    .map(|change| ExpectedPartitionAssignment {
+                        topic: change.topic.clone(),
+                        partition: change.partition,
+                        replicas: change.replicas.clone(),
+                    })
+                    .collect(),
             }),
         ),
         ScenarioAction::ListPartitionReassignments(action) => (

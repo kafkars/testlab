@@ -559,6 +559,12 @@ statement = "Each state, producer-ID, duration, or transactional-ID-pattern sele
 category = "admin"
 
 [[contract]]
+id = "ADMIN-084"
+title = "Manual topic placement preserves exact replica order"
+statement = "A manually placed public topic creation preserves every caller-ordered partition index and broker ID, completes exactly once, and is followed immediately by independent metadata showing only those topic partitions, that exact replica order, a valid replica leader, and the full replica set in sync."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

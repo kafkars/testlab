@@ -111,6 +111,7 @@ fn create(
         topic: "orders".to_owned(),
         partitions,
         replication_factor: 1,
+        replica_assignments: None,
         validate_only: false,
         expected_error_code: expected_error_code.map(str::to_owned),
         timeout_ms: 1_000,

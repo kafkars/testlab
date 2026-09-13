@@ -1,12 +1,11 @@
-use testlab_schema::{
-    AdapterCommand, BrokerAclOperation, BrokerAclResource, BrokerPolicy, Scenario, ScenarioAction,
-    Violation,
-};
-
 use crate::broker_policy::{PolicyWindow, active};
 use crate::broker_policy_control::references;
 use crate::index::HistoryIndex;
 use crate::support::violation;
+use testlab_schema::{
+    AdapterCommand, BrokerAclOperation, BrokerAclResource, BrokerPolicy, Scenario, ScenarioAction,
+    Violation,
+};
 pub(crate) fn verify(
     scenario: &Scenario,
     policy: &BrokerPolicy,
@@ -255,6 +254,7 @@ fn command_matches(action: &ScenarioAction, command: &AdapterCommand) -> bool {
                 && action.topic == command.topic
                 && action.partitions == command.partitions
                 && action.replication_factor == command.replication_factor
+                && action.replica_assignments == command.replica_assignments
                 && action.validate_only == command.validate_only
                 && action.timeout_ms == command.timeout_ms
         }

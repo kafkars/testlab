@@ -70,6 +70,7 @@ fn fixture() -> Scenario {
                     topic: "orders".to_owned(),
                     partitions: 1,
                     replication_factor: 1,
+                    replica_assignments: None,
                     validate_only: false,
                     expected_error_code: None,
                     timeout_ms: 1_000,

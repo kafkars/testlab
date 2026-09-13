@@ -22,7 +22,7 @@ pub(crate) use kafkars::admin::{
     PartitionReassignmentChange, ReplicaLogDirAssignment, ResourcePattern, ScramCredentialInfo,
     ScramMechanism, ShareGroupDescription, ShareGroupOffset, ShareGroupOffsetAlteration,
     StreamsGroupDescription, TopicConfigAlterations, TopicConfigQuery, TopicDescription,
-    TopicPartitionReplica, UserScramCredentialAlteration,
+    TopicPartitionReplica, TopicReplicaAssignment, UserScramCredentialAlteration,
 };
 pub(crate) use kafkars::client::{Client, ClientBuilder};
 pub(crate) use kafkars::consumer::{
