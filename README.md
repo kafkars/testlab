@@ -120,6 +120,8 @@ Ordinary producer-handle creation separately preserves explicit
 `ProducerBuilder::delivery_timeout` selection or exact omission. The common
 round-trip selects a non-default handle value, while configured-client
 scenarios omit it so their client-wide delivery policy is inherited unchanged.
+Every successful construction also records the selected timeout read from the
+public builder; explicit and inherited values must match exactly.
 Every ordinary producer call also preserves one exact ordered `try_send`,
 waiting `send`, or `send_batch` command with its producer, operation identities,
 partition selection, UUID-validation choice, and complete record input.

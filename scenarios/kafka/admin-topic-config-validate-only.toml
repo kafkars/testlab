@@ -1,4 +1,4 @@
-schema_version = 163
+schema_version = 164
 id = "kafka.admin-topic-config-validate-only"
 title = "packaged admin validates a topic configuration change without applying it"
 description = "The packaged client's public admin reads cleanup.policy as delete, validates an incremental SET to compact, and reads delete again while immediate independent queries prove the configuration never changed."

@@ -18,10 +18,8 @@ pub enum AdapterEvent {
         client_id: ClientId,
     },
     ClientMetricsObserved(Box<crate::ClientMetricsObservation>),
-    /// Public producer construction completed.
-    ProducerCreated {
-        producer_id: ProducerId,
-    },
+    /// Public producer construction completed with exact selected builder policy.
+    ProducerCreated(crate::ProducerHandleConfigurationObservation),
     /// The public producer accepted ownership of one operation.
     OperationAccepted {
         /// Accepted operation.

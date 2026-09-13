@@ -2,7 +2,32 @@
 
 use std::collections::BTreeSet;
 
-use crate::{Capability, ProducerSendMethod, Scenario, ScenarioAction};
+use crate::{
+    AdapterEvent, Capability, ProducerHandleConfigurationObservation, ProducerId,
+    ProducerSendMethod, Scenario, ScenarioAction,
+};
+
+#[test]
+fn producer_creation_event_flattens_selected_builder_policy() {
+    let event = AdapterEvent::ProducerCreated(ProducerHandleConfigurationObservation {
+        producer_id: ProducerId::new("producer-1")
+            .unwrap_or_else(|error| panic!("producer ID: {error}")),
+        selected_delivery_timeout_ms: 15_000,
+    });
+    let value = serde_json::to_value(&event)
+        .unwrap_or_else(|error| panic!("serialize producer creation: {error}"));
+    assert_eq!(
+        value,
+        serde_json::json!({
+            "kind": "producer_created",
+            "producer_id": "producer-1",
+            "selected_delivery_timeout_ms": 15_000,
+        })
+    );
+    let decoded: AdapterEvent = serde_json::from_value(value)
+        .unwrap_or_else(|error| panic!("deserialize producer creation: {error}"));
+    assert_eq!(decoded, event);
+}
 
 #[test]
 fn checked_in_scenarios_cover_every_public_compression() {

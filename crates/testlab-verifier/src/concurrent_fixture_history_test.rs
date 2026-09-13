@@ -126,9 +126,10 @@ fn create_handles(
     );
     history.event(
         "create-producer",
-        AdapterEvent::ProducerCreated {
+        AdapterEvent::ProducerCreated(testlab_schema::ProducerHandleConfigurationObservation {
             producer_id: producer.clone(),
-        },
+            selected_delivery_timeout_ms: 30_000,
+        }),
     );
     history.command(
         "create-consumer",

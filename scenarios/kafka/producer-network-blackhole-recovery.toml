@@ -1,4 +1,4 @@
-schema_version = 163
+schema_version = 164
 id = "kafka.producer-network-blackhole-recovery"
 title = "packaged producer preserves uncertainty through a network blackhole"
 description = "The external proxy stops all forwarding on a live broker route until the packaged producer reaches its public delivery bound, then observed restoration permits exact acknowledged progress without strengthening the timed-out send beyond possibly-sent."

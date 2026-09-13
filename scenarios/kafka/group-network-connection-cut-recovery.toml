@@ -1,4 +1,4 @@
-schema_version = 163
+schema_version = 164
 id = "kafka.group-network-connection-cut-recovery"
 title = "packaged group consumers recover after an external connection cut"
 description = "Live classic and KIP-848 members on independent public clients each commit an exact baseline record before the external proxy cuts all broker connections, then the same handles reconnect and commit distinct records produced after that observed cut."

@@ -37,10 +37,11 @@ pub(super) fn classify_core(
         ) if client_id == &observation.client_id && operation_id == &observation.operation_id => {
             Ok(EventDisposition::Complete)
         }
-        (
-            ExpectedEvent::ProducerCreated(expected),
-            AdapterEvent::ProducerCreated { producer_id },
-        ) if expected == producer_id => Ok(EventDisposition::Complete),
+        (ExpectedEvent::ProducerCreated(expected), AdapterEvent::ProducerCreated(observation))
+            if expected == &observation.producer_id =>
+        {
+            Ok(EventDisposition::Complete)
+        }
         (ExpectedEvent::FlushCompleted(expected), AdapterEvent::FlushCompleted { producer_id })
             if expected == producer_id =>
         {

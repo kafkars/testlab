@@ -85,6 +85,7 @@ mod network_proxy_progress;
 mod observations;
 mod producer_cancellation;
 mod producer_error;
+mod producer_handle_observation;
 mod producer_partitioning;
 mod producer_receipt;
 mod producer_records;

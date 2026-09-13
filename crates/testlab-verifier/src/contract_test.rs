@@ -277,7 +277,7 @@ fn is_client_ready(event: &AdapterEvent) -> bool {
 }
 
 fn is_producer_created(event: &AdapterEvent) -> bool {
-    matches!(event, AdapterEvent::ProducerCreated { .. })
+    matches!(event, AdapterEvent::ProducerCreated(_))
 }
 
 fn is_flush_completed(event: &AdapterEvent) -> bool {

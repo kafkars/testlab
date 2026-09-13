@@ -1,6 +1,8 @@
 //! Ordinary producer ownership retains its creating client for identity-bound sends.
 
-use testlab_schema::{ChildHandleOwnership, ClientId, ProducerId};
+use testlab_schema::{
+    ChildHandleOwnership, ClientId, ProducerHandleConfigurationObservation, ProducerId,
+};
 
 use super::{AdapterState, StateError};
 use crate::kafkars_api::{Client, Producer};
@@ -18,7 +20,7 @@ impl AdapterState {
         producer_id: ProducerId,
         ownership: ChildHandleOwnership,
         delivery_timeout_ms: Option<u64>,
-    ) -> Result<(), StateError> {
+    ) -> Result<ProducerHandleConfigurationObservation, StateError> {
         if self.producers.contains_key(&producer_id)
             || self.transactional_producers.contains(&producer_id)
         {
@@ -45,6 +47,21 @@ impl AdapterState {
             Some(timeout) => builder.delivery_timeout(std::time::Duration::from_millis(timeout)),
             None => builder,
         };
+        let selected = builder.selected_delivery_timeout();
+        let selected_delivery_timeout_ms = u64::try_from(selected.as_millis()).map_err(|_| {
+            StateError::ProducerConfiguration(
+                "selected producer delivery timeout exceeded u64 milliseconds".to_owned(),
+            )
+        })?;
+        if std::time::Duration::from_millis(selected_delivery_timeout_ms) != selected {
+            return Err(StateError::ProducerConfiguration(
+                "selected producer delivery timeout was not whole milliseconds".to_owned(),
+            ));
+        }
+        let observation = ProducerHandleConfigurationObservation {
+            producer_id: producer_id.clone(),
+            selected_delivery_timeout_ms,
+        };
         let producer = builder.build().map_err(StateError::Client)?;
         self.producers.insert(
             producer_id,
@@ -53,7 +70,7 @@ impl AdapterState {
                 producer,
             },
         );
-        Ok(())
+        Ok(observation)
     }
 
     pub(crate) fn producer(&self, producer_id: &ProducerId) -> Result<&Producer, StateError> {

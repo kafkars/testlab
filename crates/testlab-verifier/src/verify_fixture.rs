@@ -5,9 +5,9 @@ use std::collections::BTreeSet;
 use testlab_schema::{
     AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId,
     BrokerObservation, ByteString, Capability, ClientId, CommandEnvelope, CommandId, HistoryEntry,
-    HistoryPayload, OperationAssertion, OperationId, ProducerId, RecordSpec,
-    SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
-    TerminalStatus, VisibilityExpectation,
+    HistoryPayload, OperationAssertion, OperationId, ProducerHandleConfigurationObservation,
+    ProducerId, RecordSpec, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId,
+    ScenarioStep, StepId, TerminalStatus, VisibilityExpectation,
 };
 
 pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectation) -> Scenario {
@@ -144,9 +144,10 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
         ),
         event(
             3,
-            AdapterEvent::ProducerCreated {
+            AdapterEvent::ProducerCreated(ProducerHandleConfigurationObservation {
                 producer_id: producer.clone(),
-            },
+                selected_delivery_timeout_ms: 30_000,
+            }),
         ),
         event(
             4,
@@ -210,9 +211,10 @@ pub(crate) fn rejected_history() -> Vec<HistoryEntry> {
         ),
         event(
             3,
-            AdapterEvent::ProducerCreated {
+            AdapterEvent::ProducerCreated(ProducerHandleConfigurationObservation {
                 producer_id: producer.clone(),
-            },
+                selected_delivery_timeout_ms: 30_000,
+            }),
         ),
         event(
             4,

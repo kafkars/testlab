@@ -1153,6 +1153,12 @@ statement = "Every ordinary producer creation command appears exactly once in sc
 category = "producer"
 
 [[contract]]
+id = "PROD-023"
+title = "Producer handles report selected delivery-timeout policy"
+statement = "Every successful ordinary producer creation emits exactly one later correlated observation with its exact producer identity and a nonzero selected public builder delivery timeout; explicit per-handle values and inherited configured-client values must match exactly."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
 statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."

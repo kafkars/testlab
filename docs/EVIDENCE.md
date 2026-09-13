@@ -406,6 +406,12 @@ classic, KIP-848, and Share registration self-describing. CONS-034 and SHARE-015
 require one later correlated creation event populated through each returned
 public handle with its exact group ID and caller-ordered subscription; Share
 also retains its optional rack.
+Protocol v160, scenario schema v164, and evidence schema v150 make successful
+ordinary producer construction self-describing. PROD-023 requires one later
+correlated event carrying the exact producer ID and nonzero selected public
+builder delivery timeout. Explicit handle values and configured-client
+inheritance must match exactly; implementation-defined defaults remain
+portable but must be positive.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -497,6 +503,9 @@ client-wide delivery policy intact, from an explicit millisecond value passed
 to `ProducerBuilder::delivery_timeout`. The ubiquitous round-trip scenario
 selects the override, while configured-client scenarios omit it and therefore
 exercise inheritance before their existing exact policy and record contracts.
+PROD-023 then requires the successful creation event to report the timeout read
+through `ProducerBuilder::selected_delivery_timeout`. Explicit and inherited
+values are exact; an implementation-defined default must be nonzero.
 
 Configured-client history retains the complete requested public producer
 policy and selected aggregate or individual-setter path under its stable

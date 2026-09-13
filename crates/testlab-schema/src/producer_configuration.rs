@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::ClientId;
+use crate::ProducerId;
 
 #[path = "producer_partitioning.rs"]
 pub(crate) mod partitioning;
@@ -97,4 +98,14 @@ pub struct CreateConfiguredClientAction {
     pub configuration_method: ProducerConfigurationMethod,
     /// Producer policy fixed before client startup.
     pub configuration: ProducerConfiguration,
+}
+
+/// Exact producer-builder policy observed immediately before successful construction.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProducerHandleConfigurationObservation {
+    /// Scenario-local producer identity carried by the creation command.
+    pub producer_id: ProducerId,
+    /// Public `ProducerBuilder::selected_delivery_timeout` result in whole milliseconds.
+    pub selected_delivery_timeout_ms: u64,
 }

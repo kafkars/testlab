@@ -62,6 +62,7 @@ pub fn verify(
     crate::transaction_topic_uuid::verify(scenario, &index, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
     exact_commands::verify(scenario, &index, &mut violations);
+    crate::producer_handle_observation::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_send_method::verify(scenario, &index, &mut violations);
     crate::producer_receipt::verify(scenario, &index, observations, &mut violations);

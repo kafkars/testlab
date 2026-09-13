@@ -98,7 +98,7 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
             )
             | (
                 ExpectedEvent::ProducerCreated(_),
-                AdapterEvent::ProducerCreated { .. }
+                AdapterEvent::ProducerCreated(_)
             )
             | (
                 ExpectedEvent::SendSettled(_),

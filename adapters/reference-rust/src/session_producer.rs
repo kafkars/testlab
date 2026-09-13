@@ -3,7 +3,8 @@
 use std::io::Write;
 
 use testlab_schema::{
-    AdapterEvent, AdapterEventEnvelope, ChildHandleOwnership, ClientId, CommandId, ProducerId,
+    AdapterEvent, AdapterEventEnvelope, ChildHandleOwnership, ClientId, CommandId,
+    ProducerHandleConfigurationObservation, ProducerId,
 };
 
 use crate::AdapterError;
@@ -32,6 +33,12 @@ pub(crate) fn dispatch<W: Write>(
     state.create_producer(client_id, producer_id.clone())?;
     emit(
         writer,
-        &AdapterEventEnvelope::new(command_id, AdapterEvent::ProducerCreated { producer_id }),
+        &AdapterEventEnvelope::new(
+            command_id,
+            AdapterEvent::ProducerCreated(ProducerHandleConfigurationObservation {
+                producer_id,
+                selected_delivery_timeout_ms: 30_000,
+            }),
+        ),
     )
 }

@@ -115,8 +115,12 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     observation: *observation.clone(),
                 }),
-            AdapterEvent::ProducerCreated { producer_id } => {
-                push(&mut self.producers_created, producer_id.clone(), sequence);
+            AdapterEvent::ProducerCreated(observation) => {
+                push(
+                    &mut self.producers_created,
+                    observation.producer_id.clone(),
+                    sequence,
+                );
             }
             AdapterEvent::FlushCompleted { producer_id } => {
                 push(&mut self.flushes, producer_id.clone(), sequence);

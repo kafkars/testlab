@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v159 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v163 and evidence schema v149.
+Protocol v160 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v164 and evidence schema v150.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -153,6 +153,10 @@ Omitting the timeout requires the public producer builder to inherit the
 client-wide policy; selecting it invokes the public per-handle override before
 the handle is built. The selected value is bounded to 100 through 60000 ms and
 requires the producer-configuration capability.
+Successful construction emits `producer_created` with the exact producer ID
+and nonzero timeout read through
+`ProducerBuilder::selected_delivery_timeout`. An explicit handle timeout or an
+inherited configured-client timeout must be preserved exactly.
 
 `list_transactions` carries caller-ordered state and signed producer-ID
 filters, an optional nonnegative duration in milliseconds, and an optional
@@ -1375,6 +1379,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v159 is an exact semantic contract. New capabilities may be declared
+Protocol v160 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

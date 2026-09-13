@@ -21,9 +21,9 @@ impl ExpectedLifecycle<'_> {
             ) => *expected == client_id,
             (
                 Identity::Producer(expected, ProducerEvent::Created),
-                AdapterEvent::ProducerCreated { producer_id },
-            )
-            | (
+                AdapterEvent::ProducerCreated(observation),
+            ) => *expected == &observation.producer_id,
+            (
                 Identity::Producer(expected, ProducerEvent::Flushed),
                 AdapterEvent::FlushCompleted { producer_id },
             )
