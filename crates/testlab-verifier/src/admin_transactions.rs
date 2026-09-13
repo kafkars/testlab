@@ -9,7 +9,7 @@ use testlab_schema::{
     Violation,
 };
 
-use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
+use crate::admin::{immediate_after_public, public_after_command};
 use crate::index::HistoryIndex;
 use crate::index::admin_features::Indexed;
 use crate::support::violation;

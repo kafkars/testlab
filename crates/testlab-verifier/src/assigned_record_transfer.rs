@@ -9,8 +9,8 @@ mod tests;
 
 use testlab_schema::{
     AdapterCommand, AssignedRecordConversionMethod, AssignedRecordTransferAction,
-    AssignedRecordTransferCommand, BrokerObservation, CommandId, OperationId, Scenario,
-    ScenarioAction, TerminalStatus, Violation,
+    AssignedRecordTransferCommand, BrokerObservation, CommandId, Scenario, ScenarioAction,
+    TerminalStatus, Violation,
 };
 
 use crate::consumer::exact_record;

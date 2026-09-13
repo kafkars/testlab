@@ -6,7 +6,6 @@ use testlab_schema::{ConsumerId, GroupProtocol, OperationId, Scenario, ScenarioA
 
 use crate::admin::{immediate_after_public, public_after_command};
 use crate::index::HistoryIndex;
-use crate::index::admin_group_batch::IndexedConsumerGroupsDescription;
 use crate::support::violation;
 
 #[derive(Clone)]

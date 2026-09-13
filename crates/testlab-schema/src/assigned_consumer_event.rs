@@ -83,13 +83,24 @@ pub enum AssignedConsumerEventExpectation {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "failure_kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AssignedConsumerPositionFailure {
+    /// The caller-supplied position deadline elapsed.
     DeadlineElapsed,
+    /// The client driver rejected the position request.
     DriverRejected,
+    /// The transport failed before a valid broker response was available.
     Transport,
-    Broker { code: i16 },
+    /// The broker rejected the position request.
+    Broker {
+        /// Exact Kafka protocol error code returned by the broker.
+        code: i16,
+    },
+    /// The broker response was incompatible with the negotiated protocol.
     Compatibility,
+    /// The broker response could not be validated.
     InvalidResponse,
+    /// The broker response exceeded the client's configured bound.
     ResponseTooLarge,
+    /// The broker throttle could not fit within the remaining deadline.
     ThrottleDeadlineOverflow,
 }
 
@@ -97,6 +108,7 @@ pub enum AssignedConsumerPositionFailure {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AssignedConsumerFetchThrottleFailure {
+    /// The required throttle delay could not fit within the Fetch deadline.
     DeadlineOverflow,
 }
 
@@ -104,12 +116,22 @@ pub enum AssignedConsumerFetchThrottleFailure {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "failure_kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AssignedConsumerFetchFailure {
+    /// The caller-supplied Fetch deadline elapsed.
     DeadlineElapsed,
+    /// The client driver rejected the Fetch request.
     DriverRejected,
+    /// The transport failed before a valid broker response was available.
     Transport,
-    Broker { code: i16 },
+    /// The broker rejected the Fetch request.
+    Broker {
+        /// Exact Kafka protocol error code returned by the broker.
+        code: i16,
+    },
+    /// The broker response was incompatible with the negotiated protocol.
     Compatibility,
+    /// The broker response could not be validated.
     InvalidResponse,
+    /// The broker response exceeded the client's configured bound.
     ResponseTooLarge,
 }
 
@@ -117,9 +139,13 @@ pub enum AssignedConsumerFetchFailure {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AssignedConsumerPositionFenceObservation {
+    /// Public topic whose position was being resolved.
     pub topic: String,
+    /// Public partition whose position was being resolved.
     pub partition: i32,
+    /// Assignment generation retained when position resolution began.
     pub assignment_epoch: u64,
+    /// Position request generation retained by the public event.
     pub position_epoch: u64,
 }
 
@@ -127,7 +153,9 @@ pub struct AssignedConsumerPositionFenceObservation {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AssignedConsumerFetchFenceObservation {
+    /// Position fence used by the failed Fetch.
     pub position: AssignedConsumerPositionFenceObservation,
+    /// Fetch generation retained by the public event.
     pub fetch_revision: u64,
 }
 
@@ -135,16 +163,25 @@ pub struct AssignedConsumerFetchFenceObservation {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "event_kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AssignedConsumerEventObservationKind {
+    /// One position resolution terminated with an exact public failure.
     PositionResolutionFailed {
+        /// Public position identity and generation retained at failure.
         fence: AssignedConsumerPositionFenceObservation,
+        /// Normalized public position failure.
         failure: AssignedConsumerPositionFailure,
     },
+    /// Scheduling the next Fetch failed while applying a broker throttle.
     FetchThrottleFailed {
+        /// Public Fetch identity and generations retained at failure.
         fence: AssignedConsumerFetchFenceObservation,
+        /// Normalized public throttle failure.
         failure: AssignedConsumerFetchThrottleFailure,
     },
+    /// One exact Fetch terminated with a public failure.
     FetchFailed {
+        /// Public Fetch identity and generations retained at failure.
         fence: AssignedConsumerFetchFenceObservation,
+        /// Normalized public Fetch failure.
         failure: AssignedConsumerFetchFailure,
     },
 }
@@ -153,9 +190,13 @@ pub enum AssignedConsumerEventObservationKind {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AssignedConsumerEventObservation {
+    /// Stable observation identity copied from the command.
     pub operation_id: OperationId,
+    /// Direct consumer that produced the retained event.
     pub consumer_id: ConsumerId,
+    /// Exact public observer used to retrieve the event.
     pub method: AssignedConsumerEventMethod,
+    /// Exact normalized public event returned by the adapter.
     pub event: AssignedConsumerEventObservationKind,
 }
 

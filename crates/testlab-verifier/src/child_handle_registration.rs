@@ -154,7 +154,6 @@ fn consumer_creation_id(command: &AdapterCommand) -> Option<&ConsumerId> {
 mod tests {
     use testlab_schema::{
         AdapterCommand, ChildHandleOwnership, HistoryEntry, HistoryPayload, Scenario,
-        ScenarioAction,
     };
 
     use super::{assigned_command, producer_command, verify};

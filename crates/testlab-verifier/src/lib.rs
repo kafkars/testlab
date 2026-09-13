@@ -1,3 +1,5 @@
+//! Deterministic verification of adapter history against independent broker evidence.
+
 mod admin;
 mod admin_acl;
 mod admin_batch;
