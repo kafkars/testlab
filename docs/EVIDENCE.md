@@ -432,8 +432,9 @@ Protocol v164, scenario schema v168, and evidence schema v154 retain complete
 public partition topology for metadata descriptions, explicit
 `DescribeTopicPartitions` pages, and detailed all-topic listings. ADMIN-097
 requires exact aggregate and page identities plus internally consistent leader,
-epoch, replica, ISR, eligible-leader, last-known-eligible, offline-replica, and
-partition-error getter values. Immediate metadata remains the authority for the
+epoch, replica, ISR, offline-replica, and partition-error getter values. API-75
+pages additionally retain eligible-leader and last-known-eligible getters.
+Immediate metadata remains the authority for the
 declared partition set; retained public details do not become independent broker
 truth.
 Every effectful environment terminal operation carries a stable identity in

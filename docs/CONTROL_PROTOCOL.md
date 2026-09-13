@@ -781,9 +781,10 @@ exact positive response-partition limit and cursor-following selection. Each
 returned continuation cursor starts one separately submitted public page only
 when requested. The single completion preserves every page's exact partition
 subset and returned cursor as well as the sorted aggregate partition set. Each
-aggregate and page entry also retains the public partition error, leader,
-leader epoch, replica, ISR, eligible-leader, last-known-eligible, and offline-
-replica getters. The verifier requires the declared page boundaries, exact
+entry retains the applicable public partition error, leader, leader epoch,
+replica, ISR, and offline-replica getters; API-75 entries additionally retain
+eligible-leader and last-known-eligible getters. The verifier requires the
+declared page boundaries, exact
 next-topic and next-partition cursors, internally consistent topology, and
 immediate independent metadata for the aggregate.
 An all-topic listing carries the exact
