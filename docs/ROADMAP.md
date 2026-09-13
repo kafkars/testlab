@@ -194,7 +194,9 @@
 - Multi-record transactions span topics and partitions through individual
   sends, while dedicated homogeneous sets exercise one public `send_batch` for
   both commit and abort with the same field and header distinctions. A
-  dedicated commit resolves caller-ordered public topic UUIDs, binds every
+  successful original or replacement initialization records the public
+  transactional ID, broker-issued producer ID and epoch, and active-owner
+  state. A dedicated commit resolves caller-ordered public topic UUIDs, binds every
   staged record to its UUID, and seals the current transaction revision through
   fresh public validation before commit. Committed sets retain exact independent coordinates and
   per-partition order, aborted sets remain wholly read-committed invisible, and

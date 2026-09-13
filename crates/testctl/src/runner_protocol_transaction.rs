@@ -22,16 +22,22 @@ pub(super) fn classify(
     let matches = match (expected, event) {
         (
             ExpectedEvent::TransactionalProducerCreated(expected_id),
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: actual,
-            },
-        )
-        | (
+            AdapterEvent::TransactionalProducerCreated(observation),
+        ) => {
+            return Some(identity_result(
+                expected_id == &observation.producer_id,
+                event,
+                expected,
+            ));
+        }
+        (
             ExpectedEvent::TransactionalProducerClosed(expected_id),
             AdapterEvent::TransactionalProducerClosed {
                 producer_id: actual,
             },
-        ) => return Some(identity_result(expected_id == actual, event, expected)),
+        ) => {
+            return Some(identity_result(expected_id == actual, event, expected));
+        }
         (
             ExpectedEvent::TransactionCompleted(transaction),
             AdapterEvent::OperationAccepted { operation_id }
@@ -97,10 +103,8 @@ pub(super) fn classify(
                 replacement_producer_id,
                 ..
             },
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: actual,
-            },
-        ) => replacement_producer_id == actual,
+            AdapterEvent::TransactionalProducerCreated(observation),
+        ) => replacement_producer_id == &observation.producer_id,
         _ => return None,
     };
     Some(if matches {

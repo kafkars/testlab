@@ -1,4 +1,4 @@
-schema_version = 161
+schema_version = 162
 id = "kafka.classic-group-multi-topic-subscription"
 title = "classic group consumer receives across an exact multi-topic subscription"
 description = "One packaged classic-group member subscribes to two caller-ordered topics, exposes both assignments, receives one exact record from each topic, and commits both checkpoints."

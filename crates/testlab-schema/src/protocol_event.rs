@@ -252,10 +252,8 @@ pub enum AdapterEvent {
     ClientQuotaDescribed(crate::AdminClientQuotaDescription),
     UserScramCredentialAltered(crate::AdminUserScramCredentialAlteration),
     UserScramCredentialDescribed(crate::AdminUserScramCredentialDescription),
-    TransactionalProducerCreated {
-        /// Created transactional producer.
-        producer_id: ProducerId,
-    },
+    /// One public transactional producer initialized with observable owner state.
+    TransactionalProducerCreated(crate::TransactionalProducerObservation),
     TransactionCompleted {
         transaction_id: OperationId,
         disposition: TransactionDisposition,

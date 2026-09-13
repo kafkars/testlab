@@ -200,7 +200,7 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
             AdapterEvent::ShareConsumerClosed { .. }
         ) | (
             ExpectedEvent::TransactionalProducerCreated(_),
-            AdapterEvent::TransactionalProducerCreated { .. }
+            AdapterEvent::TransactionalProducerCreated(_)
         ) | (
             ExpectedEvent::TransactionCompleted(_),
             AdapterEvent::OperationAccepted { .. }
@@ -214,7 +214,7 @@ fn same_extended_event_family(expected: &ExpectedEvent, event: &AdapterEvent) ->
             AdapterEvent::OperationAccepted { .. }
                 | AdapterEvent::OperationRejected { .. }
                 | AdapterEvent::OperationTerminal { .. }
-                | AdapterEvent::TransactionalProducerCreated { .. }
+                | AdapterEvent::TransactionalProducerCreated(_)
                 | AdapterEvent::TransactionFenceCompleted { .. }
         ) | (
             ExpectedEvent::TransactionalProducerClosed(_),

@@ -56,6 +56,7 @@ pub fn verify(
     crate::group_receive_failures::verify(scenario, &index, &mut violations);
     verify_admin(scenario, &index, observations, &mut violations);
     verify_transactions(scenario, &index, observations, &mut violations);
+    crate::transactional_producer_observation::verify(scenario, &index, &mut violations);
     crate::transaction_send_method::verify(scenario, &index, &mut violations);
     crate::transaction_topic_uuid::verify(scenario, &index, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);

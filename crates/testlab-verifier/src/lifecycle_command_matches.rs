@@ -32,13 +32,13 @@ impl ExpectedLifecycle<'_> {
                 AdapterEvent::ProducerClosed { producer_id },
             )
             | (
-                Identity::Producer(expected, ProducerEvent::TransactionalCreated),
-                AdapterEvent::TransactionalProducerCreated { producer_id },
-            )
-            | (
                 Identity::Producer(expected, ProducerEvent::TransactionalClosed),
                 AdapterEvent::TransactionalProducerClosed { producer_id },
             ) => *expected == producer_id,
+            (
+                Identity::Producer(expected, ProducerEvent::TransactionalCreated),
+                AdapterEvent::TransactionalProducerCreated(observation),
+            ) => *expected == &observation.producer_id,
             (
                 Identity::Consumer(expected, ConsumerEvent::AssignedCreated),
                 AdapterEvent::AssignedConsumerCreated { consumer_id },

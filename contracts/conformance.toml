@@ -727,6 +727,12 @@ statement = "Every ordinary, consume-transform-produce, and fencing transaction 
 category = "transaction"
 
 [[contract]]
+id = "TXN-013"
+title = "Transactional producer initialization exposes its public identity"
+statement = "Each successful initialization emits one later correlated observation whose exact transactional ID, nonnegative broker-issued producer identity and epoch, and active owner state are read from the public transactional producer."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

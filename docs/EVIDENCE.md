@@ -395,6 +395,12 @@ Protocol v157, scenario schema v161, and evidence schema v147 make successful
 client construction self-describing. CLIENT-003 requires one later correlated
 event whose values read through the public client exactly preserve its client
 ID, ordered bootstrap servers, and optional expected cluster-ID guard.
+Protocol v158, scenario schema v162, and evidence schema v148 make successful
+transactional producer initialization self-describing. TXN-013 requires one
+later correlated event populated through the returned public handle with its
+exact transactional ID, nonnegative broker-issued producer ID and epoch, and
+active owner state. Replacement owners created by either fencing method carry
+the same observation requirement.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -633,6 +639,10 @@ independent topic-partition-offset coordinates, and caller order within each
 partition. TXN-006 prevents staging for a successive transaction on one public
 producer from crossing the prior completion. No aborted-record contract infers
 a physical append from public staging metadata or read-committed absence.
+TXN-013 separately requires every successful original or replacement
+initialization to expose the command's exact transactional ID, a nonnegative
+public broker identity and epoch, and active owner state through the returned
+transactional producer.
 TXN-003 requires the old active transaction to report an explicit broker fence
 and its staged record to remain absent from independent read-committed
 observation. Separate scenarios use replacement initialization and singleton

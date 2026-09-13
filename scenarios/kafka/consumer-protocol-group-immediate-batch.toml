@@ -1,4 +1,4 @@
-schema_version = 161
+schema_version = 162
 id = "kafka.consumer-protocol-group-immediate-batch"
 title = "KIP-848 group receives through immediate batch observation"
 description = "A KIP-848 member repeatedly calls the public try_take_batch method, returns one exact broker-visible record, and commits its checkpoint."

@@ -6,6 +6,10 @@ use crate::consumer_action_validation::ConsumerGroupInput;
 use crate::scenario_action_validation::ActionStates;
 use crate::{ConsumerId, OperationId, ScenarioAction};
 
+#[cfg(test)]
+#[path = "share_action_validation_test.rs"]
+mod tests;
+
 #[derive(Clone, Debug)]
 pub(crate) struct ShareBatchState {
     consumer_id: ConsumerId,

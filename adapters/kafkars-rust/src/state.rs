@@ -15,7 +15,10 @@ use crate::kafkars_api::{
 #[cfg(kafkars_share_candidate)]
 use crate::share_consumers::ShareConsumers;
 use crate::transactional_producers::{OwnedTransactionalProducer, TransactionalProducers};
-use testlab_schema::{AdapterSecurity, ChildHandleOwnership, ClientId, ConsumerId, ProducerId};
+use testlab_schema::{
+    AdapterSecurity, ChildHandleOwnership, ClientId, ConsumerId, ProducerId,
+    TransactionalProducerObservation,
+};
 
 pub(crate) use crate::state_error::StateError;
 
@@ -60,7 +63,7 @@ impl AdapterState {
         transactional_id: &str,
         transaction_timeout: Duration,
         initialization_timeout: Duration,
-    ) -> Result<(), StateError> {
+    ) -> Result<TransactionalProducerObservation, StateError> {
         if self.producers.contains_key(&producer_id) {
             return Err(StateError::DuplicateProducer(producer_id));
         }

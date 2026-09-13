@@ -102,6 +102,7 @@ mod transaction_offsets;
 mod transaction_records;
 mod transaction_send_method;
 mod transaction_topic_uuid;
+mod transactional_producer_observation;
 mod verify;
 mod verify_index;
 pub use {contracts::known_contract_ids, verify::verify};

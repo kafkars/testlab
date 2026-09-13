@@ -203,7 +203,7 @@ fn create_replacement<W: Write>(
     initialization_timeout: Duration,
     deadline: Instant,
 ) -> Result<(), AdapterError> {
-    state.create_transactional_producer(
+    let observation = state.create_transactional_producer(
         client_id.clone(),
         producer_id.clone(),
         transactional_id,
@@ -214,9 +214,7 @@ fn create_replacement<W: Write>(
         writer,
         &AdapterEventEnvelope::new(
             command_id.clone(),
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: producer_id.clone(),
-            },
+            AdapterEvent::TransactionalProducerCreated(observation),
         ),
     )
 }

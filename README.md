@@ -138,6 +138,9 @@ owner path before later lifecycle and broker-visible behavior can qualify it.
 Transactional producer initialization likewise requires exact client and
 producer identities, transactional ID, broker transaction timeout, and public
 initialization deadline, including a denied then recovered repeated identity.
+Every successful initialization also reads the exact transactional ID,
+broker-issued producer ID and epoch, and active-owner state from the returned
+public handle, including replacement owners created by both fencing methods.
 Every classic and KIP-848 group member now requires one exact registration
 command retaining its identities, caller-ordered topics, selected protocol, and
 complete optional public policy before assignment and record evidence applies.

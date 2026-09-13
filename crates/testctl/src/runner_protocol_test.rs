@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 use testlab_schema::{
     AdapterEvent, AdminTopicCompletion, ConsumerId, GroupAssignmentsObservation,
     GroupReceiveSetCompletion, OperationId, ProducerId, TerminalStatus, TransactionDisposition,
+    TransactionalProducerObservation,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -263,9 +264,15 @@ fn transaction_fence_waits_for_replacement_and_exact_result_identity() {
     );
     assert_eq!(
         expected
-            .classify(&AdapterEvent::TransactionalProducerCreated {
-                producer_id: replacement,
-            })
+            .classify(&AdapterEvent::TransactionalProducerCreated(
+                TransactionalProducerObservation {
+                    producer_id: replacement,
+                    transactional_id: "transactional-1".to_owned(),
+                    kafka_producer_id: 41,
+                    kafka_producer_epoch: 2,
+                    active: true,
+                },
+            ))
             .unwrap_or_else(|error| panic!("classify replacement: {error}")),
         EventDisposition::Continue
     );

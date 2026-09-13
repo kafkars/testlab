@@ -182,9 +182,15 @@ fn fence_history(
     events.extend([
         event(
             10,
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: ids.original.clone(),
-            },
+            AdapterEvent::TransactionalProducerCreated(
+                testlab_schema::TransactionalProducerObservation {
+                    producer_id: ids.original.clone(),
+                    transactional_id: "testlab-fence".to_owned(),
+                    kafka_producer_id: 41,
+                    kafka_producer_epoch: 0,
+                    active: true,
+                },
+            ),
         ),
         event(
             11,
@@ -206,9 +212,15 @@ fn fence_history(
         ),
         event(
             13,
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: ids.replacement.clone(),
-            },
+            AdapterEvent::TransactionalProducerCreated(
+                testlab_schema::TransactionalProducerObservation {
+                    producer_id: ids.replacement.clone(),
+                    transactional_id: "testlab-fence".to_owned(),
+                    kafka_producer_id: 41,
+                    kafka_producer_epoch: 1,
+                    active: true,
+                },
+            ),
         ),
         event(
             14,

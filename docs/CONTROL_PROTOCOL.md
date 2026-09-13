@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v157 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v161 and evidence schema v147.
+Protocol v158 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v162 and evidence schema v148.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1269,6 +1269,11 @@ initialization deadline applied through `Client::transactional_producer`,
 `transaction_timeout`, and `deadline_after`. Repeated denied then recovered
 initialization of one producer identity requires the same ordered command twice;
 an ordinary producer, a fencing command, or an altered field cannot substitute.
+Each successful initialization emits one later correlated observation populated
+through the returned public handle's `transactional_id`, `identity`, and
+`is_active` accessors. Its transactional ID must match the command, its Kafka
+producer ID and epoch must be nonnegative, and the initialized owner must be
+active.
 
 One `execute_transaction` command owns a complete linear begin, ordered staging,
 and terminal operation because the public transaction token borrows its producer
@@ -1325,7 +1330,9 @@ before the old commit. `admin_force_termination` instead invokes the singleton
 public Admin termination operation before the old commit and does not initialize
 the replacement until that commit result has been obtained. Both methods report
 the staged record, replacement producer creation, and normalized old-commit
-result separately. The verifier requires `fenced`, independently requires the
+result separately. The replacement creation carries the same public
+transactional-owner observation as an ordinary successful initialization. The
+verifier requires `fenced`, independently requires the
 staged record to remain absent under `read_committed` isolation, and requires a
 later replacement transaction to commit normally.
 
@@ -1362,6 +1369,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v157 is an exact semantic contract. New capabilities may be declared
+Protocol v158 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

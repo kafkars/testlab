@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Current sealed evidence manifest version.
-pub const EVIDENCE_SCHEMA_VERSION: u16 = 147;
+pub const EVIDENCE_SCHEMA_VERSION: u16 = 148;
 
 /// One record independently observed by the broker environment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

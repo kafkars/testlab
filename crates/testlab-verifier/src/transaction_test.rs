@@ -183,9 +183,15 @@ fn transaction_history(
     events.extend([
         event(
             10,
-            AdapterEvent::TransactionalProducerCreated {
-                producer_id: producer_id.clone(),
-            },
+            AdapterEvent::TransactionalProducerCreated(
+                testlab_schema::TransactionalProducerObservation {
+                    producer_id: producer_id.clone(),
+                    transactional_id: "testlab-transaction".to_owned(),
+                    kafka_producer_id: 41,
+                    kafka_producer_epoch: 0,
+                    active: true,
+                },
+            ),
         ),
         event(
             11,

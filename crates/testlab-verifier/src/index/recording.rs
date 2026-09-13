@@ -143,9 +143,9 @@ impl HistoryIndex {
 
     fn record_transaction_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
         match event {
-            AdapterEvent::TransactionalProducerCreated { producer_id } => push(
+            AdapterEvent::TransactionalProducerCreated(observation) => push(
                 &mut self.transactional_producers_created,
-                producer_id.clone(),
+                observation.producer_id.clone(),
                 sequence,
             ),
             AdapterEvent::TransactionCompleted {

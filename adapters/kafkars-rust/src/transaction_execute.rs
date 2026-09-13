@@ -33,9 +33,9 @@ pub(crate) fn dispatch<W: Write>(
             transaction_timeout_ms,
             initialization_timeout_ms,
         } => {
-            state.create_transactional_producer(
+            let observation = state.create_transactional_producer(
                 client_id,
-                producer_id.clone(),
+                producer_id,
                 &transactional_id,
                 Duration::from_millis(transaction_timeout_ms),
                 Duration::from_millis(initialization_timeout_ms),
@@ -44,7 +44,7 @@ pub(crate) fn dispatch<W: Write>(
                 writer,
                 &AdapterEventEnvelope::new(
                     command_id,
-                    AdapterEvent::TransactionalProducerCreated { producer_id },
+                    AdapterEvent::TransactionalProducerCreated(observation),
                 ),
             )
         }

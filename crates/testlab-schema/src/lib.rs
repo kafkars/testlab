@@ -133,6 +133,7 @@ mod transaction_action_validation;
 mod transaction_offsets;
 mod transaction_state_validation;
 mod transaction_transform_validation;
+mod transactional_producer_observation;
 mod verdict;
 pub use adapter::{AdapterDescriptor, Capability};
 pub use admin_exports::*;
@@ -208,6 +209,7 @@ pub use subject::{SUBJECT_SCHEMA_VERSION, SubjectArtifact, SubjectError, Subject
 pub use transaction_offsets::{
     TransactionalTransformAction, TransactionalTransformCommand, TransactionalTransformCompletion,
 };
+pub use transactional_producer_observation::TransactionalProducerObservation;
 pub use verdict::{Verdict, VerdictStatus, Violation};
 pub use {protocol_command::AdapterCommand, protocol_event::AdapterEvent};
 #[cfg(test)]
@@ -296,5 +298,3 @@ mod qualification_test;
 mod record_test;
 #[cfg(test)]
 mod scenario_test;
-#[cfg(test)]
-mod share_action_validation_test;

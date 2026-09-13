@@ -5,7 +5,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{Client, RetryAdvice, TransactionalProducer};
-use testlab_schema::{ClientId, ProducerId};
+use testlab_schema::{ClientId, ProducerId, TransactionalProducerObservation};
 
 use crate::state::StateError;
 
@@ -29,7 +29,7 @@ impl TransactionalProducers {
         transactional_id: &str,
         transaction_timeout: Duration,
         initialization_timeout: Duration,
-    ) -> Result<(), StateError> {
+    ) -> Result<TransactionalProducerObservation, StateError> {
         if self.owners.contains_key(&producer_id) {
             return Err(StateError::DuplicateProducer(producer_id));
         }
@@ -53,6 +53,14 @@ impl TransactionalProducers {
                 Err(error) => return Err(StateError::Client(error)),
             }
         };
+        let identity = producer.identity();
+        let observation = TransactionalProducerObservation {
+            producer_id: producer_id.clone(),
+            transactional_id: producer.transactional_id().to_owned(),
+            kafka_producer_id: identity.producer_id(),
+            kafka_producer_epoch: identity.producer_epoch(),
+            active: producer.is_active(),
+        };
         self.owners.insert(
             producer_id,
             OwnedTransactionalProducer {
@@ -60,7 +68,7 @@ impl TransactionalProducers {
                 producer,
             },
         );
-        Ok(())
+        Ok(observation)
     }
 
     pub(crate) fn get_mut(

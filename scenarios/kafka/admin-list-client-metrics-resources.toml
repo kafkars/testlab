@@ -1,4 +1,4 @@
-schema_version = 161
+schema_version = 162
 id = "kafka.admin-list-client-metrics-resources"
 title = "packaged admin lists configured client-metrics resources"
 description = "After Testlab provisions two named client-metrics configurations through Kafka's pinned CLI, the packaged client's dedicated public listing returns the exact canonical resource set and an immediate independent CLI listing corroborates it."
