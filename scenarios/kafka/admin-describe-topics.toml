@@ -1,4 +1,4 @@
-schema_version = 142
+schema_version = 143
 id = "kafka.admin-describe-topics"
 title = "packaged admin describes caller-ordered topics with authorization metadata"
 description = "One public plural name-keyed topic description requests and retains authorization bitfields while preserving caller order, detailed partitions, and an exact missing-topic error against immediate independent metadata."

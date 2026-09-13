@@ -1,4 +1,4 @@
-schema_version = 142
+schema_version = 143
 id = "kafka.consumer-quota-progress"
 title = "packaged consumer makes bounded progress under an observed byte-rate quota"
 description = "An independently observed user consumer quota remains active for a bounded assigned receive of exact broker-visible bytes before the quota is removed."

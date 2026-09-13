@@ -6,9 +6,9 @@ use crate::*;
 
 #[test]
 fn lifecycle_payloads_round_trip_without_a_secret_field() {
-    assert_eq!(PROTOCOL_VERSION, 138);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 142);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 128);
+    assert_eq!(PROTOCOL_VERSION, 139);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 143);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 129);
     let lifecycle = action(Some(0));
     let encoded_action =
         serde_json::to_string(&lifecycle).unwrap_or_else(|error| panic!("encode action: {error}"));

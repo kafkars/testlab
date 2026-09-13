@@ -119,6 +119,9 @@ broker-visible delivery proof.
 Configured assigned-consumer creation likewise preserves one exact immutable
 read-isolation, Fetch, and retained-delivery policy command. Its read-committed
 scenario retains independent aborted-transaction and visible-record truth.
+Every direct beginning assignment also preserves its exact single
+topic-partition or caller-ordered batch, public command kind, multiplicity, and
+batch completion timeout before later record evidence can qualify it.
 Every ordinary producer and assigned consumer also requires one exact creation
 command retaining its client, child identity, and shared or independent public
 owner path before later lifecycle and broker-visible behavior can qualify it.

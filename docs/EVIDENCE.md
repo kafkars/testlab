@@ -313,6 +313,10 @@ transactional producer initialization. TXN-011 requires caller-selected client,
 producer, transactional ID, broker transaction timeout, and public initialization
 deadline commands in scenario order, including denied then recovered identity
 reuse.
+Protocol v139, scenario schema v143, and evidence schema v129 add exact direct
+assignment commands. CONS-030 requires every single or batch beginning assignment
+exactly once in scenario order, retaining its consumer, topic-partition input,
+public command kind, caller-ordered batch, and batch completion timeout.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -456,6 +460,9 @@ after incremental mutation are therefore broker-backed outcomes rather than adap
 success claims. Two direct consumers may still independently expose the same
 coordinate. LIFE-003 and LIFE-009 evaluate repeated flushes and legacy
 assignments per command rather than by aggregate resource counts.
+CONS-030 separately requires the complete ordered single and batch assignment
+command sequence, including each exact topic-partition and batch timeout;
+lifecycle completion and independent record evidence remain distinct requirements.
 The configured read-committed scenario also retains non-default public Fetch
 and capacity policy, then joins its visible sentinel to independent broker and
 aborted-transaction evidence; configuration alone cannot pass.

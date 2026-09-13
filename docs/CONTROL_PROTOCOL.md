@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v138 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v142 and evidence schema v128.
+Protocol v139 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v143 and evidence schema v129.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -498,10 +498,14 @@ preserving member identity and order. The adapter fails if its 256-transition
 evidence capacity is exhausted instead of silently dropping observed facts.
 Neither event handling nor receive observation extends background Fetch work.
 
-A batch direct assignment replaces the complete caller-ordered partition set
-through one public call. Stable group assignment observation drains public
-assigned, revoking, and lost transitions, explicitly completes current revocation
-leases, and requires two identical complete assignment snapshots. Each
+A single direct assignment retains its exact consumer and topic-partition. A
+batch direct assignment retains its exact consumer, complete caller-ordered
+partition set, and completion timeout, then replaces that set through one public
+call. The verifier requires all direct assignment commands exactly once in
+scenario order; a single/batch substitution, reordered batch, altered field, or
+extra assignment cannot qualify. Stable group assignment observation drains
+public assigned, revoking, and lost transitions, explicitly completes current
+revocation leases, and requires two identical complete assignment snapshots. Each
 observation selects either repeated immediate `try_take_event` calls or bounded
 polling of the runtime-neutral `next_event` future; the command and completion
 retain that exact public method. A state-error
@@ -1314,6 +1318,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v138 is an exact semantic contract. New capabilities may be declared
+Protocol v139 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

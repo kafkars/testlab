@@ -1195,6 +1195,12 @@ statement = "Each directly assigned consumer has exactly one issued creation com
 category = "consumer"
 
 [[contract]]
+id = "CONS-030"
+title = "Direct assignments preserve exact caller input"
+statement = "Every direct assignment command appears exactly once in scenario order, preserving its consumer, single topic-partition or caller-ordered batch, public command kind, and batch completion timeout before lifecycle and broker-visible record evidence applies."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
