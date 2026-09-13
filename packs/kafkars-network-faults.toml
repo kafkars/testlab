@@ -5,6 +5,7 @@ scenarios = [
   "scenarios/kafka/producer-network-connection-cut-recovery.toml",
   "scenarios/kafka/assigned-consumer-network-connection-cut-recovery.toml",
   "scenarios/kafka/group-network-connection-cut-recovery.toml",
+  "scenarios/kafka/share-consumer-network-connection-cut-recovery.toml",
   "scenarios/kafka/producer-network-blackhole-recovery.toml",
   "scenarios/kafka/producer-network-latency-progress.toml",
 ]

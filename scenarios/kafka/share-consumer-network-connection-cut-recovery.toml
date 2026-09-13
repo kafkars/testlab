@@ -1,0 +1,152 @@
+schema_version = 155
+id = "kafka.share-consumer-network-connection-cut-recovery"
+title = "packaged Share consumer recovers after an external connection cut"
+description = "A Share member on an independent public client accepts an exact baseline batch before the external proxy cuts all broker connections, then the same member reconnects, receives the record produced after that observed cut, and accepts it."
+timeout_ms = 120000
+requires = ["producer", "share_consumer", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-producer-client"
+kind = "create_client"
+client_id = "producer-client"
+
+[[steps]]
+id = "await-producer-client-ready"
+kind = "await_client_ready"
+client_id = "producer-client"
+
+[[steps]]
+id = "create-share-client"
+kind = "create_client"
+client_id = "share-client"
+
+[[steps]]
+id = "await-share-client-ready"
+kind = "await_client_ready"
+client_id = "share-client"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "producer-client"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-baseline"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "share-before-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-share"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "share-baseline" }
+value = { encoding = "utf8", data = "before-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "share-before-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-share-consumer"
+kind = "create_share_consumer"
+client_id = "share-client"
+consumer_id = "share-1"
+group_id = "testlab-network-share"
+topics = ["testlab-kafkars-network-share"]
+membership_timeout_ms = 30000
+close_timeout_ms = 30000
+
+[[steps]]
+id = "receive-baseline"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "share-receive-before-cut"
+expected_operation_ids = ["share-before-cut"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-baseline"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "share-receive-before-cut"
+acknowledgement_id = "share-ack-before-cut"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "cut-live-connections"
+kind = "cut_network_connections"
+operation_id = "share-network-cut-live-connections"
+broker_ordinal = 1
+timeout_ms = 5000
+
+[[steps]]
+id = "send-after-cut"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "share-after-cut"
+
+[steps.record]
+topic = "testlab-kafkars-network-share"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "share-recovered" }
+value = { encoding = "utf8", data = "after-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "share-after-cut" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-after-cut"
+kind = "share_receive"
+consumer_id = "share-1"
+receive_id = "share-receive-after-cut"
+expected_operation_ids = ["share-after-cut"]
+minimum_delivery_count = 1
+timeout_ms = 30000
+
+[[steps]]
+id = "accept-after-cut"
+kind = "share_acknowledge"
+consumer_id = "share-1"
+receive_id = "share-receive-after-cut"
+acknowledgement_id = "share-ack-after-cut"
+dispositions = ["accept"]
+timeout_ms = 30000
+
+[[steps]]
+id = "close-share-consumer"
+kind = "close_share_consumer"
+consumer_id = "share-1"
+expect_success = true
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-share-client"
+kind = "shutdown_client"
+client_id = "share-client"
+
+[[steps]]
+id = "shutdown-producer-client"
+kind = "shutdown_client"
+client_id = "producer-client"
+
+[[assertions]]
+operation_id = "share-before-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "share-after-cut"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
