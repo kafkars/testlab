@@ -1,0 +1,146 @@
+schema_version = 156
+id = "kafka.classic-group-leader-failover"
+title = "classic Fetch recovers across an observed partition leader election"
+description = "A classic member commits a baseline, then the same live member commits an exact new record through a distinct replacement partition leader while the independently selected original owner remains offline."
+timeout_ms = 210000
+requires = ["producer", "consumer_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-producer-client"
+kind = "create_client"
+client_id = "producer-client"
+
+[[steps]]
+id = "await-producer-client-ready"
+kind = "await_client_ready"
+client_id = "producer-client"
+
+[[steps]]
+id = "create-consumer-client"
+kind = "create_client"
+client_id = "consumer-client"
+
+[[steps]]
+id = "await-consumer-client-ready"
+kind = "await_client_ready"
+client_id = "consumer-client"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "producer-client"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-before-failover"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "classic-before-failover"
+
+[steps.record]
+topic = "testlab-kafkars-classic-leader-failover"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "classic-before-leader-failover" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-before-failover" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-classic-member"
+kind = "create_group_consumer"
+client_id = "consumer-client"
+consumer_id = "classic-consumer"
+group_id = "testlab-classic-leader-failover-group"
+topics = ["testlab-kafkars-classic-leader-failover"]
+protocol = "classic"
+
+[[steps]]
+id = "receive-before-failover"
+kind = "group_receive"
+consumer_id = "classic-consumer"
+receive_id = "classic-receive-before-failover"
+expected_operation_id = "classic-before-failover"
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-partition-leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-classic-leader-failover"
+partition = 0
+
+[[steps]]
+id = "send-after-failover"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "classic-after-failover"
+
+[steps.record]
+topic = "testlab-kafkars-classic-leader-failover"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "classic-after-leader-failover" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-after-failover" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-after-failover"
+kind = "group_receive"
+consumer_id = "classic-consumer"
+receive_id = "classic-receive-after-failover"
+expected_operation_id = "classic-after-failover"
+timeout_ms = 60000
+
+[[steps]]
+id = "restore-partition-leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-classic-leader-failover"
+partition = 0
+
+[[steps]]
+id = "close-classic-member"
+kind = "close_group_consumer"
+consumer_id = "classic-consumer"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-consumer-client"
+kind = "shutdown_client"
+client_id = "consumer-client"
+
+[[steps]]
+id = "shutdown-producer-client"
+kind = "shutdown_client"
+client_id = "producer-client"
+
+[[assertions]]
+operation_id = "classic-before-failover"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "classic-after-failover"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
