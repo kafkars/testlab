@@ -74,6 +74,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 api: action.api,
+                pagination: action.pagination,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::TopicDescribed {

@@ -3,7 +3,7 @@
 use testlab_schema::{
     AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreateTopicAction,
     DeleteRecordsAction, DeleteTopicAction, DescribeTopicAction, ListOffsetsAction, OperationId,
-    ScenarioAction,
+    ScenarioAction, TopicDescriptionPagination,
 };
 
 use crate::observer_admin_target::AdminTarget;
@@ -78,7 +78,12 @@ fn topic_description_keeps_scenario_expectations_out_of_wire_matching() {
         operation_id: operation("describe-topic"),
         topic: "orders".to_owned(),
         api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
+        pagination: Some(TopicDescriptionPagination {
+            response_partition_limit: 2,
+            follow_cursors: false,
+        }),
         expected_partitions: Some(vec![0, 1]),
+        expected_page_partitions: Some(vec![vec![0, 1]]),
         expected_error_code: None,
         timeout_ms: 500,
     });
@@ -115,7 +120,9 @@ fn expected_admin_failures_map_to_immediate_broker_truth() {
             operation_id: operation("describe-missing"),
             topic: "missing-describe".to_owned(),
             api: testlab_schema::TopicDescriptionApi::Metadata,
+            pagination: None,
             expected_partitions: None,
+            expected_page_partitions: None,
             expected_error_code: expected_error_code.clone(),
             timeout_ms: 500,
         }),

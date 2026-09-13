@@ -118,9 +118,10 @@ pub use crate::admin_share_group_offset_batch::{
 pub use crate::admin_streams_group::*;
 pub use crate::admin_topic::{
     AdminListedTopicOutcome, AdminOffsetListing, AdminTopicCompletion, AdminTopicDescription,
-    AdminTopicsListing, CreatePartitionsCommand, CreateTopicAction, CreateTopicCommand,
-    DeleteTopicAction, DeleteTopicCommand, DescribeTopicCommand, ListOffsetsCommand,
-    ListTopicsCommand, ROUTING_ERROR_CODE, TOPIC_ALREADY_EXISTS_ERROR_CODE,
+    AdminTopicDescriptionPage, AdminTopicPageCursor, AdminTopicsListing, CreatePartitionsCommand,
+    CreateTopicAction, CreateTopicCommand, DeleteTopicAction, DeleteTopicCommand,
+    DescribeTopicCommand, ListOffsetsCommand, ListTopicsCommand, ROUTING_ERROR_CODE,
+    TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicDescriptionPagination,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 pub use crate::admin_topic_description_batch::{

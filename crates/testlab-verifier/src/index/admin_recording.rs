@@ -1,6 +1,4 @@
 //! Admin history recording keeps each public operation and result shape distinct.
-use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
-
 use super::{
     HistoryIndex, IndexedAdminGroupCompletion, IndexedAdminGroupOffsetCompletion,
     IndexedAdminTopicCompletion, IndexedAdminTopicsCreationBatch, IndexedAdminTopicsDeletion,
@@ -9,6 +7,7 @@ use super::{
     IndexedTopicDescription, IndexedTopicsList,
     admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
+use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
 
 impl HistoryIndex {
     #[allow(
@@ -104,6 +103,7 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     topic: value.topic.clone(),
                     partitions: value.partitions.clone(),
+                    pages: value.pages.clone(),
                 }),
             AdapterEvent::TopicsDescribed(value) => self
                 .topics_batch_described

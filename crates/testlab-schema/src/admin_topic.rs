@@ -1,5 +1,9 @@
 //! Topic-admin payloads separate scenario expectations from wire commands and results.
 
+#[path = "admin_topic_pagination.rs"]
+mod pagination;
+pub use pagination::{AdminTopicDescriptionPage, AdminTopicPageCursor, TopicDescriptionPagination};
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -117,6 +121,9 @@ pub struct DescribeTopicCommand {
     pub topic: String,
     /// Public topic-description operation to execute.
     pub api: TopicDescriptionApi,
+    /// Explicit page controls; present only for `DescribeTopicPartitions`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pagination: Option<TopicDescriptionPagination>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -178,6 +185,9 @@ pub struct AdminTopicDescription {
     pub topic: String,
     /// Sorted partition identifiers reported by the adapter.
     pub partitions: Vec<i32>,
+    /// Ordered facts from each separately submitted topic-partition page.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pages: Vec<AdminTopicDescriptionPage>,
 }
 
 /// One canonically positioned outcome from an all-topic listing.

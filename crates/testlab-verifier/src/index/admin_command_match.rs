@@ -1,5 +1,4 @@
 //! Exact admin-command matching prevents scenario expectations from leaking onto the wire.
-
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 
 #[path = "admin_group_listing_command_match.rs"]
@@ -89,6 +88,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 &c.topic,
                 c.timeout_ms,
             ) && a.api == c.api
+                && a.pagination == c.pagination
         }
         (ScenarioAction::ListTopics(a), AdapterCommand::ListTopics(c)) => {
             same_base(

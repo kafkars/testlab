@@ -15,8 +15,9 @@
   rejection, exact unknown-topic rejection, source-preserving routing failure
   for an independently proven absent partition, partition
   expansion and deletion, validate-only topic creation, partition expansion,
-  and topic-configuration replacement, metadata-backed and explicit
-  `DescribeTopicPartitions` singleton topic description, caller-ordered
+  and topic-configuration replacement, metadata-backed plus explicit
+  single-page and cursor-followed `DescribeTopicPartitions` topic description,
+  caller-ordered
   detailed plural name- and topic-ID descriptions with requested authorization
   bitfields, detailed byte-sorted topic listing with requested authorization
   metadata plus paired exclusion and inclusion of independently present

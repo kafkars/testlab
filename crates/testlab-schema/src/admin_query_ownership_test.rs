@@ -147,7 +147,9 @@ fn describe_topic(client_id: ClientId, operation_id: OperationId) -> ScenarioAct
         operation_id,
         topic: "records".to_owned(),
         api: crate::TopicDescriptionApi::Metadata,
+        pagination: None,
         expected_partitions: Some(vec![0]),
+        expected_page_partitions: None,
         expected_error_code: None,
         timeout_ms: 1_000,
     })

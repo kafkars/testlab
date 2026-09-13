@@ -1,4 +1,4 @@
-schema_version = 122
+schema_version = 123
 id = "kafka.consumer-protocol-group-latest-offset-reset"
 title = "KIP-848 group latest reset skips an existing record"
 description = "A configured KIP-848 member stabilizes after one broker-visible record already exists, then latest-offset reset returns and commits only the exact later record."

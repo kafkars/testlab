@@ -66,7 +66,9 @@ fn failure_actions() -> Vec<ScenarioAction> {
             operation_id: operation("missing-describe"),
             topic: "missing-describe".to_owned(),
             api: testlab_schema::TopicDescriptionApi::Metadata,
+            pagination: None,
             expected_partitions: None,
+            expected_page_partitions: None,
             expected_error_code: code(),
             timeout_ms: 1_000,
         }),
@@ -127,6 +129,7 @@ fn wire(action: &ScenarioAction) -> AdapterCommand {
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 api: action.api,
+                pagination: action.pagination,
                 timeout_ms: action.timeout_ms,
             })
         }

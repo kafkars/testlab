@@ -1,0 +1,34 @@
+schema_version = 123
+id = "kafka.admin-describe-topic-partitions-pagination"
+title = "packaged admin follows explicit topic-partition pages"
+description = "The packaged client separately submits every public DescribeTopicPartitions continuation cursor, preserves exact page boundaries, and joins the complete five-partition result to immediate independent metadata."
+timeout_ms = 90000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-topic-partition-pages"
+kind = "describe_topic"
+client_id = "client-1"
+operation_id = "admin-describe-topic-partition-pages"
+topic = "testlab-kafkars-admin-describe-topic-partition-pages"
+api = "describe_topic_partitions"
+pagination = { response_partition_limit = 2, follow_cursors = true }
+expected_partitions = [0, 1, 2, 3, 4]
+expected_page_partitions = [[0, 1], [2, 3], [4]]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

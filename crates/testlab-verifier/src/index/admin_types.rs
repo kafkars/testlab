@@ -49,6 +49,7 @@ pub(crate) struct IndexedTopicDescription {
     pub(crate) history_sequence: u64,
     pub(crate) topic: String,
     pub(crate) partitions: Vec<i32>,
+    pub(crate) pages: Vec<testlab_schema::AdminTopicDescriptionPage>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

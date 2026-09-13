@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v118 over stdin/stdout;
+2. implements protocol v119 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -63,8 +63,9 @@ It:
    events without receiving scenario expectations;
 9. forwards validate-only topic creation, partition increase, and incremental
    configuration changes through the packaged public builders;
-10. executes metadata-backed and explicit `DescribeTopicPartitions` singleton
-   topic descriptions, detailed caller-ordered plural topic descriptions with
+10. executes metadata-backed, explicit single-page, and separately submitted
+   cursor-followed `DescribeTopicPartitions` topic descriptions with exact
+   page/cursor evidence, detailed caller-ordered plural topic descriptions with
    requested authorization bitfields, detailed byte-sorted all-topic listing
    outcomes with requested authorization metadata, independently anchored
    expected-topic partitions, and paired canonical internal-topic exclusion and

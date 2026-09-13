@@ -6,7 +6,7 @@ use testlab_schema::{
     DescribeTopicAction, DescribeTopicCommand, ListConsumerGroupOffsetsAction,
     ListConsumerGroupOffsetsCommand, ListOffsetsAction, ListOffsetsCommand, ListTopicsAction,
     ListTopicsCommand, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
-    TopicListingExpectation,
+    TopicDescriptionPagination, TopicListingExpectation,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -89,7 +89,12 @@ fn describe_translation_keeps_expectations_inside_the_harness() {
         operation_id: operation_id.clone(),
         topic: "orders".to_owned(),
         api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
+        pagination: Some(TopicDescriptionPagination {
+            response_partition_limit: 2,
+            follow_cursors: true,
+        }),
         expected_partitions: Some(vec![0, 1, 2]),
+        expected_page_partitions: Some(vec![vec![0, 1], vec![2]]),
         expected_error_code: None,
         timeout_ms: 20_000,
     });
@@ -105,6 +110,10 @@ fn describe_translation_keeps_expectations_inside_the_harness() {
             operation_id,
             topic: "orders".to_owned(),
             api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
+            pagination: Some(TopicDescriptionPagination {
+                response_partition_limit: 2,
+                follow_cursors: true,
+            }),
             timeout_ms: 20_000,
         })
     );

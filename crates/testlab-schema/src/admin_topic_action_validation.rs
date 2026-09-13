@@ -7,6 +7,8 @@ use crate::{ClientId, OperationId, ScenarioAction};
 
 #[path = "admin_topic_listing_validation.rs"]
 mod topic_listing;
+#[path = "admin_topic_pagination_validation.rs"]
+mod topic_pagination;
 
 const MAX_EXPECTED_PARTITIONS: usize = 10_000;
 
@@ -105,6 +107,7 @@ fn validate_describe_topic(
     if let Some(partitions) = action.expected_partitions.as_deref() {
         expected_partitions(&action.operation_id, partitions, problems);
     }
+    topic_pagination::validate(action, problems);
     validate_timeout(&action.operation_id, action.timeout_ms, problems);
 }
 

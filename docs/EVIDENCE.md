@@ -213,6 +213,12 @@ stops, requires the disabled public result to exclude broker 3, requires the
 enabled public result to include broker 3 with its fenced marker, and restores
 the complete active cluster before shutdown. This proves one graceful-stop
 fencing path; it does not claim every broker-registration transition.
+Protocol v119, scenario schema v123, and evidence schema v109 add exact
+`DescribeTopicPartitions` response limits and cursor-following intent. Each
+public page retains its partition subset and returned continuation cursor; the
+verifier requires the exact page chain and joins its sorted aggregate to the
+immediate independent metadata topology. Every continuation is a separately
+submitted public operation within the original command deadline.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -496,8 +502,9 @@ The state-query consumer never joins the target group, subscribes, assigns, or
 commits. Topic and group absence remain explicit typed facts. Observer errors,
 authorization failures, and timeouts invalidate the run rather than manufacture
 a client result. ADMIN-003 accepts only the explicitly selected metadata-backed
-or `DescribeTopicPartitions` public command and joins its exact partition set to
-an immediate independent metadata snapshot. ADMIN-006 through ADMIN-016 compare
+or `DescribeTopicPartitions` public command, requires exact public page and
+cursor evidence when pagination is selected, and joins its aggregate partition
+set to an immediate independent metadata snapshot. ADMIN-006 through ADMIN-016 compare
 public results and temporal mutations with these independently observed facts.
 ADMIN-017 additionally
 requires a distinct pre-deletion watermark baseline and an unchanged high

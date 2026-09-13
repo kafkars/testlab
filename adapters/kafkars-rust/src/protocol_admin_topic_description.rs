@@ -1,21 +1,25 @@
-//! Topic description selects one explicit packaged public Admin operation.
+//! Topic description selects explicit packaged public Admin operations and pages.
 
+use std::collections::BTreeSet;
 use std::io::Write;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{
-    AdapterEvent, AdapterEventEnvelope, AdminTopicDescription, CommandId, DescribeTopicCommand,
-    TopicDescriptionApi,
+    AdapterEvent, AdapterEventEnvelope, AdminTopicDescription, AdminTopicDescriptionPage,
+    AdminTopicPageCursor, CommandId, DescribeTopicCommand, TopicDescriptionApi,
+    TopicDescriptionPagination,
 };
 
 use crate::AdapterError;
 use crate::admission_retry::retry_until_with_remaining;
-use crate::kafkars_api::{Client, KafkaError, RetryAdvice};
+use crate::kafkars_api::{Client, DescribeTopicPartitionsCursor, KafkaError, RetryAdvice};
 use crate::protocol::emit;
-use crate::protocol_admin_result::{DescribedTopicResult, described_partitions};
+use crate::protocol_admin_result::{
+    DescribedTopicResult, described_partitions, sorted_unique_nonnegative,
+};
 use crate::state::AdapterState;
 
-const COMPLETE_PAGE_PARTITION_LIMIT: u32 = 10_000;
+const MAX_PAGINATION_PAGES: usize = 10_000;
 
 pub(crate) fn dispatch<W: Write>(
     state: &AdapterState,
@@ -25,13 +29,24 @@ pub(crate) fn dispatch<W: Write>(
 ) -> Result<(), AdapterError> {
     let deadline = deadline_after(command.timeout_ms);
     let client = state.client(&command.client_id)?;
-    let entries = match command.api {
-        TopicDescriptionApi::Metadata => metadata_entries(client, &command.topic, deadline)?,
-        TopicDescriptionApi::DescribeTopicPartitions => {
-            partition_page_entries(client, &command.topic, deadline)?
+    let (partitions, pages) = match (command.api, command.pagination) {
+        (TopicDescriptionApi::Metadata, None) => {
+            let entries = metadata_entries(client, &command.topic, deadline)?;
+            (
+                described_partitions(entries, &command.operation_id, &command.topic)?,
+                Vec::new(),
+            )
+        }
+        (TopicDescriptionApi::DescribeTopicPartitions, Some(pagination)) => {
+            partition_pages(client, &command, pagination, deadline)?
+        }
+        _ => {
+            return Err(AdapterError::AdminResult(format!(
+                "admin operation {} has pagination controls inconsistent with its description API",
+                command.operation_id
+            )));
         }
     };
-    let partitions = described_partitions(entries, &command.operation_id, &command.topic)?;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -40,6 +55,7 @@ pub(crate) fn dispatch<W: Write>(
                 operation_id: command.operation_id,
                 topic: command.topic,
                 partitions,
+                pages,
             }),
         ),
     )
@@ -70,42 +86,94 @@ fn metadata_entries(
         .collect())
 }
 
-fn partition_page_entries(
+fn partition_pages(
     client: &Client,
-    topic: &str,
+    command: &DescribeTopicCommand,
+    pagination: TopicDescriptionPagination,
     deadline: Instant,
-) -> Result<Vec<(String, Result<DescribedTopicResult, KafkaError>)>, AdapterError> {
-    let page = retry_until_with_remaining(
-        deadline,
-        |remaining| {
-            client
-                .admin()
-                .describe_topic_partitions([topic.to_owned()])
-                .response_partition_limit(COMPLETE_PAGE_PARTITION_LIMIT)
-                .deadline_after(remaining)
-                .submit()
-                .wait()
-        },
-        retry_safe,
-    )
-    .map_err(AdapterError::Client)?;
-    let (_, topics, next_cursor) = page.into_parts();
-    if next_cursor.is_some() {
-        return Err(AdapterError::AdminResult(
-            "DescribeTopicPartitions exceeded the complete-page partition limit".to_owned(),
-        ));
+) -> Result<(Vec<i32>, Vec<AdminTopicDescriptionPage>), AdapterError> {
+    let mut requested_cursor = None::<DescribeTopicPartitionsCursor>;
+    let mut seen_cursors = BTreeSet::new();
+    let mut all_partitions = Vec::new();
+    let mut pages = Vec::new();
+    loop {
+        let page = retry_until_with_remaining(
+            deadline,
+            |remaining| {
+                let request = client
+                    .admin()
+                    .describe_topic_partitions([command.topic.clone()])
+                    .response_partition_limit(pagination.response_partition_limit)
+                    .deadline_after(remaining);
+                let request = match requested_cursor.clone() {
+                    Some(cursor) => request.cursor(cursor),
+                    None => request,
+                };
+                request.submit().wait()
+            },
+            retry_safe,
+        )
+        .map_err(AdapterError::Client)?;
+        let (_, topics, next_cursor) = page.into_parts();
+        let entries = topics.into_iter().map(topic_entry).collect();
+        let page_partitions = described_partitions(entries, &command.operation_id, &command.topic)?;
+        all_partitions.extend(page_partitions.iter().copied());
+        pages.push(AdminTopicDescriptionPage {
+            partitions: page_partitions,
+            next_cursor: next_cursor.as_ref().map(cursor_fact),
+        });
+        let Some(next_cursor) = next_cursor else {
+            break;
+        };
+        if !pagination.follow_cursors {
+            break;
+        }
+        if pages.len() >= MAX_PAGINATION_PAGES {
+            return Err(invalid_pagination(
+                command,
+                "exceeded the bounded page count",
+            ));
+        }
+        let identity = (
+            next_cursor.topic_name().to_owned(),
+            next_cursor.partition_index(),
+        );
+        if !seen_cursors.insert(identity) {
+            return Err(invalid_pagination(command, "returned a repeated cursor"));
+        }
+        requested_cursor = Some(next_cursor);
     }
-    Ok(topics
-        .into_iter()
-        .map(|description| {
-            let name = description.name().to_owned();
-            let result = match description.error().cloned() {
-                Some(error) => Err(error),
-                None => Ok(DescribedTopicResult::from(description)),
-            };
-            (name, result)
-        })
-        .collect())
+    let all_partitions = sorted_unique_nonnegative(
+        all_partitions,
+        &command.operation_id,
+        "paginated topic partitions",
+    )?;
+    Ok((all_partitions, pages))
+}
+
+fn topic_entry(
+    description: crate::kafkars_api::DescribeTopicPartitionsTopic,
+) -> (String, Result<DescribedTopicResult, KafkaError>) {
+    let name = description.name().to_owned();
+    let result = match description.error().cloned() {
+        Some(error) => Err(error),
+        None => Ok(DescribedTopicResult::from(description)),
+    };
+    (name, result)
+}
+
+fn cursor_fact(cursor: &DescribeTopicPartitionsCursor) -> AdminTopicPageCursor {
+    AdminTopicPageCursor {
+        topic_name: cursor.topic_name().to_owned(),
+        partition_index: cursor.partition_index(),
+    }
+}
+
+fn invalid_pagination(command: &DescribeTopicCommand, detail: &str) -> AdapterError {
+    AdapterError::AdminResult(format!(
+        "admin operation {} DescribeTopicPartitions pagination {detail}",
+        command.operation_id
+    ))
 }
 
 fn deadline_after(timeout_ms: u64) -> Instant {

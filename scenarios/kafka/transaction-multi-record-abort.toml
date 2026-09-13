@@ -1,4 +1,4 @@
-schema_version = 122
+schema_version = 123
 id = "kafka.transaction-multi-record-abort"
 title = "one aborted transaction hides a multi-topic record set"
 description = "One public transaction stages and aborts six records across two topics and four partitions; the independent read-committed observer must expose none of the declared set without treating public staging metadata as proof of a physical append."

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v118 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v122 and evidence schema v108.
+Protocol v119 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v123 and evidence schema v109.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -672,13 +672,16 @@ topic.
 
 Named topic description, all-topic listing, and offset listing also use the
 packaged public admin handle. Their adapter commands omit the scenario's
-expected partitions, topic inclusion expectations, expected offset, and
-expected errors. A named description explicitly selects either the complete
-metadata-backed public operation or one complete `DescribeTopicPartitions`
-page. Both must report the exact declared partition indices, which an immediate
-independent metadata query confirms. The page path fails closed if its
-10,000-partition response limit returns a continuation cursor; hidden
-pagination is forbidden. An all-topic listing carries the exact
+expected partitions, page boundaries, topic inclusion expectations, expected
+offset, and expected errors. A named description explicitly selects either the
+complete metadata-backed public operation or `DescribeTopicPartitions` with an
+exact positive response-partition limit and cursor-following selection. Each
+returned continuation cursor starts one separately submitted public page only
+when requested. The single completion preserves every page's exact partition
+subset and returned cursor as well as the sorted aggregate partition set. The
+verifier requires the declared page boundaries, exact next-topic and
+next-partition cursors, and immediate independent metadata for the aggregate.
+An all-topic listing carries the exact
 `include_internal` and `include_authorized_operations` options. Its single
 completion preserves one byte-sorted unique outcome per returned name,
 including the full successful topic ID, internal marker, authorization bitfield,
@@ -1224,6 +1227,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v118 is an exact semantic contract. New capabilities may be declared
+Protocol v119 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

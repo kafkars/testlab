@@ -6,6 +6,8 @@ use testlab_schema::{
 mod timestamp_offset;
 #[path = "admin_topic_listing.rs"]
 mod topic_listing;
+#[path = "admin_topic_pagination.rs"]
+mod topic_pagination;
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{
     HistoryIndex, IndexedOffsetList, IndexedPartitionOffsetsObservation, IndexedTopicDescription,
@@ -26,8 +28,7 @@ pub(crate) fn verify_discovery_action(
                 return false;
             };
             verify_description(
-                &action.operation_id,
-                &action.topic,
+                action,
                 expected_partitions,
                 index.topics_described.get(&action.operation_id),
                 index.topics_observed.get(&action.operation_id),
@@ -70,20 +71,22 @@ pub(crate) fn verify_discovery_action(
 }
 
 fn verify_description(
-    operation_id: &OperationId,
-    topic: &str,
+    action: &testlab_schema::DescribeTopicAction,
     expected_partitions: &[i32],
     completions: Option<&Vec<IndexedTopicDescription>>,
     independent: Option<&Vec<IndexedTopicObservation>>,
     command_window: Option<AdminCommandWindow>,
     violations: &mut Vec<Violation>,
 ) {
+    let operation_id = &action.operation_id;
+    let topic = &action.topic;
     let public = completions
         .filter(|values| values.len() == 1)
         .and_then(|values| values.first());
     let public_matches = public.is_some_and(|value| {
         value.topic == topic
             && value.partitions == expected_partitions
+            && topic_pagination::matches(action, &value.pages)
             && public_after_command(command_window, value.history_sequence)
     });
     let independent_matches = independent.is_some_and(|values| {

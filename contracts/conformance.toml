@@ -75,7 +75,7 @@ category = "admin"
 [[contract]]
 id = "ADMIN-003"
 title = "Admin topic description matches exercised partitions"
-statement = "Each requested public topic description emits exactly one completion naming the exact operation and topic and reporting the declared partition indices confirmed by an immediate independent metadata query."
+statement = "Each requested public topic description emits exactly one completion naming the exact operation and topic and reporting the declared partition indices confirmed by an immediate independent metadata query; explicit topic-partition pagination also preserves every separately submitted page boundary and exact continuation cursor."
 category = "admin"
 
 [[contract]]

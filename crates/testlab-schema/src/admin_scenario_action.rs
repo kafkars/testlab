@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AdminOffsetSelector, ClientId, OperationId};
+use crate::{AdminOffsetSelector, ClientId, OperationId, TopicDescriptionPagination};
 
 /// Public topic-description operation selected by a scenario.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -11,7 +11,7 @@ pub enum TopicDescriptionApi {
     /// Uses the client's complete metadata-backed topic description.
     #[default]
     Metadata,
-    /// Uses one explicit `DescribeTopicPartitions` response page.
+    /// Uses explicitly configured `DescribeTopicPartitions` response pages.
     DescribeTopicPartitions,
 }
 
@@ -49,8 +49,14 @@ pub struct DescribeTopicAction {
     /// Public topic-description operation exercised by the adapter.
     #[serde(default)]
     pub api: TopicDescriptionApi,
+    /// Explicit page controls; present only for `DescribeTopicPartitions`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pagination: Option<TopicDescriptionPagination>,
     /// Exact partition indices the verifier requires after success.
     pub expected_partitions: Option<Vec<i32>>,
+    /// Exact partition boundaries required for every explicit public page.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_page_partitions: Option<Vec<Vec<i32>>>,
     /// Exact normalized public error expected instead of a completion.
     #[serde(default)]
     pub expected_error_code: Option<String>,

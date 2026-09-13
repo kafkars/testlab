@@ -2,49 +2,22 @@
 
 use super::{
     AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminTopicDescription,
-    AdminTopicsListing, ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction,
-    ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION,
-    ROUTING_ERROR_CODE, SCENARIO_SCHEMA_VERSION, ScenarioAction, TopicDescriptionApi,
+    AdminTopicDescriptionPage, AdminTopicPageCursor, AdminTopicsListing, ClientId,
+    DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction, ListOffsetsCommand,
+    ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION, ROUTING_ERROR_CODE,
+    SCENARIO_SCHEMA_VERSION, ScenarioAction, TopicDescriptionApi,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
 #[path = "admin_topic_listing_protocol_test.rs"]
 mod topic_listing_tests;
+#[path = "admin_topic_pagination_protocol_test.rs"]
+mod topic_pagination_tests;
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 118);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 122);
-}
-
-#[test]
-fn describe_topic_command_excludes_expected_partitions() {
-    let action = ScenarioAction::DescribeTopic(DescribeTopicAction {
-        client_id: client(),
-        operation_id: operation("admin-describe-1"),
-        topic: "records".to_owned(),
-        api: TopicDescriptionApi::DescribeTopicPartitions,
-        expected_partitions: Some(vec![0, 1]),
-        expected_error_code: None,
-        timeout_ms: 1_000,
-    });
-    let command = AdapterCommand::DescribeTopic(DescribeTopicCommand {
-        client_id: client(),
-        operation_id: operation("admin-describe-1"),
-        topic: "records".to_owned(),
-        api: TopicDescriptionApi::DescribeTopicPartitions,
-        timeout_ms: 1_000,
-    });
-
-    let action = encode_action(&action);
-    let command = encode(&command);
-
-    assert!(action.contains("kind = \"describe_topic\""));
-    assert!(action.contains("api = \"describe_topic_partitions\""));
-    assert!(action.contains("expected_partitions = [0, 1]"));
-    assert!(command.contains("kind = \"describe_topic\""));
-    assert!(command.contains("api = \"describe_topic_partitions\""));
-    assert!(!command.contains("expected_partitions"));
+    assert_eq!(PROTOCOL_VERSION, 119);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 123);
 }
 
 #[test]
@@ -110,6 +83,19 @@ fn admin_query_events_report_only_observed_facts() {
         operation_id: operation("admin-describe-1"),
         topic: "records".to_owned(),
         partitions: vec![0, 1],
+        pages: vec![
+            AdminTopicDescriptionPage {
+                partitions: vec![0],
+                next_cursor: Some(AdminTopicPageCursor {
+                    topic_name: "records".to_owned(),
+                    partition_index: 1,
+                }),
+            },
+            AdminTopicDescriptionPage {
+                partitions: vec![1],
+                next_cursor: None,
+            },
+        ],
     }));
     let listed = encode(&AdapterEvent::TopicsListed(AdminTopicsListing {
         operation_id: operation("admin-topics-1"),
@@ -125,6 +111,7 @@ fn admin_query_events_report_only_observed_facts() {
 
     assert!(described.contains("kind = \"topic_described\""));
     assert!(described.contains("partitions = [0, 1]"));
+    assert!(described.contains("partition_index = 1"));
     assert!(!described.contains("expected_partitions"));
     assert!(listed.contains("kind = \"topics_listed\""));
     assert!(listed.contains("outcomes = []"));
@@ -214,7 +201,9 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         operation_id: operation("admin-describe-missing"),
         topic: "missing".to_owned(),
         api: TopicDescriptionApi::Metadata,
+        pagination: None,
         expected_partitions: None,
+        expected_page_partitions: None,
         expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
         timeout_ms: 1_000,
     });
@@ -234,6 +223,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         operation_id: operation("admin-describe-missing"),
         topic: "missing".to_owned(),
         api: TopicDescriptionApi::Metadata,
+        pagination: None,
         timeout_ms: 1_000,
     });
     let offset_command = AdapterCommand::ListOffsets(ListOffsetsCommand {

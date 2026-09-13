@@ -2,10 +2,10 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminTopicDescription,
-    BrokerObservation, BrokerPartitionOffsets, BrokerStateObservation, BrokerTopicState,
-    DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload, ListOffsetsAction,
-    ListOffsetsCommand, ListTopicsCommand, OperationId, ScenarioAction, TerminalStatus,
-    VisibilityExpectation,
+    AdminTopicDescriptionPage, AdminTopicPageCursor, BrokerObservation, BrokerPartitionOffsets,
+    BrokerStateObservation, BrokerTopicState, DescribeTopicAction, DescribeTopicCommand,
+    HistoryEntry, HistoryPayload, ListOffsetsAction, ListOffsetsCommand, ListTopicsCommand,
+    OperationId, ScenarioAction, TerminalStatus, TopicDescriptionPagination, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -16,6 +16,8 @@ use crate::verify_fixture::{command, event, scenario, step};
 mod timestamp_tests;
 #[path = "admin_topic_listing_test.rs"]
 mod topic_listing_tests;
+#[path = "admin_topic_pagination_verifier_test.rs"]
+mod topic_pagination_tests;
 
 #[test]
 fn exact_description_matches_independent_metadata() {
@@ -25,7 +27,12 @@ fn exact_description_matches_independent_metadata() {
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
         api: testlab_schema::TopicDescriptionApi::DescribeTopicPartitions,
+        pagination: Some(TopicDescriptionPagination {
+            response_partition_limit: 2,
+            follow_cursors: true,
+        }),
         expected_partitions: Some(vec![0, 1, 2]),
+        expected_page_partitions: Some(vec![vec![0, 1], vec![2]]),
         expected_error_code: None,
         timeout_ms: 1_000,
     }));
@@ -36,6 +43,7 @@ fn exact_description_matches_independent_metadata() {
                 operation_id: operation_id.clone(),
                 topic: "described".to_owned(),
                 partitions: vec![0, 1, 2],
+                pages: paginated_description_pages(),
             }),
         ),
         topic_state(2, operation_id, "described", vec![0, 1, 2]),
@@ -52,7 +60,9 @@ fn description_missing_independent_partition_fails() {
         operation_id: operation_id.clone(),
         topic: "described".to_owned(),
         api: testlab_schema::TopicDescriptionApi::Metadata,
+        pagination: None,
         expected_partitions: Some(vec![0, 1, 2]),
+        expected_page_partitions: None,
         expected_error_code: None,
         timeout_ms: 1_000,
     }));
@@ -63,6 +73,7 @@ fn description_missing_independent_partition_fails() {
                 operation_id: operation_id.clone(),
                 topic: "described".to_owned(),
                 partitions: vec![0, 1, 2],
+                pages: Vec::new(),
             }),
         ),
         topic_state(2, operation_id, "described", vec![0, 1]),
@@ -164,6 +175,7 @@ fn admin_command(action: &ScenarioAction) -> AdapterCommand {
                 operation_id: value.operation_id.clone(),
                 topic: value.topic.clone(),
                 api: value.api,
+                pagination: value.pagination,
                 timeout_ms: value.timeout_ms,
             })
         }
@@ -185,6 +197,22 @@ fn admin_command(action: &ScenarioAction) -> AdapterCommand {
         }),
         _ => panic!("fixture action is not an admin discovery operation"),
     }
+}
+
+fn paginated_description_pages() -> Vec<AdminTopicDescriptionPage> {
+    vec![
+        AdminTopicDescriptionPage {
+            partitions: vec![0, 1],
+            next_cursor: Some(AdminTopicPageCursor {
+                topic_name: "described".to_owned(),
+                partition_index: 2,
+            }),
+        },
+        AdminTopicDescriptionPage {
+            partitions: vec![2],
+            next_cursor: None,
+        },
+    ]
 }
 
 fn topic_state(

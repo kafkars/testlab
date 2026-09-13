@@ -12,6 +12,9 @@ use crate::admin_action_validation::validate;
 #[path = "admin_timestamp_selector_validation_test.rs"]
 mod timestamp_tests;
 
+#[path = "admin_topic_pagination_test.rs"]
+mod topic_pagination_tests;
+
 #[path = "admin_topic_listing_expectation_validation_test.rs"]
 mod topic_listing_tests;
 
@@ -127,7 +130,9 @@ fn query_expectations_require_exactly_one_result_or_error() {
             operation_id: operation("admin-describe-both"),
             topic: "records".to_owned(),
             api: crate::TopicDescriptionApi::Metadata,
+            pagination: None,
             expected_partitions: Some(vec![0]),
+            expected_page_partitions: None,
             expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),
             timeout_ms: 1_000,
         }),
@@ -199,7 +204,9 @@ fn describe_topic(
         operation_id,
         topic: "records".to_owned(),
         api: crate::TopicDescriptionApi::Metadata,
+        pagination: None,
         expected_partitions: Some(expected_partitions),
+        expected_page_partitions: None,
         expected_error_code: None,
         timeout_ms: 1_000,
     })
