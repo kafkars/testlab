@@ -1,0 +1,167 @@
+schema_version = 160
+id = "kafka.transaction-partition-leader-failover"
+title = "transactional batch commits across an observed partition-leader replacement"
+description = "After one baseline commit, Testlab independently selects and stops the exact output partition leader, proves a distinct replacement, requires an ordinary producer probe, and then requires the same transactional producer to stage and commit one exact public batch before the original leader returns."
+timeout_ms = 210000
+requires = ["producer", "transactions", "transaction_batch_send", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-probe-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "probe-producer"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer"
+transactional_id = "testlab-transaction-leader-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 45000
+
+[[steps]]
+id = "commit-before-election"
+kind = "execute_transaction"
+producer_id = "transactional-producer"
+transaction_id = "transaction-leader-before-election"
+disposition = "commit"
+timeout_ms = 45000
+
+[[steps.operations]]
+operation_id = "transaction-leader-baseline"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-leader"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "before-election" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-leader-baseline" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "stop-partition-leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-transaction-leader"
+partition = 0
+
+[[steps]]
+id = "send-replacement-leader-probe"
+kind = "send"
+producer_id = "probe-producer"
+operation_id = "transaction-leader-probe"
+
+[steps.record]
+topic = "testlab-kafkars-transaction-leader"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "replacement-leader-probe" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-leader-probe" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "commit-after-election"
+kind = "execute_transaction"
+producer_id = "transactional-producer"
+transaction_id = "transaction-leader-after-election"
+method = "send_batch"
+disposition = "commit"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "transaction-leader-recovered-1"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-leader"
+partition = 0
+sequence = 3
+value = { encoding = "utf8", data = "after-election-1" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-leader-recovered-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps.operations]]
+operation_id = "transaction-leader-recovered-2"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-leader"
+partition = 0
+sequence = 4
+value = { encoding = "utf8", data = "after-election-2" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-leader-recovered-2" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "4" } },
+]
+
+[[steps]]
+id = "restore-original-leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-transaction-leader"
+partition = 0
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer"
+
+[[steps]]
+id = "flush-probe-producer"
+kind = "flush"
+producer_id = "probe-producer"
+
+[[steps]]
+id = "close-probe-producer"
+kind = "close_producer"
+producer_id = "probe-producer"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "transaction-leader-baseline"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "transaction-leader-probe"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "transaction-leader-recovered-1"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "transaction-leader-recovered-2"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

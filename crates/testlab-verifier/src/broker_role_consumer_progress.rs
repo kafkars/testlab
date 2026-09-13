@@ -1,9 +1,12 @@
-//! Partition-leader contracts bind replacement ownership to consumer records.
+//! Partition-leader contracts bind replacement ownership to consumer and transaction progress.
 
 use testlab_schema::{AdapterCommand, BrokerRoleTarget, OperationId, Scenario, ScenarioAction};
 
 use crate::index::HistoryIndex;
 use crate::support::violation;
+
+#[path = "broker_role_transaction_progress.rs"]
+mod transaction_progress;
 
 pub(super) fn verify(
     scenario: &Scenario,
@@ -20,6 +23,15 @@ pub(super) fn verify(
     let BrokerRoleTarget::PartitionLeader { topic, partition } = target else {
         return;
     };
+    transaction_progress::verify(
+        scenario,
+        stop_position,
+        target,
+        index,
+        after_election,
+        before_restore,
+        violations,
+    );
     let end = scenario.steps[stop_position + 1..]
         .iter()
         .position(|step| {

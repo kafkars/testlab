@@ -823,6 +823,12 @@ statement = "Every assigned, group, or Share receive for the disrupted topic-par
 category = "fault"
 
 [[contract]]
+id = "FAULT-005"
+title = "Transactions survive partition-leader replacement"
+statement = "Every committed ordinary transaction targeting the disrupted topic-partition between role stop and restore is issued through one exact command, stages its complete output set, and completes once after the independently observed replacement election and before original-owner restoration."
+category = "fault"
+
+[[contract]]
 id = "CONS-004"
 title = "Group receive proves the requested membership protocol"
 statement = "A group receive exposes a positive public classic generation or KIP-848 member epoch matching the scenario's requested protocol."

@@ -41,6 +41,7 @@ fn checked_in_transaction_batch_scenarios_are_valid() {
     for source in [
         include_str!("../../../scenarios/kafka/transaction-batch-commit.toml"),
         include_str!("../../../scenarios/kafka/transaction-batch-abort.toml"),
+        include_str!("../../../scenarios/kafka/transaction-partition-leader-failover.toml"),
     ] {
         let scenario: Scenario =
             toml::from_str(source).unwrap_or_else(|error| panic!("parse scenario: {error}"));

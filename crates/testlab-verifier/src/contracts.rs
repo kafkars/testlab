@@ -17,6 +17,7 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "FAULT-002",
     "FAULT-003",
     "FAULT-004",
+    "FAULT-005",
     "POLICY-001",
     "POLICY-002",
     "POLICY-003",

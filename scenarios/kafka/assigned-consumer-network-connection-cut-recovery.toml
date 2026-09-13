@@ -1,4 +1,4 @@
-schema_version = 159
+schema_version = 160
 id = "kafka.assigned-consumer-network-connection-cut-recovery"
 title = "packaged assigned consumer recovers after an external connection cut"
 description = "A directly assigned consumer on an independent public client reads an exact baseline record before the external proxy cuts all broker connections, then the same cursor owner reconnects and reads the record produced after that observed cut."

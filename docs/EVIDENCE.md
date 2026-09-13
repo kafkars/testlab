@@ -387,6 +387,10 @@ transaction recovery to consume-transform-produce. NET-006 now also preserves
 the public consumer and transactional producer identities, complete output set,
 checkpoint-bearing completion, and requested disposition inside the recovery
 window for both classic and KIP-848 membership.
+Protocol v156, scenario schema v160, and evidence schema v146 add exact
+transactional partition-leader recovery. FAULT-005 preserves the complete
+committed transaction command and staged output set after independently
+observed replacement election and before original-owner restoration.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1291,9 +1295,11 @@ creation, committed group receive, or committed transaction according to the
 targeted role. FAULT-004 additionally binds every declared assigned, group, or
 Share receive for a disrupted partition to one exact command and a public
 record from that partition inside the independently observed replacement-owner
-window; group progress must commit. Adapter success cannot establish the role
-owner or election, and environment observations cannot manufacture public
-client progress.
+window; group progress must commit. FAULT-005 similarly binds each committed
+transaction targeting that partition to one exact command, its complete staged
+output set, and one commit inside the replacement-owner window. Adapter success
+cannot establish the role owner or election, and environment observations
+cannot manufacture public client progress.
 
 POLICY-001 requires one exact ordered alter, query, and normalized observation
 chain for both policy application and removal. POLICY-002 binds an active deny

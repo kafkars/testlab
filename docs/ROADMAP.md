@@ -55,9 +55,10 @@
   transactions, replacement and Admin
   force-termination fencing, broker-derived single-partition Admin abort with
   pre-cleanup state proof, reversible stopped-broker unregistration with exact
-  remaining and restored cluster identity, broker restart, rolling restart, and independently
-  targeted partition-leader, controller, classic and KIP-848 group-coordinator,
-  and transaction-coordinator recovery.
+  remaining and restored cluster identity, broker restart, rolling restart,
+  independently targeted ordinary and transactional partition-leader recovery,
+  and controller, classic/KIP-848 group-coordinator, and
+  transaction-coordinator recovery.
 - Public Admin log-directory coverage preserves selected broker and replica
   placement details, then proves caller-ordered two-directory replica moves
   through independently polled Kafka CLI state with no remaining future copy.
