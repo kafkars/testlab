@@ -7,8 +7,7 @@ use testlab_schema::{
     VisibilityExpectation,
 };
 
-use crate::verify;
-use crate::verify_fixture::{adapter, command, event, history, scenario, step};
+use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
 
 #[test]
 fn exact_admin_topic_completion_passes() {
@@ -60,7 +59,7 @@ fn exact_admin_topic_completion_passes() {
     ));
     events.push(topic_state(12, operation_id, vec![0]));
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert!(verdict.is_passed(), "{verdict:?}");
 }
@@ -79,7 +78,7 @@ fn exact_admin_partition_completion_passes() {
     ));
     events.push(topic_state(12, operation_id, vec![0, 1]));
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert!(verdict.is_passed(), "{verdict:?}");
 }
@@ -91,7 +90,7 @@ fn missing_admin_partition_completion_fails() {
     events.push(partition_command(10, operation_id.clone()));
     events.push(topic_state(11, operation_id, vec![0, 1]));
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert!(
         verdict
@@ -115,7 +114,7 @@ fn duplicate_admin_partition_completion_fails() {
     events.push(event(12, completion));
     events.push(topic_state(13, operation_id, vec![0, 1]));
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert!(
         verdict

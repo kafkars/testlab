@@ -49,9 +49,11 @@ fn exact_independent_assigned_registrations_are_required_once() {
     let scenario = parse("assigned-consumer-independent-cursors.toml");
     let exact = creation_history(&scenario);
     assert!(violations(&scenario, &exact).is_empty());
+    let assigned = assigned_command_index(&exact);
 
     let mut wrong_owner = exact.clone();
-    let AdapterCommand::CreateAssignedConsumer { ownership, .. } = command_mut(&mut wrong_owner[0])
+    let AdapterCommand::CreateAssignedConsumer { ownership, .. } =
+        command_mut(&mut wrong_owner[assigned])
     else {
         panic!("assigned-consumer command kind");
     };
@@ -63,11 +65,11 @@ fn exact_independent_assigned_registrations_are_required_once() {
         client_id,
         consumer_id,
         ..
-    } = command_mut(&mut substituted[0]).clone()
+    } = command_mut(&mut substituted[assigned]).clone()
     else {
         panic!("assigned-consumer command kind");
     };
-    *command_mut(&mut substituted[0]) = AdapterCommand::CreateGroupConsumer {
+    *command_mut(&mut substituted[assigned]) = AdapterCommand::CreateGroupConsumer {
         client_id,
         consumer_id,
         group_id: "substituted".to_owned(),
@@ -78,7 +80,7 @@ fn exact_independent_assigned_registrations_are_required_once() {
     assert_contract(&violations(&scenario, &substituted), "CONS-029");
 
     let mut duplicate = exact.clone();
-    duplicate.push(exact[0].clone());
+    duplicate.push(exact[assigned].clone());
     assert_contract(&violations(&scenario, &duplicate), "CONS-029");
 }
 
@@ -121,6 +123,19 @@ fn command_mut(entry: &mut HistoryEntry) -> &mut AdapterCommand {
         panic!("command history entry");
     };
     &mut envelope.command
+}
+
+fn assigned_command_index(history: &[HistoryEntry]) -> usize {
+    history
+        .iter()
+        .position(|entry| {
+            matches!(
+                &entry.payload,
+                HistoryPayload::HarnessCommand { command }
+                    if matches!(&command.command, AdapterCommand::CreateAssignedConsumer { .. })
+            )
+        })
+        .unwrap_or_else(|| panic!("assigned-consumer command kind"))
 }
 
 fn violations(scenario: &Scenario, history: &[HistoryEntry]) -> Vec<testlab_schema::Violation> {

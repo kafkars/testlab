@@ -8,15 +8,14 @@ use testlab_schema::{
     ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE, TerminalStatus, VisibilityExpectation,
 };
 
-use super::verify;
-use crate::verify_fixture::{adapter, command, event, history, scenario, step};
+use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
 
 #[test]
 fn mixed_batch_creation_passes_with_ordered_outcomes_and_exact_topology() {
     let (scenario, existing, batch) = batch_scenario();
     let events = batch_history(existing, batch, expected_outcomes(), vec![0, 1]);
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert!(verdict.is_passed(), "{verdict:?}");
 }
@@ -28,7 +27,7 @@ fn reordered_per_topic_outcomes_fail_the_batch_contract() {
     outcomes.swap(0, 1);
     let events = batch_history(existing, batch, outcomes, vec![0, 1]);
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert_contract(&verdict, "ADMIN-018");
 }
@@ -38,7 +37,7 @@ fn public_success_without_requested_broker_topology_fails_the_batch_contract() {
     let (scenario, existing, batch) = batch_scenario();
     let events = batch_history(existing, batch, expected_outcomes(), vec![0]);
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert_contract(&verdict, "ADMIN-018");
 }

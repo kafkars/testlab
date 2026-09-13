@@ -9,8 +9,7 @@ use testlab_schema::{
     VisibilityExpectation,
 };
 
-use crate::verify::verify;
-use crate::verify_fixture::{adapter, command, event, history, scenario, step};
+use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
 
 const TOPIC: &str = "configured-batch-topic";
 const BATCH: &str = "configured-batch-create";
@@ -20,10 +19,10 @@ const DESCRIBE: &str = "configured-batch-describe";
 fn configured_batch_requires_exact_command_and_later_independent_value() {
     let scenario = configured_scenario();
     let events = configured_history("compact");
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
     assert!(verdict.is_passed(), "{verdict:?}");
 
-    let wrong_value = verify(&scenario, &adapter(), &configured_history("delete"), &[]);
+    let wrong_value = admin_verdict(&scenario, &configured_history("delete"));
     assert_contract(&wrong_value, "ADMIN-096");
 
     let mut missing_config = events;
@@ -34,10 +33,7 @@ fn configured_batch_requires_exact_command_and_later_independent_value() {
         panic!("batch command kind");
     };
     command.topics[0].configs.clear();
-    assert_contract(
-        &verify(&scenario, &adapter(), &missing_config, &[]),
-        "ADMIN-096",
-    );
+    assert_contract(&admin_verdict(&scenario, &missing_config), "ADMIN-096");
 }
 
 fn configured_scenario() -> testlab_schema::Scenario {

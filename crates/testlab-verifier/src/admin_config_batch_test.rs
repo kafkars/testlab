@@ -56,7 +56,7 @@ fn altered_wire_selection_order_fails_exact_command_ownership() {
         panic!("plural topic-configuration payload");
     };
     value.topics.swap(0, 1);
-    assert_contract(&violations(&entries));
+    assert_contract_id(&violations(&entries), "ADMIN-081");
 }
 
 #[test]

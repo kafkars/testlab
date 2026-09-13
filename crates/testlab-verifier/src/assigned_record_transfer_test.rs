@@ -8,19 +8,15 @@ use testlab_schema::{
 
 #[test]
 fn changed_retained_source_or_destination_fails() {
-    let (scenario, adapter, mut history, observations) = fixture();
-    assert!(
-        crate::verify(&scenario, &adapter, &history, &observations)
-            .violations
-            .is_empty()
-    );
+    let (scenario, _, mut history, observations) = fixture();
+    assert!(violations(&scenario, &history, &observations).is_empty());
     completion(&mut history).retained_source_record.value = None;
-    assert_contract(&scenario, &adapter, &history, &observations);
+    assert_contract(&scenario, &history, &observations);
 
-    let (scenario, adapter, history, mut observations) = fixture();
+    let (scenario, _, history, mut observations) = fixture();
     observations[1].record.headers.pop();
     observations[1].digest = digest(&observations[1].record);
-    assert_contract(&scenario, &adapter, &history, &observations);
+    assert_contract(&scenario, &history, &observations);
 }
 
 fn fixture() -> (
@@ -284,15 +280,28 @@ fn digest(record: &RecordSpec) -> String {
 
 fn assert_contract(
     scenario: &Scenario,
-    adapter: &AdapterDescriptor,
     history: &[HistoryEntry],
     observations: &[BrokerObservation],
 ) {
-    let violated = crate::verify(scenario, adapter, history, observations)
-        .violations
+    let violated = violations(scenario, history, observations)
         .iter()
         .any(|violation| violation.contract_id.as_str() == "CONS-021");
     assert!(violated);
+}
+
+fn violations(
+    scenario: &Scenario,
+    history: &[HistoryEntry],
+    observations: &[BrokerObservation],
+) -> Vec<testlab_schema::Violation> {
+    let mut violations = Vec::new();
+    super::verify(
+        scenario,
+        &crate::index::HistoryIndex::build(history),
+        observations,
+        &mut violations,
+    );
+    violations
 }
 
 fn id<T>(result: Result<T, impl std::fmt::Display>) -> T {

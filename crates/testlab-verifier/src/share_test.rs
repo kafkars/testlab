@@ -188,7 +188,7 @@ fn mixed_share_acknowledgement_preserves_record_order() {
 
 #[test]
 fn configured_share_receive_requires_the_exact_public_acquisition_count() {
-    let scenario: Scenario = toml::from_str(include_str!(
+    let mut scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/share-group-fetch-max-records.toml"
     ))
     .unwrap_or_else(|error| panic!("parse configured Share scenario: {error}"));
@@ -219,6 +219,11 @@ fn configured_share_receive_requires_the_exact_public_acquisition_count() {
             _ => None,
         })
         .unwrap_or_else(|| panic!("first configured Share record missing"));
+    scenario.steps.retain(|step| match &step.action {
+        ScenarioAction::Send { operation_id, .. } => operation_id.as_str() == "op-first",
+        ScenarioAction::ShareReceive { receive_id, .. } => receive_id.as_str() == "receive-first",
+        _ => false,
+    });
     let history = [
         command(
             0,

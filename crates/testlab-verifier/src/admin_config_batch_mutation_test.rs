@@ -198,10 +198,20 @@ fn state(
 }
 
 fn scenario() -> Scenario {
-    toml::from_str(include_str!(
+    let mut scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/admin-alter-topic-configs.toml"
     ))
-    .unwrap_or_else(|error| panic!("parse plural configuration mutation: {error}"))
+    .unwrap_or_else(|error| panic!("parse plural configuration mutation: {error}"));
+    scenario.steps.retain(|step| match &step.action {
+        testlab_schema::ScenarioAction::DescribeTopicConfigs(action) => {
+            action.operation_id.as_str() == BEFORE
+        }
+        testlab_schema::ScenarioAction::AlterTopicConfigs(action) => {
+            action.operation_id.as_str() == ALTER
+        }
+        _ => false,
+    });
+    scenario
 }
 
 fn violations(entries: &[HistoryEntry]) -> Vec<testlab_schema::Violation> {

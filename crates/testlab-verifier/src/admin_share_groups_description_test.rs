@@ -165,14 +165,14 @@ fn completion_value() -> AdminShareGroupsDescription {
     AdminShareGroupsDescription {
         operation_id: operation("admin-describe-share-groups"),
         outcomes: [
-            (zulu_group(), zulu_topic(), 1_u8),
-            (alpha_group(), alpha_topic(), 2),
+            (zulu_group(), zulu_topic(), "testlab-rack-zulu", 1_u8),
+            (alpha_group(), alpha_topic(), "testlab-rack-alpha", 2),
         ]
         .into_iter()
         .map(
-            |(group_id, topic, topic_id)| AdminShareGroupDescriptionOutcome {
+            |(group_id, topic, rack_id, topic_id)| AdminShareGroupDescriptionOutcome {
                 group_id: group_id.to_owned(),
-                description: Some(description(group_id, topic, topic_id)),
+                description: Some(description(group_id, topic, rack_id, topic_id)),
                 error_code: None,
             },
         )
@@ -180,7 +180,12 @@ fn completion_value() -> AdminShareGroupsDescription {
     }
 }
 
-fn description(group_id: &str, topic: &str, topic_id: u8) -> AdminShareGroupDescription {
+fn description(
+    group_id: &str,
+    topic: &str,
+    rack_id: &str,
+    topic_id: u8,
+) -> AdminShareGroupDescription {
     AdminShareGroupDescription {
         operation_id: operation("admin-describe-share-groups"),
         group_id: group_id.to_owned(),
@@ -191,7 +196,7 @@ fn description(group_id: &str, topic: &str, topic_id: u8) -> AdminShareGroupDesc
         authorized_operations: Some(1),
         members: vec![AdminShareGroupMember {
             member_id: format!("member-{topic_id}"),
-            rack_id: None,
+            rack_id: Some(rack_id.to_owned()),
             member_epoch: 5,
             client_id: format!("client-{topic_id}"),
             subscribed_topics: vec![topic.to_owned()],

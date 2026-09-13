@@ -7,14 +7,13 @@ use testlab_schema::{
     VisibilityExpectation,
 };
 
-use crate::verify;
-use crate::verify_fixture::{adapter, command, event, history, scenario, step};
+use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
 
 #[test]
 fn exact_manual_partition_expansion_passes() {
     let (scenario, events) = fixture();
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert!(verdict.is_passed(), "{verdict:?}");
 }
@@ -24,7 +23,7 @@ fn changed_replica_order_fails_manual_partition_expansion() {
     let (scenario, mut events) = fixture();
     assignments(&mut events)[0].replicas.reverse();
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert_contract(&verdict);
 }
@@ -34,7 +33,7 @@ fn incomplete_isr_fails_manual_partition_expansion() {
     let (scenario, mut events) = fixture();
     assignments(&mut events)[1].in_sync_replicas.pop();
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert_contract(&verdict);
 }
@@ -44,7 +43,7 @@ fn extra_topic_partition_fails_manual_partition_expansion() {
     let (scenario, mut events) = fixture();
     topic_partitions(&mut events).push(3);
 
-    let verdict = verify(&scenario, &adapter(), &events, &[]);
+    let verdict = admin_verdict(&scenario, &events);
 
     assert_contract(&verdict);
 }

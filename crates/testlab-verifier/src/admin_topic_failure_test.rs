@@ -9,14 +9,13 @@ use testlab_schema::{
     ScenarioId, ScenarioStep, StepId, TOPIC_ALREADY_EXISTS_ERROR_CODE, VerdictStatus,
 };
 
-use super::verify;
-use crate::verify_fixture::adapter;
+use crate::verify_fixture::{adapter, admin_verdict};
 
 const TOPIC: &str = "orders";
 
 #[test]
 fn exact_duplicate_failure_with_unchanged_topic_passes() {
-    let verdict = verify(&scenario(), &adapter(), &history(expected_failure()), &[]);
+    let verdict = admin_verdict(&scenario(), &history(expected_failure()));
 
     assert!(verdict.is_passed(), "{verdict:?}");
 }
@@ -45,7 +44,7 @@ fn wrong_code_success_or_changed_state_fails_admin_contract() {
     state.partitions.push(2);
 
     for entries in [history(wrong_code), history(success), changed] {
-        assert_admin_failure(&verify(&scenario(), &adapter(), &entries, &[]));
+        assert_admin_failure(&admin_verdict(&scenario(), &entries));
     }
 }
 
@@ -61,7 +60,7 @@ fn failure_from_another_command_cannot_satisfy_the_duplicate() {
     };
     event.command_id = command_id("other-command");
 
-    assert_admin_failure(&verify(&scenario(), &adapter(), &entries, &[]));
+    assert_admin_failure(&admin_verdict(&scenario(), &entries));
 }
 
 #[test]
@@ -69,7 +68,7 @@ fn prerequisite_creation_must_be_issued_before_the_duplicate() {
     let mut entries = history(expected_failure());
     entries.drain(1..4);
 
-    let verdict = verify(&scenario(), &adapter(), &entries, &[]);
+    let verdict = admin_verdict(&scenario(), &entries);
 
     assert_eq!(verdict.status, VerdictStatus::Failed, "{verdict:?}");
     assert!(
