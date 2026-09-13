@@ -1,7 +1,7 @@
-schema_version = 119
+schema_version = 120
 id = "kafka.admin-list-topics-multiple"
-title = "packaged admin lists multiple independently observed Kafka topics"
-description = "The packaged client's public admin creates three topics and then lists all three from one expectation-free command; the public result must be byte-sorted and independent metadata observations confirm every required topic."
+title = "packaged admin lists multiple detailed topics with authorization metadata"
+description = "The packaged client's public admin creates three topics and then lists all three from one expectation-free command; every public result retains authorization and partition detail in byte order while independent metadata confirms each required topology."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -55,6 +55,7 @@ kind = "list_topics"
 client_id = "client-1"
 operation_id = "admin-multi-topic-list"
 include_internal = false
+include_authorized_operations = true
 required_topics = [
   "testlab-kafkars-admin-multi-topic-zulu",
   "testlab-kafkars-admin-multi-topic-alpha",

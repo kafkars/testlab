@@ -15,7 +15,8 @@ use testlab_schema::{
 use crate::AdapterError;
 use crate::admission_retry::retry_until_with_remaining;
 use crate::protocol::emit;
-use crate::protocol_admin_result::{listed_consumer_group_offset, listed_offset, listed_topics};
+use crate::protocol_admin_result::{listed_consumer_group_offset, listed_offset};
+use crate::protocol_admin_topic_listing_result::{ListedTopicResult, listed_topics};
 use crate::state::AdapterState;
 
 pub(crate) fn dispatch<W: Write>(
@@ -55,6 +56,7 @@ fn list_topics<W: Write>(
         .admin()
         .list_topics()
         .include_internal(command.include_internal)
+        .include_authorized_operations(command.include_authorized_operations)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()
@@ -62,15 +64,15 @@ fn list_topics<W: Write>(
     let entries = result
         .into_entries()
         .into_iter()
-        .map(|(key, result)| (key, result.map(|value| value.name().to_owned())))
+        .map(|(key, result)| (key, result.map(ListedTopicResult::from)))
         .collect();
-    let topics = listed_topics(entries, &command.operation_id)?;
+    let outcomes = listed_topics(entries, &command.operation_id)?;
     emit_event(
         writer,
         command_id,
         AdapterEvent::TopicsListed(AdminTopicsListing {
             operation_id: command.operation_id,
-            topics,
+            outcomes,
         }),
     )
 }

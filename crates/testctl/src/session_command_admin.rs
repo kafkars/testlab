@@ -86,6 +86,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
                 include_internal: action.include_internal,
+                include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::TopicsListed {

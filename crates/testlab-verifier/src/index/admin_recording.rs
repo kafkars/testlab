@@ -119,7 +119,7 @@ impl HistoryIndex {
                 .or_default()
                 .push(IndexedTopicsList {
                     history_sequence: sequence,
-                    topics: value.topics.clone(),
+                    outcomes: value.outcomes.clone(),
                 }),
             AdapterEvent::OffsetListed(value) => self
                 .offsets_listed

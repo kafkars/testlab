@@ -80,26 +80,6 @@ pub(crate) fn described_partitions(
     sorted_unique_nonnegative(partitions, operation_id, "topic partitions")
 }
 
-pub(crate) fn listed_topics(
-    entries: Vec<(String, Result<String, KafkaError>)>,
-    operation_id: &OperationId,
-) -> Result<Vec<String>, AdapterError> {
-    let topics = entries
-        .into_iter()
-        .map(|(key, result)| {
-            let name = result.map_err(AdapterError::Client)?;
-            if key != name {
-                return Err(invalid_result(
-                    operation_id,
-                    "listed topic key did not match its reported name",
-                ));
-            }
-            Ok(name)
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    sorted_unique_strings(topics, operation_id, "topic listing")
-}
-
 pub(crate) fn sorted_unique_strings(
     mut values: Vec<String>,
     operation_id: &OperationId,
@@ -238,6 +218,6 @@ where
     result.map_err(AdapterError::Client)
 }
 
-fn invalid_result(operation_id: &OperationId, detail: &str) -> AdapterError {
+pub(crate) fn invalid_result(operation_id: &OperationId, detail: &str) -> AdapterError {
     AdapterError::AdminResult(format!("admin operation {operation_id} {detail}"))
 }

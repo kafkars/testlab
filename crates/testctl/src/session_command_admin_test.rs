@@ -117,6 +117,7 @@ fn topic_listing_translation_keeps_required_membership_private() {
         client_id: client_id.clone(),
         operation_id: operation_id.clone(),
         include_internal: false,
+        include_authorized_operations: true,
         required_topics: vec!["orders".to_owned()],
         timeout_ms: 20_000,
     });
@@ -131,6 +132,7 @@ fn topic_listing_translation_keeps_required_membership_private() {
             client_id,
             operation_id,
             include_internal: false,
+            include_authorized_operations: true,
             timeout_ms: 20_000,
         })
     );

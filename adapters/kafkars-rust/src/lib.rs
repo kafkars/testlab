@@ -80,6 +80,7 @@ mod protocol_admin_topic_deletion_batch;
 mod protocol_admin_topic_description;
 mod protocol_admin_topic_description_batch;
 mod protocol_admin_topic_ids;
+mod protocol_admin_topic_listing_result;
 mod protocol_admin_transactions;
 mod protocol_admin_user_scram;
 mod protocol_admin_validation_event;

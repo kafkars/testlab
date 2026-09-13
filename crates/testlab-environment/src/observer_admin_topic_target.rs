@@ -85,6 +85,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                     client_id: action.client_id.clone(),
                     operation_id: action.operation_id.clone(),
                     include_internal: action.include_internal,
+                    include_authorized_operations: action.include_authorized_operations,
                     timeout_ms: action.timeout_ms,
                 }),
                 AdminTarget::Topics(ListTarget {

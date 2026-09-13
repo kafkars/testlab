@@ -89,6 +89,7 @@ fn topic_reads_keep_scenario_only_expectations_out_of_wire_matching() {
         client_id: client(),
         operation_id: operation("list-topics"),
         include_internal: false,
+        include_authorized_operations: true,
         required_topics: vec!["orders".to_owned(), "audit".to_owned()],
         timeout_ms: 500,
     });
@@ -97,7 +98,6 @@ fn topic_reads_keep_scenario_only_expectations_out_of_wire_matching() {
     };
     assert_eq!(target.names, ["orders", "audit"]);
 }
-
 #[test]
 fn expected_admin_failures_map_to_immediate_broker_truth() {
     let expected_error_code =
@@ -245,6 +245,7 @@ fn duplicate_scenario_targets_are_rejected() {
         client_id: client(),
         operation_id: operation("list-topics"),
         include_internal: false,
+        include_authorized_operations: false,
         required_topics: vec!["orders".to_owned(), "orders".to_owned()],
         timeout_ms: 500,
     });
@@ -252,6 +253,7 @@ fn duplicate_scenario_targets_are_rejected() {
         client_id: client(),
         operation_id: operation("list-topics"),
         include_internal: false,
+        include_authorized_operations: true,
         timeout_ms: 500,
     });
 

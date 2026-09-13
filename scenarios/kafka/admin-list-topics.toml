@@ -1,7 +1,7 @@
-schema_version = 119
+schema_version = 120
 id = "kafka.admin-list-topics"
-title = "packaged admin lists an independently observed Kafka topic"
-description = "The packaged client's public all-topic query includes one required harness-provisioned topic whose existence is confirmed by an immediate independent metadata query and whose usability is later proven by one exact record observation."
+title = "packaged admin lists detailed topics with authorization metadata"
+description = "The packaged client's public all-topic query requests and retains authorization metadata plus exact partition detail for one required harness-provisioned topic, whose topology is confirmed by an immediate independent metadata query and whose usability is later proven by one exact record observation."
 timeout_ms = 90000
 requires = ["producer", "admin", "lifecycle", "client_readiness"]
 
@@ -21,6 +21,7 @@ kind = "list_topics"
 client_id = "client-1"
 operation_id = "admin-list-topics-1"
 include_internal = false
+include_authorized_operations = true
 required_topics = ["testlab-kafkars-admin-listed"]
 timeout_ms = 20000
 

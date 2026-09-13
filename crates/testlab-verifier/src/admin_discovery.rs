@@ -1,14 +1,15 @@
 //! Read-only admin verification joins public results to independent broker observations.
-use std::collections::BTreeSet;
 use testlab_schema::{
     AdminOffsetSelector, BrokerObservation, OperationId, ScenarioAction, Violation,
 };
 #[path = "admin_timestamp_offset.rs"]
 mod timestamp_offset;
+#[path = "admin_topic_listing.rs"]
+mod topic_listing;
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{
     HistoryIndex, IndexedOffsetList, IndexedPartitionOffsetsObservation, IndexedTopicDescription,
-    IndexedTopicObservation, IndexedTopicsList,
+    IndexedTopicObservation,
 };
 use crate::support::violation;
 
@@ -34,9 +35,10 @@ pub(crate) fn verify_discovery_action(
                 violations,
             );
         }
-        ScenarioAction::ListTopics(action) => verify_topics(
+        ScenarioAction::ListTopics(action) => topic_listing::verify(
             &action.operation_id,
             &action.required_topics,
+            action.include_authorized_operations,
             index.topics_listed.get(&action.operation_id),
             index.topics_observed.get(&action.operation_id),
             command_window,
@@ -106,61 +108,6 @@ fn verify_description(
         "ADMIN-003",
         format!(
             "admin operation {operation_id} expected public and independent descriptions of {topic} partitions {expected_partitions:?}"
-        ),
-        Some(operation_id.clone()),
-        evidence(
-            completions.into_iter().flatten().map(|value| value.history_sequence),
-            std::iter::empty(),
-        ),
-    ));
-    append_state_evidence(violations, independent);
-}
-
-fn verify_topics(
-    operation_id: &OperationId,
-    required_topics: &[String],
-    completions: Option<&Vec<IndexedTopicsList>>,
-    independent: Option<&Vec<IndexedTopicObservation>>,
-    command_window: Option<AdminCommandWindow>,
-    violations: &mut Vec<Violation>,
-) {
-    let required: BTreeSet<&str> = required_topics.iter().map(String::as_str).collect();
-    let independently_present: BTreeSet<&str> = independent
-        .into_iter()
-        .flatten()
-        .filter(|value| value.exists && required.contains(value.topic.as_str()))
-        .map(|value| value.topic.as_str())
-        .collect();
-    let public = completions
-        .filter(|values| values.len() == 1)
-        .and_then(|values| values.first());
-    let independent_matches = independent.is_some_and(|values| {
-        values.len() == required.len()
-            && independently_present.len() == required.len()
-            && public.is_some_and(|public| {
-                values.iter().all(|value| {
-                    immediate_after_public(
-                        command_window,
-                        public.history_sequence,
-                        value.history_sequence,
-                    )
-                })
-            })
-    });
-    let public_matches = public.is_some_and(|value| {
-        strictly_sorted(&value.topics)
-            && required_topics
-                .iter()
-                .all(|topic| value.topics.binary_search(topic).is_ok())
-            && public_after_command(command_window, value.history_sequence)
-    });
-    if public_matches && independent_matches {
-        return;
-    }
-    violations.push(violation(
-        "ADMIN-004",
-        format!(
-            "admin operation {operation_id} expected one sorted topic list containing independently present topics {required_topics:?}; independently present {independently_present:?}"
         ),
         Some(operation_id.clone()),
         evidence(
@@ -268,10 +215,6 @@ fn offset_evidence(
                 .map(|value| format!("broker-state-observation:{}", value.observation)),
         )
         .collect()
-}
-
-fn strictly_sorted(values: &[String]) -> bool {
-    values.windows(2).all(|pair| pair[0] < pair[1])
 }
 
 fn evidence<'a>(

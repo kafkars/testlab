@@ -10,8 +10,8 @@ use super::{
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 116);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 119);
+    assert_eq!(PROTOCOL_VERSION, 117);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 120);
 }
 
 #[test]
@@ -73,6 +73,7 @@ fn list_topics_command_excludes_required_topics() {
         client_id: client(),
         operation_id: operation("admin-topics-1"),
         include_internal: false,
+        include_authorized_operations: true,
         required_topics: vec!["records".to_owned()],
         timeout_ms: 1_000,
     });
@@ -80,6 +81,7 @@ fn list_topics_command_excludes_required_topics() {
         client_id: client(),
         operation_id: operation("admin-topics-1"),
         include_internal: false,
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     });
 
@@ -90,6 +92,7 @@ fn list_topics_command_excludes_required_topics() {
     assert!(action.contains("required_topics = [\"records\"]"));
     assert!(command.contains("kind = \"list_topics\""));
     assert!(command.contains("include_internal = false"));
+    assert!(command.contains("include_authorized_operations = true"));
     assert!(!command.contains("required_topics"));
 }
 
@@ -136,7 +139,7 @@ fn admin_query_events_report_only_observed_facts() {
     }));
     let listed = encode(&AdapterEvent::TopicsListed(AdminTopicsListing {
         operation_id: operation("admin-topics-1"),
-        topics: vec!["records".to_owned()],
+        outcomes: Vec::new(),
     }));
     let offset = encode(&AdapterEvent::OffsetListed(AdminOffsetListing {
         operation_id: operation("admin-offset-1"),
@@ -150,7 +153,7 @@ fn admin_query_events_report_only_observed_facts() {
     assert!(described.contains("partitions = [0, 1]"));
     assert!(!described.contains("expected_partitions"));
     assert!(listed.contains("kind = \"topics_listed\""));
-    assert!(listed.contains("topics = [\"records\"]"));
+    assert!(listed.contains("outcomes = []"));
     assert!(!listed.contains("required_topics"));
     assert!(offset.contains("kind = \"offset_listed\""));
     assert!(offset.contains("offset = 3"));

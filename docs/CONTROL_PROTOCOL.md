@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v116 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v119 and evidence schema v105.
+Protocol v117 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v120 and evidence schema v106.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -678,11 +678,16 @@ operation or one complete `DescribeTopicPartitions` page. Both must report the
 exact declared partition indices, which an immediate independent metadata query
 confirms. The page path fails closed if its 10,000-partition response limit
 returns a continuation cursor; hidden pagination is forbidden. An all-topic
-listing preserves the public byte-sorted unique order and must contain the
-declared required topics, whose existence is likewise established by
-independent metadata observations. These singleton and listing checks do not
-claim exhaustive topic listing, internal-topic filtering, topic IDs, or replica
-topology.
+listing carries the exact `include_internal` and
+`include_authorized_operations` options. Its single completion preserves one
+byte-sorted unique outcome per returned name, including the full successful
+topic ID, internal marker, authorization bitfield, and error-aware partition
+description, or one normalized resource error. Every required topic must be a
+success whose partition topology exactly matches its immediate independent
+metadata observation, and every successful outcome has authorization metadata
+if and only if requested. This check does not claim exhaustive topic listing,
+behavioral internal-topic filtering, independently verified topic IDs or
+internal markers, or replica topology.
 
 `describe_topics` carries two through 32 unique scenario-owned topic names in
 caller order, the exact `include_authorized_operations` selection, and either
@@ -1207,6 +1212,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v116 is an exact semantic contract. New capabilities may be declared
+Protocol v117 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

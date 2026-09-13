@@ -99,6 +99,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 &c.operation_id,
                 c.timeout_ms,
             ) && a.include_internal == c.include_internal
+                && a.include_authorized_operations == c.include_authorized_operations
         }
         (ScenarioAction::ListOffsets(a), AdapterCommand::ListOffsets(c)) => {
             same_topic(

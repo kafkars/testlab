@@ -47,7 +47,7 @@ fn list_topics_completion_checks_operation_identity_only() {
         expected
             .classify(&AdapterEvent::TopicsListed(AdminTopicsListing {
                 operation_id,
-                topics: Vec::new(),
+                outcomes: Vec::new(),
             }))
             .unwrap_or_else(|error| panic!("list topics classification: {error}")),
         EventDisposition::Complete

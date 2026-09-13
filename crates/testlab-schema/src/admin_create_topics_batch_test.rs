@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn batch_versions_and_ordered_wire_facts_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 116);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 119);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 105);
+    assert_eq!(PROTOCOL_VERSION, 117);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 120);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 106);
 
     let action = ScenarioAction::CreateTopicsBatch(batch_action());
     let command = AdapterCommand::CreateTopicsBatch(batch_command());

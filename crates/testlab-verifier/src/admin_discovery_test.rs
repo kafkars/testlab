@@ -2,10 +2,10 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminTopicDescription,
-    AdminTopicsListing, BrokerObservation, BrokerPartitionOffsets, BrokerStateObservation,
-    BrokerTopicState, DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload,
-    ListOffsetsAction, ListOffsetsCommand, ListTopicsAction, ListTopicsCommand, OperationId,
-    ScenarioAction, TerminalStatus, VisibilityExpectation,
+    BrokerObservation, BrokerPartitionOffsets, BrokerStateObservation, BrokerTopicState,
+    DescribeTopicAction, DescribeTopicCommand, HistoryEntry, HistoryPayload, ListOffsetsAction,
+    ListOffsetsCommand, ListTopicsCommand, OperationId, ScenarioAction, TerminalStatus,
+    VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -14,6 +14,8 @@ use crate::verify_fixture::{command, event, scenario, step};
 
 #[path = "admin_timestamp_offset_verifier_test.rs"]
 mod timestamp_tests;
+#[path = "admin_topic_listing_test.rs"]
+mod topic_listing_tests;
 
 #[test]
 fn exact_description_matches_independent_metadata() {
@@ -67,59 +69,6 @@ fn description_missing_independent_partition_fails() {
     ];
 
     assert_contract(&admin_violations(&scenario, &history, &[]), "ADMIN-003");
-}
-
-#[test]
-fn topic_list_requires_sorted_public_membership_and_independent_marker() {
-    let operation_id = operation("topics-1");
-    let scenario = admin_scenario(ScenarioAction::ListTopics(ListTopicsAction {
-        client_id: client(),
-        operation_id: operation_id.clone(),
-        include_internal: false,
-        required_topics: vec!["marker".to_owned()],
-        timeout_ms: 1_000,
-    }));
-    let good = [event(
-        1,
-        AdapterEvent::TopicsListed(AdminTopicsListing {
-            operation_id: operation_id.clone(),
-            topics: vec!["another".to_owned(), "marker".to_owned()],
-        }),
-    )];
-    let marker = topic_state(2, operation_id.clone(), "marker", vec![0]);
-    assert!(admin_violations(&scenario, &[good[0].clone(), marker.clone()], &[]).is_empty());
-    assert_contract(&admin_violations(&scenario, &good, &[]), "ADMIN-004");
-
-    let duplicate = [
-        event(
-            1,
-            AdapterEvent::TopicsListed(AdminTopicsListing {
-                operation_id: operation_id.clone(),
-                topics: vec!["marker".to_owned()],
-            }),
-        ),
-        event(
-            2,
-            AdapterEvent::TopicsListed(AdminTopicsListing {
-                operation_id: operation_id.clone(),
-                topics: vec!["marker".to_owned()],
-            }),
-        ),
-        topic_state(3, operation_id.clone(), "marker", vec![0]),
-    ];
-    assert_contract(&admin_violations(&scenario, &duplicate, &[]), "ADMIN-004");
-
-    let unsorted = [
-        event(
-            1,
-            AdapterEvent::TopicsListed(AdminTopicsListing {
-                operation_id: operation_id.clone(),
-                topics: vec!["marker".to_owned(), "another".to_owned()],
-            }),
-        ),
-        marker,
-    ];
-    assert_contract(&admin_violations(&scenario, &unsorted, &[]), "ADMIN-004");
 }
 
 #[test]
@@ -222,6 +171,7 @@ fn admin_command(action: &ScenarioAction) -> AdapterCommand {
             client_id: value.client_id.clone(),
             operation_id: value.operation_id.clone(),
             include_internal: value.include_internal,
+            include_authorized_operations: value.include_authorized_operations,
             timeout_ms: value.timeout_ms,
         }),
         ScenarioAction::ListOffsets(value) => AdapterCommand::ListOffsets(ListOffsetsCommand {

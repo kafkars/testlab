@@ -195,6 +195,11 @@ Protocol v116, scenario schema v119, and evidence schema v105 apply the same
 separation to cluster description. The exact request and returned authorization
 bitfield remain public evidence, while an immediate metadata snapshot remains
 the independent authority for cluster identity and broker membership.
+Protocol v117, scenario schema v120, and evidence schema v106 retain full
+all-topic listing outcomes and the exact authorization-bitfield option. The
+public result proves option-specific authorization metadata and error-aware
+partition detail, while immediate metadata independently anchors every required
+topic's exact topology; internal-topic filtering remains unclaimed.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

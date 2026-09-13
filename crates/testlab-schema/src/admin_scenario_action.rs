@@ -67,6 +67,8 @@ pub struct ListTopicsAction {
     pub operation_id: OperationId,
     /// Whether broker-marked internal topics enter the public result.
     pub include_internal: bool,
+    /// Whether Kafka must return the authorized-operation bitfield per listed topic.
+    pub include_authorized_operations: bool,
     /// Topics the verifier requires in the public result.
     pub required_topics: Vec<String>,
     /// Complete public operation bound.

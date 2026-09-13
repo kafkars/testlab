@@ -1,4 +1,4 @@
-schema_version = 119
+schema_version = 120
 id = "kafka.admin-list-groups"
 title = "packaged admin filters a consumer group through the generic group API"
 description = "After a classic group publicly consumes and commits one exact record, the packaged client's generic listing selects exact Stable, classic, and consumer protocol filters, retains that group, and is corroborated by an independent query."

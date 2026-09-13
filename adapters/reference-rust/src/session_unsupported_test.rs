@@ -29,6 +29,7 @@ fn read_only_admin_commands_require_admin_capability() {
             client_id: client_id.clone(),
             operation_id: operation_id.clone(),
             include_internal: false,
+            include_authorized_operations: false,
             timeout_ms: 1_000,
         }),
         AdapterCommand::ListOffsets(ListOffsetsCommand {

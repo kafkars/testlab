@@ -54,7 +54,7 @@ pub(crate) struct IndexedTopicDescription {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct IndexedTopicsList {
     pub(crate) history_sequence: u64,
-    pub(crate) topics: Vec<String>,
+    pub(crate) outcomes: Vec<testlab_schema::AdminListedTopicOutcome>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -2,7 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AdminOffsetSelector, ClientId, OperationId, TopicDescriptionApi};
+use crate::{
+    AdminOffsetSelector, AdminTopicDescriptionValue, ClientId, OperationId, TopicDescriptionApi,
+};
 
 /// Normalized public error required for a duplicate topic creation.
 pub const TOPIC_ALREADY_EXISTS_ERROR_CODE: &str = "broker:broker_36";
@@ -129,6 +131,8 @@ pub struct ListTopicsCommand {
     pub operation_id: OperationId,
     /// Whether broker-internal topics are included.
     pub include_internal: bool,
+    /// Whether Kafka must return the authorized-operation bitfield per listed topic.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -176,14 +180,26 @@ pub struct AdminTopicDescription {
     pub partitions: Vec<i32>,
 }
 
+/// One canonically positioned outcome from an all-topic listing.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdminListedTopicOutcome {
+    /// Exact topic key returned by Kafka.
+    pub topic: String,
+    /// Full public description on success.
+    pub description: Option<AdminTopicDescriptionValue>,
+    /// Stable normalized topic error on failure.
+    pub error_code: Option<String>,
+}
+
 /// Public result for one all-topic listing.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdminTopicsListing {
     /// Stable admin operation identity.
     pub operation_id: OperationId,
-    /// Sorted topic names reported by the adapter.
-    pub topics: Vec<String>,
+    /// Byte-sorted unique topic outcomes reported by the adapter.
+    pub outcomes: Vec<AdminListedTopicOutcome>,
 }
 
 /// Public result for one exact topic-partition offset.

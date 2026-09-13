@@ -80,8 +80,8 @@ category = "admin"
 
 [[contract]]
 id = "ADMIN-004"
-title = "Admin topic listing contains required observed topics"
-statement = "Each requested public all-topic listing emits exactly one byte-sorted unique completion containing every declared required topic whose existence is confirmed by an immediate independent metadata query."
+title = "Admin topic listing retains requested detail"
+statement = "Each requested public all-topic listing preserves its exact internal-topic and authorization-bitfield options and emits one byte-sorted unique set of detailed outcomes; every success has authorization metadata exactly when requested, and every required topic's error-free partition topology matches an immediate independent metadata query."
 category = "admin"
 
 [[contract]]

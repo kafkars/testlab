@@ -34,6 +34,7 @@ fn admin_lists_require_unique_valid_resource_names() {
             client_id: client(),
             operation_id: operation("admin-topics-list"),
             include_internal: false,
+            include_authorized_operations: false,
             required_topics: vec!["records".to_owned(), "records".to_owned()],
             timeout_ms: 1_000,
         }),

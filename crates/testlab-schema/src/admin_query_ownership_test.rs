@@ -162,6 +162,7 @@ fn list_topics(
         client_id,
         operation_id,
         include_internal: false,
+        include_authorized_operations: false,
         required_topics,
         timeout_ms: 1_000,
     })
