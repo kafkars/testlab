@@ -1,4 +1,4 @@
-schema_version = 150
+schema_version = 151
 id = "kafka.admin-client-quota-lifecycle"
 title = "packaged admin preserves strict and non-strict client-quota descriptions"
 description = "The packaged client's public quota operations set, describe with paired strict and non-strict filters, validate without mutation, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."

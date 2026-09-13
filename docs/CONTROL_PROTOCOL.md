@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v146 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v150 and evidence schema v136.
+Protocol v147 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v151 and evidence schema v137.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -14,6 +14,11 @@ Lifecycle verdicts join each creation, readiness, assignment, flush, close,
 shutdown, and finish event to that exact originating command. Repeating a
 public operation on one resource therefore requires one completion per command;
 resource-level event totals are not a substitute for correlation.
+The scenario's readiness, producer flush and close, client shutdown, assigned
+and group consumer close, group abandonment, and transactional-producer close
+requests must also equal the complete issued command stream in scenario order.
+This makes missing, substituted, reordered, or duplicate lifecycle requests a
+contract failure even when every command that remains has a terminal event.
 
 Client creation may require one exact broker-issued cluster ID when the adapter
 advertises `expected_cluster_identity`. The adapter must configure that value
@@ -1339,6 +1344,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v146 is an exact semantic contract. New capabilities may be declared
+Protocol v147 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

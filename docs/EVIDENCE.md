@@ -345,6 +345,10 @@ Protocol v146, scenario schema v150, and evidence schema v136 add exact baseline
 client creation commands. CLIENT-002 preserves every client identity and
 optional expected cluster-ID guard exactly once in scenario order while the
 expected failure code remains harness-only.
+Protocol v147, scenario schema v151, and evidence schema v137 add the exact
+lifecycle request stream. LIFE-017 preserves readiness, flush, handle-close,
+group-abandonment, and client-shutdown command kinds, resource identities,
+multiplicity, and scenario order before terminal correlation applies.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

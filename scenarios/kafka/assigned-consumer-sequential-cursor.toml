@@ -1,4 +1,4 @@
-schema_version = 150
+schema_version = 151
 id = "kafka.assigned-consumer-sequential-cursor"
 title = "one direct assignment advances through successive records"
 description = "A packaged directly assigned consumer retains one public cursor across three receive calls while repeated producer flushes and exact broker offsets remain independently correlated."

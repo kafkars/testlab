@@ -1313,3 +1313,9 @@ id = "LIFE-016"
 title = "Group consumer abandonment settles exactly once"
 statement = "Each requested group-consumer owner abandonment drops the exact public handle without requesting member leave and emits exactly one matching event."
 category = "lifecycle"
+
+[[contract]]
+id = "LIFE-017"
+title = "Lifecycle requests preserve exact caller input"
+statement = "Every client readiness, producer flush or close, client shutdown, assigned or group consumer close, group abandonment, and transactional-producer close command appears exactly once in scenario order with its exact resource identity."
+category = "lifecycle"

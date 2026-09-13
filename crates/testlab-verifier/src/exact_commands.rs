@@ -20,6 +20,8 @@ mod group_consumer_registration;
 mod group_receive_command;
 #[path = "group_receive_set_command.rs"]
 mod group_receive_set_command;
+#[path = "lifecycle_request_command.rs"]
+mod lifecycle_request_command;
 #[path = "producer_configuration_method.rs"]
 mod producer_configuration_method;
 #[path = "producer_operation_command.rs"]
@@ -44,6 +46,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     group_consumer_registration::verify(scenario, index, violations);
     group_receive_command::verify(scenario, index, violations);
     group_receive_set_command::verify(scenario, index, violations);
+    lifecycle_request_command::verify(scenario, index, violations);
     share_consumer_registration::verify(scenario, index, violations);
     share_lifecycle_command::verify(scenario, index, violations);
     share_receive_command::verify(scenario, index, violations);

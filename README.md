@@ -155,6 +155,9 @@ before drop, redelivery, or close-certainty evidence applies.
 Every baseline client creation likewise preserves its exact identity, optional
 expected cluster-ID guard, multiplicity, and scenario order while the expected
 failure code remains harness-only.
+Repeated readiness, flush, handle-close, group-abandonment, and client-shutdown
+requests likewise retain their exact command kind, resource identity,
+multiplicity, and scenario order before correlated terminal evidence applies.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source
