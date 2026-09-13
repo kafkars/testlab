@@ -1,4 +1,4 @@
-schema_version = 149
+schema_version = 150
 id = "kafka.admin-list-offset-for-timestamp"
 title = "packaged admin selects an independently evidenced timestamp offset"
 description = "After two explicitly timestamped records reach one partition, the packaged client's public timestamp ListOffsets query selects the second record at offset 1 and returns its exact independently observed timestamp; neither earliest nor latest selection can satisfy the same evidence."

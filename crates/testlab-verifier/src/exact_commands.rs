@@ -12,6 +12,8 @@ mod assigned_consumer_configuration_command;
 mod assigned_consumer_receive_command;
 #[path = "child_handle_registration.rs"]
 mod child_handle_registration;
+#[path = "client_creation_command.rs"]
+mod client_creation_command;
 #[path = "group_consumer_registration.rs"]
 mod group_consumer_registration;
 #[path = "group_receive_command.rs"]
@@ -38,6 +40,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     assigned_consumer_configuration_command::verify(scenario, index, violations);
     assigned_consumer_receive_command::verify(scenario, index, violations);
     child_handle_registration::verify(scenario, index, violations);
+    client_creation_command::verify(scenario, index, violations);
     group_consumer_registration::verify(scenario, index, violations);
     group_receive_command::verify(scenario, index, violations);
     group_receive_set_command::verify(scenario, index, violations);

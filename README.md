@@ -152,6 +152,9 @@ record evidence applies.
 Every explicit Share batch drop and consumer close preserves its command kind,
 consumer, applicable retained-batch identity, multiplicity, and scenario order
 before drop, redelivery, or close-certainty evidence applies.
+Every baseline client creation likewise preserves its exact identity, optional
+expected cluster-ID guard, multiplicity, and scenario order while the expected
+failure code remains harness-only.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

@@ -19,6 +19,12 @@ statement = "A normalized public client API failure produces valid failing evide
 category = "client"
 
 [[contract]]
+id = "CLIENT-002"
+title = "Baseline clients preserve exact construction input"
+statement = "Every baseline client creation command appears exactly once in scenario order, preserving its client identity and optional expected cluster-ID guard while the expected failure code remains harness-only."
+category = "client"
+
+[[contract]]
 id = "METRICS-001"
 title = "Client metrics observations retain exact ownership"
 statement = "Each requested public metrics operation has one issued command and one correlated snapshot naming the exact client and operation."

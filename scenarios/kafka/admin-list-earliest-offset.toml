@@ -1,4 +1,4 @@
-schema_version = 149
+schema_version = 150
 id = "kafka.admin-list-earliest-offset"
 title = "packaged admin lists the independently evidenced earliest offset"
 description = "After two acknowledged records reach one isolated partition, the packaged client's public earliest-offset query returns offset 0, which is independently observed and differs from the partition's latest offset."

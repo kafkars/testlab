@@ -341,6 +341,10 @@ Protocol v145, scenario schema v149, and evidence schema v135 add exact Share
 lifecycle commands. SHARE-014 preserves every explicit batch drop and consumer
 close, including command kind, consumer, applicable retained-batch identity,
 multiplicity, and scenario order before terminal evidence applies.
+Protocol v146, scenario schema v150, and evidence schema v136 add exact baseline
+client creation commands. CLIENT-002 preserves every client identity and
+optional expected cluster-ID guard exactly once in scenario order while the
+expected failure code remains harness-only.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
