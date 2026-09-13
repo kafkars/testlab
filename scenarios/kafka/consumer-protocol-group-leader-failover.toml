@@ -1,0 +1,146 @@
+schema_version = 156
+id = "kafka.consumer-protocol-group-leader-failover"
+title = "KIP-848 Fetch recovers across an observed partition leader election"
+description = "A KIP-848 member commits a baseline, then the same live member commits an exact new record through a distinct replacement partition leader while the independently selected original owner remains offline."
+timeout_ms = 210000
+requires = ["producer", "consumer_protocol_groups", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-producer-client"
+kind = "create_client"
+client_id = "producer-client"
+
+[[steps]]
+id = "await-producer-client-ready"
+kind = "await_client_ready"
+client_id = "producer-client"
+
+[[steps]]
+id = "create-consumer-client"
+kind = "create_client"
+client_id = "consumer-client"
+
+[[steps]]
+id = "await-consumer-client-ready"
+kind = "await_client_ready"
+client_id = "consumer-client"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "producer-client"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-before-failover"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "consumer-protocol-before-failover"
+
+[steps.record]
+topic = "testlab-kafkars-consumer-protocol-leader-failover"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "consumer-protocol-before-leader-failover" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "consumer-protocol-before-failover" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-consumer-protocol-member"
+kind = "create_group_consumer"
+client_id = "consumer-client"
+consumer_id = "consumer-protocol-consumer"
+group_id = "testlab-consumer-protocol-leader-failover-group"
+topics = ["testlab-kafkars-consumer-protocol-leader-failover"]
+protocol = "consumer"
+
+[[steps]]
+id = "receive-before-failover"
+kind = "group_receive"
+consumer_id = "consumer-protocol-consumer"
+receive_id = "consumer-protocol-receive-before-failover"
+expected_operation_id = "consumer-protocol-before-failover"
+timeout_ms = 45000
+
+[[steps]]
+id = "stop-partition-leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-consumer-protocol-leader-failover"
+partition = 0
+
+[[steps]]
+id = "send-after-failover"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "consumer-protocol-after-failover"
+
+[steps.record]
+topic = "testlab-kafkars-consumer-protocol-leader-failover"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "consumer-protocol-after-leader-failover" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "consumer-protocol-after-failover" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "receive-after-failover"
+kind = "group_receive"
+consumer_id = "consumer-protocol-consumer"
+receive_id = "consumer-protocol-receive-after-failover"
+expected_operation_id = "consumer-protocol-after-failover"
+timeout_ms = 60000
+
+[[steps]]
+id = "restore-partition-leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-consumer-protocol-leader-failover"
+partition = 0
+
+[[steps]]
+id = "close-consumer-protocol-member"
+kind = "close_group_consumer"
+consumer_id = "consumer-protocol-consumer"
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "shutdown-consumer-client"
+kind = "shutdown_client"
+client_id = "consumer-client"
+
+[[steps]]
+id = "shutdown-producer-client"
+kind = "shutdown_client"
+client_id = "producer-client"
+
+[[assertions]]
+operation_id = "consumer-protocol-before-failover"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "consumer-protocol-after-failover"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

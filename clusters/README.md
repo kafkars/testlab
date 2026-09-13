@@ -22,9 +22,9 @@ placement scenarios prove real moves rather than no-op assignments.
 `packs/kafkars-broker-role-failover.toml` targets independently discovered
 partition leaders, controllers, classic and KIP-848 group coordinators, and
 transaction coordinators on the three-broker plaintext topology. Partition
-leader replacement requires producer plus directly assigned and classic
-consumer progress before restoration. Leader discovery uses librdkafka and
-remains security-profile aware. The
+leader replacement requires producer plus directly assigned, classic, and
+KIP-848 consumer progress before restoration. Leader discovery uses librdkafka
+and remains security-profile aware. The
 bounded Metadata and FindCoordinator probes used for controller and coordinator
 selection are intentionally plaintext-only; those scenarios do not claim TLS
 or SASL role-targeting coverage.
