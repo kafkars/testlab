@@ -30,6 +30,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         .or_else(|| translate_group(action))
 }
 
+#[allow(clippy::too_many_lines, reason = "exhaustive topic Admin translation")]
 fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
         ScenarioAction::CreateTopic(action) => (

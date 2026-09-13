@@ -37,7 +37,7 @@ fn action(operations: Vec<BatchRecord>) -> ScenarioAction {
             .unwrap_or_else(|error| panic!("producer ID: {error}")),
         transaction_id: operation("transaction-1"),
         operations,
-        method: Default::default(),
+        method: testlab_schema::TransactionSendMethod::default(),
         disposition: TransactionDisposition::AdminPartitionAbort,
         topic_identity_operation_id: None,
         timeout_ms: 1_000,

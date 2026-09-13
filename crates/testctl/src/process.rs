@@ -107,7 +107,7 @@ impl AdapterProcess {
     ) -> Result<Option<AdapterEventEnvelope>, RunFailure> {
         let remaining = deadline.remaining()?;
         match self.readers.events.recv_timeout(remaining) {
-            Ok(ProcessMessage::Event(event)) => Ok(Some(event)),
+            Ok(ProcessMessage::Event(event)) => Ok(Some(*event)),
             Ok(ProcessMessage::Error(diagnostic)) => {
                 Err(RunFailure::protocol("adapter_output_invalid", diagnostic))
             }
@@ -196,7 +196,7 @@ impl Drop for AdapterProcess {
 
 #[derive(Debug)]
 pub(crate) enum ProcessMessage {
-    Event(AdapterEventEnvelope),
+    Event(Box<AdapterEventEnvelope>),
     Error(String),
     Eof,
 }

@@ -1,7 +1,8 @@
 //! Max-timestamp admin targets retain exact commands and independent bounds.
 
 use testlab_schema::{
-    AdminOffsetSelector, ClientId, ListOffsetsAction, OperationId, ScenarioAction,
+    AdminOffsetSelector, AdminReadIsolation, ClientId, ListOffsetsAction, OperationId,
+    ScenarioAction,
 };
 
 use crate::observer_admin_target::AdminTarget;
@@ -15,7 +16,7 @@ fn max_timestamp_maps_to_an_exact_command_and_immediate_watermarks() {
         topic: "orders".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::MaxTimestamp,
-        read_isolation: Default::default(),
+        read_isolation: AdminReadIsolation::default(),
         timestamp_millis: None,
         expected_offset: Some(0),
         expected_error_code: None,

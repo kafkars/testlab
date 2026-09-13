@@ -9,6 +9,10 @@ use testlab_schema::{
 
 use crate::runner_protocol::ExpectedEvent;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive plural group Admin translation"
+)]
 pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
         ScenarioAction::ListConsumerGroupOffsetsBatch(action) => (

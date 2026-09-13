@@ -13,6 +13,10 @@ pub(crate) enum EventDisposition {
     Complete,
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive core event classification"
+)]
 pub(super) fn classify_core(
     expected: &ExpectedEvent,
     event: &AdapterEvent,

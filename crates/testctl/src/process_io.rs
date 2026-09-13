@@ -106,7 +106,7 @@ fn read_stdout(stdout: ChildStdout, sender: &Sender<ProcessMessage>) {
                 return;
             }
         };
-        send(sender, ProcessMessage::Event(event));
+        send(sender, ProcessMessage::Event(Box::new(event)));
     }
 }
 

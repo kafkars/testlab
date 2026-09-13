@@ -4,6 +4,10 @@ use testlab_schema::{AdapterCommand, ScenarioAction};
 
 use crate::runner_protocol::ExpectedEvent;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive consumer action translation"
+)]
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     let pair = match action {
         ScenarioAction::CreateAssignedConsumer {

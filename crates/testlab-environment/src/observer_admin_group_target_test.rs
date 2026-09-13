@@ -131,7 +131,7 @@ fn duplicate_group_listing_targets_are_rejected() {
     let action = ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("list-groups"),
-        api: Default::default(),
+        api: GroupListingApi::default(),
         state_filters: Vec::new(),
         group_type_filters: Vec::new(),
         protocol_type_filters: Vec::new(),

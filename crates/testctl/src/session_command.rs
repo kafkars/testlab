@@ -186,6 +186,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         }
     })
 }
+#[allow(clippy::too_many_lines, reason = "exhaustive transaction translation")]
 fn transaction(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     let pair = match action {
         ScenarioAction::CreateTransactionalProducer {

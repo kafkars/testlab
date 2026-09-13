@@ -1,9 +1,9 @@
 //! Topic target tests pin exact correlation and independent topology expectations.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreateTopicAction,
-    DeleteRecordsAction, DeleteTopicAction, DescribeTopicAction, ListOffsetsAction, OperationId,
-    ScenarioAction, TopicDescriptionPagination,
+    AdapterCommand, AdminOffsetSelector, AdminReadIsolation, ClientId, CreatePartitionsAction,
+    CreateTopicAction, DeleteRecordsAction, DeleteTopicAction, DescribeTopicAction,
+    ListOffsetsAction, OperationId, ScenarioAction, TopicDescriptionPagination,
 };
 
 use crate::observer_admin_target::AdminTarget;
@@ -146,7 +146,7 @@ fn expected_admin_failures_map_to_immediate_broker_truth() {
         topic: "offsets".to_owned(),
         partition: 1,
         position: AdminOffsetSelector::Latest,
-        read_isolation: Default::default(),
+        read_isolation: AdminReadIsolation::default(),
         timestamp_millis: None,
         expected_offset: None,
         expected_error_code,
@@ -228,7 +228,7 @@ fn timestamp_offset_maps_to_an_exact_command_and_bounding_watermarks() {
         topic: "orders".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Timestamp,
-        read_isolation: Default::default(),
+        read_isolation: AdminReadIsolation::default(),
         timestamp_millis: Some(1_700_000_000_123),
         expected_offset: Some(1),
         expected_error_code: None,

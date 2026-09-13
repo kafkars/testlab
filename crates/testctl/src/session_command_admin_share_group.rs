@@ -9,6 +9,10 @@ use testlab_schema::{
 
 use crate::runner_protocol::ExpectedEvent;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive Share-group Admin translation"
+)]
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     Some(match action {
         ScenarioAction::DescribeShareGroup(value) => (
