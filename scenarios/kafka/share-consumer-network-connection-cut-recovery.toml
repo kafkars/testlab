@@ -1,4 +1,4 @@
-schema_version = 155
+schema_version = 156
 id = "kafka.share-consumer-network-connection-cut-recovery"
 title = "packaged Share consumer recovers after an external connection cut"
 description = "A Share member on an independent public client accepts an exact baseline batch before the external proxy cuts all broker connections, then the same member reconnects, receives the record produced after that observed cut, and accepts it."

@@ -367,6 +367,11 @@ Protocol v151, scenario schema v155, and evidence schema v141 add exact public
 consumer progress after an independently recorded network recovery control.
 NET-005 preserves the receive kind and identity, exact command multiplicity,
 nonempty completion, ordering after the control, and successful group commit.
+Protocol v152, scenario schema v156, and evidence schema v142 add exact consumer
+progress inside independently observed partition-leader replacement windows.
+FAULT-004 preserves each relevant assigned, group, or Share receive command and
+its target-partition completion after replacement election and before original
+owner restoration; group progress must commit.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1268,8 +1273,12 @@ the partition's full ISR, then records the still-current leader as an
 requires matching public progress after the replacement election and before
 the original owner is restored: an acknowledged produce, successful topic
 creation, committed group receive, or committed transaction according to the
-targeted role. Adapter success cannot establish the role owner or election,
-and environment observations cannot manufacture public client progress.
+targeted role. FAULT-004 additionally binds every declared assigned, group, or
+Share receive for a disrupted partition to one exact command and a public
+record from that partition inside the independently observed replacement-owner
+window; group progress must commit. Adapter success cannot establish the role
+owner or election, and environment observations cannot manufacture public
+client progress.
 
 POLICY-001 requires one exact ordered alter, query, and normalized observation
 chain for both policy application and removal. POLICY-002 binds an active deny

@@ -9,16 +9,33 @@ use crate::group_recovery::disruption_target;
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[path = "broker_role_consumer_progress.rs"]
+mod consumer_progress;
+#[cfg(test)]
+#[path = "broker_role_consumer_progress_test.rs"]
+mod consumer_progress_test;
+
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
-    for target in scenario.steps.iter().filter_map(|step| match &step.action {
-        ScenarioAction::StopBrokerRole { target, .. } => Some(target),
-        _ => None,
-    }) {
-        verify_target(target, index, violations);
+    for (position, target) in scenario
+        .steps
+        .iter()
+        .enumerate()
+        .filter_map(|(position, step)| match &step.action {
+            ScenarioAction::StopBrokerRole { target, .. } => Some((position, target)),
+            _ => None,
+        })
+    {
+        verify_target(scenario, position, target, index, violations);
     }
 }
 
-fn verify_target(target: &BrokerRoleTarget, index: &HistoryIndex, violations: &mut Vec<Violation>) {
+fn verify_target(
+    scenario: &Scenario,
+    position: usize,
+    target: &BrokerRoleTarget,
+    index: &HistoryIndex,
+    violations: &mut Vec<Violation>,
+) {
     let before = facts(index, target, "before_stop");
     let after = facts(index, target, "after_election");
     let exact_facts = before.len() == 1
@@ -80,6 +97,15 @@ fn verify_target(target: &BrokerRoleTarget, index: &HistoryIndex, violations: &m
         return;
     }
     let start_sequence = start.map_or(u64::MAX, |(sequence, _)| *sequence);
+    consumer_progress::verify(
+        scenario,
+        position,
+        target,
+        index,
+        after.sequence,
+        start_sequence,
+        violations,
+    );
     if !has_progress(target, index, after.sequence, start_sequence) {
         violations.push(violation(
             "FAULT-003",

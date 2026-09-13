@@ -817,6 +817,12 @@ statement = "Role-specific public progress completes after replacement election 
 category = "fault"
 
 [[contract]]
+id = "FAULT-004"
+title = "Consumer Fetch survives partition-leader replacement"
+statement = "Every assigned, group, or Share receive for the disrupted topic-partition between role stop and restore is issued exactly once and returns that partition through the public API after the independently observed replacement election and before original-owner restoration."
+category = "fault"
+
+[[contract]]
 id = "CONS-004"
 title = "Group receive proves the requested membership protocol"
 statement = "A group receive exposes a positive public classic generation or KIP-848 member epoch matching the scenario's requested protocol."

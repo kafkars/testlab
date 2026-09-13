@@ -1,8 +1,8 @@
 schema_version = 156
-id = "kafka.assigned-consumer-network-connection-cut-recovery"
-title = "packaged assigned consumer recovers after an external connection cut"
-description = "A directly assigned consumer on an independent public client reads an exact baseline record before the external proxy cuts all broker connections, then the same cursor owner reconnects and reads the record produced after that observed cut."
-timeout_ms = 120000
+id = "kafka.assigned-consumer-leader-failover"
+title = "assigned consumer recovers across an observed partition leader election"
+description = "Testlab independently stops the exact leader after a directly assigned consumer advances its cursor, then a distinct replacement serves the same public consumer an exact newly produced record while the original owner remains offline."
+timeout_ms = 180000
 requires = ["producer", "assigned_consumer", "lifecycle", "client_readiness"]
 
 [[steps]]
@@ -32,19 +32,18 @@ client_id = "producer-client"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-baseline"
+id = "send-before-failover"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "assigned-before-cut"
+operation_id = "assigned-before-failover"
 
 [steps.record]
-topic = "testlab-kafkars-network-assigned"
+topic = "testlab-kafkars-assigned-leader-failover"
 partition = 0
 sequence = 1
-key = { encoding = "utf8", data = "assigned-baseline" }
-value = { encoding = "utf8", data = "before-cut" }
+value = { encoding = "utf8", data = "before-leader-failover" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "assigned-before-cut" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "assigned-before-failover" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
@@ -58,48 +57,60 @@ consumer_id = "consumer-1"
 id = "assign-consumer"
 kind = "assign_beginning"
 consumer_id = "consumer-1"
-topic = "testlab-kafkars-network-assigned"
+topic = "testlab-kafkars-assigned-leader-failover"
 partition = 0
 
 [[steps]]
-id = "receive-baseline"
+id = "receive-before-failover"
 kind = "receive"
 consumer_id = "consumer-1"
-receive_id = "assigned-receive-before-cut"
-expected_operation_id = "assigned-before-cut"
+receive_id = "assigned-receive-before-failover"
+expected_operation_id = "assigned-before-failover"
 timeout_ms = 30000
 
 [[steps]]
-id = "cut-live-connections"
-kind = "cut_network_connections"
-operation_id = "assigned-network-cut-live-connections"
-broker_ordinal = 1
-timeout_ms = 5000
+id = "stop-partition-leader"
+kind = "stop_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-assigned-leader-failover"
+partition = 0
 
 [[steps]]
-id = "send-after-cut"
+id = "send-after-failover"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "assigned-after-cut"
+operation_id = "assigned-after-failover"
 
 [steps.record]
-topic = "testlab-kafkars-network-assigned"
+topic = "testlab-kafkars-assigned-leader-failover"
 partition = 0
 sequence = 2
-key = { encoding = "utf8", data = "assigned-recovered" }
-value = { encoding = "utf8", data = "after-cut" }
+value = { encoding = "utf8", data = "after-leader-failover" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "assigned-after-cut" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "assigned-after-failover" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
 ]
 
 [[steps]]
-id = "receive-after-cut"
+id = "receive-after-failover"
 kind = "receive"
 consumer_id = "consumer-1"
-receive_id = "assigned-receive-after-cut"
-expected_operation_id = "assigned-after-cut"
-timeout_ms = 30000
+receive_id = "assigned-receive-after-failover"
+expected_operation_id = "assigned-after-failover"
+timeout_ms = 45000
+
+[[steps]]
+id = "restore-partition-leader"
+kind = "restore_broker_role"
+timeout_ms = 45000
+
+[steps.target]
+role = "partition_leader"
+topic = "testlab-kafkars-assigned-leader-failover"
+partition = 0
 
 [[steps]]
 id = "close-consumer"
@@ -122,13 +133,13 @@ kind = "shutdown_client"
 client_id = "producer-client"
 
 [[assertions]]
-operation_id = "assigned-before-cut"
+operation_id = "assigned-before-failover"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"
 
 [[assertions]]
-operation_id = "assigned-after-cut"
+operation_id = "assigned-after-failover"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"

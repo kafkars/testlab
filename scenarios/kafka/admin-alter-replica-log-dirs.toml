@@ -1,4 +1,4 @@
-schema_version = 155
+schema_version = 156
 id = "kafka.admin-alter-replica-log-dirs"
 title = "packaged admin moves caller-ordered replicas between log directories"
 description = "After one replicated record is stable, two caller-ordered public alteration batches first settle selected replicas in the primary directory and then move both to the secondary directory; every completion is followed by independently polled Kafka CLI state, and a final public description agrees with a fresh CLI snapshot."
