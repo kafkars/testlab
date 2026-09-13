@@ -18,12 +18,34 @@ pub struct AlterClientQuotaAction {
     pub direction: BrokerQuotaDirection,
     /// Replacement rate, or none to remove the override.
     pub bytes_per_second: Option<u64>,
+    /// Whether Kafka validates the alteration without changing quota state.
+    pub validate_only: bool,
+    /// Exact current rate required after successful validation-only completion.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_current_bytes_per_second: Option<u64>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
 
 /// Wire payload for one exact named-user byte-rate replacement or removal.
-pub type AlterClientQuotaCommand = AlterClientQuotaAction;
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AlterClientQuotaCommand {
+    /// Existing client whose admin handle is used.
+    pub client_id: ClientId,
+    /// Stable identity for the complete public call.
+    pub operation_id: OperationId,
+    /// Exact non-default Kafka user quota entity.
+    pub user: String,
+    /// Producer or consumer byte-rate key.
+    pub direction: BrokerQuotaDirection,
+    /// Replacement rate, or none to remove the override.
+    pub bytes_per_second: Option<u64>,
+    /// Whether Kafka validates the alteration without changing quota state.
+    pub validate_only: bool,
+    /// Complete public operation bound.
+    pub timeout_ms: u64,
+}
 
 /// Scenario request for one exact named-user byte-rate description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

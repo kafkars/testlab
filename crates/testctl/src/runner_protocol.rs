@@ -227,6 +227,7 @@ pub(crate) enum ExpectedEvent {
     AclsDescribed(OperationId),
     AclsDeleted(OperationId),
     ClientQuotaAltered(OperationId),
+    ClientQuotaAlterationValidated(OperationId),
     ClientQuotaDescribed(OperationId),
     UserScramCredentialAltered(OperationId),
     UserScramCredentialDescribed(OperationId),

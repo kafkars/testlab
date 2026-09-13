@@ -230,6 +230,11 @@ partition-expansion placement. ADMIN-085 binds each caller-ordered new-partition
 broker list to the public assignment builder, keeps the exact prior count out of
 the wire command, and requires the complete expanded partition set plus exact
 replica order, a replica leader, and full ISR on three-broker release cells.
+Protocol v122, scenario schema v126, and evidence schema v112 add validation-only
+client-quota alteration. ADMIN-086 binds the exact proposed rate and validation
+flag to a distinct public completion, keeps the required current rate out of the
+wire command, and requires an immediate independent Kafka CLI observation of
+that unchanged prior rate.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -562,8 +567,10 @@ Kafka-CLI observations of presence or absence after each terminal. Public and
 independent ACL facts remain separate; neither stream can substitute for the
 other. ADMIN-033 and ADMIN-034 bind exact named-user byte-rate description,
 replacement, and removal terminals to immediate Kafka-CLI observations of the
-same user, key, and whole-number value or explicit absence. Public and
-independent client-quota facts remain separate. ADMIN-035 and ADMIN-036 bind
+same user, key, and whole-number value or explicit absence. ADMIN-086 separately
+binds the proposed validation-only alteration and its distinct public terminal
+to an immediate Kafka-CLI observation proving the exact prior rate did not
+change. Public and independent client-quota facts remain separate. ADMIN-035 and ADMIN-036 bind
 exact named-user SCRAM-SHA-256/512 description, upsert, and deletion terminals
 to immediate Kafka-CLI observations of the same non-secret mechanism,
 iterations, or absence. The password exists only in the adapter process

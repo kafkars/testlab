@@ -42,7 +42,55 @@ pub(crate) fn validate(
             "admin operation {operation_id} client-quota rate must be between 1 and {MAX_RATE}"
         ));
     }
+    if let ScenarioAction::AlterClientQuota(action) = action {
+        validate_alteration(action, problems);
+    }
     true
+}
+
+fn validate_alteration(action: &crate::AlterClientQuotaAction, problems: &mut Vec<String>) {
+    if action.validate_only != action.expected_current_bytes_per_second.is_some() {
+        problems.push(format!(
+            "admin operation {} must declare expected_current_bytes_per_second exactly when validate_only is true",
+            action.operation_id
+        ));
+    }
+    if action
+        .expected_current_bytes_per_second
+        .is_some_and(|value| !(1..=MAX_RATE).contains(&value))
+    {
+        problems.push(format!(
+            "admin operation {} current client-quota rate must be between 1 and {MAX_RATE}",
+            action.operation_id
+        ));
+    }
+    if action.validate_only && action.bytes_per_second == action.expected_current_bytes_per_second {
+        problems.push(format!(
+            "admin operation {} validation-only quota request must differ from the current rate",
+            action.operation_id
+        ));
+    }
+}
+
+pub(crate) fn validate_transitions(scenario: &crate::Scenario, problems: &mut Vec<String>) {
+    let mut rates = BTreeMap::new();
+    for step in &scenario.steps {
+        let ScenarioAction::AlterClientQuota(action) = &step.action else {
+            continue;
+        };
+        let key = (action.user.clone(), action.direction);
+        if action.validate_only {
+            let expected = action.expected_current_bytes_per_second;
+            if expected.is_none() || rates.get(&key) != Some(&expected) {
+                problems.push(format!(
+                    "admin operation {} validation-only quota requires a prior exact rate of {expected:?}",
+                    action.operation_id
+                ));
+            }
+        } else {
+            rates.insert(key, action.bytes_per_second);
+        }
+    }
 }
 
 fn safe_user(value: &str) -> bool {

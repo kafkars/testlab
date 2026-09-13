@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v121 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v125 and evidence schema v111.
+Protocol v122 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v126 and evidence schema v112.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -389,6 +389,7 @@ timeouts invalidate evidence.
 - `acls_described`
 - `acls_deleted`
 - `client_quota_altered`
+- `client_quota_alteration_validated`
 - `client_quota_described`
 - `user_scram_credential_altered`
 - `user_scram_credential_described`
@@ -813,12 +814,14 @@ the canonical type-tagged result plus immediate independent metadata.
 maps each name to Kafka resource type 16, and requires its exact canonical set
 to match one immediate pinned `kafka-client-metrics.sh --list` snapshot.
 
-Topic creation, partition increase, and incremental topic-configuration
-replacement carry an exact `validate_only` wire flag. Successful validation
+Topic creation, partition increase, incremental topic-configuration
+replacement, and client-quota alteration carry an exact `validate_only` wire flag. Successful validation
 uses a distinct correlated completion rather than the corresponding mutation
 completion. Immediate non-polling independent metadata or configuration reads
 must retain the exact pre-request state; partition and configuration validation
-also require a separately observed exact baseline. A finite snapshot does not
+also require a separately observed exact baseline. Client-quota validation keeps
+its scenario-only exact current rate off the wire and requires an immediate
+independent Kafka CLI read of that unchanged rate. A finite snapshot does not
 claim that Kafka could never mutate later, so the scenarios add later public
 description or real-mutation barriers that expose delayed effects.
 
@@ -1237,6 +1240,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v121 is an exact semantic contract. New capabilities may be declared
+Protocol v122 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

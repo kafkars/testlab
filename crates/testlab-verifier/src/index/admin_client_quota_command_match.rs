@@ -21,7 +21,13 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
 pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Option<bool> {
     let matches = match (action, command) {
         (ScenarioAction::AlterClientQuota(action), AdapterCommand::AlterClientQuota(command)) => {
-            action == command
+            action.client_id == command.client_id
+                && action.operation_id == command.operation_id
+                && action.user == command.user
+                && action.direction == command.direction
+                && action.bytes_per_second == command.bytes_per_second
+                && action.validate_only == command.validate_only
+                && action.timeout_ms == command.timeout_ms
         }
         (
             ScenarioAction::DescribeClientQuota(action),

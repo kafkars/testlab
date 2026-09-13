@@ -1,4 +1,4 @@
-schema_version = 125
+schema_version = 126
 id = "kafka.admin-transaction-pattern-filter"
 title = "packaged admin filters transactions by transactional ID pattern"
 description = "Two initialized and closed transactional producers establish one stable unfiltered baseline; Kafka 4.3 ListTransactions v2 must retain an exact regular-expression selector and return only the matching public row while a pinned CLI query proves the full fixture is unchanged."

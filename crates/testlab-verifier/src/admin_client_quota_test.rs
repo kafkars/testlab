@@ -4,9 +4,10 @@ use std::collections::BTreeSet;
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminClientQuotaAlteration, AdminClientQuotaDescription,
-    AlterClientQuotaAction, BrokerClientQuotaState, BrokerQuotaDirection, BrokerStateObservation,
-    Capability, ClientId, DescribeClientQuotaAction, DescribeClientQuotaCommand, HistoryEntry,
-    HistoryPayload, OperationId, SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId,
+    AlterClientQuotaAction, AlterClientQuotaCommand, BrokerClientQuotaState, BrokerQuotaDirection,
+    BrokerStateObservation, Capability, ClientId, DescribeClientQuotaAction,
+    DescribeClientQuotaCommand, HistoryEntry, HistoryPayload, OperationId, SCENARIO_SCHEMA_VERSION,
+    Scenario, ScenarioAction, ScenarioId,
 };
 
 use crate::admin::verify_admin;
@@ -42,7 +43,7 @@ fn wrong_public_identity_or_post_remove_state_fails_alteration_contract() {
         panic!("client-quota alteration event kind");
     };
     value.user = "other-user".to_owned();
-    let HistoryPayload::BrokerStateObservation { observation } = &mut entries[8].payload else {
+    let HistoryPayload::BrokerStateObservation { observation } = &mut entries[11].payload else {
         panic!("client-quota removal observation history kind");
     };
     let BrokerStateObservation::ClientQuota(value) = observation else {
@@ -54,11 +55,35 @@ fn wrong_public_identity_or_post_remove_state_fails_alteration_contract() {
     assert_contract(&violations, "ADMIN-034");
 }
 
+#[test]
+fn mutated_state_or_wrong_terminal_fails_validation_only_contract() {
+    let mut entries = history();
+    let HistoryPayload::BrokerStateObservation { observation } = &mut entries[8].payload else {
+        panic!("client-quota validation observation history kind");
+    };
+    let BrokerStateObservation::ClientQuota(value) = observation else {
+        panic!("client-quota observation kind");
+    };
+    value.bytes_per_second = Some(32_768);
+    assert_contract(&violations(&entries), "ADMIN-086");
+
+    let mut entries = history();
+    let HistoryPayload::AdapterEvent { event } = &mut entries[7].payload else {
+        panic!("client-quota validation event history kind");
+    };
+    event.event = AdapterEvent::ClientQuotaAltered(AdminClientQuotaAlteration {
+        operation_id: operation("quota-validate"),
+        user: "testlab-user".to_owned(),
+        direction: BrokerQuotaDirection::Producer,
+    });
+    assert_contract(&violations(&entries), "ADMIN-086");
+}
+
 fn history() -> Vec<HistoryEntry> {
     vec![
         command(
             1,
-            AdapterCommand::AlterClientQuota(alter("quota-set", Some(65_536))),
+            AdapterCommand::AlterClientQuota(alter_command("quota-set", Some(65_536), false)),
         ),
         event(
             2,
@@ -91,17 +116,30 @@ fn history() -> Vec<HistoryEntry> {
         state(6, 1, "quota-describe", Some(65_536)),
         command(
             7,
-            AdapterCommand::AlterClientQuota(alter("quota-remove", None)),
+            AdapterCommand::AlterClientQuota(alter_command("quota-validate", Some(32_768), true)),
         ),
         event(
             8,
+            AdapterEvent::ClientQuotaAlterationValidated(AdminClientQuotaAlteration {
+                operation_id: operation("quota-validate"),
+                user: "testlab-user".to_owned(),
+                direction: BrokerQuotaDirection::Producer,
+            }),
+        ),
+        state(9, 2, "quota-validate", Some(65_536)),
+        command(
+            10,
+            AdapterCommand::AlterClientQuota(alter_command("quota-remove", None, false)),
+        ),
+        event(
+            11,
             AdapterEvent::ClientQuotaAltered(AdminClientQuotaAlteration {
                 operation_id: operation("quota-remove"),
                 user: "testlab-user".to_owned(),
                 direction: BrokerQuotaDirection::Producer,
             }),
         ),
-        state(9, 2, "quota-remove", None),
+        state(12, 3, "quota-remove", None),
     ]
 }
 
@@ -140,6 +178,10 @@ fn scenario() -> Scenario {
                 ScenarioAction::DescribeClientQuota(describe()),
             ),
             step(
+                "validate-quota",
+                ScenarioAction::AlterClientQuota(validated()),
+            ),
+            step(
                 "remove-quota",
                 ScenarioAction::AlterClientQuota(alter("quota-remove", None)),
             ),
@@ -155,6 +197,34 @@ fn alter(operation_id: &str, rate: Option<u64>) -> AlterClientQuotaAction {
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
         bytes_per_second: rate,
+        validate_only: false,
+        expected_current_bytes_per_second: None,
+        timeout_ms: 1_000,
+    }
+}
+
+fn validated() -> AlterClientQuotaAction {
+    AlterClientQuotaAction {
+        operation_id: operation("quota-validate"),
+        bytes_per_second: Some(32_768),
+        validate_only: true,
+        expected_current_bytes_per_second: Some(65_536),
+        ..alter("quota-validate", Some(32_768))
+    }
+}
+
+fn alter_command(
+    operation_id: &str,
+    rate: Option<u64>,
+    validate_only: bool,
+) -> AlterClientQuotaCommand {
+    AlterClientQuotaCommand {
+        client_id: client(),
+        operation_id: operation(operation_id),
+        user: "testlab-user".to_owned(),
+        direction: BrokerQuotaDirection::Producer,
+        bytes_per_second: rate,
+        validate_only,
         timeout_ms: 1_000,
     }
 }

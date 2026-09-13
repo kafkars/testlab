@@ -1,4 +1,4 @@
-schema_version = 125
+schema_version = 126
 id = "kafka.consumer-protocol-group-pause-resume"
 title = "KIP-848 group pause and resume isolate one assigned partition"
 description = "A stable one-member KIP-848 assignment pauses partition zero, commits partition one, resumes partition zero, and commits its exact broker record."

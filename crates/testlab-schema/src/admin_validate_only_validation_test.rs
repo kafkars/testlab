@@ -187,7 +187,6 @@ fn create_topic(operation_id: &str, validate_only: bool) -> CreateTopicAction {
 fn partitions(
     operation_id: &str,
     total_count: i32,
-    replica_assignments: None,
     validate_only: bool,
     expected_current_count: Option<i32>,
 ) -> CreatePartitionsAction {
@@ -196,6 +195,7 @@ fn partitions(
         operation_id: operation(operation_id),
         topic: "orders".to_owned(),
         total_count,
+        replica_assignments: None,
         validate_only,
         expected_current_count,
         expected_error_code: None,

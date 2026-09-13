@@ -250,6 +250,7 @@ pub enum AdapterEvent {
     AclsDescribed(crate::AdminAclsDescription),
     AclsDeleted(crate::AdminAclsDeletion),
     ClientQuotaAltered(crate::AdminClientQuotaAlteration),
+    ClientQuotaAlterationValidated(crate::AdminClientQuotaAlteration),
     ClientQuotaDescribed(crate::AdminClientQuotaDescription),
     UserScramCredentialAltered(crate::AdminUserScramCredentialAlteration),
     UserScramCredentialDescribed(crate::AdminUserScramCredentialDescription),
@@ -287,7 +288,6 @@ pub enum AdapterEvent {
     CommandFailed {
         /// Stable normalized client error code.
         code: String,
-        /// Bounded public diagnostic retained as evidence.
         diagnostic: String,
     },
     Finished,

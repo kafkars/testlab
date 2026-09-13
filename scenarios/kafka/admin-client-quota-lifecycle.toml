@@ -1,7 +1,7 @@
-schema_version = 125
+schema_version = 126
 id = "kafka.admin-client-quota-lifecycle"
-title = "packaged admin sets, describes, and removes exact client quotas"
-description = "The packaged client's public quota operations set, describe, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."
+title = "packaged admin validates, sets, describes, and removes exact client quotas"
+description = "The packaged client's public quota operations set, describe, validate without mutation, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 
@@ -23,6 +23,7 @@ operation_id = "admin-client-quota-producer-set"
 user = "testlab-kafkars-quota-user"
 direction = "producer"
 bytes_per_second = 65536
+validate_only = false
 timeout_ms = 20000
 
 [[steps]]
@@ -36,12 +37,25 @@ expected_bytes_per_second = 65536
 timeout_ms = 20000
 
 [[steps]]
+id = "validate-producer-quota"
+kind = "alter_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-producer-validate"
+user = "testlab-kafkars-quota-user"
+direction = "producer"
+bytes_per_second = 32768
+validate_only = true
+expected_current_bytes_per_second = 65536
+timeout_ms = 20000
+
+[[steps]]
 id = "remove-producer-quota"
 kind = "alter_client_quota"
 client_id = "client-1"
 operation_id = "admin-client-quota-producer-remove"
 user = "testlab-kafkars-quota-user"
 direction = "producer"
+validate_only = false
 timeout_ms = 20000
 
 [[steps]]
@@ -52,6 +66,7 @@ operation_id = "admin-client-quota-consumer-set"
 user = "testlab-kafkars-quota-user"
 direction = "consumer"
 bytes_per_second = 131072
+validate_only = false
 timeout_ms = 20000
 
 [[steps]]
@@ -71,6 +86,7 @@ client_id = "client-1"
 operation_id = "admin-client-quota-consumer-remove"
 user = "testlab-kafkars-quota-user"
 direction = "consumer"
+validate_only = false
 timeout_ms = 20000
 
 [[steps]]

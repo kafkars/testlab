@@ -16,6 +16,7 @@ pub(crate) struct Indexed<T> {
 #[derive(Debug, Default)]
 pub(crate) struct AdminClientQuotaIndex {
     pub(crate) altered: BTreeMap<OperationId, Vec<Indexed<AdminClientQuotaAlteration>>>,
+    pub(crate) validated: BTreeMap<OperationId, Vec<Indexed<AdminClientQuotaAlteration>>>,
     pub(crate) described: BTreeMap<OperationId, Vec<Indexed<AdminClientQuotaDescription>>>,
     pub(crate) observed: BTreeMap<OperationId, Vec<Indexed<BrokerClientQuotaState>>>,
 }
@@ -25,6 +26,14 @@ impl AdminClientQuotaIndex {
         match event {
             AdapterEvent::ClientQuotaAltered(value) => self
                 .altered
+                .entry(value.operation_id.clone())
+                .or_default()
+                .push(Indexed {
+                    history_sequence: sequence,
+                    value: value.clone(),
+                }),
+            AdapterEvent::ClientQuotaAlterationValidated(value) => self
+                .validated
                 .entry(value.operation_id.clone())
                 .or_default()
                 .push(Indexed {

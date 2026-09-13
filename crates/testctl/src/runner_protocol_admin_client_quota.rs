@@ -15,6 +15,10 @@ pub(super) fn classify(
             expected == &actual.operation_id
         }
         (
+            ExpectedEvent::ClientQuotaAlterationValidated(expected),
+            AdapterEvent::ClientQuotaAlterationValidated(actual),
+        ) => expected == &actual.operation_id,
+        (
             ExpectedEvent::ClientQuotaDescribed(expected),
             AdapterEvent::ClientQuotaDescribed(actual),
         ) => expected == &actual.operation_id,
@@ -26,11 +30,15 @@ pub(super) fn classify(
 pub(super) fn same_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> bool {
     let expected = matches!(
         expected,
-        ExpectedEvent::ClientQuotaAltered(_) | ExpectedEvent::ClientQuotaDescribed(_)
+        ExpectedEvent::ClientQuotaAltered(_)
+            | ExpectedEvent::ClientQuotaAlterationValidated(_)
+            | ExpectedEvent::ClientQuotaDescribed(_)
     );
     let actual = matches!(
         event,
-        AdapterEvent::ClientQuotaAltered(_) | AdapterEvent::ClientQuotaDescribed(_)
+        AdapterEvent::ClientQuotaAltered(_)
+            | AdapterEvent::ClientQuotaAlterationValidated(_)
+            | AdapterEvent::ClientQuotaDescribed(_)
     );
     expected && actual
 }

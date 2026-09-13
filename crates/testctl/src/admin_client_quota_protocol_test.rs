@@ -2,8 +2,8 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminClientQuotaAlteration, AdminClientQuotaDescription,
-    AlterClientQuotaAction, BrokerQuotaDirection, ClientId, DescribeClientQuotaAction, OperationId,
-    ScenarioAction,
+    AlterClientQuotaAction, AlterClientQuotaCommand, BrokerQuotaDirection, ClientId,
+    DescribeClientQuotaAction, OperationId, ScenarioAction,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -32,14 +32,33 @@ fn alteration_translation_preserves_exact_public_intent() {
     else {
         panic!("client-quota alteration translation");
     };
-    assert_eq!(command, AdapterCommand::AlterClientQuota(alter()));
+    assert_eq!(
+        command,
+        AdapterCommand::AlterClientQuota(alter_command("quota-alter", Some(65_536), false))
+    );
     assert!(matches!(expected, ExpectedEvent::ClientQuotaAltered(_)));
+}
+
+#[test]
+fn validation_only_translation_omits_the_current_rate_expectation() {
+    let action = ScenarioAction::AlterClientQuota(validated());
+    let Some((AdapterCommand::AlterClientQuota(command), expected)) =
+        crate::session_command_admin_client_quota::translate(&action)
+    else {
+        panic!("client-quota validation translation");
+    };
+    assert_eq!(command, alter_command("quota-validate", Some(32_768), true));
+    assert!(matches!(
+        expected,
+        ExpectedEvent::ClientQuotaAlterationValidated(_)
+    ));
 }
 
 #[test]
 fn client_quota_completions_reject_foreign_identity_and_family() {
     let expected = [
         ExpectedEvent::ClientQuotaAltered(operation("quota-operation")),
+        ExpectedEvent::ClientQuotaAlterationValidated(operation("quota-operation")),
         ExpectedEvent::ClientQuotaDescribed(operation("quota-operation")),
     ];
     let events = events("quota-operation");
@@ -71,9 +90,14 @@ fn client_quota_completions_reject_foreign_identity_and_family() {
     }
 }
 
-fn events(operation_id: &str) -> [AdapterEvent; 2] {
+fn events(operation_id: &str) -> [AdapterEvent; 3] {
     [
         AdapterEvent::ClientQuotaAltered(AdminClientQuotaAlteration {
+            operation_id: operation(operation_id),
+            user: "testlab-user".to_owned(),
+            direction: BrokerQuotaDirection::Producer,
+        }),
+        AdapterEvent::ClientQuotaAlterationValidated(AdminClientQuotaAlteration {
             operation_id: operation(operation_id),
             user: "testlab-user".to_owned(),
             direction: BrokerQuotaDirection::Producer,
@@ -94,6 +118,34 @@ fn alter() -> AlterClientQuotaAction {
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
         bytes_per_second: Some(65_536),
+        validate_only: false,
+        expected_current_bytes_per_second: None,
+        timeout_ms: 1_000,
+    }
+}
+
+fn validated() -> AlterClientQuotaAction {
+    AlterClientQuotaAction {
+        operation_id: operation("quota-validate"),
+        bytes_per_second: Some(32_768),
+        validate_only: true,
+        expected_current_bytes_per_second: Some(65_536),
+        ..alter()
+    }
+}
+
+fn alter_command(
+    operation_id: &str,
+    rate: Option<u64>,
+    validate_only: bool,
+) -> AlterClientQuotaCommand {
+    AlterClientQuotaCommand {
+        client_id: client(),
+        operation_id: operation(operation_id),
+        user: "testlab-user".to_owned(),
+        direction: BrokerQuotaDirection::Producer,
+        bytes_per_second: rate,
+        validate_only,
         timeout_ms: 1_000,
     }
 }

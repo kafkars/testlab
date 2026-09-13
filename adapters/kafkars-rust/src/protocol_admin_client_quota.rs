@@ -40,6 +40,7 @@ fn alter<W: Write>(
     command_id: CommandId,
     command: testlab_schema::AlterClientQuotaCommand,
 ) -> Result<(), AdapterError> {
+    let validate_only = command.validate_only;
     let entity = public_entity(&command.user);
     let operation = match command.bytes_per_second {
         Some(value) => ClientQuotaAlterationOperation::set(
@@ -52,6 +53,7 @@ fn alter<W: Write>(
         .client(&command.client_id)?
         .admin()
         .alter_client_quotas([ClientQuotaAlteration::new(entity.clone(), [operation])])
+        .validate_only(validate_only)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()
@@ -62,15 +64,17 @@ fn alter<W: Write>(
         |actual| actual == &entity,
         "client-quota entity",
     )?;
-    emit_quota(
-        writer,
-        command_id,
-        AdapterEvent::ClientQuotaAltered(AdminClientQuotaAlteration {
-            operation_id: command.operation_id,
-            user: command.user,
-            direction: command.direction,
-        }),
-    )
+    let completion = AdminClientQuotaAlteration {
+        operation_id: command.operation_id,
+        user: command.user,
+        direction: command.direction,
+    };
+    let event = if validate_only {
+        AdapterEvent::ClientQuotaAlterationValidated(completion)
+    } else {
+        AdapterEvent::ClientQuotaAltered(completion)
+    };
+    emit_quota(writer, command_id, event)
 }
 
 fn describe<W: Write>(

@@ -1,8 +1,8 @@
 //! Client-quota observer tests pin correlation, CLI parsing, and retained raw truth.
 
 use testlab_schema::{
-    AdapterCommand, AlterClientQuotaAction, BrokerQuotaDirection, BrokerStateObservation, ClientId,
-    DescribeClientQuotaAction, OperationId, ScenarioAction,
+    AdapterCommand, AlterClientQuotaAction, AlterClientQuotaCommand, BrokerQuotaDirection,
+    BrokerStateObservation, ClientId, DescribeClientQuotaAction, OperationId, ScenarioAction,
 };
 
 use crate::observer_admin_target::{AdminTarget, ClientQuotaTarget};
@@ -38,7 +38,7 @@ fn action_and_wire_command_map_to_one_exact_quota_target() {
     );
 
     let action = ScenarioAction::AlterClientQuota(alter());
-    let command = AdapterCommand::AlterClientQuota(alter());
+    let command = AdapterCommand::AlterClientQuota(alter_command());
     assert!(matches!(
         AdminTarget::from_exact(&action, &command),
         Ok(Some(AdminTarget::ClientQuota(_)))
@@ -170,6 +170,20 @@ fn alter() -> AlterClientQuotaAction {
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
         bytes_per_second: Some(65_536),
+        validate_only: false,
+        expected_current_bytes_per_second: None,
+        timeout_ms: 1_000,
+    }
+}
+
+fn alter_command() -> AlterClientQuotaCommand {
+    AlterClientQuotaCommand {
+        client_id: client(),
+        operation_id: operation("quota-alter"),
+        user: "testlab-user".to_owned(),
+        direction: BrokerQuotaDirection::Producer,
+        bytes_per_second: Some(65_536),
+        validate_only: false,
         timeout_ms: 1_000,
     }
 }

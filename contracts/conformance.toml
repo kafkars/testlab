@@ -565,6 +565,18 @@ statement = "A manually placed public topic creation preserves every caller-orde
 category = "admin"
 
 [[contract]]
+id = "ADMIN-085"
+title = "Manual partition expansion preserves exact replica order"
+statement = "A manually placed public partition expansion preserves every caller-ordered new partition replica assignment, completes exactly once, and is followed immediately by independent metadata showing the exact full partition set, requested replica order, valid replica leaders, and full in-sync replica sets."
+category = "admin"
+
+[[contract]]
+id = "ADMIN-086"
+title = "Client-quota validation leaves exact prior state unchanged"
+statement = "One validation-only named-user byte-rate alteration preserves the exact proposed replacement on the wire, emits a distinct successful validation terminal, and is followed immediately by an independent Kafka CLI query confirming the exact prior rate remains unchanged."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

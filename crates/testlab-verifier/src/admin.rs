@@ -178,6 +178,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeAcls(_) => "ADMIN-031",
         ScenarioAction::DeleteAcls(_) => "ADMIN-032",
         ScenarioAction::DescribeClientQuota(_) => "ADMIN-033",
+        ScenarioAction::AlterClientQuota(value) if value.validate_only => "ADMIN-086",
         ScenarioAction::AlterClientQuota(_) => "ADMIN-034",
         ScenarioAction::DescribeUserScramCredential(_) => "ADMIN-035",
         ScenarioAction::AlterUserScramCredential(_) => "ADMIN-036",

@@ -71,6 +71,7 @@ fn validate_steps(scenario: &Scenario, problems: &mut Vec<String>) {
     cluster_fenced_validation::validate(scenario, problems);
     validate_role_targets(scenario, problems);
     crate::admin_feature_transition_validation::validate(scenario, problems);
+    crate::admin_client_quota_validation::validate_transitions(scenario, problems);
     crate::admin_transition_validation::validate(scenario, problems);
     crate::admin_broker_unregistration::validate_transitions(scenario, problems);
     crate::scenario_assertion_validation::validate(

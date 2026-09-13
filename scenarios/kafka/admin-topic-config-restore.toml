@@ -1,4 +1,4 @@
-schema_version = 125
+schema_version = 126
 id = "kafka.admin-topic-config-restore"
 title = "packaged admin restores a changed Kafka topic configuration"
 description = "The packaged admin observes cleanup.policy=delete, changes it to compact, observes that baseline, then restores delete; immediate independent configuration queries confirm both SET transitions and the final value."

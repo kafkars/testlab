@@ -29,7 +29,24 @@ fn verify_alter(
     window: Option<AdminCommandWindow>,
     violations: &mut Vec<Violation>,
 ) {
-    let public = index.admin_client_quotas.altered.get(&action.operation_id);
+    let (public, expected_rate, contract, expected) = if action.validate_only {
+        (
+            index
+                .admin_client_quotas
+                .validated
+                .get(&action.operation_id),
+            action.expected_current_bytes_per_second,
+            "ADMIN-086",
+            "exact public validation-only client-quota completion and immediate unchanged independent state",
+        )
+    } else {
+        (
+            index.admin_client_quotas.altered.get(&action.operation_id),
+            action.bytes_per_second,
+            "ADMIN-034",
+            "exact public client-quota alteration and immediate independent resulting state",
+        )
+    };
     let independent = index.admin_client_quotas.observed.get(&action.operation_id);
     let completion = one(public);
     let public_matches = completion.is_some_and(|value| {
@@ -44,16 +61,16 @@ fn verify_alter(
             &action.operation_id,
             &action.user,
             action.direction,
-            action.bytes_per_second,
+            expected_rate,
             window,
             value.history_sequence,
         )
     });
     report(
         public_matches && independent_matches,
-        "ADMIN-034",
+        contract,
         &action.operation_id,
-        "exact public client-quota alteration and immediate independent resulting state",
+        expected,
         public,
         independent,
         violations,
