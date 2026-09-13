@@ -5,7 +5,7 @@ use testlab_schema::AdapterEvent;
 use crate::run_error::RunFailure;
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
 use crate::runner_protocol_admin::same_admin_event_family;
-use crate::runner_protocol_identity::{identity_mismatch, identity_result};
+use crate::runner_protocol_identity::identity_mismatch;
 
 pub(super) fn classify_group(
     expected: &ExpectedEvent,

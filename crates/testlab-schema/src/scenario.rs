@@ -29,6 +29,7 @@ pub struct Scenario {
     /// Ordered public and environment actions.
     pub steps: Vec<ScenarioStep>,
     /// Deterministic operation assertions.
+    #[serde(default)]
     pub assertions: Vec<OperationAssertion>,
 }
 
