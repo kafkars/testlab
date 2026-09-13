@@ -1,7 +1,7 @@
-schema_version = 126
+schema_version = 127
 id = "kafka.admin-delegation-token-lifecycle"
-title = "packaged admin completes a delegation-token lifecycle without leaking its secret"
-description = "On an authenticated Kafka 4.3.1 channel, the packaged client's public Admin creates one explicitly owned token, describes its exact public metadata, renews it, expires it immediately, and exposes no HMAC bytes while a separately authenticated pinned CLI query proves no token remains for that owner."
+title = "packaged admin explicitly expires a delegation token without leaking its secret"
+description = "On an authenticated Kafka 4.3.1 channel, the packaged client's public Admin creates one explicitly owned token, describes its exact public metadata, renews it, selects an explicit zero-delay expiration, and exposes no HMAC bytes while a separately authenticated pinned CLI query proves no token remains for that owner."
 timeout_ms = 90000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -25,6 +25,7 @@ owner = { principal_type = "User", principal_name = "kafkars" }
 renewers = [{ principal_type = "User", principal_name = "kafkars" }]
 max_lifetime_ms = 604800000
 renew_period_ms = 172800000
+expire_after_ms = 0
 timeout_ms = 30000
 
 [[steps]]

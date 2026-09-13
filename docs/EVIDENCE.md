@@ -235,6 +235,10 @@ client-quota alteration. ADMIN-086 binds the exact proposed rate and validation
 flag to a distinct public completion, keeps the required current rate out of the
 wire command, and requires an immediate independent Kafka CLI observation of
 that unchanged prior rate.
+Protocol v123, scenario schema v127, and evidence schema v113 add an explicit
+delegation-token expiration delay. ADMIN-087 preserves a selected zero-millisecond
+delay on the wire and joins the public immediate expiration result to the same
+sanitized independent owner-filtered absence required by ADMIN-073.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -913,6 +917,12 @@ separate SASL-authenticated observer listener. A fail-closed shell projection
 emits only the owner-filtered token count, so even unexpected live-token rows
 cannot put CLI HMACs into terminal artifacts. The polled final count must be
 zero and contiguous with the public completion.
+
+ADMIN-087 narrows that lifecycle to an explicit
+`ExpireDelegationTokenBuilder::expire_after(Duration::ZERO)` selection. The
+zero-millisecond value must remain exact in the command, the public expiration
+timestamp must satisfy the ADMIN-073 lifecycle bounds, and the immediately
+following sanitized CLI observation must still report zero live owner tokens.
 
 ADMIN-074 binds one composite command to all seven public Streams-group Admin
 methods under one deadline. Two genuine `group.protocol=streams` WordCount

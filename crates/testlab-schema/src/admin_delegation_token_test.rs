@@ -1,25 +1,25 @@
 //! Delegation-token protocol tests keep lifecycle facts typed and secret-free.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 use crate::*;
 
 #[test]
 fn lifecycle_payloads_round_trip_without_a_secret_field() {
-    assert_eq!(PROTOCOL_VERSION, 122);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 126);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 112);
-    let action = ExerciseDelegationTokenLifecycleAction {
-        client_id: id("client-1"),
-        operation_id: operation(),
-        owner: principal(),
-        renewers: vec![principal()],
-        max_lifetime_ms: 604_800_000,
-        renew_period_ms: 172_800_000,
-        timeout_ms: 30_000,
-    };
+    assert_eq!(PROTOCOL_VERSION, 123);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 127);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 113);
+    let lifecycle = action(Some(0));
+    let encoded_action =
+        serde_json::to_string(&lifecycle).unwrap_or_else(|error| panic!("encode action: {error}"));
+    assert!(encoded_action.contains("\"expire_after_ms\":0"));
     round_trip(&ScenarioAction::ExerciseDelegationTokenLifecycle(
-        action.clone(),
+        lifecycle.clone(),
     ));
-    round_trip(&AdapterCommand::ExerciseDelegationTokenLifecycle(action));
+    round_trip(&AdapterCommand::ExerciseDelegationTokenLifecycle(lifecycle));
+    round_trip(&ScenarioAction::ExerciseDelegationTokenLifecycle(action(
+        None,
+    )));
     let event = AdapterEvent::DelegationTokenLifecycleExercised(completion());
     let encoded = serde_json::to_string(&event).unwrap_or_else(|error| panic!("encode: {error}"));
     assert!(!encoded.contains("hmac_bytes"));
@@ -33,6 +33,37 @@ fn lifecycle_payloads_round_trip_without_a_secret_field() {
             token_count: 0,
         },
     ));
+}
+
+#[test]
+fn validation_limits_explicit_expiration_to_deterministic_zero_delay() {
+    let mut operation_ids = BTreeSet::new();
+    let mut problems = Vec::new();
+    super::validation::validate(
+        &ScenarioAction::ExerciseDelegationTokenLifecycle(action(Some(1))),
+        &BTreeMap::from([(id("client-1"), false)]),
+        &mut operation_ids,
+        &mut problems,
+    );
+    assert!(
+        problems
+            .iter()
+            .any(|problem| problem.contains("expire_after_ms must be zero")),
+        "{problems:?}"
+    );
+}
+
+fn action(expire_after_ms: Option<u64>) -> ExerciseDelegationTokenLifecycleAction {
+    ExerciseDelegationTokenLifecycleAction {
+        client_id: id("client-1"),
+        operation_id: operation(),
+        owner: principal(),
+        renewers: vec![principal()],
+        max_lifetime_ms: 604_800_000,
+        renew_period_ms: 172_800_000,
+        expire_after_ms,
+        timeout_ms: 30_000,
+    }
 }
 
 fn completion() -> AdminDelegationTokenLifecycle {

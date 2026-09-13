@@ -252,6 +252,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         },
         ScenarioAction::DescribeFeatures(_) => "ADMIN-050",
         ScenarioAction::ValidateFeatureUpdates(_) => "ADMIN-072",
+        ScenarioAction::ExerciseDelegationTokenLifecycle(value)
+            if value.expire_after_ms.is_some() =>
+        {
+            "ADMIN-087"
+        }
         ScenarioAction::ExerciseDelegationTokenLifecycle(_) => "ADMIN-073",
         ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_) => "ADMIN-074",
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",

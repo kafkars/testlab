@@ -577,6 +577,12 @@ statement = "One validation-only named-user byte-rate alteration preserves the e
 category = "admin"
 
 [[contract]]
+id = "ADMIN-087"
+title = "Delegation-token expiration preserves an explicit zero delay"
+statement = "One authenticated delegation-token lifecycle preserves an explicit zero-millisecond public expiration delay on the wire, returns a valid immediate expiration timestamp without retaining secret bytes, and is followed immediately by an independently sanitized owner-filtered Kafka CLI result with zero live tokens."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

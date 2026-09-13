@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v122 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v126 and evidence schema v112.
+Protocol v123 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v127 and evidence schema v113.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1047,6 +1047,13 @@ exact pinned CLI snapshots before and immediately after must retain identical
 feature rows and finalized epoch. The checked-in scenario is limited to Kafka
 4.3.1 and validates the stable `metadata.version=30` level.
 
+`exercise_delegation_token_lifecycle` carries an optional exact
+`expire_after_ms` selection without any token secret. The checked-in Kafka 4.3.1
+scenario sets it to zero, requiring the adapter to call the public
+`expire_after(Duration::ZERO)` builder instead of sending Kafka's omitted
+immediate-expiry sentinel. The sanitized independent observer still requires
+zero live owner tokens immediately after completion.
+
 Active-producer description carries one exact topic-partition and complete
 deadline. The scenario-owned expected count stays outside the wire command.
 Its public completion retains producer ID, producer epoch, last sequence, last
@@ -1240,6 +1247,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v122 is an exact semantic contract. New capabilities may be declared
+Protocol v123 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

@@ -85,8 +85,12 @@ pub(crate) fn exercise<W: Write>(
     let renew_throttle_time_ms = throttle(renewed_result.throttle_time(), &command, "renew")?;
     let renewed_expiry_timestamp_ms = renewed_result.expiry_timestamp_ms();
 
-    let expired_result = admin
-        .expire_delegation_token(secret_copy(&created, &command)?)
+    let expiration = admin.expire_delegation_token(secret_copy(&created, &command)?);
+    let expiration = match command.expire_after_ms {
+        Some(period) => expiration.expire_after(Duration::from_millis(period)),
+        None => expiration,
+    };
+    let expired_result = expiration
         .deadline_after(remaining(deadline)?)
         .submit()
         .wait()

@@ -44,6 +44,9 @@ pub struct ExerciseDelegationTokenLifecycleAction {
     pub max_lifetime_ms: u64,
     /// Requested renewal period.
     pub renew_period_ms: u64,
+    /// Explicit public expiration delay, or none for Kafka's immediate sentinel.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expire_after_ms: Option<u64>,
     /// Complete four-operation public bound.
     pub timeout_ms: u64,
 }

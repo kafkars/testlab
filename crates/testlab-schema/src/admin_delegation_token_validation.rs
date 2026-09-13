@@ -56,6 +56,12 @@ pub(crate) fn validate(
             action.operation_id
         ));
     }
+    if action.expire_after_ms.is_some_and(|period| period != 0) {
+        problems.push(format!(
+            "admin operation {} expire_after_ms must be zero for immediate independent absence",
+            action.operation_id
+        ));
+    }
     true
 }
 

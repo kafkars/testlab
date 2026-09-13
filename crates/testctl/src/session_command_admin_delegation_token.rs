@@ -16,6 +16,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             renewers: action.renewers.clone(),
             max_lifetime_ms: action.max_lifetime_ms,
             renew_period_ms: action.renew_period_ms,
+            expire_after_ms: action.expire_after_ms,
             timeout_ms: action.timeout_ms,
         }),
         ExpectedEvent::DelegationTokenLifecycleExercised(action.operation_id.clone()),
