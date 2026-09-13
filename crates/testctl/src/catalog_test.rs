@@ -15,50 +15,26 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 204);
+    assert_eq!(summary.scenarios, 222);
     assert_eq!(summary.packs, 28);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 23);
     assert_eq!(summary.qualifications, 3);
-    assert_eq!(summary.contracts, 192);
+    assert_eq!(summary.contracts, 236);
 }
 
 #[test]
 fn release_cells_use_their_topology_pack() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let repository = match Repository::open(&root) {
-        Ok(repository) => repository,
-        Err(error) => panic!("failed to open test repository: {error}"),
-    };
+    let repository = Repository::open(&root)
+        .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
     let (_, qualification) =
         match repository.load_qualification(Path::new("qualifications/kafkars-release.toml")) {
             Ok(value) => value,
             Err(error) => panic!("load release qualification: {error}"),
         };
     for cell in qualification.cells {
-        let legacy = cell.environment.contains("apache-kafka/3.");
-        let three_plaintext = cell.environment.ends_with("three-plaintext.toml");
-        let three_security = cell.environment.contains("/three-") && !three_plaintext;
-        let kafka_4_0 = cell.environment.contains("apache-kafka/4.0.");
-        let expected = if cell.environment.ends_with("protocol-adversary.toml") {
-            "packs/kafkars-protocol-adversary.toml"
-        } else if cell.environment.ends_with("single-plaintext-network.toml") {
-            "packs/kafkars-network-faults.toml"
-        } else if cell.environment.ends_with("single-sasl-plain-policy.toml") {
-            "packs/kafkars-broker-policy.toml"
-        } else if cell.pack == "packs/kafkars-broker-role-failover.toml" {
-            "packs/kafkars-broker-role-failover.toml"
-        } else if legacy {
-            "packs/kafkars-classic.toml"
-        } else if kafka_4_0 {
-            "packs/kafkars-release.toml"
-        } else if three_plaintext {
-            "packs/kafkars-three-broker-share.toml"
-        } else if three_security {
-            "packs/kafkars-three-broker-security.toml"
-        } else {
-            "packs/kafkars-share-release.toml"
-        };
+        let expected = expected_release_pack(&cell.environment, &cell.pack);
         assert_eq!(cell.pack, expected, "unexpected pack for {}", cell.id);
     }
     let (_, pack) = match repository.load_pack(Path::new("packs/kafkars-classic.toml")) {
@@ -128,6 +104,34 @@ fn release_cells_use_their_topology_pack() {
     );
 }
 
+fn expected_release_pack<'a>(environment: &str, assigned_pack: &'a str) -> &'a str {
+    let three_plaintext = environment.ends_with("three-plaintext.toml");
+    if environment.ends_with("protocol-adversary.toml") {
+        "packs/kafkars-protocol-adversary.toml"
+    } else if environment.ends_with("single-plaintext-network.toml") {
+        "packs/kafkars-network-faults.toml"
+    } else if environment.ends_with("single-sasl-plain-policy.toml") {
+        "packs/kafkars-broker-policy.toml"
+    } else if matches!(
+        assigned_pack,
+        "packs/kafkars-broker-role-failover.toml"
+            | "packs/kafkars-delegation-token.toml"
+            | "packs/kafkars-streams-group.toml"
+    ) {
+        assigned_pack
+    } else if environment.contains("apache-kafka/3.") {
+        "packs/kafkars-classic.toml"
+    } else if environment.contains("apache-kafka/4.0.") {
+        "packs/kafkars-release.toml"
+    } else if three_plaintext {
+        "packs/kafkars-three-broker-share.toml"
+    } else if environment.contains("/three-") {
+        "packs/kafkars-three-broker-security.toml"
+    } else {
+        "packs/kafkars-share-release.toml"
+    }
+}
+
 #[test]
 fn pull_request_pack_excludes_release_disruptions() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -140,7 +144,7 @@ fn pull_request_pack_excludes_release_disruptions() {
         Err(error) => panic!("load pull-request pack: {error}"),
     };
 
-    assert_eq!(pack.scenarios.len(), 150);
+    assert_eq!(pack.scenarios.len(), 153);
     assert!(
         !pack
             .scenarios
