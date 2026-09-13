@@ -10,12 +10,12 @@ fn accept_all_crosses_the_adapter_command_boundary() {
         "../../../scenarios/kafka/share-group-fetch-batch-size.toml"
     ))
     .unwrap_or_else(|error| panic!("parse accept-all scenario: {error}"));
-    let action = scenario
+    let step = scenario
         .steps
         .iter()
         .find(|step| step.id.as_str() == "acknowledge-three-acquisitions")
-        .map(|step| &step.action)
         .unwrap_or_else(|| panic!("accept-all acknowledgement missing"));
+    let action = &step.action;
 
     let Some((AdapterCommand::ShareAcknowledge { method, .. }, _)) = translate(action) else {
         panic!("share acknowledgement must translate");

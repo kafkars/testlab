@@ -90,6 +90,10 @@ fn directory_manifest_names(directory: &Path) -> BTreeSet<String> {
                 .to_string_lossy()
                 .into_owned()
         })
-        .filter(|name| name.ends_with(".toml"))
+        .filter(|name| {
+            Path::new(name)
+                .extension()
+                .is_some_and(|extension| extension.eq_ignore_ascii_case("toml"))
+        })
         .collect()
 }

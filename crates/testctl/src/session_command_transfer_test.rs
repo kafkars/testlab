@@ -56,11 +56,15 @@ fn transfer_admission_and_terminal_are_intermediate_until_completion() {
         receipt: None,
     };
     assert_eq!(
-        expected.classify(&accepted).unwrap_or_else(classify_error),
+        expected
+            .classify(&accepted)
+            .unwrap_or_else(|error| classify_error(&error)),
         EventDisposition::Continue
     );
     assert_eq!(
-        expected.classify(&terminal).unwrap_or_else(classify_error),
+        expected
+            .classify(&terminal)
+            .unwrap_or_else(|error| classify_error(&error)),
         EventDisposition::Continue
     );
     let record = ConsumedRecord {
@@ -87,12 +91,12 @@ fn transfer_admission_and_terminal_are_intermediate_until_completion() {
     assert_eq!(
         expected
             .classify(&completion)
-            .unwrap_or_else(classify_error),
+            .unwrap_or_else(|error| classify_error(&error)),
         EventDisposition::Complete
     );
 }
 
-fn classify_error(error: crate::run_error::RunFailure) -> EventDisposition {
+fn classify_error(error: &crate::run_error::RunFailure) -> EventDisposition {
     panic!("classify owned transfer event: {error}")
 }
 

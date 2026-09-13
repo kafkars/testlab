@@ -1,7 +1,8 @@
 //! Policy command tests keep scenario expectations outside the adapter protocol.
 
 use testlab_schema::{
-    AdapterCommand, ClientId, ConsumerId, OperationId, ProducerId, ScenarioAction,
+    AdapterCommand, ClientId, ConsumerId, GroupCheckpointMethod, OperationId, ProducerId,
+    ScenarioAction,
 };
 
 #[test]
@@ -9,7 +10,7 @@ fn group_error_expectation_is_not_sent_to_the_adapter() {
     let action = ScenarioAction::GroupReceive {
         consumer_id: consumer("consumer-1"),
         method: testlab_schema::GroupConsumerReceiveMethod::Recv,
-        checkpoint_method: Default::default(),
+        checkpoint_method: GroupCheckpointMethod::default(),
         receive_id: operation("receive-1"),
         expected_operation_id: operation("op-1"),
         additional_expected_operation_ids: Vec::new(),

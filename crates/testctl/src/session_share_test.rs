@@ -3,8 +3,9 @@
 use std::collections::BTreeSet;
 
 use testlab_schema::{
-    AdapterEvent, ByteString, Capability, ConsumedRecord, ConsumerId, OperationId, RecordSpec,
-    Scenario, ScenarioAction, ScenarioId, ScenarioStep, ShareConsumedRecord, StepId,
+    AdapterEvent, ByteString, Capability, ConsumedRecord, ConsumerId, OperationId,
+    ProducerSendMethod, RecordSpec, Scenario, ScenarioAction, ScenarioId, ScenarioStep,
+    ShareConsumedRecord, StepId,
 };
 
 #[test]
@@ -196,7 +197,7 @@ fn fixture() -> (
     let send = ScenarioAction::Send {
         producer_id: id(testlab_schema::ProducerId::new("producer-1")),
         operation_id: operation.clone(),
-        method: Default::default(),
+        method: ProducerSendMethod::default(),
         partitioning: testlab_schema::ProducerPartitioning::Explicit,
         topic_identity_operation_id: None,
         record: expected.clone(),

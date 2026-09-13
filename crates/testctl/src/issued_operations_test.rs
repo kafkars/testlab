@@ -3,8 +3,9 @@
 use testlab_schema::{
     AdapterCommand, AssignedRecordConversionMethod, AssignedRecordTransferCommand, BatchRecord,
     ClientId, CommandEnvelope, CommandId, ConsumerId, CreatePartitionsCommand, HistoryEntry,
-    HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId, ProducerId, RecordSpec,
-    TransactionDisposition, TransactionalTransformCommand,
+    HistoryPayload, ListConsumerGroupOffsetsCommand, OperationId, ProducerId, ProducerSendMethod,
+    RecordSpec, TransactionDisposition, TransactionFenceMethod, TransactionSendMethod,
+    TransactionalTransformCommand,
 };
 
 use crate::issued_operations::from_history;
@@ -19,7 +20,7 @@ fn recorded_commands_retain_every_observed_operation() {
             AdapterCommand::Send {
                 producer_id: id(ProducerId::new("producer-1")),
                 operation_id: id(OperationId::new("send-1")),
-                method: Default::default(),
+                method: ProducerSendMethod::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 validate_topic_uuid: false,
                 record: record_spec(2),
@@ -40,7 +41,7 @@ fn recorded_commands_retain_every_observed_operation() {
                 producer_id: id(ProducerId::new("transactional-1")),
                 transaction_id: id(OperationId::new("transaction-1")),
                 operations: vec![record("transaction-record-1", 0)],
-                method: Default::default(),
+                method: TransactionSendMethod::default(),
                 disposition: TransactionDisposition::Commit,
                 validate_topic_uuids: false,
                 timeout_ms: 1_000,
@@ -120,7 +121,7 @@ fn create_partitions() -> AdapterCommand {
 
 fn fence_transaction() -> AdapterCommand {
     AdapterCommand::FenceTransaction {
-        fence_method: Default::default(),
+        fence_method: TransactionFenceMethod::default(),
         producer_id: id(ProducerId::new("transactional-2")),
         transaction_id: id(OperationId::new("transaction-2")),
         operation: record("fenced-record-1", 0),

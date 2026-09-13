@@ -4,8 +4,8 @@ use std::collections::BTreeSet;
 
 use testlab_schema::{
     AdapterEvent, AdminTopicCompletion, ConsumerId, GroupAssignmentsObservation,
-    GroupReceiveSetCompletion, OperationId, ProducerId, TerminalStatus, TransactionDisposition,
-    TransactionalProducerObservation,
+    GroupConsumerEventMethod, GroupReceiveSetCompletion, OperationId, ProducerId, TerminalStatus,
+    TransactionDisposition, TransactionalProducerObservation,
 };
 
 use crate::runner_protocol::{EventDisposition, ExpectedEvent};
@@ -116,7 +116,7 @@ fn group_ownership_completions_require_exact_operation_identity() {
             .classify(&AdapterEvent::GroupAssignmentsObserved(
                 GroupAssignmentsObservation {
                     operation_id: observation,
-                    method: Default::default(),
+                    method: GroupConsumerEventMethod::default(),
                     transitions: Vec::new(),
                     assignments: Vec::new(),
                 }
@@ -141,7 +141,7 @@ fn group_ownership_completions_require_exact_operation_identity() {
             .classify(&AdapterEvent::GroupAssignmentsObserved(
                 GroupAssignmentsObservation {
                     operation_id: id(OperationId::new("observe-1")),
-                    method: Default::default(),
+                    method: GroupConsumerEventMethod::default(),
                     transitions: Vec::new(),
                     assignments: Vec::new(),
                 }
