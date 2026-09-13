@@ -329,6 +329,9 @@ Protocol v142, scenario schema v146, and evidence schema v132 add exact hosted
 group receive commands. CONS-032 preserves every classic and KIP-848 consumer,
 receive identity, observer, checkpoint conversion, processing plan, and timeout
 exactly once in scenario order.
+Protocol v143, scenario schema v147, and evidence schema v133 add exact Share
+receive commands. SHARE-013 preserves every consumer, retained-batch identity,
+and complete observation timeout exactly once in scenario order.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -526,6 +529,10 @@ only the public batch's acquisition count, records, delivery counts, and
 membership fences. SHARE-010 checks the scenario-owned acquisition expectation,
 SHARE-011 checks its exact conversion, and the ordinary Share record contracts
 independently check the delivered broker records.
+SHARE-013 first requires every Share receive command exactly once in scenario
+order with its consumer, retained-batch identity, and complete timeout. Expected
+producer identities and acquisition counts remain scenario-side; public batches
+and independent broker records remain authoritative.
 
 Lifecycle-isolation scenarios retain every readiness, flush, close, and
 shutdown completion under its originating command. A later send on a sibling,

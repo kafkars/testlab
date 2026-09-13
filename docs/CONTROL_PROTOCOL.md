@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v142 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v146 and evidence schema v132.
+Protocol v143 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v147 and evidence schema v133.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -641,9 +641,11 @@ caller-ordered topics, optional rack, both deadlines, and the complete optional
 acquisition policy; a same-ID direct or ordinary group consumer is not
 equivalent.
 
-A share receive retains the exact ordered linear acquisition batch behind its
-receive identity until one later acknowledgement, explicit drop, or consumer
-close. Share creation may carry immutable broker long-poll, minimum-byte,
+A share receive command retains its consumer, retained-batch identity, and
+complete observation timeout exactly once in scenario order. Its public result
+retains the exact ordered linear acquisition batch behind that identity until
+one later acknowledgement, explicit drop, or consumer close. Share creation may
+carry immutable broker long-poll, minimum-byte,
 maximum-byte, maximum-record, acquisition-range, and attempt-timeout settings
 only when `share_consumer_configuration` is advertised; omitted configuration
 retains Testlab's bounded defaults. Kafka byte and time fields use the positive
@@ -1328,6 +1330,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v142 is an exact semantic contract. New capabilities may be declared
+Protocol v143 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

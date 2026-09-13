@@ -143,6 +143,9 @@ complete timeout in scenario order.
 Every Share member likewise requires one exact registration retaining its
 identities, caller-ordered topics, optional rack, deadlines, and complete
 optional acquisition policy before Share delivery evidence applies.
+Every Share receive also preserves its exact consumer, retained-batch identity,
+timeout, multiplicity, and scenario order before acquisition and independent
+record evidence applies.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

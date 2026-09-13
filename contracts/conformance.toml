@@ -1279,6 +1279,12 @@ statement = "Each Share consumer has exactly one issued creation command preserv
 category = "consumer"
 
 [[contract]]
+id = "SHARE-013"
+title = "Share receives preserve exact caller input"
+statement = "Every Share receive command appears exactly once in scenario order, preserving its consumer, retained-batch identity, and complete public observation timeout before acquisition, membership-fence, acknowledgement, and independent broker evidence apply."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-015"
 title = "Hosted group shutdown observes public termination"
 statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."
