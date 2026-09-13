@@ -268,6 +268,11 @@ Protocol v129, scenario schema v133, and evidence schema v119 add exact
 active-producer broker routing. ADMIN-093 preserves broker ID 1 on the wire in
 declared single-broker cells and retains ADMIN-051's immediate exact Kafka CLI
 producer-state comparison; automatic leader routing remains separately covered.
+Protocol v130, scenario schema v134, and evidence schema v120 add configured
+topic creation. ADMIN-094 preserves caller-ordered configuration entries on the
+wire and retains ADMIN-001's immediate topology proof, then requires ordered
+public descriptions and immediate independent librdkafka values for every
+selected non-sensitive entry.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -812,6 +817,13 @@ replication factor must agree with that placement. The observer polls within the
 original action window until metadata exposes exactly the requested topic
 partition set and every partition has the exact replica order, full ISR as a
 canonical broker set, and a live leader inside its replicas.
+
+ADMIN-094 binds one successful automatically placed topic creation to exact
+caller-ordered configuration entries on its wire command. The ordinary immediate
+metadata snapshot must first prove the complete topic topology. Each selected
+entry then requires a later matching public topic-configuration description and
+an immediate independent librdkafka query with the exact non-sensitive value, in
+caller order; an unrelated configuration read cannot satisfy creation evidence.
 
 ADMIN-085 binds one successful manually placed partition expansion to one
 immediate independent metadata observation. The scenario and wire retain one

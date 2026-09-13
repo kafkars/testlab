@@ -123,8 +123,8 @@ pub use crate::admin_topic::{
     AdminTopicDescriptionPage, AdminTopicPageCursor, AdminTopicsListing, CreatePartitionsCommand,
     CreateTopicAction, CreateTopicCommand, DeleteTopicAction, DeleteTopicCommand,
     DescribeTopicCommand, ListOffsetsCommand, ListTopicsCommand, ROUTING_ERROR_CODE,
-    TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicDescriptionPagination, TopicReplicaAssignmentSpec,
-    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicCreationConfig, TopicDescriptionPagination,
+    TopicReplicaAssignmentSpec, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 pub use crate::admin_topic_description_batch::{
     AdminTopicDescriptionOutcome, AdminTopicDescriptionValue,

@@ -190,6 +190,7 @@ fn create_partitions_shares_identity_space_with_topic_creation() {
             partitions: 1,
             replication_factor: 1,
             replica_assignments: None,
+            configs: Vec::new(),
             validate_only: false,
             expected_error_code: None,
             timeout_ms: 1_000,

@@ -9,6 +9,7 @@ use crate::{
 type ConfigKey = (String, String);
 
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
+    validate_creation_descriptions(scenario, problems);
     let mut described = BTreeMap::<ConfigKey, String>::new();
     let mut described_batches =
         BTreeMap::<OperationId, (TopicConfigApi, Vec<DescribeTopicConfigExpectation>)>::new();
@@ -66,6 +67,40 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     }
 }
 
+fn validate_creation_descriptions(scenario: &Scenario, problems: &mut Vec<String>) {
+    for (step_index, step) in scenario.steps.iter().enumerate() {
+        let ScenarioAction::CreateTopic(creation) = &step.action else {
+            continue;
+        };
+        if creation.expected_error_code.is_some()
+            || creation.validate_only
+            || creation.replica_assignments.is_some()
+            || creation.configs.is_empty()
+        {
+            continue;
+        }
+        let mut following = scenario.steps.iter().skip(step_index.saturating_add(1));
+        for config in &creation.configs {
+            let described = following.by_ref().any(|step| {
+                matches!(
+                    &step.action,
+                    ScenarioAction::DescribeTopicConfig(action)
+                        if action.topic == creation.topic
+                            && action.config_name == config.name
+                            && action.expected_value == config.value
+                )
+            });
+            if !described {
+                problems.push(format!(
+                    "admin operation {} configured topic creation requires a later ordered description of {}:{}",
+                    creation.operation_id, creation.topic, config.name
+                ));
+                break;
+            }
+        }
+    }
+}
+
 fn validate_batch(
     action: &crate::AlterTopicConfigsAction,
     described: &BTreeMap<OperationId, (TopicConfigApi, Vec<DescribeTopicConfigExpectation>)>,
@@ -113,4 +148,46 @@ fn invalidate_batches(
             })
         })
     });
+}
+
+#[cfg(test)]
+mod creation_tests {
+    use crate::{Scenario, ScenarioAction};
+
+    #[test]
+    fn configured_creation_requires_its_ordered_description() {
+        let scenario = fixture();
+        let mut problems = Vec::new();
+        super::validate(&scenario, &mut problems);
+        assert!(
+            !problems
+                .iter()
+                .any(|problem| problem.contains("configured topic creation requires")),
+            "{problems:?}"
+        );
+
+        let mut missing = scenario;
+        missing.steps.retain(|step| {
+            !matches!(
+                &step.action,
+                ScenarioAction::DescribeTopicConfig(action)
+                    if action.operation_id.as_str() == "admin-create-config-described"
+            )
+        });
+        let mut problems = Vec::new();
+        super::validate(&missing, &mut problems);
+        assert!(
+            problems
+                .iter()
+                .any(|problem| problem.contains("configured topic creation requires")),
+            "{problems:?}"
+        );
+    }
+
+    fn fixture() -> Scenario {
+        toml::from_str(include_str!(
+            "../../../scenarios/kafka/admin-create-topic.toml"
+        ))
+        .unwrap_or_else(|error| panic!("parse configured topic creation: {error}"))
+    }
 }

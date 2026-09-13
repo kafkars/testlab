@@ -1,18 +1,38 @@
 //! Topic mutation verification requires one public result and one immediate metadata snapshot.
 
-use testlab_schema::{CreateTopicAction, OperationId, ScenarioAction, Violation};
+use testlab_schema::{CreateTopicAction, OperationId, Scenario, ScenarioAction, Violation};
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{HistoryIndex, IndexedAdminTopicCompletion, IndexedTopicObservation};
 use crate::support::violation;
 
 #[cfg(test)]
+#[path = "admin_topic_creation_config_test.rs"]
+mod creation_config_test;
+#[cfg(test)]
 #[path = "admin_topic_manual_placement_test.rs"]
 mod manual_placement_test;
 #[path = "admin_partition_manual_placement.rs"]
 mod partition_manual_placement;
+#[path = "admin_topic_creation_config.rs"]
+mod topic_creation_config;
+
+pub(crate) fn contract(action: &CreateTopicAction) -> &'static str {
+    if action.expected_error_code.is_some() {
+        "ADMIN-014"
+    } else if action.validate_only {
+        "ADMIN-020"
+    } else if action.replica_assignments.is_some() {
+        "ADMIN-084"
+    } else if !action.configs.is_empty() {
+        "ADMIN-094"
+    } else {
+        "ADMIN-001"
+    }
+}
 
 pub(crate) fn verify_topic_action(
+    scenario: &Scenario,
     action: &ScenarioAction,
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
@@ -26,7 +46,7 @@ pub(crate) fn verify_topic_action(
                 verify_manual_topic_creation(action, index, command_window, violations);
             } else {
                 verify(
-                    "ADMIN-001",
+                    contract(action),
                     "topic creation",
                     &action.operation_id,
                     &action.topic,
@@ -36,6 +56,9 @@ pub(crate) fn verify_topic_action(
                     command_window,
                     violations,
                 );
+                if !action.configs.is_empty() {
+                    topic_creation_config::verify(scenario, action, index, violations);
+                }
             }
         }
         ScenarioAction::CreatePartitions(action)

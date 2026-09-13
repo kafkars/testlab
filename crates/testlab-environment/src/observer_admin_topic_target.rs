@@ -21,6 +21,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 partitions: action.partitions,
                 replication_factor: action.replication_factor,
                 replica_assignments: action.replica_assignments.clone(),
+                configs: action.configs.clone(),
                 validate_only: action.validate_only,
                 timeout_ms: action.timeout_ms,
             }),

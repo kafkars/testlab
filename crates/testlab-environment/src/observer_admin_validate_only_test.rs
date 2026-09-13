@@ -16,6 +16,7 @@ fn topic_creation_targets_absence_without_polling() {
         partitions: 3,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only: true,
         expected_error_code: None,
         timeout_ms: 500,

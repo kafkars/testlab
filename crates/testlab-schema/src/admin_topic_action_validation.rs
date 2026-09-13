@@ -9,6 +9,8 @@ use crate::{ClientId, OperationId, ScenarioAction};
 mod partition_replica_assignment;
 #[path = "admin_topic_replica_assignment_validation.rs"]
 mod replica_assignment;
+#[path = "admin_topic_creation_config_validation.rs"]
+mod topic_creation_config;
 #[path = "admin_topic_listing_validation.rs"]
 mod topic_listing;
 #[path = "admin_topic_pagination_validation.rs"]
@@ -241,6 +243,7 @@ fn validate_create_topic(
         ));
     }
     replica_assignment::validate(action, problems);
+    topic_creation_config::validate(action, problems);
     if let Some(code) = action.expected_error_code.as_deref()
         && !matches!(
             code,

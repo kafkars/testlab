@@ -157,6 +157,7 @@ fn create_action(operation_id: &str, expected_error_code: Option<&str>) -> Scena
         partitions: 2,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only: false,
         expected_error_code: expected_error_code.map(str::to_owned),
         timeout_ms: 1_000,
@@ -171,6 +172,7 @@ fn create_command(operation_id: &str) -> AdapterCommand {
         partitions: 2,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only: false,
         timeout_ms: 1_000,
     })

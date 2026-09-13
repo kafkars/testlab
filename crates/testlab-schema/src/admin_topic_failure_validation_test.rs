@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 use super::{
     Capability, ClientId, CreateTopicAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
     ScenarioAction, ScenarioId, ScenarioStep, StepId, TOPIC_ALREADY_EXISTS_ERROR_CODE,
+    TopicCreationConfig,
 };
 
 #[test]
@@ -31,6 +32,30 @@ fn duplicate_creation_requires_a_prior_identical_success() {
             "{problems:?}"
         );
     }
+}
+
+#[test]
+fn duplicate_creation_includes_configs_in_its_identity() {
+    let mut configured_duplicate = duplicate("duplicate", 2);
+    let ScenarioAction::CreateTopic(action) = &mut configured_duplicate else {
+        panic!("duplicate action kind");
+    };
+    action.configs.push(TopicCreationConfig {
+        name: "cleanup.policy".to_owned(),
+        value: "compact".to_owned(),
+    });
+
+    let problems = problems(&scenario(vec![
+        create("create", 2, None),
+        configured_duplicate,
+    ]));
+
+    assert!(
+        problems
+            .iter()
+            .any(|problem| problem.contains("prior identical successful topic creation")),
+        "{problems:?}"
+    );
 }
 
 #[test]
@@ -112,6 +137,7 @@ fn create(
         partitions,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only: false,
         expected_error_code: expected_error_code.map(str::to_owned),
         timeout_ms: 1_000,

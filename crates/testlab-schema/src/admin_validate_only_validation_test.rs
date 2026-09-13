@@ -55,6 +55,7 @@ fn validate_only_commands_and_events_have_distinct_protocol_shapes() {
         partitions: 1,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only: true,
         timeout_ms: 1_000,
     });
@@ -178,6 +179,7 @@ fn create_topic(operation_id: &str, validate_only: bool) -> CreateTopicAction {
         partitions: 1,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only,
         expected_error_code: None,
         timeout_ms: 1_000,

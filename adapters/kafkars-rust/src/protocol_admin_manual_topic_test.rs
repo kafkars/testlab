@@ -1,5 +1,7 @@
 use kafkars::admin::NewTopicPlacement;
-use testlab_schema::{ClientId, CreateTopicCommand, OperationId, TopicReplicaAssignmentSpec};
+use testlab_schema::{
+    ClientId, CreateTopicCommand, OperationId, TopicCreationConfig, TopicReplicaAssignmentSpec,
+};
 
 #[test]
 fn manual_assignments_select_the_public_manual_topic_constructor() {
@@ -34,6 +36,31 @@ fn absent_assignments_retain_automatic_topic_placement() {
     ));
 }
 
+#[test]
+fn creation_configs_retain_caller_order() {
+    let mut command = command(None);
+    command.configs = vec![
+        TopicCreationConfig {
+            name: "cleanup.policy".to_owned(),
+            value: "compact".to_owned(),
+        },
+        TopicCreationConfig {
+            name: "min.insync.replicas".to_owned(),
+            value: "1".to_owned(),
+        },
+    ];
+
+    let topic = crate::protocol_admin_write::new_topic(&command);
+
+    assert_eq!(
+        topic,
+        kafkars::admin::NewTopic::new("orders", 2)
+            .replication_factor(2)
+            .config("cleanup.policy", "compact")
+            .config("min.insync.replicas", "1")
+    );
+}
+
 fn command(replica_assignments: Option<Vec<TopicReplicaAssignmentSpec>>) -> CreateTopicCommand {
     CreateTopicCommand {
         client_id: ClientId::new("client-1").unwrap_or_else(|error| panic!("client ID: {error}")),
@@ -43,6 +70,7 @@ fn command(replica_assignments: Option<Vec<TopicReplicaAssignmentSpec>>) -> Crea
         partitions: 2,
         replication_factor: 2,
         replica_assignments,
+        configs: Vec::new(),
         validate_only: false,
         timeout_ms: 1_000,
     }

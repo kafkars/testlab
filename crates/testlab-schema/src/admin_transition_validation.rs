@@ -2,10 +2,13 @@ use crate::{Scenario, ScenarioAction};
 use std::collections::{BTreeMap, BTreeSet};
 #[path = "admin_create_topics_batch_transition_validation.rs"]
 mod create_topics_batch;
+#[path = "admin_describe_error_transition_validation.rs"]
+mod describe_errors;
 struct TopicDefinition {
     partitions: i32,
     replication_factor: i16,
     replica_assignments: Option<Vec<crate::TopicReplicaAssignmentSpec>>,
+    configs: Vec<crate::TopicCreationConfig>,
 }
 
 impl TopicDefinition {
@@ -13,6 +16,7 @@ impl TopicDefinition {
         self.partitions == other.partitions
             && self.replication_factor == other.replication_factor
             && self.replica_assignments == other.replica_assignments
+            && self.configs == other.configs
     }
 }
 pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
@@ -30,36 +34,10 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
     crate::admin_share_group_offset_transition_validation::validate(scenario, problems);
     crate::admin_share_group_description_transition_validation::validate(scenario, problems);
     crate::admin_classic_group_transition_validation::validate(scenario, problems);
-    validate_describe_errors(scenario, problems);
+    describe_errors::validate(scenario, problems);
     let mut state = TransitionState::default();
     for step in &scenario.steps {
         state.validate_step(&step.action, problems);
-    }
-}
-
-fn validate_describe_errors(scenario: &Scenario, problems: &mut Vec<String>) {
-    for (index, step) in scenario.steps.iter().enumerate() {
-        let ScenarioAction::DescribeTopic(action) = &step.action else {
-            continue;
-        };
-        let Some(code) = action.expected_error_code.as_deref() else {
-            continue;
-        };
-        if code == crate::UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE {
-            continue;
-        }
-        let preceded_by_metadata_fault = index.checked_sub(1).is_some_and(|prior| {
-            matches!(
-                &scenario.steps[prior].action,
-                ScenarioAction::ArmProtocolFault(control) if control.api == crate::KafkaApi::Metadata
-            )
-        });
-        if !preceded_by_metadata_fault {
-            problems.push(format!(
-                "admin operation {} non-broker error {code} requires an immediately preceding metadata protocol fault",
-                action.operation_id
-            ));
-        }
     }
 }
 
@@ -121,6 +99,7 @@ impl TransitionState {
             partitions: action.partitions,
             replication_factor: action.replication_factor,
             replica_assignments: action.replica_assignments.clone(),
+            configs: action.configs.clone(),
         };
         match action.expected_error_code.as_deref() {
             Some(crate::TOPIC_ALREADY_EXISTS_ERROR_CODE) => {

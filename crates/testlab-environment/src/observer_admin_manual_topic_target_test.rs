@@ -56,6 +56,7 @@ fn manual_action() -> ScenarioAction {
         partitions: 2,
         replication_factor: 2,
         replica_assignments: Some(vec![assignment(0, &[2, 1]), assignment(1, &[3, 2])]),
+        configs: Vec::new(),
         validate_only: false,
         expected_error_code: None,
         timeout_ms: 1_000,

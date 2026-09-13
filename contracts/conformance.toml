@@ -619,6 +619,12 @@ statement = "One public active-producer description in a declared broker-one sin
 category = "admin"
 
 [[contract]]
+id = "ADMIN-094"
+title = "Topic creation preserves caller-selected configuration"
+statement = "One automatic public topic creation preserves its caller-ordered configuration entries on the wire, creates the exact topology, and is followed in configuration order by public descriptions plus immediate independent librdkafka queries proving every selected non-sensitive value."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

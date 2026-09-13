@@ -86,7 +86,7 @@ fn create_topic<W: Write>(
 }
 
 pub(crate) fn new_topic(command: &CreateTopicCommand) -> NewTopic {
-    match command.replica_assignments.as_deref() {
+    let topic = match command.replica_assignments.as_deref() {
         Some(assignments) => NewTopic::with_replica_assignments(
             command.topic.clone(),
             assignments.iter().map(|assignment| {
@@ -98,7 +98,10 @@ pub(crate) fn new_topic(command: &CreateTopicCommand) -> NewTopic {
         ),
         None => NewTopic::new(command.topic.clone(), command.partitions)
             .replication_factor(command.replication_factor),
-    }
+    };
+    command.configs.iter().fold(topic, |topic, config| {
+        topic.config(config.name.clone(), config.value.clone())
+    })
 }
 
 fn create_partitions<W: Write>(

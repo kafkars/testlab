@@ -7,7 +7,8 @@ use testlab_schema::{
     CreateTopicCommand, DeleteRecordsAction, DeleteRecordsCommand, DescribeTopicAction,
     DescribeTopicCommand, ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand,
     ListTopicsAction, ListTopicsCommand, OperationId, ScenarioAction,
-    TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicDescriptionPagination, TopicListingExpectation,
+    TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicCreationConfig, TopicDescriptionPagination,
+    TopicListingExpectation,
 };
 #[path = "session_command_admin_offset_test.rs"]
 mod offset_tests;
@@ -59,6 +60,7 @@ fn duplicate_creation_expectation_stays_out_of_the_wire_command() {
         partitions: 2,
         replication_factor: 1,
         replica_assignments: None,
+        configs: Vec::new(),
         validate_only: false,
         expected_error_code: Some(TOPIC_ALREADY_EXISTS_ERROR_CODE.to_owned()),
         timeout_ms: 20_000,
@@ -77,6 +79,54 @@ fn duplicate_creation_expectation_stays_out_of_the_wire_command() {
             partitions: 2,
             replication_factor: 1,
             replica_assignments: None,
+            configs: Vec::new(),
+            validate_only: false,
+            timeout_ms: 20_000,
+        })
+    );
+}
+
+#[test]
+fn configured_creation_translation_preserves_caller_order() {
+    let client_id = id(ClientId::new("client-1"));
+    let operation_id = id(OperationId::new("admin-create-configured"));
+    let configs = vec![
+        TopicCreationConfig {
+            name: "cleanup.policy".to_owned(),
+            value: "compact".to_owned(),
+        },
+        TopicCreationConfig {
+            name: "min.insync.replicas".to_owned(),
+            value: "1".to_owned(),
+        },
+    ];
+    let action = ScenarioAction::CreateTopic(CreateTopicAction {
+        client_id: client_id.clone(),
+        operation_id: operation_id.clone(),
+        topic: "orders".to_owned(),
+        partitions: 2,
+        replication_factor: 1,
+        replica_assignments: None,
+        configs: configs.clone(),
+        validate_only: false,
+        expected_error_code: None,
+        timeout_ms: 20_000,
+    });
+
+    let Some((command, _)) = translate(&action) else {
+        panic!("configured creation must cross the adapter boundary");
+    };
+
+    assert_eq!(
+        command,
+        AdapterCommand::CreateTopic(CreateTopicCommand {
+            client_id,
+            operation_id,
+            topic: "orders".to_owned(),
+            partitions: 2,
+            replication_factor: 1,
+            replica_assignments: None,
+            configs,
             validate_only: false,
             timeout_ms: 20_000,
         })

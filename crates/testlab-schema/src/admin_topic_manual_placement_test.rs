@@ -27,6 +27,7 @@ fn manual_topic_placement_round_trips_on_action_and_wire() {
         partitions: action.partitions,
         replication_factor: action.replication_factor,
         replica_assignments: action.replica_assignments.clone(),
+        configs: Vec::new(),
         validate_only: action.validate_only,
         timeout_ms: action.timeout_ms,
     };

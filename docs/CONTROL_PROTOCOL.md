@@ -639,7 +639,13 @@ use the packaged client's public admin handle. Admin-created scenario topics are
 deliberately excluded from independent environment provisioning, and broker
 auto-creation is disabled. Immediately after each public completion, independent
 metadata queries require the requested partition sets. A singleton creation may
-instead carry one contiguous caller-ordered partition assignment per partition.
+also carry up to 32 unique caller-ordered non-sensitive configuration entries.
+The adapter applies each entry through the packaged topic builder and retains
+the complete ordered list on the wire. After topology proof, a later public
+description and immediate independent librdkafka query must prove every selected
+value in the same order; scenario validation rejects a missing or reordered
+description chain before execution. A singleton creation may instead carry one
+contiguous caller-ordered partition assignment per partition.
 Its declared partition count and replication factor must exactly match those
 assignments, and the adapter calls the packaged manual-placement constructor.
 Immediate independent metadata must then show each exact replica order, a leader

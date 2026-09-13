@@ -14,6 +14,7 @@ fn manual_topic_translation_preserves_exact_replica_assignments() {
         partitions: 2,
         replication_factor: 2,
         replica_assignments: Some(assignments.clone()),
+        configs: Vec::new(),
         validate_only: false,
         expected_error_code: None,
         timeout_ms: 1_000,

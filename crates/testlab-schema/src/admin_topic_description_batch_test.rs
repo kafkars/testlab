@@ -13,9 +13,9 @@ use super::{
 
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 129);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 133);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 119);
+    assert_eq!(PROTOCOL_VERSION, 130);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 134);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 120);
 }
 
 #[test]
@@ -68,6 +68,7 @@ fn missing_topic_expectation_rejects_a_prior_successful_creation() {
                 partitions: 1,
                 replication_factor: 1,
                 replica_assignments: None,
+                configs: Vec::new(),
                 validate_only: false,
                 expected_error_code: None,
                 timeout_ms: 1_000,

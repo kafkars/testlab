@@ -24,7 +24,7 @@ use crate::admin_records_batch::verify_records_batch_action;
 use crate::admin_replica_log_dirs::verify_replica_log_dirs_action;
 use crate::admin_share_group::verify_share_group_action;
 use crate::admin_streams_group::{contract as streams_contract, verify as verify_streams_group};
-use crate::admin_topic::verify_topic_action;
+use crate::admin_topic::{contract as topic_contract, verify_topic_action};
 use crate::admin_topics_deletion::verify_topics_deletion_action;
 use crate::admin_topics_description::verify_topics_description_action;
 use crate::admin_transactions::verify_transactions_action;
@@ -104,7 +104,7 @@ pub(crate) fn verify_admin(
             || verify_config_resources_action(&step.action, index, violations)
             || verify_config_batch_action(scenario, &step.action, index, violations)
             || verify_config_action(&step.action, index, violations)
-            || verify_topic_action(&step.action, index, violations)
+            || verify_topic_action(scenario, &step.action, index, violations)
             || verify_topics_deletion_action(scenario, &step.action, index, violations)
             || verify_topics_description_action(&step.action, index, violations)
             || verify_broker_unregistration(&step.action, index, violations)
@@ -143,15 +143,13 @@ fn scenario_evidence(operation_id: Option<&testlab_schema::OperationId>) -> Vec<
 }
 fn contract(action: &ScenarioAction) -> Option<&'static str> {
     Some(match action {
-        ScenarioAction::CreateTopic(value) if value.expected_error_code.is_some() => "ADMIN-014",
+        ScenarioAction::CreateTopic(value) => topic_contract(value),
         ScenarioAction::CreatePartitions(value) if value.expected_error_code.is_some() => {
             "ADMIN-019"
         }
         ScenarioAction::DeleteTopic(value) if value.expected_error_code.is_some() => "ADMIN-019",
         ScenarioAction::DescribeTopic(value) if value.expected_error_code.is_some() => "ADMIN-019",
         ScenarioAction::ListOffsets(value) if value.expected_error_code.is_some() => "ADMIN-019",
-        ScenarioAction::CreateTopic(value) if value.validate_only => "ADMIN-020",
-        ScenarioAction::CreateTopic(value) if value.replica_assignments.is_some() => "ADMIN-084",
         ScenarioAction::CreatePartitions(value) if value.validate_only => "ADMIN-021",
         ScenarioAction::CreatePartitions(value) if value.replica_assignments.is_some() => {
             "ADMIN-085"
@@ -194,7 +192,6 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterShareGroupOffsets(_) => "ADMIN-039",
         ScenarioAction::DeleteShareGroupOffsets(_) => "ADMIN-040",
         ScenarioAction::DeleteShareGroups(_) => "ADMIN-041",
-        ScenarioAction::CreateTopic(_) => "ADMIN-001",
         ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
         ScenarioAction::DescribeTopic(_) => "ADMIN-003",

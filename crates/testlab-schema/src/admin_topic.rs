@@ -34,6 +34,16 @@ pub struct TopicReplicaAssignmentSpec {
     pub broker_ids: Vec<i32>,
 }
 
+/// One caller-ordered configuration applied while creating a topic.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TopicCreationConfig {
+    /// Exact Kafka topic-configuration name.
+    pub name: String,
+    /// Exact non-sensitive configuration value.
+    pub value: String,
+}
+
 /// Scenario intent for one bounded topic creation.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -51,6 +61,9 @@ pub struct CreateTopicAction {
     /// Exact caller-ordered replica placement, or broker-selected placement when absent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replica_assignments: Option<Vec<TopicReplicaAssignmentSpec>>,
+    /// Caller-ordered topic configurations supplied with the creation request.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub configs: Vec<TopicCreationConfig>,
     /// Whether the public API must validate the request without creating the topic.
     pub validate_only: bool,
     /// Exact normalized public error expected instead of a completion.
@@ -77,6 +90,9 @@ pub struct CreateTopicCommand {
     /// Exact caller-ordered replica placement, or broker-selected placement when absent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replica_assignments: Option<Vec<TopicReplicaAssignmentSpec>>,
+    /// Caller-ordered topic configurations supplied with the creation request.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub configs: Vec<TopicCreationConfig>,
     /// Whether the public API validates the request without creating the topic.
     pub validate_only: bool,
     /// Complete public operation bound.
