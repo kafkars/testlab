@@ -24,6 +24,17 @@ pub enum ProducerCompression {
     Zstd,
 }
 
+/// Public client-builder surface used to apply one complete producer policy.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProducerConfigurationMethod {
+    /// Applies one aggregate `ProducerConfig` value.
+    #[default]
+    ProducerConfig,
+    /// Applies delivery, compression, retry, and limits through dedicated setters.
+    IndividualSetters,
+}
+
 /// Public single-record producer method selected by one scenario send.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -81,6 +92,9 @@ pub struct ProducerConfiguration {
 pub struct CreateConfiguredClientAction {
     /// New client identity.
     pub client_id: ClientId,
+    /// Exact public builder surface used to apply the producer policy.
+    #[serde(default)]
+    pub configuration_method: ProducerConfigurationMethod,
     /// Producer policy fixed before client startup.
     pub configuration: ProducerConfiguration,
 }

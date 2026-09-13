@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v131 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v135 and evidence schema v121.
+Protocol v132 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v136 and evidence schema v122.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -36,7 +36,12 @@ handles.
 Configured client creation carries the complete client-wide producer policy:
 delivery timeout, one of the five public compression selections, bounded retry
 count and backoff, and portable active, waiting, batching, request, in-flight,
-and linger limits. These values are fixed before the public client host starts.
+and linger limits. It also carries the exact public configuration method:
+`producer_config` applies the aggregate `ProducerConfig`, while
+`individual_setters` applies the equivalent delivery-timeout, compression,
+retry, and limits setters. Release scenarios select both paths explicitly;
+adapter commands never default the method across the process boundary. These
+values are fixed before the public client host starts.
 Durability cannot be downgraded: idempotence and `acks=all` remain client-owned
 invariants outside the protocol vocabulary. Each codec has an independent
 real-Kafka scenario checked by ordinary terminal and broker-observation rules.

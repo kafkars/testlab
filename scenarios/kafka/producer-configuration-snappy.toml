@@ -1,4 +1,4 @@
-schema_version = 135
+schema_version = 136
 id = "kafka.producer-configuration-snappy"
 title = "configured producer delivers with snappy compression"
 description = "A client built with the complete explicit public producer policy and snappy record-batch compression delivers one exact independently observed record."
@@ -9,6 +9,7 @@ requires = ["producer", "producer_configuration", "lifecycle", "client_readiness
 id = "create-configured-client"
 kind = "create_configured_client"
 client_id = "client-snappy"
+configuration_method = "producer_config"
 
 [steps.configuration]
 delivery_timeout_ms = 20000

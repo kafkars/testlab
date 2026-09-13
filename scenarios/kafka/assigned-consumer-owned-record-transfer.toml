@@ -1,4 +1,4 @@
-schema_version = 135
+schema_version = 136
 id = "kafka.assigned-consumer-owned-record-transfer"
 title = "owned assigned-consumer records transfer through a producer terminal"
 description = "A packaged direct consumer consumes one borrowed batch into an owned record, transfers its bytes to a producer record, and retains exact source evidence through the independently observed destination terminal."

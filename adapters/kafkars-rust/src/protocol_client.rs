@@ -22,7 +22,11 @@ pub(crate) fn dispatch<W: Write>(
             }
         }
         AdapterCommand::CreateConfiguredClient(action) => {
-            state.create_configured_client(action.client_id.clone(), action.configuration)?;
+            state.create_configured_client(
+                action.client_id.clone(),
+                action.configuration_method,
+                action.configuration,
+            )?;
             AdapterEvent::ClientCreated {
                 client_id: action.client_id,
             }

@@ -1063,6 +1063,12 @@ statement = "Each selected ordinary send binds one independently proven nonzero 
 category = "producer"
 
 [[contract]]
+id = "PROD-019"
+title = "Configured producer clients preserve the exact public configuration path"
+statement = "Each configured producer client has exactly one issued creation command preserving its complete policy and selected aggregate or individual-setter public builder path before ordinary producer contracts prove broker-visible delivery."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
 statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."

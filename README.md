@@ -110,6 +110,10 @@ value through both public description and immediate independent librdkafka outpu
 Plural consumer-group offset alteration selects an explicit one-day retention
 through the public builder while retaining exact ordered results and immediate
 independent offset proof; eventual expiry is not claimed.
+Configured producer creation preserves one exact complete policy command and
+qualifies both the aggregate `producer_config` method and its four equivalent
+individual public setters. Ordinary producer contracts retain the independent
+broker-visible delivery proof.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

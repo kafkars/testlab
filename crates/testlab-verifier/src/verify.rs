@@ -18,6 +18,9 @@ use crate::support::{observation_references, references, terminal_references, vi
 use crate::transaction::verify_transactions;
 use crate::verify_index::{assertions, observations_by_operation};
 
+#[path = "producer_configuration_method.rs"]
+mod producer_configuration_method;
+
 /// Deterministically verifies one validly executed scenario.
 pub fn verify(
     scenario: &Scenario,
@@ -55,6 +58,7 @@ pub fn verify(
     crate::transaction_send_method::verify(scenario, &index, &mut violations);
     crate::transaction_topic_uuid::verify(scenario, &index, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
+    producer_configuration_method::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_send_method::verify(scenario, &index, &mut violations);
     crate::producer_receipt::verify(scenario, &index, observations, &mut violations);

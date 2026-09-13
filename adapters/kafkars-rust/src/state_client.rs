@@ -1,6 +1,8 @@
 //! Client state construction applies public policy before starting the shared host.
 
-use testlab_schema::{AssignedConsumerConfiguration, ClientId, ProducerConfiguration};
+use testlab_schema::{
+    AssignedConsumerConfiguration, ClientId, ProducerConfiguration, ProducerConfigurationMethod,
+};
 
 use crate::admission_retry::retry_safe;
 use crate::kafkars_api::Client;
@@ -18,9 +20,10 @@ impl AdapterState {
     pub(crate) fn create_configured_client(
         &mut self,
         client_id: ClientId,
+        method: ProducerConfigurationMethod,
         configuration: ProducerConfiguration,
     ) -> Result<(), StateError> {
-        self.create_client_with_configuration(client_id, None, Some(configuration), None)
+        self.create_client_with_configuration(client_id, None, Some((method, configuration)), None)
     }
 
     pub(crate) fn create_assigned_consumer_client(
@@ -35,7 +38,7 @@ impl AdapterState {
         &mut self,
         client_id: ClientId,
         expected_cluster_id: Option<String>,
-        producer_configuration: Option<ProducerConfiguration>,
+        producer_configuration: Option<(ProducerConfigurationMethod, ProducerConfiguration)>,
         assigned_consumer_configuration: Option<AssignedConsumerConfiguration>,
     ) -> Result<(), StateError> {
         let endpoints = self
@@ -55,7 +58,9 @@ impl AdapterState {
             None => builder,
         };
         let builder = match producer_configuration {
-            Some(configuration) => crate::producer_configuration::apply(builder, configuration)?,
+            Some((method, configuration)) => {
+                crate::producer_configuration::apply(builder, method, configuration)?
+            }
             None => builder,
         };
         let builder = match assigned_consumer_configuration {

@@ -278,6 +278,12 @@ consumer-group offset-retention selection. ADMIN-095 preserves a one-day
 duration on the wire while retaining ADMIN-025's exact caller-ordered public
 outcomes, distinct corroborated baselines, and contiguous immediate independent
 post-state. Long-term expiry behavior remains unclaimed.
+Protocol v132, scenario schema v136, and evidence schema v122 add exact
+configured-producer public path selection. PROD-019 requires one exact
+configured-client command containing the complete producer policy and selects
+both `ClientBuilder::producer_config` and the equivalent four individual
+setters across release scenarios. Ordinary producer and independent record
+contracts retain behavioral truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -358,13 +364,15 @@ receipt and independent Kafka observation remain governed by PROD-001 through
 PROD-010 and PROD-014.
 
 Configured-client history retains the complete requested public producer
-policy under its stable command identity, and lifecycle evidence requires the
-correlated client creation. Each codec scenario then proves exact public
-delivery and independent broker-visible bytes. The independent observer reads
-Kafka records after broker decoding; it does not inspect Produce request frames
-and therefore does not independently claim which compression codec was used on
-the wire. Public builder-selection tests establish the adapter mapping without
-turning that adapter fact into broker truth.
+policy and selected aggregate or individual-setter path under its stable
+command identity. PROD-019 requires exactly one matching creation command and
+rejects altered policy, a substituted plain or assigned-consumer client, and
+duplicate creation. Adapter mapping tests establish both public builder paths.
+Each codec scenario then proves exact public delivery and independent
+broker-visible bytes. The independent observer reads Kafka records after broker
+decoding; it does not inspect Produce request frames and therefore does not
+independently claim which compression codec was used on the wire. Public
+builder-selection evidence does not turn that adapter fact into broker truth.
 
 Configured assigned-consumer history retains the requested read isolation and
 its correlated client creation. The read-committed scenario assigns at the

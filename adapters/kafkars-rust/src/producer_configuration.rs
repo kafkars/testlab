@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use testlab_schema::{ProducerCompression, ProducerConfiguration};
+use testlab_schema::{ProducerCompression, ProducerConfiguration, ProducerConfigurationMethod};
 
 use crate::kafkars_api::{
     ClientBuilder, Compression, ProducerConfig, ProducerLimits, ProducerRetryConfig,
@@ -11,6 +11,7 @@ use crate::state::StateError;
 
 pub(crate) fn apply(
     builder: ClientBuilder,
+    method: ProducerConfigurationMethod,
     configuration: ProducerConfiguration,
 ) -> Result<ClientBuilder, StateError> {
     let limits = configuration.limits;
@@ -25,16 +26,24 @@ pub(crate) fn apply(
     )
     .with_request_bytes(portable(limits.request_bytes, "request_bytes")?)
     .with_max_in_flight_requests_per_broker(usize::from(limits.max_in_flight_requests_per_broker));
-    let public = ProducerConfig::new(
-        Duration::from_millis(configuration.delivery_timeout_ms),
-        compression(configuration.compression),
-        ProducerRetryConfig::new(
-            configuration.max_retries,
-            Duration::from_millis(configuration.retry_backoff_ms),
-        ),
-        public_limits,
-    );
-    Ok(builder.producer_config(public))
+    let delivery_timeout = Duration::from_millis(configuration.delivery_timeout_ms);
+    let compression = compression(configuration.compression);
+    let retry_backoff = Duration::from_millis(configuration.retry_backoff_ms);
+    Ok(match method {
+        ProducerConfigurationMethod::ProducerConfig => {
+            builder.producer_config(ProducerConfig::new(
+                delivery_timeout,
+                compression,
+                ProducerRetryConfig::new(configuration.max_retries, retry_backoff),
+                public_limits,
+            ))
+        }
+        ProducerConfigurationMethod::IndividualSetters => builder
+            .producer_delivery_timeout(delivery_timeout)
+            .producer_compression(compression)
+            .producer_retry(configuration.max_retries, retry_backoff)
+            .producer_limits(public_limits),
+    })
 }
 
 fn compression(value: ProducerCompression) -> Compression {
