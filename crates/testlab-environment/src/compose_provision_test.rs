@@ -57,7 +57,7 @@ kind = "create_share_consumer"
 client_id = "client-1"
 consumer_id = "share-1"
 group_id = "orders-share"
-topic = "orders"
+topics = ["orders"]
 membership_timeout_ms = 1000
 close_timeout_ms = 1000
 
@@ -67,7 +67,7 @@ kind = "create_share_consumer"
 client_id = "client-2"
 consumer_id = "share-2"
 group_id = "orders-share"
-topic = "orders"
+topics = ["orders"]
 membership_timeout_ms = 1000
 close_timeout_ms = 1000
 "#,
