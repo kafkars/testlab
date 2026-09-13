@@ -11,9 +11,9 @@ pub(crate) mod validation;
 #[path = "admin_streams_group_test.rs"]
 mod tests;
 
-/// Input topic fixed by Apache Kafka's bundled WordCount Streams example.
+/// Input topic fixed by Apache Kafka's bundled `WordCount` Streams example.
 pub const STREAMS_DEMO_INPUT_TOPIC: &str = "streams-plaintext-input";
-/// Output topic fixed by Apache Kafka's bundled WordCount Streams example.
+/// Output topic fixed by Apache Kafka's bundled `WordCount` Streams example.
 pub const STREAMS_DEMO_OUTPUT_TOPIC: &str = "streams-wordcount-output";
 
 /// One bounded exercise of the public Streams-group Admin family.

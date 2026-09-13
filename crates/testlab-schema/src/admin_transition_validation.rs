@@ -76,7 +76,7 @@ impl TransitionState {
             }
             ScenarioAction::DescribeTopic(action) => self.validate_describe_topic(action, problems),
             ScenarioAction::DescribeTopics(action) => {
-                self.validate_describe_topics(action, problems)
+                self.validate_describe_topics(action, problems);
             }
             ScenarioAction::DeleteTopic(action) => self.validate_delete_topic(action, problems),
             ScenarioAction::ListOffsets(action) if action.expected_error_code.is_some() => {

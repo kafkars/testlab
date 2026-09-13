@@ -8,6 +8,10 @@ use crate::{Capability, ChildHandleOwnership, GroupProtocol, ScenarioAction};
 mod required;
 pub(crate) use required::validate_required;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive capability routing keeps every scenario action visible"
+)]
 pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capability>) {
     if matches!(
         action,

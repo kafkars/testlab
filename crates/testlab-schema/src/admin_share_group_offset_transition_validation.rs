@@ -92,13 +92,11 @@ fn validate_empty_group(
         .collect::<Vec<_>>();
     if matching.is_empty() {
         problems.push(format!(
-            "admin operation {} requires a prior modeled Share-group member",
-            operation_id
+            "admin operation {operation_id} requires a prior modeled Share-group member"
         ));
     } else if matching.iter().any(|(_, closed)| !closed) {
         problems.push(format!(
-            "admin operation {} requires every modeled Share-group member to be closed",
-            operation_id
+            "admin operation {operation_id} requires every modeled Share-group member to be closed"
         ));
     }
 }

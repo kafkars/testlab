@@ -5,6 +5,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::admin_action_validation::{validate_identity, validate_resource, validate_timeout};
 use crate::{ClientId, OperationId, ScenarioAction};
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive Share-group validation keeps each public action explicit"
+)]
 pub(crate) fn validate(
     action: &ScenarioAction,
     clients: &BTreeMap<ClientId, bool>,

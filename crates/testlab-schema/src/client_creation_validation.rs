@@ -46,7 +46,7 @@ fn validate_identity(
     match expected_cluster_id {
         Some("") => problems.push("expected_cluster_id must not be empty".to_owned()),
         Some(cluster_id) if cluster_id.len() > MAX_EXPECTED_CLUSTER_ID_BYTES => {
-            problems.push("expected_cluster_id must not exceed 1024 bytes".to_owned())
+            problems.push("expected_cluster_id must not exceed 1024 bytes".to_owned());
         }
         _ => {}
     }

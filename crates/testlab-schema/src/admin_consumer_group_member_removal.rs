@@ -229,6 +229,10 @@ struct Baseline {
     revision: u64,
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "member-removal validation keeps each modeled lifecycle input explicit"
+)]
 fn validate_removal(
     action: &RemoveConsumerGroupMembersAction,
     sequence: usize,

@@ -4,6 +4,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{ClientId, OperationId, ScenarioAction};
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive admin validation routing keeps each action family explicit"
+)]
 pub(crate) fn validate(
     action: &ScenarioAction,
     clients: &BTreeMap<ClientId, bool>,

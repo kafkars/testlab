@@ -37,6 +37,10 @@ pub(crate) fn validate(
     validate_singleton(action, clients, operation_ids, problems);
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive singleton group-admin validation keeps each action explicit"
+)]
 fn validate_singleton(
     action: &ScenarioAction,
     clients: &BTreeMap<ClientId, bool>,

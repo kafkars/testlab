@@ -96,7 +96,7 @@ pub fn transferred_record(
     target_partition: i32,
 ) -> RecordSpec {
     let mut record = source.clone();
-    record.topic = target_topic.to_owned();
+    target_topic.clone_into(&mut record.topic);
     record.partition = target_partition;
     record.headers.push(HeaderSpec {
         name: RECORD_TRANSFER_OPERATION_HEADER.to_owned(),

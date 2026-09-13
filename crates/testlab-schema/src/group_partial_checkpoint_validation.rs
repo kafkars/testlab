@@ -64,14 +64,14 @@ fn validate_receive(
     }
     let records = expected
         .iter()
-        .filter_map(|operation_id| match sends.get(operation_id) {
-            Some(record) => Some(*record),
-            None => {
-                problems.push(format!(
-                    "partial group receive {receive_id} expects missing prior send {operation_id}"
-                ));
-                None
+        .filter_map(|operation_id| {
+            if let Some(record) = sends.get(operation_id) {
+                return Some(*record);
             }
+            problems.push(format!(
+                "partial group receive {receive_id} expects missing prior send {operation_id}"
+            ));
+            None
         })
         .collect::<Vec<_>>();
     if records.len() == expected.len()

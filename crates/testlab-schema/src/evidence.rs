@@ -95,6 +95,10 @@ pub struct HistoryEntry {
 }
 
 /// Event sources retained in the run history.
+#[allow(
+    clippy::large_enum_variant,
+    reason = "the stable evidence API keeps typed wire payloads inline"
+)]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "source", rename_all = "snake_case")]
 pub enum HistoryPayload {

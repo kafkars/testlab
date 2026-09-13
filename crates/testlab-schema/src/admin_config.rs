@@ -20,11 +20,19 @@ pub enum TopicConfigApi {
 }
 
 impl TopicConfigApi {
+    #[allow(
+        clippy::trivially_copy_pass_by_ref,
+        reason = "serde skip_serializing_if callbacks receive fields by reference"
+    )]
     fn is_topic(&self) -> bool {
         *self == Self::Topic
     }
 }
 
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde skip_serializing_if callbacks receive fields by reference"
+)]
 fn is_false(value: &bool) -> bool {
     !*value
 }

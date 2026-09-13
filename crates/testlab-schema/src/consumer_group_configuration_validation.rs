@@ -5,10 +5,10 @@ use crate::{ConsumerId, GroupConsumerConfiguration, GroupOperationConfigMethod, 
 pub(super) fn validate(
     consumer_id: &ConsumerId,
     protocol: GroupProtocol,
-    configuration: &Option<GroupConsumerConfiguration>,
+    configuration: Option<&GroupConsumerConfiguration>,
     problems: &mut Vec<String>,
 ) {
-    let Some(configuration) = configuration.as_ref() else {
+    let Some(configuration) = configuration else {
         return;
     };
     let owner = format!("consumer {consumer_id}");

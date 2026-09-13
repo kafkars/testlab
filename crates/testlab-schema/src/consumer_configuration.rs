@@ -138,12 +138,13 @@ pub(crate) fn validate(
             problems,
         );
     }
-    let partition_max_bytes = fetch
-        .map(|configuration| configuration.partition_max_bytes)
-        .unwrap_or(DEFAULT_PARTITION_MAX_BYTES);
-    let (buffered_bytes, max_batch_bytes) = limits
-        .map(|configuration| (configuration.buffered_bytes, configuration.max_batch_bytes))
-        .unwrap_or((DEFAULT_BUFFERED_BYTES, DEFAULT_MAX_BATCH_BYTES));
+    let partition_max_bytes = fetch.map_or(DEFAULT_PARTITION_MAX_BYTES, |configuration| {
+        configuration.partition_max_bytes
+    });
+    let (buffered_bytes, max_batch_bytes) = limits.map_or(
+        (DEFAULT_BUFFERED_BYTES, DEFAULT_MAX_BATCH_BYTES),
+        |configuration| (configuration.buffered_bytes, configuration.max_batch_bytes),
+    );
     if max_batch_bytes > buffered_bytes {
         problems.push(format!(
             "{owner} limits.max_batch_bytes must not exceed limits.buffered_bytes"

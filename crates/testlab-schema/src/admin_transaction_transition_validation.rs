@@ -32,7 +32,7 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
                 }
             }
             ScenarioAction::ListTransactions(action) => {
-                validate_listing(action, &owners, &mut unfiltered, problems)
+                validate_listing(action, &owners, &mut unfiltered, problems);
             }
             ScenarioAction::DescribeTransactions(action) => require_closed(
                 &action.operation_id,

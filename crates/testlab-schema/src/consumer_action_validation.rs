@@ -112,7 +112,7 @@ pub(crate) fn validate(
             group_configuration_validation::validate(
                 consumer_id,
                 *protocol,
-                configuration,
+                configuration.as_ref(),
                 problems,
             );
             create_group(

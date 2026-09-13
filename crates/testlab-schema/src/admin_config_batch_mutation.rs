@@ -132,10 +132,18 @@ pub struct AdminTopicConfigsAlteration {
 #[path = "admin_config_batch_mutation_test.rs"]
 mod test;
 
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde skip_serializing_if callbacks receive fields by reference"
+)]
 fn is_topic_api(api: &TopicConfigMutationApi) -> bool {
     *api == TopicConfigMutationApi::Topic
 }
 
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde skip_serializing_if callbacks receive fields by reference"
+)]
 fn is_set_method(method: &TopicConfigMutationMethod) -> bool {
     *method == TopicConfigMutationMethod::Set
 }

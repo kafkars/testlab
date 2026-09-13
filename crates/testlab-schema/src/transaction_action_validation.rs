@@ -69,7 +69,7 @@ pub(crate) fn validate(
             problems,
         ),
         ScenarioAction::ExecuteTransactionalTransform(action) => {
-            crate::transaction_transform_validation::validate(action, state, problems)
+            crate::transaction_transform_validation::validate(action, state, problems);
         }
         ScenarioAction::FenceTransaction {
             fence_method: _,
