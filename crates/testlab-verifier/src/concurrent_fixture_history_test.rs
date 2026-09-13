@@ -101,6 +101,7 @@ fn create_handles(
             observed_client_id: Some(client.as_str().to_owned()),
             observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
             observed_expected_cluster_id: None,
+            selected_producer_configuration: None,
         }),
     );
     history.command(

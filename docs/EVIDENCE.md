@@ -412,6 +412,11 @@ correlated event carrying the exact producer ID and nonzero selected public
 builder delivery timeout. Explicit handle values and configured-client
 inheritance must match exactly; implementation-defined defaults remain
 portable but must be positive.
+Protocol v161, scenario schema v165, and evidence schema v151 make configured
+client producer policy self-describing. PROD-024 requires the successful client
+creation event to carry the exact complete policy read through the public
+`ClientBuilder::selected_*` producer getters. Baseline and assigned-consumer
+clients must omit that field.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -511,7 +516,11 @@ Configured-client history retains the complete requested public producer
 policy and selected aggregate or individual-setter path under its stable
 command identity. PROD-019 requires exactly one matching creation command and
 rejects altered policy, a substituted plain or assigned-consumer client, and
-duplicate creation. Adapter mapping tests establish both public builder paths.
+duplicate creation. PROD-024 additionally requires the successful creation
+event to reproduce every delivery, compression, retry, ownership-limit,
+request-concurrency, and linger value from the public builder getters exactly.
+The observation is an adapter fact, not independent broker truth. Adapter
+mapping tests establish both public builder paths.
 Each codec scenario then proves exact public delivery and independent
 broker-visible bytes. The independent observer reads Kafka records after broker
 decoding; it does not inspect Produce request frames and therefore does not

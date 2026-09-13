@@ -52,12 +52,14 @@ fn creation_client_id(command: &AdapterCommand) -> Option<&ClientId> {
 #[cfg(test)]
 mod tests {
     use testlab_schema::{
-        AdapterCommand, CreateClientCommand, ProducerConfigurationMethod, Scenario, ScenarioAction,
+        AdapterCommand, AdapterEvent, AdapterSecurity, ClientConfigurationObservation,
+        CreateClientCommand, ProducerConfiguration, ProducerConfigurationMethod, RunId, Scenario,
+        ScenarioAction, ScenarioId,
     };
 
     use super::verify;
     use crate::index::HistoryIndex;
-    use crate::verify_fixture::command;
+    use crate::verify_fixture::{command, event};
 
     #[test]
     fn exact_method_and_policy_are_required_once() {
@@ -110,6 +112,86 @@ mod tests {
         assert_contract(&violations(&scenario, &duplicate));
     }
 
+    #[test]
+    fn selected_public_policy_is_exact_correlated_unique_and_later() {
+        let scenario = scenario();
+        let expected = configuration(&scenario);
+        let exact = client_history(&scenario, Some(expected));
+        assert!(policy_violations(&scenario, &exact).is_empty());
+
+        assert_producer_contract(&policy_violations(
+            &scenario,
+            &client_history(&scenario, None),
+        ));
+
+        let mut changed = expected;
+        changed.max_retries += 1;
+        assert_producer_contract(&policy_violations(
+            &scenario,
+            &client_history(&scenario, Some(changed)),
+        ));
+
+        let mut duplicate = exact.clone();
+        duplicate.push(exact[2].clone());
+        duplicate[3].sequence = 3;
+        assert_producer_contract(&policy_violations(&scenario, &duplicate));
+
+        let mut early = exact;
+        early[2].sequence = 0;
+        assert_producer_contract(&policy_violations(&scenario, &early));
+    }
+
+    fn client_history(
+        scenario: &Scenario,
+        selected_producer_configuration: Option<ProducerConfiguration>,
+    ) -> Vec<testlab_schema::HistoryEntry> {
+        let ScenarioAction::CreateConfiguredClient(action) = &scenario.steps[0].action else {
+            panic!("configured client fixture");
+        };
+        vec![
+            command(
+                0,
+                AdapterCommand::Hello {
+                    run_id: RunId::new("run-1").expect("run ID"),
+                    scenario_id: ScenarioId::new("configured-client").expect("scenario ID"),
+                    broker_endpoints: vec!["127.0.0.1:9092".to_owned()],
+                    security: AdapterSecurity::Plaintext,
+                },
+            ),
+            command(1, AdapterCommand::CreateConfiguredClient(action.clone())),
+            event(
+                2,
+                AdapterEvent::ClientCreated(ClientConfigurationObservation {
+                    client_id: action.client_id.clone(),
+                    observed_client_id: Some(action.client_id.as_str().to_owned()),
+                    observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
+                    observed_expected_cluster_id: None,
+                    selected_producer_configuration,
+                }),
+            ),
+        ]
+    }
+
+    fn configuration(scenario: &Scenario) -> ProducerConfiguration {
+        let ScenarioAction::CreateConfiguredClient(action) = &scenario.steps[0].action else {
+            panic!("configured client fixture");
+        };
+        action.configuration
+    }
+
+    fn policy_violations(
+        scenario: &Scenario,
+        history: &[testlab_schema::HistoryEntry],
+    ) -> Vec<testlab_schema::Violation> {
+        let mut violations = Vec::new();
+        crate::client_configuration::verify(
+            scenario,
+            &HistoryIndex::build(history),
+            &mut violations,
+        );
+        violations
+    }
+
     fn scenario() -> Scenario {
         toml::from_str(include_str!(
             "../../../scenarios/kafka/producer-configuration-zstd.toml"
@@ -131,6 +213,15 @@ mod tests {
             violations
                 .iter()
                 .any(|value| value.contract_id.as_str() == "PROD-019"),
+            "{violations:?}"
+        );
+    }
+
+    fn assert_producer_contract(violations: &[testlab_schema::Violation]) {
+        assert!(
+            violations
+                .iter()
+                .any(|value| value.contract_id.as_str() == "PROD-024"),
             "{violations:?}"
         );
     }

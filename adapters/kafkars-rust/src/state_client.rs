@@ -50,6 +50,7 @@ impl AdapterState {
         if self.clients.contains_key(&client_id) {
             return Err(StateError::DuplicateClient(client_id));
         }
+        let observes_producer_configuration = producer_configuration.is_some();
         let builder = Client::builder()
             .bootstrap_servers(endpoints.iter().map(String::as_str))
             .client_id(client_id.as_str())
@@ -70,12 +71,16 @@ impl AdapterState {
             }
             None => builder,
         };
+        let selected_producer_configuration = observes_producer_configuration
+            .then(|| crate::producer_configuration::selected(&builder))
+            .transpose()?;
         let client = builder.build().map_err(StateError::Client)?;
         let observation = ClientConfigurationObservation {
             client_id: client_id.clone(),
             observed_client_id: client.client_id().map(str::to_owned),
             observed_bootstrap_servers: client.bootstrap_servers().to_vec(),
             observed_expected_cluster_id: client.expected_cluster_id().map(str::to_owned),
+            selected_producer_configuration,
         };
         self.clients.insert(client_id, client);
         Ok(observation)

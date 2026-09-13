@@ -134,6 +134,7 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
                 observed_client_id: Some(client.as_str().to_owned()),
                 observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
                 observed_expected_cluster_id: None,
+                selected_producer_configuration: None,
             }),
         ),
         event(
@@ -201,6 +202,7 @@ pub(crate) fn rejected_history() -> Vec<HistoryEntry> {
                 observed_client_id: Some(client.as_str().to_owned()),
                 observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
                 observed_expected_cluster_id: None,
+                selected_producer_configuration: None,
             }),
         ),
         event(

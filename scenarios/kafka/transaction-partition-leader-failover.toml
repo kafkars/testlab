@@ -1,4 +1,4 @@
-schema_version = 164
+schema_version = 165
 id = "kafka.transaction-partition-leader-failover"
 title = "transactional batch commits across an observed partition-leader replacement"
 description = "After one baseline commit, Testlab independently selects and stops the exact output partition leader, proves a distinct replacement, requires an ordinary producer probe, and then requires the same transactional producer to stage and commit one exact public batch before the original leader returns."

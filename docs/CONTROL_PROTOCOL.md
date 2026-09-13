@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v160 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v164 and evidence schema v150.
+Protocol v161 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v165 and evidence schema v151.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -58,6 +58,10 @@ and linger limits. It also carries the exact public configuration method:
 retry, and limits setters. Release scenarios select both paths explicitly;
 adapter commands never default the method across the process boundary. These
 values are fixed before the public client host starts.
+The successful `client_created` event includes the complete policy read through
+the public `ClientBuilder::selected_*` producer getters. That field is present
+only for configured producer clients and must exactly match every requested
+value regardless of the selected aggregate or individual-setter path.
 Durability cannot be downgraded: idempotence and `acks=all` remain client-owned
 invariants outside the protocol vocabulary. Each codec has an independent
 real-Kafka scenario checked by ordinary terminal and broker-observation rules.
@@ -1379,6 +1383,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v160 is an exact semantic contract. New capabilities may be declared
+Protocol v161 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

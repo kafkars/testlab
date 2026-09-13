@@ -3,9 +3,60 @@
 use std::collections::BTreeSet;
 
 use crate::{
-    AdapterEvent, Capability, ProducerHandleConfigurationObservation, ProducerId,
-    ProducerSendMethod, Scenario, ScenarioAction,
+    AdapterEvent, Capability, ClientConfigurationObservation, ClientId,
+    ProducerHandleConfigurationObservation, ProducerId, ProducerSendMethod, Scenario,
+    ScenarioAction,
 };
+
+#[test]
+fn configured_client_event_nests_selected_public_producer_policy() {
+    let scenario = scenario(include_str!(
+        "../../../scenarios/kafka/producer-configuration-gzip.toml"
+    ));
+    let ScenarioAction::CreateConfiguredClient(action) = &scenario.steps[0].action else {
+        panic!("configured client action missing");
+    };
+    let event = AdapterEvent::ClientCreated(ClientConfigurationObservation {
+        client_id: ClientId::new("client-gzip")
+            .unwrap_or_else(|error| panic!("client ID: {error}")),
+        observed_client_id: Some("client-gzip".to_owned()),
+        observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
+        observed_expected_cluster_id: None,
+        selected_producer_configuration: Some(action.configuration),
+    });
+    let value = serde_json::to_value(&event)
+        .unwrap_or_else(|error| panic!("serialize client creation: {error}"));
+    assert_eq!(
+        value,
+        serde_json::json!({
+            "kind": "client_created",
+            "client_id": "client-gzip",
+            "observed_client_id": "client-gzip",
+            "observed_bootstrap_servers": ["127.0.0.1:9092"],
+            "observed_expected_cluster_id": null,
+            "selected_producer_configuration": {
+                "delivery_timeout_ms": 20000,
+                "compression": "gzip",
+                "max_retries": 3,
+                "retry_backoff_ms": 10,
+                "limits": {
+                    "retained_bytes": 8388608,
+                    "in_flight_records": 256,
+                    "waiting_records": 128,
+                    "waiting_bytes": 4194304,
+                    "batch_records": 32,
+                    "batch_bytes": 524288,
+                    "request_bytes": 1048576,
+                    "max_in_flight_requests_per_broker": 4,
+                    "linger_ms": 3,
+                },
+            },
+        })
+    );
+    let decoded: AdapterEvent = serde_json::from_value(value)
+        .unwrap_or_else(|error| panic!("deserialize client creation: {error}"));
+    assert_eq!(decoded, event);
+}
 
 #[test]
 fn producer_creation_event_flattens_selected_builder_policy() {

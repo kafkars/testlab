@@ -10,9 +10,9 @@ use crate::{
 
 #[test]
 fn consumer_group_deletion_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 160);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 164);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 150);
+    assert_eq!(PROTOCOL_VERSION, 161);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 165);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 151);
 }
 
 #[test]

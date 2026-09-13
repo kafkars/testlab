@@ -4,9 +4,9 @@ use crate::*;
 
 #[test]
 fn lifecycle_payloads_round_trip_with_exact_order() {
-    assert_eq!(PROTOCOL_VERSION, 160);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 164);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 150);
+    assert_eq!(PROTOCOL_VERSION, 161);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 165);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 151);
     let action = action();
     round_trip(&ScenarioAction::ExerciseStreamsGroupAdminLifecycle(
         action.clone(),

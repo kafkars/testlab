@@ -22,9 +22,15 @@ fn portable_configuration_selects_every_public_policy_value() {
             (ProducerCompression::Lz4, Compression::Lz4),
             (ProducerCompression::Zstd, Compression::Zstd),
         ] {
+            let configuration = config(portable);
             let builder =
-                crate::producer_configuration::apply(Client::builder(), method, config(portable))
+                crate::producer_configuration::apply(Client::builder(), method, configuration)
                     .unwrap_or_else(|error| panic!("apply public producer configuration: {error}"));
+            assert_eq!(
+                crate::producer_configuration::selected(&builder)
+                    .unwrap_or_else(|error| panic!("read public producer configuration: {error}")),
+                configuration
+            );
             assert_policy(builder.selected_producer_config(), public);
         }
     }

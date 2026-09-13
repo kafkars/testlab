@@ -1,6 +1,9 @@
-//! Successful client creation proves the exact public configuration readback.
+//! Successful client creation proves exact public client and builder configuration readback.
 
-use testlab_schema::{AdapterCommand, AdapterEvent, ClientId, Scenario, ScenarioAction, Violation};
+use testlab_schema::{
+    AdapterCommand, AdapterEvent, ClientConfigurationObservation, ClientId, ProducerConfiguration,
+    Scenario, ScenarioAction, Violation,
+};
 
 use crate::index::HistoryIndex;
 use crate::support::violation;
@@ -9,6 +12,7 @@ struct ExpectedCreation {
     command: AdapterCommand,
     client_id: ClientId,
     expected_cluster_id: Option<String>,
+    producer_configuration: Option<ProducerConfiguration>,
 }
 
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
@@ -56,23 +60,51 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                     && observation.observed_bootstrap_servers == endpoints
                     && observation.observed_expected_cluster_id == expected.expected_cluster_id
             });
-        if exact {
-            continue;
+        if !exact {
+            let mut evidence = vec![format!("history:{command_sequence}")];
+            evidence.extend(
+                events
+                    .iter()
+                    .map(|(sequence, _)| format!("history:{sequence}")),
+            );
+            violations.push(violation(
+                "CLIENT-003",
+                format!(
+                    "client {} expected one later exact public configuration observation",
+                    expected.client_id
+                ),
+                None,
+                evidence,
+            ));
         }
-        let mut evidence = vec![format!("history:{command_sequence}")];
-        evidence.extend(
-            events
-                .iter()
-                .map(|(sequence, _)| format!("history:{sequence}")),
-        );
+        verify_producer_configuration(&expected, *command_sequence, &events, violations);
+    }
+}
+
+fn verify_producer_configuration(
+    expected: &ExpectedCreation,
+    command_sequence: u64,
+    events: &[(u64, &ClientConfigurationObservation)],
+    violations: &mut Vec<Violation>,
+) {
+    let exact = events.len() == 1
+        && events.first().is_some_and(|(event_sequence, observation)| {
+            *event_sequence > command_sequence
+                && observation.selected_producer_configuration.as_ref()
+                    == expected.producer_configuration.as_ref()
+        });
+    if !exact {
         violations.push(violation(
-            "CLIENT-003",
+            "PROD-024",
             format!(
-                "client {} expected one later exact public configuration observation",
+                "client {} expected one later exact selected producer-policy observation",
                 expected.client_id
             ),
             None,
-            evidence,
+            std::iter::once(command_sequence)
+                .chain(events.iter().map(|(sequence, _)| *sequence))
+                .map(|sequence| format!("history:{sequence}"))
+                .collect(),
         ));
     }
 }
@@ -90,17 +122,20 @@ fn successful_creations(scenario: &Scenario) -> Vec<ExpectedCreation> {
                     }),
                     client_id: action.client_id.clone(),
                     expected_cluster_id: action.expected_cluster_id.clone(),
+                    producer_configuration: None,
                 })
             }
             ScenarioAction::CreateConfiguredClient(action) => Some(ExpectedCreation {
                 command: AdapterCommand::CreateConfiguredClient(action.clone()),
                 client_id: action.client_id.clone(),
                 expected_cluster_id: None,
+                producer_configuration: Some(action.configuration),
             }),
             ScenarioAction::CreateAssignedConsumerClient(action) => Some(ExpectedCreation {
                 command: AdapterCommand::CreateAssignedConsumerClient(action.clone()),
                 client_id: action.client_id.clone(),
                 expected_cluster_id: None,
+                producer_configuration: None,
             }),
             _ => None,
         })
@@ -209,6 +244,7 @@ mod tests {
             client_id,
             observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
             observed_expected_cluster_id: None,
+            selected_producer_configuration: None,
         }
     }
 

@@ -82,6 +82,7 @@ fn dispatch<W: Write>(
                         client_id,
                         observed_bootstrap_servers,
                         observed_expected_cluster_id: None,
+                        selected_producer_configuration: None,
                     }),
                 ),
             )?;

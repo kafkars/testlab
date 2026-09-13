@@ -1,4 +1,4 @@
-schema_version = 164
+schema_version = 165
 id = "kafka.assigned-consumer-direct-owned-records-transfer"
 title = "direct owned-record conversion preserves a source through producer settlement"
 description = "A packaged direct consumer calls RecordBatch::into_owned_records for one batch, transfers that record to a producer, and retains exact source evidence through the independently observed destination terminal."

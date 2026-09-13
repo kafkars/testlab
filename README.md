@@ -115,7 +115,9 @@ independent offset proof; eventual expiry is not claimed.
 Configured producer creation preserves one exact complete policy command and
 qualifies both the aggregate `producer_config` method and its four equivalent
 individual public setters. Ordinary producer contracts retain the independent
-broker-visible delivery proof.
+broker-visible delivery proof. Successful creation also records the complete
+policy returned by the public `ClientBuilder::selected_*` getters and requires
+every selected value to match the command exactly.
 Ordinary producer-handle creation separately preserves explicit
 `ProducerBuilder::delivery_timeout` selection or exact omission. The common
 round-trip selects a non-default handle value, while configured-client

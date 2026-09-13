@@ -117,8 +117,9 @@
 - Independent producer-configuration scenarios cover explicit client-wide
   delivery timeout, retry, ownership limits, request concurrency, linger, and
   none, gzip, snappy, LZ4, and zstd public compression selections. Successful
-  ordinary producer construction records the selected builder timeout, proving
-  exact per-handle overrides and configured-client inheritance.
+  configured-client construction records the complete public builder policy;
+  successful ordinary producer construction records its selected builder
+  timeout, proving exact per-handle overrides and configured-client inheritance.
 - A dedicated producer scenario selects public `Producer::send` rather than
   `try_send`, retaining its bounded waiting-admission choice in evidence while
   proving the resulting receipt against an independent Kafka record.

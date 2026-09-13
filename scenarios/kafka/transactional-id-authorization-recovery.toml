@@ -1,4 +1,4 @@
-schema_version = 164
+schema_version = 165
 id = "kafka.transactional-id-authorization-recovery"
 title = "packaged transaction initialization reports denial and recovers after permission restoration"
 description = "An independently observed transactional-ID WRITE deny ACL forces the exact public initialization error, then its observed removal permits the same public identity to commit one broker-visible record."
