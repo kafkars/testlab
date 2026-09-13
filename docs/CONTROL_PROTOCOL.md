@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v144 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v148 and evidence schema v134.
+Protocol v145 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v149 and evidence schema v135.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -659,6 +659,10 @@ retained record plus the exact public batch conversion. The default
 `into_acknowledgement` path applies those explicit decisions; `accept_all`
 requires every declared disposition to be Accept and invokes the dedicated
 all-record convenience path. The adapter rejects a structural count mismatch.
+Every explicit batch drop and consumer close command also appears exactly once
+in scenario order, preserving its command kind, consumer, and retained-batch
+identity when applicable. The close-success expectation remains harness-only
+and is checked against the public terminal certainty.
 Acknowledgement and close events report success or the public delivery
 certainty of failure; Testlab
 never infers a stronger terminal. Delivery counts, acquisition count, and
@@ -1331,6 +1335,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v144 is an exact semantic contract. New capabilities may be declared
+Protocol v145 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

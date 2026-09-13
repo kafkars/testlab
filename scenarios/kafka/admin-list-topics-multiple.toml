@@ -1,4 +1,4 @@
-schema_version = 148
+schema_version = 149
 id = "kafka.admin-list-topics-multiple"
 title = "packaged admin lists multiple detailed topics with authorization metadata"
 description = "The packaged client's public admin creates three topics and then lists all three from one expectation-free command; every public result retains authorization and partition detail in byte order while independent metadata confirms each required topology."

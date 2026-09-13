@@ -149,6 +149,9 @@ optional acquisition policy before Share delivery evidence applies.
 Every Share receive also preserves its exact consumer, retained-batch identity,
 timeout, multiplicity, and scenario order before acquisition and independent
 record evidence applies.
+Every explicit Share batch drop and consumer close preserves its command kind,
+consumer, applicable retained-batch identity, multiplicity, and scenario order
+before drop, redelivery, or close-certainty evidence applies.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

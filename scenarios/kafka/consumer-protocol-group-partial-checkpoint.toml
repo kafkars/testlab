@@ -1,4 +1,4 @@
-schema_version = 148
+schema_version = 149
 id = "kafka.consumer-protocol-group-partial-checkpoint"
 title = "a KIP-848 member commits only its processed batch prefix"
 description = "One KIP-848 member receives two exact records in one public batch, marks and commits only the first record, and a replacement member receives the unprocessed suffix after independent offset-1 proof."

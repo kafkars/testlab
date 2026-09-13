@@ -24,6 +24,8 @@ mod producer_configuration_method;
 mod producer_operation_command;
 #[path = "share_consumer_registration.rs"]
 mod share_consumer_registration;
+#[path = "share_lifecycle_command.rs"]
+mod share_lifecycle_command;
 #[path = "share_receive_command.rs"]
 mod share_receive_command;
 #[path = "transactional_producer_registration.rs"]
@@ -40,6 +42,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     group_receive_command::verify(scenario, index, violations);
     group_receive_set_command::verify(scenario, index, violations);
     share_consumer_registration::verify(scenario, index, violations);
+    share_lifecycle_command::verify(scenario, index, violations);
     share_receive_command::verify(scenario, index, violations);
     transactional_producer_registration::verify(scenario, index, violations);
 }

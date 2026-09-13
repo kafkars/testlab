@@ -1291,6 +1291,12 @@ statement = "Every Share receive command appears exactly once in scenario order,
 category = "consumer"
 
 [[contract]]
+id = "SHARE-014"
+title = "Share lifecycle commands preserve exact caller input"
+statement = "Every explicit Share batch-drop or consumer-close command appears exactly once in scenario order, preserving its command kind, consumer identity, and retained-batch identity when applicable before terminal evidence applies."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-015"
 title = "Hosted group shutdown observes public termination"
 statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."
