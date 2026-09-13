@@ -18,6 +18,8 @@ use crate::support::{observation_references, references, terminal_references, vi
 use crate::transaction::verify_transactions;
 use crate::verify_index::{assertions, observations_by_operation};
 
+#[path = "assigned_consumer_configuration_command.rs"]
+mod assigned_consumer_configuration_command;
 #[path = "producer_configuration_method.rs"]
 mod producer_configuration_method;
 
@@ -59,6 +61,7 @@ pub fn verify(
     crate::transaction_topic_uuid::verify(scenario, &index, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
     producer_configuration_method::verify(scenario, &index, &mut violations);
+    assigned_consumer_configuration_command::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_send_method::verify(scenario, &index, &mut violations);
     crate::producer_receipt::verify(scenario, &index, observations, &mut violations);

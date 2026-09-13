@@ -1159,6 +1159,12 @@ statement = "Every stable group assignment observation preserves its selected pu
 category = "consumer"
 
 [[contract]]
+id = "CONS-027"
+title = "Configured assigned-consumer clients preserve the exact policy"
+statement = "Each configured assigned-consumer client has exactly one issued creation command preserving its immutable read isolation, complete Fetch policy, and retained-delivery limits before ordinary consumer and transaction contracts prove broker-visible behavior."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."

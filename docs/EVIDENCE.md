@@ -284,6 +284,11 @@ configured-client command containing the complete producer policy and selects
 both `ClientBuilder::producer_config` and the equivalent four individual
 setters across release scenarios. Ordinary producer and independent record
 contracts retain behavioral truth.
+Protocol v133, scenario schema v137, and evidence schema v123 add exact
+configured assigned-consumer policy retention. CONS-027 requires one exact
+client-creation command containing immutable read isolation, the complete Fetch
+policy, and every retained-delivery limit. Ordinary direct-consumer and
+transaction contracts retain broker-visible truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -374,14 +379,17 @@ decoding; it does not inspect Produce request frames and therefore does not
 independently claim which compression codec was used on the wire. Public
 builder-selection evidence does not turn that adapter fact into broker truth.
 
-Configured assigned-consumer history retains the requested read isolation and
-its correlated client creation. The read-committed scenario assigns at the
-beginning after an aborted transaction and requires the public receive to
-contain only the nontransactional sentinel. CONS-002 enforces that exact
-receive, CONS-012 binds it to independent broker coordinates and bytes, and
-TXN-002 independently requires the aborted operation to remain absent. The
-public builder-selection test establishes the adapter mapping without treating
-that adapter fact as broker truth.
+Configured assigned-consumer history retains immutable read isolation, the
+complete Fetch policy, and every retained-delivery limit. CONS-027 requires
+exactly one matching client-creation command and rejects altered policy, a
+substituted plain or producer-configured client, and duplicate creation. Public
+mapping tests cover the isolation, Fetch, and limits values. The read-committed
+scenario assigns at the beginning after an aborted transaction and requires the
+public receive to contain only the nontransactional sentinel. CONS-002 enforces
+that exact receive, CONS-012 binds it to independent broker coordinates and
+bytes, and TXN-002 independently requires the aborted operation to remain
+absent. Builder-selection evidence does not turn that adapter fact into broker
+truth.
 
 PROD-012 retains two ordered public cancellation outcomes and the same
 immediate-delivery or waiting-send observer's authoritative terminal. It

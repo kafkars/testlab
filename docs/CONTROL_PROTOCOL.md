@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v132 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v136 and evidence schema v122.
+Protocol v133 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v137 and evidence schema v123.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -49,9 +49,11 @@ real-Kafka scenario checked by ordinary terminal and broker-observation rules.
 Configured assigned-consumer client creation carries immutable read isolation,
 broker Fetch policy, and bounded Fetch-call and retained-delivery capacities.
 Each supplied value is fixed through the public builder before the client host
-starts. Fetch byte fields use Kafka's signed 32-bit domain, and the hard decoded
-batch ceiling must cover the per-partition Fetch ceiling without exceeding the
-total retained-byte capacity. The adapter receives no expected record;
+starts. Its issued command must match that complete policy exactly; a same-ID
+plain or producer-configured client is not equivalent. Fetch byte fields use
+Kafka's signed 32-bit domain, and the hard decoded batch ceiling must cover the
+per-partition Fetch ceiling without exceeding the total retained-byte capacity.
+The adapter receives no expected record;
 read-committed behavior and the configured Fetch path are proved by a direct
 assignment from the beginning returning only a nontransactional sentinel after
 an independently verified aborted transaction.

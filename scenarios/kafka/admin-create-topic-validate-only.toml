@@ -1,4 +1,4 @@
-schema_version = 136
+schema_version = 137
 id = "kafka.admin-create-topic-validate-only"
 title = "packaged admin validates topic creation without creating it"
 description = "The packaged client's public admin validates a topic-creation request, an immediate independent metadata query proves the topic remains absent, and a later real creation plus description proves the request itself was valid."

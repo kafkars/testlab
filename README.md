@@ -114,6 +114,9 @@ Configured producer creation preserves one exact complete policy command and
 qualifies both the aggregate `producer_config` method and its four equivalent
 individual public setters. Ordinary producer contracts retain the independent
 broker-visible delivery proof.
+Configured assigned-consumer creation likewise preserves one exact immutable
+read-isolation, Fetch, and retained-delivery policy command. Its read-committed
+scenario retains independent aborted-transaction and visible-record truth.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source
