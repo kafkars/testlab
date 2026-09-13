@@ -69,6 +69,10 @@ impl HistoryIndex {
         }
     }
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "exhaustive issued-action routing keeps every scenario action explicit"
+    )]
     fn generic_action_issued(&self, action: &ScenarioAction) -> bool {
         match action {
             ScenarioAction::CreateClient(testlab_schema::CreateClientAction { .. })

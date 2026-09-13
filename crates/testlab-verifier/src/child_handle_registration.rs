@@ -11,39 +11,47 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     }
     for step in &scenario.steps {
         match &step.action {
-            ScenarioAction::CreateProducer { producer_id, .. } => verify_one(
-                producer_command(&step.action).expect("producer action"),
-                index
-                    .commands
-                    .iter()
-                    .filter(|(_, _, command)| producer_creation_id(command) == Some(producer_id)),
-                "PROD-020",
-                format!(
-                    "producer {producer_id} expected one exact client, producer, and child-ownership creation command"
-                ),
-                same_producer_owner,
-                violations,
-            ),
-            ScenarioAction::CreateAssignedConsumer { consumer_id, .. } => verify_one(
-                assigned_command(&step.action).expect("assigned-consumer action"),
-                index
-                    .commands
-                    .iter()
-                    .filter(|(_, _, command)| consumer_creation_id(command) == Some(consumer_id)),
-                "CONS-029",
-                format!(
-                    "assigned consumer {consumer_id} expected one exact client, consumer, and child-ownership creation command"
-                ),
-                same_command,
-                violations,
-            ),
+            ScenarioAction::CreateProducer { producer_id, .. } => {
+                let Some(expected) = producer_command(&step.action) else {
+                    unreachable!("producer action was matched above");
+                };
+                verify_one(
+                    &expected,
+                    index.commands.iter().filter(|(_, _, command)| {
+                        producer_creation_id(command) == Some(producer_id)
+                    }),
+                    "PROD-020",
+                    format!(
+                        "producer {producer_id} expected one exact client, producer, and child-ownership creation command"
+                    ),
+                    same_producer_owner,
+                    violations,
+                );
+            }
+            ScenarioAction::CreateAssignedConsumer { consumer_id, .. } => {
+                let Some(expected) = assigned_command(&step.action) else {
+                    unreachable!("assigned-consumer action was matched above");
+                };
+                verify_one(
+                    &expected,
+                    index.commands.iter().filter(|(_, _, command)| {
+                        consumer_creation_id(command) == Some(consumer_id)
+                    }),
+                    "CONS-029",
+                    format!(
+                        "assigned consumer {consumer_id} expected one exact client, consumer, and child-ownership creation command"
+                    ),
+                    same_command,
+                    violations,
+                );
+            }
             _ => {}
         }
     }
 }
 
 fn verify_one<'a>(
-    expected: AdapterCommand,
+    expected: &AdapterCommand,
     relevant: impl Iterator<Item = &'a (u64, testlab_schema::CommandId, AdapterCommand)>,
     contract: &str,
     message: String,
@@ -54,7 +62,7 @@ fn verify_one<'a>(
     if relevant.len() == 1
         && relevant
             .iter()
-            .all(|(_, _, actual)| matches(actual, &expected))
+            .all(|(_, _, actual)| matches(actual, expected))
     {
         return;
     }

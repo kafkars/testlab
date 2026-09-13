@@ -28,6 +28,10 @@ pub(super) fn command_operation_id(command: &AdapterCommand) -> Option<&Operatio
     }
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exact Share-group matching keeps every public command field explicit"
+)]
 pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Option<bool> {
     let matches = match (action, command) {
         (
@@ -39,9 +43,6 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.group_id == command.group_id
                 && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
-        }
-        (ScenarioAction::DescribeShareGroup(_), _) | (_, AdapterCommand::DescribeShareGroup(_)) => {
-            false
         }
         (
             ScenarioAction::DescribeShareGroups(action),
@@ -57,8 +58,6 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.include_authorized_operations == command.include_authorized_operations
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::DescribeShareGroups(_), _)
-        | (_, AdapterCommand::DescribeShareGroups(_)) => false,
         (
             ScenarioAction::ListShareGroupOffsets(action),
             AdapterCommand::ListShareGroupOffsets(command),
@@ -70,8 +69,6 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.partition == command.partition
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::ListShareGroupOffsets(_), _)
-        | (_, AdapterCommand::ListShareGroupOffsets(_)) => false,
         (
             ScenarioAction::ListShareGroupsOffsets(action),
             AdapterCommand::ListShareGroupsOffsets(command),
@@ -95,8 +92,6 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                     })
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::ListShareGroupsOffsets(_), _)
-        | (_, AdapterCommand::ListShareGroupsOffsets(_)) => false,
         (
             ScenarioAction::AlterShareGroupOffsets(action),
             AdapterCommand::AlterShareGroupOffsets(command),
@@ -109,8 +104,6 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.start_offset == command.start_offset
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::AlterShareGroupOffsets(_), _)
-        | (_, AdapterCommand::AlterShareGroupOffsets(_)) => false,
         (
             ScenarioAction::DeleteShareGroupOffsets(action),
             AdapterCommand::DeleteShareGroupOffsets(command),
@@ -121,17 +114,32 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.topic == command.topic
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::DeleteShareGroupOffsets(_), _)
-        | (_, AdapterCommand::DeleteShareGroupOffsets(_)) => false,
         (ScenarioAction::DeleteShareGroups(action), AdapterCommand::DeleteShareGroups(command)) => {
             action.client_id == command.client_id
                 && action.operation_id == command.operation_id
                 && action.group_ids == command.group_ids
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::DeleteShareGroups(_), _) | (_, AdapterCommand::DeleteShareGroups(_)) => {
-            false
-        }
+        (
+            ScenarioAction::DescribeShareGroup(_)
+            | ScenarioAction::DescribeShareGroups(_)
+            | ScenarioAction::ListShareGroupOffsets(_)
+            | ScenarioAction::ListShareGroupsOffsets(_)
+            | ScenarioAction::AlterShareGroupOffsets(_)
+            | ScenarioAction::DeleteShareGroupOffsets(_)
+            | ScenarioAction::DeleteShareGroups(_),
+            _,
+        )
+        | (
+            _,
+            AdapterCommand::DescribeShareGroup(_)
+            | AdapterCommand::DescribeShareGroups(_)
+            | AdapterCommand::ListShareGroupOffsets(_)
+            | AdapterCommand::ListShareGroupsOffsets(_)
+            | AdapterCommand::AlterShareGroupOffsets(_)
+            | AdapterCommand::DeleteShareGroupOffsets(_)
+            | AdapterCommand::DeleteShareGroups(_),
+        ) => false,
         _ => return None,
     };
     Some(matches)

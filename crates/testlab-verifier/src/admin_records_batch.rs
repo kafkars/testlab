@@ -139,8 +139,7 @@ fn evidence(
         .chain(
             public
                 .and_then(|values| values.first())
-                .map(|value| format!("history:{}", value.history_sequence))
-                .into_iter(),
+                .map(|value| format!("history:{}", value.history_sequence)),
         )
         .chain(
             post.into_iter()

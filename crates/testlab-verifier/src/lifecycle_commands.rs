@@ -140,6 +140,10 @@ enum ConsumerEvent {
 }
 
 impl<'a> ExpectedLifecycle<'a> {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "exhaustive lifecycle command routing keeps each public command explicit"
+    )]
     fn for_command(command: &'a AdapterCommand) -> Option<Self> {
         let expected = match command {
             AdapterCommand::CreateClient(testlab_schema::CreateClientCommand {

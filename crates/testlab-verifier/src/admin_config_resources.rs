@@ -26,10 +26,10 @@ pub(crate) fn verify_config_resources_action(
         .get(&action.operation_id));
     match action.api {
         ConfigResourceListingApi::Resource => {
-            verify_topic_resources(action, index, public, window, violations)
+            verify_topic_resources(action, index, public, window, violations);
         }
         ConfigResourceListingApi::ClientMetrics => {
-            verify_client_metrics_resources(action, index, public, window, violations)
+            verify_client_metrics_resources(action, index, public, window, violations);
         }
     }
     true

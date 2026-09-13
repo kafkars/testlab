@@ -47,10 +47,16 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.targets == command.targets
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::AlterPartitionReassignments(_), _)
-        | (_, AdapterCommand::AlterPartitionReassignments(_))
-        | (ScenarioAction::ListPartitionReassignments(_), _)
-        | (_, AdapterCommand::ListPartitionReassignments(_)) => false,
+        (
+            ScenarioAction::AlterPartitionReassignments(_)
+            | ScenarioAction::ListPartitionReassignments(_),
+            _,
+        )
+        | (
+            _,
+            AdapterCommand::AlterPartitionReassignments(_)
+            | AdapterCommand::ListPartitionReassignments(_),
+        ) => false,
         _ => return None,
     })
 }

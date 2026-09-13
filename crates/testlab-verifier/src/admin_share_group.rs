@@ -18,7 +18,7 @@ pub(crate) fn verify_share_group_action(
 ) -> bool {
     match action {
         ScenarioAction::DescribeShareGroup(value) => {
-            verify_description_action(action, value, index, violations)
+            verify_description_action(action, value, index, violations);
         }
         ScenarioAction::DescribeShareGroups(value) => {
             crate::admin_share_groups_description::verify(
@@ -26,7 +26,7 @@ pub(crate) fn verify_share_group_action(
             );
         }
         ScenarioAction::ListShareGroupOffsets(value) => {
-            verify_offset_action(action, value, index, violations)
+            verify_offset_action(action, value, index, violations);
         }
         ScenarioAction::ListShareGroupsOffsets(value) => {
             crate::admin_share_groups_offsets::verify(action, value, index, violations);

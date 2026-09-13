@@ -80,7 +80,7 @@ pub(super) fn verify(
                     after_election,
                     before_restore,
                     violations,
-                )
+                );
             }
             ScenarioAction::ShareReceive {
                 receive_id,

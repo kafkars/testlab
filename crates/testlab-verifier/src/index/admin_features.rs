@@ -111,23 +111,28 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                     .eq(&command.transactional_ids)
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::DescribeFeatures(_), _) | (_, AdapterCommand::DescribeFeatures(_)) => {
-            false
-        }
-        (ScenarioAction::DescribeProducers(_), _) | (_, AdapterCommand::DescribeProducers(_)) => {
-            false
-        }
-        (ScenarioAction::DescribeLogDirs(_), _) | (_, AdapterCommand::DescribeLogDirs(_)) => false,
-        (ScenarioAction::DescribeReplicaLogDirs(_), _)
-        | (_, AdapterCommand::DescribeReplicaLogDirs(_)) => false,
-        (ScenarioAction::DescribeMetadataQuorum(_), _)
-        | (_, AdapterCommand::DescribeMetadataQuorum(_)) => false,
-        (ScenarioAction::ListTransactions(_), _) | (_, AdapterCommand::ListTransactions(_)) => {
-            false
-        }
-        (ScenarioAction::DescribeTransactions(_), _)
-        | (_, AdapterCommand::DescribeTransactions(_)) => false,
-        (ScenarioAction::FenceProducers(_), _) | (_, AdapterCommand::FenceProducers(_)) => false,
+        (
+            ScenarioAction::DescribeFeatures(_)
+            | ScenarioAction::DescribeProducers(_)
+            | ScenarioAction::DescribeLogDirs(_)
+            | ScenarioAction::DescribeReplicaLogDirs(_)
+            | ScenarioAction::DescribeMetadataQuorum(_)
+            | ScenarioAction::ListTransactions(_)
+            | ScenarioAction::DescribeTransactions(_)
+            | ScenarioAction::FenceProducers(_),
+            _,
+        )
+        | (
+            _,
+            AdapterCommand::DescribeFeatures(_)
+            | AdapterCommand::DescribeProducers(_)
+            | AdapterCommand::DescribeLogDirs(_)
+            | AdapterCommand::DescribeReplicaLogDirs(_)
+            | AdapterCommand::DescribeMetadataQuorum(_)
+            | AdapterCommand::ListTransactions(_)
+            | AdapterCommand::DescribeTransactions(_)
+            | AdapterCommand::FenceProducers(_),
+        ) => false,
         _ => return None,
     })
 }

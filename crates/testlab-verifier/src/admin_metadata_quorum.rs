@@ -159,8 +159,7 @@ fn replicas_progress(
 
 fn optional_progress(public: Option<i64>, independent: Option<i64>) -> bool {
     match (public, independent) {
-        (None, None) => true,
-        (None, Some(_)) => true,
+        (None, None | Some(_)) => true,
         (Some(public), Some(independent)) => public <= independent,
         _ => false,
     }

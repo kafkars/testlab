@@ -5,6 +5,10 @@ use testlab_schema::{AdapterCommand, Scenario, ScenarioAction, Violation};
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "group receive failure verification keeps every policy field explicit"
+)]
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     for step in &scenario.steps {
         let ScenarioAction::GroupReceive {

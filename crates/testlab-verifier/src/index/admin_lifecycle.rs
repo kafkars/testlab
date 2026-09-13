@@ -127,12 +127,18 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.require_stable == command.require_stable
                 && action.timeout_ms == command.timeout_ms
         }
-        (ScenarioAction::UnregisterBroker(_), _)
-        | (_, AdapterCommand::UnregisterBroker(_))
-        | (ScenarioAction::ExerciseDelegationTokenLifecycle(_), _)
-        | (_, AdapterCommand::ExerciseDelegationTokenLifecycle(_))
-        | (ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_), _)
-        | (_, AdapterCommand::ExerciseStreamsGroupAdminLifecycle(_)) => false,
+        (
+            ScenarioAction::UnregisterBroker(_)
+            | ScenarioAction::ExerciseDelegationTokenLifecycle(_)
+            | ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_),
+            _,
+        )
+        | (
+            _,
+            AdapterCommand::UnregisterBroker(_)
+            | AdapterCommand::ExerciseDelegationTokenLifecycle(_)
+            | AdapterCommand::ExerciseStreamsGroupAdminLifecycle(_),
+        ) => false,
         _ => return None,
     })
 }

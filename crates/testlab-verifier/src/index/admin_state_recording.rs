@@ -9,6 +9,10 @@ use super::{
 };
 
 impl HistoryIndex {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "exhaustive broker-state indexing keeps every observation source explicit"
+    )]
     pub(super) fn record_state(&mut self, observation: &BrokerStateObservation, sequence: u64) {
         if self.admin_lifecycles.record_state(observation, sequence) {
             return;

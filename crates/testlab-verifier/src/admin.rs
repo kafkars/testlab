@@ -142,6 +142,10 @@ fn scenario_evidence(operation_id: Option<&testlab_schema::OperationId>) -> Vec<
         vec![format!("scenario:operation:{value}")]
     })
 }
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive admin contract routing keeps every public action explicit"
+)]
 fn contract(action: &ScenarioAction) -> Option<&'static str> {
     Some(match action {
         ScenarioAction::CreateTopic(value) => topic_contract(value),

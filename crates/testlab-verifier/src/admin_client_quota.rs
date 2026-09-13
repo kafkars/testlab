@@ -16,7 +16,7 @@ pub(crate) fn verify_client_quota_action(
     match action {
         ScenarioAction::AlterClientQuota(action) => verify_alter(action, index, window, violations),
         ScenarioAction::DescribeClientQuota(action) => {
-            verify_describe(action, index, window, violations)
+            verify_describe(action, index, window, violations);
         }
         _ => return false,
     }

@@ -1,4 +1,4 @@
-//! DescribeConfigs option evidence retains requested public entry metadata.
+//! `DescribeConfigs` option evidence retains requested public entry metadata.
 
 use testlab_schema::{DescribeTopicConfigsAction, ScenarioAction, Violation};
 
