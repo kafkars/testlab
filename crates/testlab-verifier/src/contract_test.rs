@@ -70,6 +70,7 @@ fn public_client_failure_is_valid_semantic_evidence() {
                 client_id: client,
                 producer_id: producer.clone(),
                 ownership: Default::default(),
+                delivery_timeout_ms: None,
             },
         ),
         command(

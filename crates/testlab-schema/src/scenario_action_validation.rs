@@ -36,15 +36,21 @@ pub(crate) fn validate_action(
         ScenarioAction::CreateProducer {
             client_id,
             producer_id,
+            delivery_timeout_ms,
             ..
-        } => create_producer(
-            client_id,
-            producer_id,
-            &state.clients,
-            &mut state.producers,
-            &state.transactions,
-            problems,
-        ),
+        } => {
+            if delivery_timeout_ms.is_some_and(|timeout| !(100..=60_000).contains(&timeout)) {
+                problems.push("producer handle delivery_timeout_ms must be 100..=60000".to_owned());
+            }
+            create_producer(
+                client_id,
+                producer_id,
+                &state.clients,
+                &mut state.producers,
+                &state.transactions,
+                problems,
+            );
+        }
         ScenarioAction::SetBrokerBehavior { .. } => {}
         action @ (ScenarioAction::ArmProtocolFault(_)
         | ScenarioAction::AlterNetworkFault(_)

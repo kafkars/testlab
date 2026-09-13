@@ -30,11 +30,13 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
             client_id,
             producer_id,
             ownership,
+            delivery_timeout_ms,
         } => (
             AdapterCommand::CreateProducer {
                 client_id: client_id.clone(),
                 producer_id: producer_id.clone(),
                 ownership: *ownership,
+                delivery_timeout_ms: *delivery_timeout_ms,
             },
             ExpectedEvent::ProducerCreated(producer_id.clone()),
         ),

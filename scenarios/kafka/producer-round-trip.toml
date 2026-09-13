@@ -1,9 +1,9 @@
-schema_version = 153
+schema_version = 154
 id = "kafka.producer-round-trip"
 title = "packaged producer record is independently visible"
 description = "One packaged-client send is acknowledged and independently observed once with exact Kafka bytes."
 timeout_ms = 60000
-requires = ["producer", "lifecycle", "client_readiness"]
+requires = ["producer", "producer_configuration", "lifecycle", "client_readiness"]
 
 [[steps]]
 id = "create-client"
@@ -20,6 +20,7 @@ id = "create-producer"
 kind = "create_producer"
 client_id = "client-1"
 producer_id = "producer-1"
+delivery_timeout_ms = 15000
 
 [[steps]]
 id = "send-record"

@@ -80,6 +80,7 @@ fn empty_batch_is_rejected() {
                     client_id: client.clone(),
                     producer_id: producer.clone(),
                     ownership: Default::default(),
+                    delivery_timeout_ms: None,
                 },
             ),
             step(
@@ -176,7 +177,7 @@ fn broker_restart_requires_a_one_based_target_and_bounded_timeout() {
 #[test]
 fn broker_and_role_stops_require_exact_restoration() {
     let source = r#"
-schema_version = 153
+schema_version = 154
 id = "environment.paired-control"
 title = "paired control"
 description = "every retained broker control is restored"
@@ -243,6 +244,7 @@ fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
                 ownership: Default::default(),
+                delivery_timeout_ms: None,
             },
         ),
         step(

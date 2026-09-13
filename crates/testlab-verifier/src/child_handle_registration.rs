@@ -21,6 +21,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                 format!(
                     "producer {producer_id} expected one exact client, producer, and child-ownership creation command"
                 ),
+                same_producer_owner,
                 violations,
             ),
             ScenarioAction::CreateAssignedConsumer { consumer_id, .. } => verify_one(
@@ -33,6 +34,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
                 format!(
                     "assigned consumer {consumer_id} expected one exact client, consumer, and child-ownership creation command"
                 ),
+                same_command,
                 violations,
             ),
             _ => {}
@@ -45,10 +47,15 @@ fn verify_one<'a>(
     relevant: impl Iterator<Item = &'a (u64, testlab_schema::CommandId, AdapterCommand)>,
     contract: &str,
     message: String,
+    matches: impl Fn(&AdapterCommand, &AdapterCommand) -> bool,
     violations: &mut Vec<Violation>,
 ) {
     let relevant = relevant.collect::<Vec<_>>();
-    if relevant.len() == 1 && relevant.iter().all(|(_, _, actual)| *actual == &expected) {
+    if relevant.len() == 1
+        && relevant
+            .iter()
+            .all(|(_, _, actual)| matches(actual, &expected))
+    {
         return;
     }
     violations.push(violation(
@@ -62,11 +69,38 @@ fn verify_one<'a>(
     ));
 }
 
+fn same_producer_owner(actual: &AdapterCommand, expected: &AdapterCommand) -> bool {
+    matches!(
+        (actual, expected),
+        (
+            AdapterCommand::CreateProducer {
+                client_id: actual_client,
+                producer_id: actual_producer,
+                ownership: actual_ownership,
+                ..
+            },
+            AdapterCommand::CreateProducer {
+                client_id: expected_client,
+                producer_id: expected_producer,
+                ownership: expected_ownership,
+                ..
+            }
+        ) if actual_client == expected_client
+            && actual_producer == expected_producer
+            && actual_ownership == expected_ownership
+    )
+}
+
+fn same_command(actual: &AdapterCommand, expected: &AdapterCommand) -> bool {
+    actual == expected
+}
+
 fn producer_command(action: &ScenarioAction) -> Option<AdapterCommand> {
     let ScenarioAction::CreateProducer {
         client_id,
         producer_id,
         ownership,
+        delivery_timeout_ms,
     } = action
     else {
         return None;
@@ -75,6 +109,7 @@ fn producer_command(action: &ScenarioAction) -> Option<AdapterCommand> {
         client_id: client_id.clone(),
         producer_id: producer_id.clone(),
         ownership: *ownership,
+        delivery_timeout_ms: *delivery_timeout_ms,
     })
 }
 

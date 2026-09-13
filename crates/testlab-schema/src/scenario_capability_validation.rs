@@ -33,6 +33,15 @@ pub(crate) fn record_usage(action: &ScenarioAction, usage: &mut BTreeSet<Capabil
     ) {
         usage.insert(Capability::IndependentHandles);
     }
+    if matches!(
+        action,
+        ScenarioAction::CreateProducer {
+            delivery_timeout_ms: Some(_),
+            ..
+        }
+    ) {
+        usage.insert(Capability::ProducerConfiguration);
+    }
     if let ScenarioAction::StartConcurrentActors(action) = action {
         usage.insert(Capability::ConcurrentActors);
         for actor in &action.actors {

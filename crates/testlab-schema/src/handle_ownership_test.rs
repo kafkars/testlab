@@ -14,6 +14,7 @@ fn scenario_actions_default_to_shared_ownership() {
         action,
         ScenarioAction::CreateProducer {
             ownership: ChildHandleOwnership::Shared,
+            delivery_timeout_ms: None,
             ..
         }
     ));
@@ -42,4 +43,40 @@ fn independent_actions_require_the_matching_capability() {
     assert!(error.problems.iter().any(|problem| {
         problem.contains("independent child handles require the independent_handles capability")
     }));
+}
+
+#[test]
+fn producer_handle_timeouts_are_bounded_and_capability_gated() {
+    let mut scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/producer-round-trip.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse producer timeout scenario: {error}"));
+    scenario.schema_version = SCENARIO_SCHEMA_VERSION;
+    assert!(scenario.validate().is_ok());
+
+    scenario.requires.remove(&Capability::ProducerConfiguration);
+    let error = scenario
+        .validate()
+        .expect_err("producer handle configuration must require its capability");
+    assert!(error.problems.iter().any(|problem| {
+        problem.contains("producer configuration requires the producer_configuration capability")
+    }));
+
+    scenario.requires.insert(Capability::ProducerConfiguration);
+    let ScenarioAction::CreateProducer {
+        delivery_timeout_ms,
+        ..
+    } = &mut scenario.steps[2].action
+    else {
+        panic!("producer creation fixture");
+    };
+    for invalid in [99, 60_001] {
+        *delivery_timeout_ms = Some(invalid);
+        let error = scenario
+            .validate()
+            .expect_err("invalid producer handle timeout must fail");
+        assert!(error.problems.iter().any(|problem| {
+            problem.contains("producer handle delivery_timeout_ms must be 100..=60000")
+        }));
+    }
 }

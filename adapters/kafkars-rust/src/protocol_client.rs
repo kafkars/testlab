@@ -49,8 +49,14 @@ pub(crate) fn dispatch<W: Write>(
             client_id,
             producer_id,
             ownership,
+            delivery_timeout_ms,
         } => {
-            state.create_producer(client_id, producer_id.clone(), ownership)?;
+            state.create_producer(
+                client_id,
+                producer_id.clone(),
+                ownership,
+                delivery_timeout_ms,
+            )?;
             AdapterEvent::ProducerCreated { producer_id }
         }
         _ => {

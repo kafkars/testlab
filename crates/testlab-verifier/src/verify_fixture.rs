@@ -48,6 +48,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
                     client_id: client.clone(),
                     producer_id: producer.clone(),
                     ownership: Default::default(),
+                    delivery_timeout_ms: None,
                 },
             ),
             step(

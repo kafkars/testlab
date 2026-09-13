@@ -94,6 +94,7 @@ fn scenario_steps(record: &RecordSpec) -> Vec<ScenarioStep> {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
                 ownership: Default::default(),
+                delivery_timeout_ms: None,
             },
         ),
         step(

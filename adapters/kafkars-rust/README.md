@@ -14,7 +14,7 @@ do not advertise or compile those newer calls.
 It:
 
 1. depends only on the packaged public `kafkars` surface;
-2. implements protocol v120 over stdin/stdout;
+2. implements protocol v150 over stdin/stdout;
 3. configures exact expected cluster identity through the public client builder,
    verifies that the returned public handle retains it, and exercises both
    fail-closed mismatch and repeated readiness checks against independent
@@ -48,7 +48,9 @@ It:
    `accept_all` batch conversion;
 4. preserves immediate `try_send` rejection separately from accepted delivery,
    and maps an explicit `send` selection to Kafkars's bounded FIFO waiting
-   operation without an adapter retry loop; cancellation retains that method
+   operation without an adapter retry loop; producer creation inherits the
+   client-wide delivery timeout unless the command selects the public
+   per-handle builder override; cancellation retains that method
    and invokes either `Delivery::cancel` or `Send::cancel` twice on its original
    observer;
 5. maps client outcomes to acknowledged, definitely-not-sent, or possibly-sent

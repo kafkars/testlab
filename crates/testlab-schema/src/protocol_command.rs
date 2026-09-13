@@ -26,6 +26,8 @@ pub enum AdapterCommand {
         client_id: ClientId,
         producer_id: ProducerId,
         ownership: crate::ChildHandleOwnership,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        delivery_timeout_ms: Option<u64>,
     },
     /// Offers one record through the public producer surface.
     Send {
@@ -41,9 +43,7 @@ pub enum AdapterCommand {
     CancelProducerSend(crate::CancelProducerSendCommand),
     /// Offers an ordered record batch through one public producer call.
     SendBatch {
-        /// Producer receiving the records.
         producer_id: ProducerId,
-        /// Ordered records with stable operation identities.
         operations: Vec<BatchRecord>,
     },
     /// Releases one caller-ordered public actor set through a shared start barrier.

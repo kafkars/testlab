@@ -17,7 +17,13 @@ pub(crate) fn dispatch<W: Write>(
     client_id: ClientId,
     producer_id: ProducerId,
     ownership: ChildHandleOwnership,
+    delivery_timeout_ms: Option<u64>,
 ) -> Result<(), AdapterError> {
+    if delivery_timeout_ms.is_some() {
+        return Err(AdapterError::Unsupported(
+            "producer_configuration capability required",
+        ));
+    }
     if ownership.is_independent() {
         return Err(AdapterError::Unsupported(
             "independent_handles capability required",

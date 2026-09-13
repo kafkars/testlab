@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v149 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v153 and evidence schema v139.
+Protocol v150 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v154 and evidence schema v140.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -141,6 +141,13 @@ the adapter boundary. The completion preserves every public calls, failures,
 mailbox, latency, and producer snapshot getter. Immediate metrics backpressure
 is retried within a bounded admission window; one accepted observer is waited
 exactly once.
+
+Ordinary producer creation carries the client and producer identities, shared
+or independent ownership, and an optional delivery timeout in milliseconds.
+Omitting the timeout requires the public producer builder to inherit the
+client-wide policy; selecting it invokes the public per-handle override before
+the handle is built. The selected value is bounded to 100 through 60000 ms and
+requires the producer-configuration capability.
 
 `list_transactions` carries caller-ordered state and signed producer-ID
 filters, an optional nonnegative duration in milliseconds, and an optional
@@ -1350,6 +1357,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v149 is an exact semantic contract. New capabilities may be declared
+Protocol v150 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

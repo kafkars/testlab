@@ -16,7 +16,7 @@ pub enum Capability {
     ProducerWaitingSend,
     /// Stage-aware public producer cancellation.
     ProducerCancellation,
-    /// Client-wide public producer configuration.
+    /// Client-wide and per-handle public producer configuration.
     ProducerConfiguration,
     /// Public batch-producer operations.
     ProducerBatch,

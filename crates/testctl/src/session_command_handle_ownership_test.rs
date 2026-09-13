@@ -10,6 +10,7 @@ fn independent_producer_ownership_is_preserved() {
         client_id: id(ClientId::new("client-1")),
         producer_id: id(ProducerId::new("producer-1")),
         ownership: ChildHandleOwnership::Independent,
+        delivery_timeout_ms: None,
     };
 
     let Some((AdapterCommand::CreateProducer { ownership, .. }, _)) =
@@ -19,6 +20,29 @@ fn independent_producer_ownership_is_preserved() {
     };
 
     assert_eq!(ownership, ChildHandleOwnership::Independent);
+}
+
+#[test]
+fn producer_handle_timeout_is_preserved() {
+    let action = ScenarioAction::CreateProducer {
+        client_id: id(ClientId::new("client-1")),
+        producer_id: id(ProducerId::new("producer-1")),
+        ownership: ChildHandleOwnership::Shared,
+        delivery_timeout_ms: Some(15_000),
+    };
+
+    let Some((
+        AdapterCommand::CreateProducer {
+            delivery_timeout_ms,
+            ..
+        },
+        _,
+    )) = crate::session_command::translate(&action)
+    else {
+        panic!("producer creation must translate");
+    };
+
+    assert_eq!(delivery_timeout_ms, Some(15_000));
 }
 
 #[test]

@@ -1,13 +1,9 @@
 //! Ordinary producer ownership retains its creating client for identity-bound sends.
 
-use std::time::Duration;
-
 use testlab_schema::{ChildHandleOwnership, ClientId, ProducerId};
 
 use super::{AdapterState, StateError};
 use crate::kafkars_api::{Client, Producer};
-
-const DELIVERY_TIMEOUT: Duration = Duration::from_secs(20);
 
 #[derive(Debug)]
 pub(super) struct ProducerOwner {
@@ -21,6 +17,7 @@ impl AdapterState {
         client_id: ClientId,
         producer_id: ProducerId,
         ownership: ChildHandleOwnership,
+        delivery_timeout_ms: Option<u64>,
     ) -> Result<(), StateError> {
         if self.producers.contains_key(&producer_id)
             || self.transactional_producers.contains(&producer_id)
@@ -44,10 +41,11 @@ impl AdapterState {
                 }
             }
         };
-        let producer = builder
-            .delivery_timeout(DELIVERY_TIMEOUT)
-            .build()
-            .map_err(StateError::Client)?;
+        let builder = match delivery_timeout_ms {
+            Some(timeout) => builder.delivery_timeout(std::time::Duration::from_millis(timeout)),
+            None => builder,
+        };
+        let producer = builder.build().map_err(StateError::Client)?;
         self.producers.insert(
             producer_id,
             ProducerOwner {

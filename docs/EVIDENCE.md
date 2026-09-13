@@ -358,6 +358,11 @@ transaction execution commands. TXN-012 preserves ordinary,
 consume-transform-produce, and fencing methods, identities, records,
 dispositions, validation and replacement selections, deadlines, multiplicity,
 and scenario order while evidence references remain harness-only.
+Protocol v150, scenario schema v154, and evidence schema v140 add exact
+ordinary producer handle policy. PROD-022 preserves every producer creation in
+scenario order with its client, producer, ownership, and optional per-handle
+delivery timeout; omission is distinct from selecting a value and retains
+client-policy inheritance.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -442,6 +447,13 @@ producer and operation identities, complete record input, partition and topic-ID
 choices, and prevents individual sends from substituting for a caller-ordered
 batch. Existing terminal and independent record contracts remain authoritative
 for delivery truth.
+
+PROD-022 applies the same expectation-free boundary to ordinary producer
+construction. It distinguishes omission, which leaves the public builder's
+client-wide delivery policy intact, from an explicit millisecond value passed
+to `ProducerBuilder::delivery_timeout`. The ubiquitous round-trip scenario
+selects the override, while configured-client scenarios omit it and therefore
+exercise inheritance before their existing exact policy and record contracts.
 
 Configured-client history retains the complete requested public producer
 policy and selected aggregate or individual-setter path under its stable

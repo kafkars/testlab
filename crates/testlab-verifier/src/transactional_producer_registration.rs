@@ -134,6 +134,7 @@ mod tests {
             client_id,
             producer_id,
             ownership: ChildHandleOwnership::Shared,
+            delivery_timeout_ms: None,
         };
         assert_contract(&violations(&scenario, &substituted));
 

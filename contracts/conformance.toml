@@ -1111,6 +1111,12 @@ statement = "Every ordinary single or batch producer command appears exactly onc
 category = "producer"
 
 [[contract]]
+id = "PROD-022"
+title = "Producer handles preserve exact delivery-timeout selection"
+statement = "Every ordinary producer creation command appears exactly once in scenario order, preserving its client identity, producer identity, ownership path, and optional per-handle delivery timeout so omission inherits the configured client policy and selection invokes the public handle builder."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
 statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."

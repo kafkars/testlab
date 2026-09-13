@@ -26,6 +26,8 @@ mod group_receive_set_command;
 mod lifecycle_request_command;
 #[path = "producer_configuration_method.rs"]
 mod producer_configuration_method;
+#[path = "producer_handle_configuration.rs"]
+mod producer_handle_configuration;
 #[path = "producer_operation_command.rs"]
 mod producer_operation_command;
 #[path = "share_consumer_registration.rs"]
@@ -41,6 +43,7 @@ mod transactional_producer_registration;
 
 pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     producer_configuration_method::verify(scenario, index, violations);
+    producer_handle_configuration::verify(scenario, index, violations);
     producer_operation_command::verify(scenario, index, violations);
     assigned_consumer_assignment_command::verify(scenario, index, violations);
     assigned_consumer_configuration_command::verify(scenario, index, violations);

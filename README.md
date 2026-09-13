@@ -116,6 +116,10 @@ Configured producer creation preserves one exact complete policy command and
 qualifies both the aggregate `producer_config` method and its four equivalent
 individual public setters. Ordinary producer contracts retain the independent
 broker-visible delivery proof.
+Ordinary producer-handle creation separately preserves explicit
+`ProducerBuilder::delivery_timeout` selection or exact omission. The common
+round-trip selects a non-default handle value, while configured-client
+scenarios omit it so their client-wide delivery policy is inherited unchanged.
 Every ordinary producer call also preserves one exact ordered `try_send`,
 waiting `send`, or `send_batch` command with its producer, operation identities,
 partition selection, UUID-validation choice, and complete record input.

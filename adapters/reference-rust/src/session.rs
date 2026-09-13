@@ -84,6 +84,7 @@ fn dispatch<W: Write>(
             client_id,
             producer_id,
             ownership,
+            delivery_timeout_ms,
         } => session_producer::dispatch(
             state,
             writer,
@@ -91,6 +92,7 @@ fn dispatch<W: Write>(
             client_id,
             producer_id,
             ownership,
+            delivery_timeout_ms,
         )?,
         AdapterCommand::Send {
             producer_id,

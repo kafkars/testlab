@@ -14,6 +14,8 @@ pub enum ScenarioAction {
         producer_id: ProducerId,
         #[serde(default)]
         ownership: crate::ChildHandleOwnership,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        delivery_timeout_ms: Option<u64>,
     },
     SetBrokerBehavior {
         behavior: crate::BrokerBehavior,
@@ -36,11 +38,9 @@ pub enum ScenarioAction {
     StopBrokerRole {
         /// Exact role target discovered outside the packaged adapter.
         target: crate::BrokerRoleTarget,
-        /// Complete election bound.
         timeout_ms: u64,
     },
     RestoreBrokerRole {
-        /// Exact role target used by the paired stop.
         target: crate::BrokerRoleTarget,
         timeout_ms: u64,
     },

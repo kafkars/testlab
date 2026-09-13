@@ -51,7 +51,7 @@ const REQUIRED_USAGE: &[(Capability, &str)] = &[
     ),
     (
         Capability::ProducerConfiguration,
-        "configured-client steps require the producer_configuration capability",
+        "producer configuration requires the producer_configuration capability",
     ),
     (
         Capability::ProducerWaitingSend,

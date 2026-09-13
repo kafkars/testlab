@@ -75,6 +75,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
                 ownership: Default::default(),
+                delivery_timeout_ms: None,
             },
         ),
         command(
