@@ -17,29 +17,38 @@ fn exact_waiting_and_immediate_observers_pass() {
 #[test]
 fn observer_substitution_or_duplicate_event_fails() {
     let scenario = scenario();
-    let mut history = history(&scenario);
-    let HistoryPayload::HarnessCommand { command } = &mut history[0].payload else {
+    let mut wrong_command = history(&scenario);
+    let HistoryPayload::HarnessCommand { command } = &mut wrong_command[0].payload else {
         panic!("first assignment command missing");
     };
     let AdapterCommand::ObserveGroupAssignments(command) = &mut command.command else {
         panic!("assignment observation command missing");
     };
     command.method = GroupConsumerEventMethod::TryTakeEvent;
-    assert!(has_contract(&violations(&scenario, &history), "CONS-026"));
+    assert!(has_contract(
+        &violations(&scenario, &wrong_command),
+        "CONS-026"
+    ));
 
-    let mut history = history(&scenario);
-    let HistoryPayload::AdapterEvent { event } = &mut history[1].payload else {
+    let mut wrong_event = history(&scenario);
+    let HistoryPayload::AdapterEvent { event } = &mut wrong_event[1].payload else {
         panic!("first assignment event missing");
     };
     let AdapterEvent::GroupAssignmentsObserved(observation) = &mut event.event else {
         panic!("assignment observation event missing");
     };
     observation.method = GroupConsumerEventMethod::TryTakeEvent;
-    assert!(has_contract(&violations(&scenario, &history), "CONS-026"));
+    assert!(has_contract(
+        &violations(&scenario, &wrong_event),
+        "CONS-026"
+    ));
 
-    let mut history = history(&scenario);
-    history.push(history[1].clone());
-    assert!(has_contract(&violations(&scenario, &history), "CONS-026"));
+    let mut duplicate_event = history(&scenario);
+    duplicate_event.push(duplicate_event[1].clone());
+    assert!(has_contract(
+        &violations(&scenario, &duplicate_event),
+        "CONS-026"
+    ));
 }
 
 fn scenario() -> Scenario {

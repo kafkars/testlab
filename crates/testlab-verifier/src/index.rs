@@ -79,7 +79,6 @@ pub(crate) struct IndexedAssignedConsumerControl {
     pub(crate) history_sequence: u64,
     pub(crate) completion: testlab_schema::AssignedConsumerControlCompletion,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) use consumer_recording::{
     IndexedAssignedRecordTransfer, IndexedGroupConsumerControl, IndexedReceive,
 };

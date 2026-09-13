@@ -97,7 +97,7 @@ fn verify_description(
         );
     }
     let public_matches = public.is_some_and(|value| {
-        value.topic == topic
+        value.topic == *topic
             && value.partitions == expected_partitions
             && topic_pagination::matches(action, &value.pages)
             && public_after_command(command_window, value.history_sequence)
@@ -105,7 +105,7 @@ fn verify_description(
     let independent_matches = independent.is_some_and(|values| {
         values.len() == 1
             && values.first().is_some_and(|value| {
-                value.topic == topic
+                value.topic == *topic
                     && value.exists
                     && value.partitions == expected_partitions
                     && public.is_some_and(|public| {

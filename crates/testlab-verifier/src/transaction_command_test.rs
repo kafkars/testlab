@@ -127,7 +127,7 @@ fn parse(name: &str) -> Scenario {
 }
 
 fn command_mut(entry: &mut HistoryEntry) -> &mut AdapterCommand {
-    let HistoryPayload::Command(envelope) = &mut entry.payload else {
+    let HistoryPayload::HarnessCommand { command: envelope } = &mut entry.payload else {
         panic!("command history entry");
     };
     &mut envelope.command

@@ -156,7 +156,8 @@ impl HistoryIndex {
             | ScenarioAction::AlterClientQuota(_)
             | ScenarioAction::DescribeClientQuota(_)
             | ScenarioAction::AlterUserScramCredential(_)
-            | ScenarioAction::DescribeUserScramCredential(_) => {
+            | ScenarioAction::DescribeUserScramCredential(_)
+            | ScenarioAction::ElectLeaders(_) => {
                 unreachable!("admin actions are indexed before generic actions")
             }
             ScenarioAction::CreateTransactionalProducer { .. }

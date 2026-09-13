@@ -27,7 +27,7 @@ fn configured_batch_requires_exact_command_and_later_independent_value() {
     assert_contract(&wrong_value, "ADMIN-096");
 
     let mut missing_config = events;
-    let HistoryPayload::Command(command) = &mut missing_config[10].payload else {
+    let HistoryPayload::HarnessCommand { command } = &mut missing_config[10].payload else {
         panic!("batch command history entry");
     };
     let AdapterCommand::CreateTopicsBatch(command) = &mut command.command else {

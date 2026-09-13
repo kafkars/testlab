@@ -25,12 +25,11 @@ pub(super) fn verify(
     });
     let matches = index.admin_command_state(scenario_action) == (true, 1)
         && exact.is_some_and(|public| {
-            public.value.operation_id == action.operation_id
-                && public.value.broker_errors.is_empty()
+            public.broker_errors.is_empty()
                 && action
                     .required_group_ids
                     .iter()
-                    .all(|group| public.value.group_ids.binary_search(group).is_ok())
+                    .all(|group| public.group_ids.binary_search(group).is_ok())
                 && public_after_command(window, public.history_sequence)
                 && independent.is_some_and(|values| {
                     values.len() == action.required_group_ids.len()

@@ -80,10 +80,14 @@ fn omitted_fetch_policy_requires_exact_omission() {
 fn configured_scenario() -> Scenario {
     let mut scenario = super::registration_scenario();
     let mut share = scenario.steps.remove(1);
-    let ScenarioAction::CreateShareConsumer { configuration, .. } = &mut share.action else {
+    let ScenarioAction::CreateShareConsumer {
+        configuration: fetch_configuration,
+        ..
+    } = &mut share.action
+    else {
         unreachable!("Share registration fixture");
     };
-    *configuration = Some(configuration());
+    *fetch_configuration = Some(configuration());
     scenario.steps = vec![share];
     scenario
 }

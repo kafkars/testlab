@@ -20,7 +20,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             .collect::<Vec<_>>();
         let expected = command(&step.action);
         let exact =
-            relevant.len() == 1 && relevant.iter().all(|(_, _, actual)| *actual == &expected);
+            relevant.len() == 1 && relevant.iter().all(|(_, _, actual)| *actual == expected);
         if exact {
             continue;
         }
@@ -100,10 +100,14 @@ mod tests {
         assert!(violations(&scenario, &exact).is_empty());
 
         let mut wrong_topics = exact_command.clone();
-        let AdapterCommand::CreateShareConsumer { topics, .. } = &mut wrong_topics else {
+        let AdapterCommand::CreateShareConsumer {
+            topics: wrong_topic_names,
+            ..
+        } = &mut wrong_topics
+        else {
             unreachable!("expected Share command");
         };
-        topics.push("substituted-topic".to_owned());
+        wrong_topic_names.push("substituted-topic".to_owned());
         assert_contract(&violations(&scenario, &[history_command(0, wrong_topics)]));
 
         let mut wrong_rack = exact_command.clone();

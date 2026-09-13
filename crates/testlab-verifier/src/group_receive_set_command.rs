@@ -26,7 +26,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         && actual
             .iter()
             .zip(&expected)
-            .all(|((_, _, actual), expected)| *actual == expected);
+            .all(|((_, _, actual), expected)| *actual == *expected);
     if exact {
         return;
     }
@@ -127,7 +127,7 @@ mod tests {
     }
 
     fn command_mut(entry: &mut HistoryEntry) -> &mut GroupReceiveSetCommand {
-        let HistoryPayload::Command(envelope) = &mut entry.payload else {
+        let HistoryPayload::HarnessCommand { command: envelope } = &mut entry.payload else {
             panic!("command history entry");
         };
         let AdapterCommand::GroupReceiveSet(command) = &mut envelope.command else {

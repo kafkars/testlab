@@ -34,8 +34,8 @@ fn observer_substitution_fails() {
 #[test]
 fn broker_code_or_duplicate_event_fails() {
     let scenario = scenario();
-    let mut history = history(&scenario);
-    let HistoryPayload::AdapterEvent { event } = &mut history[1].payload else {
+    let mut wrong_event = history(&scenario);
+    let HistoryPayload::AdapterEvent { event } = &mut wrong_event[1].payload else {
         panic!("first event observation missing");
     };
     let AdapterEvent::AssignedConsumerEventObserved(observation) = &mut event.event else {
@@ -47,11 +47,17 @@ fn broker_code_or_duplicate_event_fails() {
         panic!("position failure missing");
     };
     *failure = AssignedConsumerPositionFailure::Broker { code: 30 };
-    assert!(has_contract(&violations(&scenario, &history), "CONS-016"));
+    assert!(has_contract(
+        &violations(&scenario, &wrong_event),
+        "CONS-016"
+    ));
 
-    let mut history = history(&scenario);
-    history.push(history[1].clone());
-    assert!(has_contract(&violations(&scenario, &history), "CONS-016"));
+    let mut duplicate_event = history(&scenario);
+    duplicate_event.push(duplicate_event[1].clone());
+    assert!(has_contract(
+        &violations(&scenario, &duplicate_event),
+        "CONS-016"
+    ));
 }
 
 fn scenario() -> Scenario {

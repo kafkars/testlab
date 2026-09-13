@@ -42,10 +42,10 @@ fn pre_cut_transform_command_fails() {
 #[test]
 fn mismatched_transform_command_fails() {
     let mut wrong = transform_command();
-    let AdapterCommand::ExecuteTransactionalTransform(command) = &mut wrong else {
+    let AdapterCommand::ExecuteTransactionalTransform(transform) = &mut wrong else {
         panic!("transform command missing");
     };
-    command.timeout_ms += 1;
+    transform.timeout_ms += 1;
     let violations = violations(vec![
         control(0),
         command(1, wrong),

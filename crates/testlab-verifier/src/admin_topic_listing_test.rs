@@ -245,7 +245,7 @@ fn listing(history: &mut [HistoryEntry]) -> &mut AdminTopicsListing {
     let HistoryPayload::AdapterEvent { event, .. } = &mut history[0].payload else {
         panic!("listing event")
     };
-    let AdapterEvent::TopicsListed(listing) = event else {
+    let AdapterEvent::TopicsListed(listing) = &mut event.event else {
         panic!("topics listed")
     };
     listing

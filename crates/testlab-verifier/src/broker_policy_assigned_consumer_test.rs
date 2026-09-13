@@ -20,8 +20,8 @@ fn exact_assigned_denial_and_record_recovery_pass() {
 #[test]
 fn wrong_public_code_or_missing_broker_record_fails() {
     let scenario = scenario();
-    let mut history = history(&scenario);
-    let HistoryPayload::AdapterEvent { event } = &mut history[4].payload else {
+    let mut wrong_history = history(&scenario);
+    let HistoryPayload::AdapterEvent { event } = &mut wrong_history[4].payload else {
         panic!("assigned event missing");
     };
     let AdapterEvent::AssignedConsumerEventObserved(observation) = &mut event.event else {
@@ -34,7 +34,7 @@ fn wrong_public_code_or_missing_broker_record_fails() {
     };
     *failure = AssignedConsumerPositionFailure::Broker { code: 30 };
     assert!(has(
-        &violations(&scenario, &history, &observations(&scenario)),
+        &violations(&scenario, &wrong_history, &observations(&scenario)),
         "POLICY-002"
     ));
     assert!(has(
