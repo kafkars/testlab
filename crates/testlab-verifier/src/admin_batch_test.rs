@@ -8,7 +8,8 @@ use testlab_schema::{
     ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE, TerminalStatus, VisibilityExpectation,
 };
 
-use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
+use crate::admin::test_verdict as admin_verdict;
+use crate::verify_fixture::{command, event, history, scenario, step};
 
 #[test]
 fn mixed_batch_creation_passes_with_ordered_outcomes_and_exact_topology() {

@@ -9,7 +9,8 @@ use testlab_schema::{
     ScenarioId, ScenarioStep, StepId, TOPIC_ALREADY_EXISTS_ERROR_CODE, VerdictStatus,
 };
 
-use crate::verify_fixture::{adapter, admin_verdict};
+use crate::admin::test_verdict as admin_verdict;
+use crate::verify_fixture::adapter;
 
 const TOPIC: &str = "orders";
 

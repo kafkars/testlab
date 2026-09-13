@@ -9,7 +9,8 @@ use testlab_schema::{
     VisibilityExpectation,
 };
 
-use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
+use crate::admin::test_verdict as admin_verdict;
+use crate::verify_fixture::{command, event, history, scenario, step};
 
 const TOPIC: &str = "configured-batch-topic";
 const BATCH: &str = "configured-batch-create";

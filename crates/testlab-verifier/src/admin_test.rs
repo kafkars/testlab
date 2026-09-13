@@ -7,7 +7,8 @@ use testlab_schema::{
     VisibilityExpectation,
 };
 
-use crate::verify_fixture::{admin_verdict, command, event, history, scenario, step};
+use crate::admin::test_verdict as admin_verdict;
+use crate::verify_fixture::{command, event, history, scenario, step};
 
 #[test]
 fn exact_admin_topic_completion_passes() {

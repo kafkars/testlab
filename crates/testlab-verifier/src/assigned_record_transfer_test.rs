@@ -1,32 +1,26 @@
 //! Assigned-record transfer tests pin ownership and delivery invariants.
 use testlab_schema::{
-    AdapterCommand, AdapterDescriptor, AdapterEvent, AdapterEventEnvelope, AdapterId,
-    AssignedRecordTransferAction, AssignedRecordTransferCommand, AssignedRecordTransferCompletion,
-    BrokerObservation, CommandEnvelope, CommandId, ConsumedRecord, HistoryEntry, HistoryPayload,
-    OperationId, ProducerReceipt, RecordSpec, Scenario, ScenarioAction, TerminalStatus,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, AssignedRecordTransferAction,
+    AssignedRecordTransferCommand, AssignedRecordTransferCompletion, BrokerObservation,
+    CommandEnvelope, CommandId, ConsumedRecord, HistoryEntry, HistoryPayload, OperationId,
+    ProducerReceipt, RecordSpec, Scenario, ScenarioAction, TerminalStatus,
 };
 
 #[test]
 fn changed_retained_source_or_destination_fails() {
-    let (scenario, _, mut history, observations) = fixture();
+    let (scenario, mut history, observations) = fixture();
     assert!(violations(&scenario, &history, &observations).is_empty());
     completion(&mut history).retained_source_record.value = None;
     assert_contract(&scenario, &history, &observations);
 
-    let (scenario, _, history, mut observations) = fixture();
+    let (scenario, history, mut observations) = fixture();
     observations[1].record.headers.pop();
     observations[1].digest = digest(&observations[1].record);
     assert_contract(&scenario, &history, &observations);
 }
 
-fn fixture() -> (
-    Scenario,
-    AdapterDescriptor,
-    Vec<HistoryEntry>,
-    Vec<BrokerObservation>,
-) {
+fn fixture() -> (Scenario, Vec<HistoryEntry>, Vec<BrokerObservation>) {
     let scenario = scenario();
-    let adapter = adapter();
     let (source_operation, source) = source(&scenario);
     let action = transfer(&scenario);
     let target = testlab_schema::transferred_record(
@@ -43,7 +37,7 @@ fn fixture() -> (
             0,
             "hello-command",
             AdapterEvent::Ready {
-                descriptor: adapter.clone(),
+                descriptor: crate::verify_fixture::adapter(),
             },
         ),
         command(1, "source-command", send_command(&scenario)),
@@ -101,7 +95,7 @@ fn fixture() -> (
         observation(0, source_operation, source.clone()),
         observation(1, action.operation_id.clone(), target),
     ];
-    (scenario, adapter, history, observations)
+    (scenario, history, observations)
 }
 
 fn terminal(
@@ -234,16 +228,6 @@ fn scenario() -> Scenario {
         "../../../scenarios/kafka/assigned-consumer-owned-record-transfer.toml"
     ))
     .unwrap_or_else(|error| panic!("parse owned transfer: {error}"))
-}
-
-fn adapter() -> AdapterDescriptor {
-    AdapterDescriptor {
-        id: id(AdapterId::new("kafkars-rust")),
-        implementation: "fixture".to_owned(),
-        version: "fixture".to_owned(),
-        protocol_version: testlab_schema::PROTOCOL_VERSION,
-        capabilities: std::collections::BTreeSet::new(),
-    }
 }
 
 fn command(sequence: u64, command_id: &str, command: AdapterCommand) -> HistoryEntry {

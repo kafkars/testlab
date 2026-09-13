@@ -146,5 +146,24 @@ fn scenario_evidence(operation_id: Option<&testlab_schema::OperationId>) -> Vec<
 }
 
 #[cfg(test)]
+pub(crate) fn test_verdict(
+    scenario: &Scenario,
+    history: &[testlab_schema::HistoryEntry],
+) -> testlab_schema::Verdict {
+    let mut violations = Vec::new();
+    verify_admin(
+        scenario,
+        &HistoryIndex::build(history),
+        &[],
+        &mut violations,
+    );
+    if violations.is_empty() {
+        testlab_schema::Verdict::passed()
+    } else {
+        testlab_schema::Verdict::failed(violations)
+    }
+}
+
+#[cfg(test)]
 #[path = "admin_test.rs"]
 mod tests;

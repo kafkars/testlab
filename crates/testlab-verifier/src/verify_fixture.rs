@@ -288,24 +288,6 @@ pub(crate) fn command(sequence: u64, command: AdapterCommand) -> HistoryEntry {
     }
 }
 
-pub(crate) fn admin_verdict(
-    scenario: &Scenario,
-    history: &[HistoryEntry],
-) -> testlab_schema::Verdict {
-    let mut violations = Vec::new();
-    crate::admin::verify_admin(
-        scenario,
-        &crate::index::HistoryIndex::build(history),
-        &[],
-        &mut violations,
-    );
-    if violations.is_empty() {
-        testlab_schema::Verdict::passed()
-    } else {
-        testlab_schema::Verdict::failed(violations)
-    }
-}
-
 fn id<T, E>(result: Result<T, E>) -> T
 where
     E: std::fmt::Display,

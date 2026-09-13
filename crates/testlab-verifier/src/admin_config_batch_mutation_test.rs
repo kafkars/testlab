@@ -198,18 +198,13 @@ fn state(
 }
 
 fn scenario() -> Scenario {
-    let mut scenario: Scenario = toml::from_str(include_str!(
+    let mut scenario = toml::from_str::<Scenario>(include_str!(
         "../../../scenarios/kafka/admin-alter-topic-configs.toml"
     ))
     .unwrap_or_else(|error| panic!("parse plural configuration mutation: {error}"));
-    scenario.steps.retain(|step| match &step.action {
-        testlab_schema::ScenarioAction::DescribeTopicConfigs(action) => {
-            action.operation_id.as_str() == BEFORE
-        }
-        testlab_schema::ScenarioAction::AlterTopicConfigs(action) => {
-            action.operation_id.as_str() == ALTER
-        }
-        _ => false,
+    scenario.steps.retain(|step| {
+        crate::admin_operation::operation_id(&step.action)
+            .is_some_and(|operation| matches!(operation.as_str(), BEFORE | ALTER))
     });
     scenario
 }
@@ -298,7 +293,6 @@ mod resource_test;
 #[cfg(test)]
 #[path = "admin_config_restore_default_test.rs"]
 mod restore_default_test;
-
 const ZULU_TOPIC: &str = "testlab-kafkars-admin-alter-topic-configs-zulu";
 const ALPHA_TOPIC: &str = "testlab-kafkars-admin-alter-topic-configs-alpha";
 const BEFORE: &str = "admin-alter-topic-configs-before";
