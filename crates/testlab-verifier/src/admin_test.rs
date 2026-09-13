@@ -7,7 +7,7 @@ use testlab_schema::{
     VisibilityExpectation,
 };
 
-use super::verify;
+use crate::verify;
 use crate::verify_fixture::{adapter, command, event, history, scenario, step};
 
 #[test]

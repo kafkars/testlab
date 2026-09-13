@@ -1,5 +1,4 @@
 //! Deterministic verification of adapter history against independent broker evidence.
-
 mod admin;
 mod admin_acl;
 mod admin_batch;
@@ -13,6 +12,7 @@ mod admin_config_resources;
 mod admin_consumer_group_member_removal;
 mod admin_consumer_groups_deletion;
 mod admin_consumer_groups_description;
+mod admin_contract;
 mod admin_delegation_token;
 mod admin_discovery;
 mod admin_failure;
@@ -194,8 +194,6 @@ mod admin_share_groups_deletion_test;
 mod admin_share_groups_description_test;
 #[cfg(test)]
 mod admin_share_groups_offsets_test;
-#[cfg(test)]
-mod admin_test;
 #[cfg(test)]
 mod admin_topic_cluster_test;
 #[cfg(test)]

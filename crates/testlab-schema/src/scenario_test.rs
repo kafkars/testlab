@@ -1,13 +1,10 @@
 //! Scenario ownership and assertion validation evidence.
-
-use std::collections::BTreeSet;
-
 use super::{
     BatchRecord, Capability, ClientId, OperationAssertion, OperationId, ProducerId,
     SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
     TerminalStatus, VisibilityExpectation,
 };
-
+use std::collections::BTreeSet;
 impl Scenario {
     pub(crate) fn validation_error(&self, context: &str) -> super::ScenarioError {
         match self.validate() {
@@ -17,10 +14,7 @@ impl Scenario {
     }
 }
 
-fn id<T, E>(result: Result<T, E>) -> T
-where
-    E: std::fmt::Display,
-{
+fn id<T, E: std::fmt::Display>(result: Result<T, E>) -> T {
     result.unwrap_or_else(|error| panic!("fixture id: {error}"))
 }
 

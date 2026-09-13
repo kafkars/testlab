@@ -9,10 +9,7 @@ use super::{
 };
 use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
 impl HistoryIndex {
-    #[allow(
-        clippy::too_many_lines,
-        reason = "dispatch enumerates every distinct administrative event family"
-    )]
+    #[allow(clippy::too_many_lines, reason = "exhaustive admin event dispatch")]
     pub(super) fn record_admin_event(&mut self, event: &AdapterEvent, sequence: u64) -> bool {
         if self.admin_lifecycles.record_event(event, sequence) {
             return true;

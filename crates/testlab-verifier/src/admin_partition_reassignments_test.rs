@@ -1,5 +1,7 @@
 //! Reassignment verdicts pin caller order, exact assignments, and CLI timing.
-
+use crate::admin::verify_admin;
+use crate::index::HistoryIndex;
+use crate::verify_fixture::{command, event, scenario, step};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminPartitionReassignmentOutcome,
     AdminPartitionReassignmentsAlteration, AdminPartitionReassignmentsListing,
@@ -10,11 +12,6 @@ use testlab_schema::{
     PartitionReassignmentSelection, PartitionReassignmentSnapshot, ScenarioAction, TerminalStatus,
     VisibilityExpectation,
 };
-
-use crate::admin::verify_admin;
-use crate::index::HistoryIndex;
-use crate::verify_fixture::{command, event, scenario, step};
-
 #[test]
 fn exact_mutation_and_selected_listing_pass() {
     assert!(alter_violations(alter_history()).is_empty());

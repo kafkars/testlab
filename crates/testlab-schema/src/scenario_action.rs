@@ -1,5 +1,4 @@
 //! Scenario actions describe public operations independently of wire commands.
-
 use crate::{ClientId, ConsumerId, OperationId, ProducerId};
 #[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -280,7 +279,6 @@ pub enum ScenarioAction {
         /// Operation staged before fencing.
         operation: crate::BatchRecord,
         replacement_client_id: ClientId,
-        /// Replacement producer identity.
         replacement_producer_id: ProducerId,
         /// Shared transactional identity.
         transactional_id: String,

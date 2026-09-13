@@ -93,6 +93,7 @@ mod protocol_consumer;
 mod protocol_descriptor;
 mod protocol_failure;
 mod protocol_group;
+mod protocol_group_record;
 mod protocol_lifecycle;
 mod protocol_send;
 mod protocol_send_outcome;

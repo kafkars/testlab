@@ -1,5 +1,4 @@
 //! Scenario action validation enforces cross-action lifecycle invariants.
-
 pub(crate) use crate::scenario_action_state::{ActionStates, ClientStates, ProducerStates};
 use crate::{ClientId, OperationId, ProducerId, ScenarioAction};
 #[allow(clippy::too_many_lines, reason = "exhaustive action routing")]

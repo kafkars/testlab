@@ -225,10 +225,7 @@ fn same_base(
     a_client == c_client && a_operation == c_operation && a_timeout == c_timeout
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "exact matching keeps both scenario and wire topic identities explicit"
-)]
+#[allow(clippy::too_many_arguments, reason = "exact topic identity")]
 fn same_topic(
     a_client: &testlab_schema::ClientId,
     a_operation: &OperationId,
@@ -249,10 +246,7 @@ fn same_topic(
     ) && a_topic == c_topic
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "exact matching keeps both scenario and wire group identities explicit"
-)]
+#[allow(clippy::too_many_arguments, reason = "exact group identity")]
 fn same_group(
     a_client: &testlab_schema::ClientId,
     a_operation: &OperationId,

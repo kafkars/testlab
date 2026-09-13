@@ -1,7 +1,4 @@
 //! Plural group transition tests pin ordered administrative lifecycles.
-
-use std::collections::BTreeSet;
-
 use super::{
     AlterConsumerGroupOffsetsAction, Capability, ClassicGroupExpectation, ClientId,
     ConsumerGroupOffsetAlteration, ConsumerGroupOffsetExpectation, ConsumerGroupOffsetSelection,
@@ -10,6 +7,7 @@ use super::{
     ListConsumerGroupsOffsetsAction, OperationId, SCENARIO_SCHEMA_VERSION, Scenario,
     ScenarioAction, ScenarioId, ScenarioStep, StepId,
 };
+use std::collections::BTreeSet;
 #[test]
 fn batch_listings_establish_every_exact_plural_mutation_baseline() {
     let scenario = scenario(vec![

@@ -4,12 +4,12 @@ use std::io::Write;
 use std::time::{Duration, Instant};
 
 use crate::kafkars_api::{
-    ConsumerBatch, ConsumerCommitAdmissionError, GroupConsumerRecord,
+    ConsumerBatch, ConsumerCommitAdmissionError,
     GroupMembershipEpoch as PublicGroupMembershipEpoch, GroupMetadata, RetryAdvice,
 };
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdapterEventEnvelope, ByteString, CommandId, ConsumedRecord,
-    ConsumerId, GroupMembershipEpoch, HeaderSpec, OperationId,
+    AdapterCommand, AdapterEvent, AdapterEventEnvelope, CommandId, ConsumedRecord, ConsumerId,
+    GroupMembershipEpoch, OperationId,
 };
 
 use crate::AdapterError;
@@ -17,6 +17,7 @@ use crate::admission_retry::retry_owned_until;
 use crate::group_consumers::GroupConsumerRegistration;
 pub(crate) use crate::group_receive_events::receive_batch;
 use crate::protocol::emit;
+pub(crate) use crate::protocol_group_record::normalize_record;
 use crate::state::AdapterState;
 const POLL_SLICE: Duration = Duration::from_millis(10);
 #[allow(
@@ -282,29 +283,4 @@ pub(crate) fn commit_batch(
             }
         }
     }
-}
-
-pub(crate) fn normalize_record(
-    record: &GroupConsumerRecord<'_>,
-) -> Result<ConsumedRecord, AdapterError> {
-    let headers = record
-        .headers()
-        .map(|header| {
-            let name = String::from_utf8(header.key().to_vec())
-                .map_err(|error| AdapterError::ConsumerRecord(error.to_string()))?;
-            Ok(HeaderSpec {
-                name,
-                value: header.value().map(ByteString::hex),
-            })
-        })
-        .collect::<Result<Vec<_>, AdapterError>>()?;
-    Ok(ConsumedRecord {
-        topic: record.topic().to_owned(),
-        partition: record.partition(),
-        offset: record.offset(),
-        timestamp_millis: record.timestamp_millis(),
-        key: record.key().map(ByteString::hex),
-        value: record.value().map(ByteString::hex),
-        headers,
-    })
 }
