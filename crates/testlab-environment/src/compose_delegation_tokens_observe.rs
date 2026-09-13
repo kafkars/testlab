@@ -135,14 +135,5 @@ impl DockerComposeEnvironment {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::SCRIPT;
-
-    #[test]
-    fn cli_projection_retains_only_the_token_count() {
-        assert!(SCRIPT.contains("$TESTLAB_KAFKA_SASL_PASSWORD"));
-        assert!(!SCRIPT.contains("kafkars-testlab-password"));
-        assert!(SCRIPT.contains("print \"token-count:\" $6"));
-        assert!(SCRIPT.contains("2>&1 |"));
-    }
-}
+#[path = "compose_delegation_tokens_observe_test.rs"]
+mod tests;

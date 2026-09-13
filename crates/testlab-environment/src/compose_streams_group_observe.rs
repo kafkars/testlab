@@ -130,13 +130,5 @@ impl DockerComposeEnvironment {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::SCRIPT;
-
-    #[test]
-    fn cli_projection_retains_only_selected_presence() {
-        assert!(SCRIPT.contains("kafka-streams-groups.sh"));
-        assert!(SCRIPT.contains("streams-group-present:"));
-        assert!(SCRIPT.contains("streams-group-absent:"));
-    }
-}
+#[path = "compose_streams_group_observe_test.rs"]
+mod tests;
