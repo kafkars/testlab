@@ -41,6 +41,10 @@ fn automatic_record() -> RecordSpec {
     record
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the complete session fixture retains its ordered lifecycle in one test"
+)]
 #[test]
 fn full_session_reports_acknowledgment_and_clean_lifecycle() {
     let broker = RunningBroker::start().unwrap_or_else(|error| panic!("start broker: {error}"));
@@ -74,7 +78,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             AdapterCommand::CreateProducer {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
-                ownership: Default::default(),
+                ownership: testlab_schema::ChildHandleOwnership::default(),
                 delivery_timeout_ms: None,
             },
         ),
@@ -83,7 +87,7 @@ fn full_session_reports_acknowledgment_and_clean_lifecycle() {
             AdapterCommand::Send {
                 producer_id: producer.clone(),
                 operation_id: id(OperationId::new("op-1")),
-                method: Default::default(),
+                method: testlab_schema::ProducerSendMethod::default(),
                 partitioning: testlab_schema::ProducerPartitioning::JavaKeyed {
                     partition_count: 3,
                 },

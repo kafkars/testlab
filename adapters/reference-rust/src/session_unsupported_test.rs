@@ -39,7 +39,7 @@ fn read_only_admin_commands_require_admin_capability() {
             topic: "orders".to_owned(),
             partition: 0,
             position: AdminOffsetSelector::Latest,
-            read_isolation: Default::default(),
+            read_isolation: testlab_schema::AdminReadIsolation::default(),
             timestamp_millis: None,
             timeout_ms: 1_000,
         }),

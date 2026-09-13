@@ -2,6 +2,10 @@
 
 use testlab_schema::AdapterCommand;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "exhaustive unsupported-command routing keeps every protocol command explicit"
+)]
 pub(super) fn reason(command: &AdapterCommand) -> &'static str {
     match command {
         AdapterCommand::CreateClient(command) if command.expected_cluster_id.is_some() => {
