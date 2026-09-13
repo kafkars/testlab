@@ -36,7 +36,8 @@ pub(super) fn canonicalize(
         if replica.id < 0 {
             return Err(invalid(format!("{kind} contained a negative node ID")));
         }
-        replica.directory_id = directory_id(replica.directory_id.take())?;
+        let directory_id = directory_id(replica.directory_id.as_deref())?;
+        replica.directory_id = directory_id;
     }
     replicas.sort_unstable_by_key(|replica| replica.id);
     if replicas.windows(2).any(|pair| pair[0].id == pair[1].id) {
