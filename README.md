@@ -161,6 +161,10 @@ multiplicity, and scenario order before correlated terminal evidence applies.
 Every client-metrics observation preserves its exact client and operation
 identities, multiplicity, and scenario order while required counter floors and
 producer states remain harness-only.
+Every ordinary, consume-transform-produce, and fencing transaction likewise
+preserves its exact public method, identities, caller-ordered records,
+disposition, validation selection, replacement policy, deadlines, multiplicity,
+and scenario order before transaction and broker evidence applies.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

@@ -715,6 +715,12 @@ statement = "Each requested transactional producer initialization has exactly on
 category = "transaction"
 
 [[contract]]
+id = "TXN-012"
+title = "Transaction execution preserves exact caller input"
+statement = "Every ordinary, consume-transform-produce, and fencing transaction command appears exactly once in scenario order, preserving its public method, identities, caller-ordered records, disposition, validation selection, replacement policy, and complete deadlines while scenario-only evidence references stay out of the wire request."
+category = "transaction"
+
+[[contract]]
 id = "PROTO-001"
 title = "Adapter messages are correlated and versioned"
 statement = "Every adapter event uses the current protocol version and exact command identity that caused it."

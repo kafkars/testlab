@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v148 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v152 and evidence schema v138.
+Protocol v149 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v153 and evidence schema v139.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1273,6 +1273,11 @@ UUID during admission, and waits for fresh validation of the current
 transaction revision after all staging and before commit. The completion
 retains the same IDs in first-record topic order. `commit` and `abort` otherwise
 use the transaction token directly.
+Every ordinary, transform, and fencing transaction command must equal the
+complete scenario-derived command stream in order. Scenario-only input-record
+and topic-ID evidence references are deliberately excluded; all public method,
+identity, record, disposition, validation, replacement, and deadline fields are
+exact.
 `admin_partition_abort` is restricted to one exact staged record: the adapter
 uses public `DescribeProducers` to obtain its producer and coordinator identity,
 emits the open state, calls public Admin partition abort, and emits the cleared
@@ -1345,6 +1350,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v148 is an exact semantic contract. New capabilities may be declared
+Protocol v149 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

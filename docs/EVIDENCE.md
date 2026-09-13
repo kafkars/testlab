@@ -353,6 +353,11 @@ Protocol v148, scenario schema v152, and evidence schema v138 add exact client
 metrics commands. METRICS-004 preserves every client and operation identity,
 multiplicity, and scenario order while required counter floors and producer
 states remain harness-only.
+Protocol v149, scenario schema v153, and evidence schema v139 add exact
+transaction execution commands. TXN-012 preserves ordinary,
+consume-transform-produce, and fencing methods, identities, records,
+dispositions, validation and replacement selections, deadlines, multiplicity,
+and scenario order while evidence references remain harness-only.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
