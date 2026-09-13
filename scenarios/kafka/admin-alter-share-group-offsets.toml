@@ -1,4 +1,4 @@
-schema_version = 145
+schema_version = 146
 id = "kafka.admin-alter-share-group-offsets"
 title = "packaged admin alters an independently observed Share-group offset"
 description = "After the only modeled Share member closes, the packaged client's public Share-group offset alteration advances one independently listed start offset to the log end, and an immediate Kafka CLI query plus a subsequent public listing confirm the exact new start offset and zero lag."

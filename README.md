@@ -137,6 +137,9 @@ initialization deadline, including a denied then recovered repeated identity.
 Every classic and KIP-848 group member now requires one exact registration
 command retaining its identities, caller-ordered topics, selected protocol, and
 complete optional public policy before assignment and record evidence applies.
+Every hosted group receive also preserves its exact consumer, receive identity,
+waiting or immediate observer, checkpoint conversion, processing plan, and
+complete timeout in scenario order.
 Every Share member likewise requires one exact registration retaining its
 identities, caller-ordered topics, optional rack, deadlines, and complete
 optional acquisition policy before Share delivery evidence applies.

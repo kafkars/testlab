@@ -1,4 +1,4 @@
-schema_version = 145
+schema_version = 146
 id = "kafka.transaction-admin-force-termination"
 title = "Admin force termination fences an active transaction"
 description = "A packaged producer stages one exact record, public Admin force-terminates its active transactional identity before any replacement exists, and the old commit must report fenced while read-committed observation excludes the staged record and a later replacement commits normally."

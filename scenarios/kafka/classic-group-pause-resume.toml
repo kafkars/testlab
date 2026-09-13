@@ -1,4 +1,4 @@
-schema_version = 145
+schema_version = 146
 id = "kafka.classic-group-pause-resume"
 title = "classic group pause and resume isolate one assigned partition"
 description = "A stable one-member classic assignment pauses partition zero, commits partition one, resumes partition zero, and commits its exact broker record."

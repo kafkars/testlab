@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v141 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v145 and evidence schema v131.
+Protocol v142 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v146 and evidence schema v132.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -489,16 +489,17 @@ requires both observers to expose `PositionResolutionFailed(Broker(29))`, then
 removes that same policy before an independent consumer receives the seeded
 record.
 
-A group receive names its exact public retained-batch observer and full-batch
-checkpoint conversion. `recv` is the default waiting path; `try_take_batch`
-selects repeated immediate observation and requires
-`group_consumer_immediate_batch`. `checkpoint` is the canonical conversion;
-`into_checkpoint` selects its compatibility alias. The command retains both
-methods, consumer, receive identity, and bound while the expected producer
-operation remains scenario-only. It converts the exact public batch into its
-assignment-fenced checkpoint and attempts a bounded public commit. Its
-completion reports both the exact records and whether that checkpoint committed;
-the deterministic verifier requires both the expected record and a successful commit.
+Every group receive command is required exactly once in scenario order and names
+its exact public retained-batch observer and full-batch checkpoint conversion.
+`recv` is the default waiting path; `try_take_batch` selects repeated immediate
+observation and requires `group_consumer_immediate_batch`. `checkpoint` is the
+canonical conversion; `into_checkpoint` selects its compatibility alias. The
+command retains both methods, consumer, receive identity, processing
+acknowledgement delay, processed prefix, and bound while expected producer
+operations remain scenario-only. It converts the exact public batch into its
+assignment-fenced checkpoint and attempts a bounded public commit. Its completion
+reports both the exact records and whether that checkpoint committed; the
+deterministic verifier requires both the expected record and a successful commit.
 
 Single-member and multi-member group receives also drain public assignment
 events and complete revocation leases within the receive's original deadline.
@@ -1327,6 +1328,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v141 is an exact semantic contract. New capabilities may be declared
+Protocol v142 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

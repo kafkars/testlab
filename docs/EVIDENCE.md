@@ -325,6 +325,10 @@ Protocol v141, scenario schema v145, and evidence schema v131 add exact assigned
 receive commands. CONS-031 requires every waiting or immediate receive exactly
 once in scenario order, preserving its consumer, receive identity, public
 observer, and complete timeout.
+Protocol v142, scenario schema v146, and evidence schema v132 add exact hosted
+group receive commands. CONS-032 preserves every classic and KIP-848 consumer,
+receive identity, observer, checkpoint conversion, processing plan, and timeout
+exactly once in scenario order.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -501,6 +505,11 @@ individual setters, then both exercise public membership, Fetch, seek, and close
 The issued group-create command also retains the complete caller-ordered
 subscription, while assignment and record evidence prove that every declared
 topic reached the public consumer.
+CONS-032 separately requires every hosted group receive command exactly once in
+scenario order, including its public observer and checkpoint conversion,
+processing acknowledgement plan, processed prefix, and timeout. Expected record
+identities stay scenario-side, and public completion plus independent broker
+evidence remain authoritative for delivery and commit truth.
 ADMIN-068 additionally requires each public consumer owner to be abandoned,
 its owning client to shut down without a group close, and both static identities
 to remain broker-registered inside the configured session window until the

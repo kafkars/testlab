@@ -1213,6 +1213,12 @@ statement = "Every directly assigned receive command appears exactly once in sce
 category = "consumer"
 
 [[contract]]
+id = "CONS-032"
+title = "Hosted group receives preserve exact caller input"
+statement = "Every classic or KIP-848 group receive command appears exactly once in scenario order, preserving its consumer, receive identity, waiting or immediate observer, checkpoint conversion, processing acknowledgement plan, processed prefix, and complete timeout before returned records and independent broker evidence apply."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
