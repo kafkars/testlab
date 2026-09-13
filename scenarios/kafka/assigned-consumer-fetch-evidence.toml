@@ -52,6 +52,7 @@ selection = "topic_id"
 include_authorized_operations = false
 topics = [
   { topic = "testlab-kafkars-assigned-fetch-evidence", expected_partitions = [0] },
+  { topic = "testlab-kafkars-assigned-fetch-evidence-control", expected_partitions = [0] },
 ]
 timeout_ms = 20000
 
@@ -62,6 +63,7 @@ client_id = "client-1"
 operation_id = "admin-fetch-watermarks"
 queries = [
   { topic = "testlab-kafkars-assigned-fetch-evidence", partition = 0, position = "latest", expected_offset = 1 },
+  { topic = "testlab-kafkars-assigned-fetch-evidence-control", partition = 0, position = "latest", expected_offset = 0 },
 ]
 timeout_ms = 20000
 

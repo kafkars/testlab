@@ -88,7 +88,7 @@ fn member_set(
         ));
     }
     let mut unique = BTreeSet::new();
-    let mut expected = None;
+    let mut expected: Option<ConsumerGroupState> = None;
     for consumer_id in consumer_ids {
         if !unique.insert(consumer_id) {
             problems.push(format!("duplicate group consumer {consumer_id}"));
@@ -101,9 +101,15 @@ fn member_set(
             continue;
         };
         match &expected {
-            Some(first) if first != &group => problems.push(format!(
+            Some(first)
+                if first.group_id != group.group_id
+                    || first.topics != group.topics
+                    || first.protocol != group.protocol =>
+            {
+                problems.push(format!(
                 "consumer {consumer_id} does not share the member set group, topics, and protocol"
-            )),
+                ));
+            }
             None => expected = Some(group),
             _ => {}
         }

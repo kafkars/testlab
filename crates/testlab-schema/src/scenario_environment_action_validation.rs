@@ -175,7 +175,7 @@ fn validate_acl(
         (resource, operation),
         (
             BrokerAclResource::Topic { .. },
-            BrokerAclOperation::Write | BrokerAclOperation::Create
+            BrokerAclOperation::Read | BrokerAclOperation::Write | BrokerAclOperation::Create
         ) | (BrokerAclResource::Group { .. }, BrokerAclOperation::Read)
             | (
                 BrokerAclResource::TransactionalId { .. },

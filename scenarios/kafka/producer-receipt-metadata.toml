@@ -28,7 +28,10 @@ client_id = "client-1"
 operation_id = "producer-receipt-topic-identity"
 selection = "topic_id"
 include_authorized_operations = false
-topics = [{ topic = "testlab-producer-receipt-metadata", expected_partitions = [0] }]
+topics = [
+  { topic = "testlab-producer-receipt-metadata", expected_partitions = [0] },
+  { topic = "testlab-producer-receipt-metadata-control", expected_partitions = [0] },
+]
 timeout_ms = 20000
 
 [[steps]]

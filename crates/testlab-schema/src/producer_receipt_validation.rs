@@ -73,9 +73,12 @@ fn validate_send(
             "UUID-bound send {operation_id} topic-ID operation must use producer {producer_id}'s client"
         ));
     }
-    let exact = description.topics.as_slice();
-    if !matches!(exact, [expected] if expected.topic == topic
-        && expected.expected_error_code.is_none()
+    let exact = description
+        .topics
+        .iter()
+        .find(|expected| expected.topic == topic);
+    if !matches!(exact, Some(expected)
+        if expected.expected_error_code.is_none()
         && expected.expected_partitions.as_ref().is_some_and(|values| values.contains(&partition)))
     {
         problems.push(format!(
