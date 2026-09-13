@@ -377,6 +377,11 @@ recovery after network controls. NET-004 now preserves one exact subsequent
 single-record or batch command and requires every selected operation to
 acknowledge before another network control; a pre-control command cannot satisfy
 recovery merely because its terminal arrives later.
+Protocol v154, scenario schema v158, and evidence schema v144 add exact
+transaction recovery after network controls. NET-006 preserves the complete
+ordinary transaction command, requires every operation to accept and stage
+after the control, and binds the requested disposition before another network
+control.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1315,8 +1320,11 @@ every included operation to acknowledge before any next network control.
 NET-005 binds every subsequent
 declared assigned, group, or Share receive before the next network control to
 one exact command and a later nonempty public completion; group progress must
-also commit. Proxy facts cannot manufacture a client result, and adapter
-success cannot establish that a transport fault occurred.
+also commit. NET-006 binds every ordinary transaction declared in a recovery
+window to its exact post-control command, complete staged operation set, and
+requested terminal disposition before the next network control. Proxy facts
+cannot manufacture a client result, and adapter success cannot establish that
+a transport fault occurred.
 
 Protocol-adversary runs additionally retain `protocol-adversary.jsonl` and
 `protocol-adversary.stderr.txt`, named from one terminal

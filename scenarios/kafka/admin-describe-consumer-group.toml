@@ -1,4 +1,4 @@
-schema_version = 157
+schema_version = 158
 id = "kafka.admin-describe-consumer-group"
 title = "packaged admin preserves singleton consumer-group authorization selection"
 description = "After one classic member publicly consumes and commits an exact record, paired packaged public group descriptions exclude then include authorization metadata while reporting one member, and immediate independent queries confirm the same live membership count."

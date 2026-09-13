@@ -1,4 +1,4 @@
-schema_version = 157
+schema_version = 158
 id = "kafka.producer-batch-network-connection-cut-recovery"
 title = "packaged producer batch reconnects after an external connection cut"
 description = "The external proxy proves a live Kafka connection was cut after baseline delivery, then the same packaged producer issues one exact public batch whose complete record set is acknowledged through re-established connections."

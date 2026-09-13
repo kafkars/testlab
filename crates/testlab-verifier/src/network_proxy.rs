@@ -19,6 +19,8 @@ mod consumer_progress;
 #[cfg(test)]
 #[path = "network_proxy_progress_test.rs"]
 mod progress_test;
+#[path = "network_transaction_recovery.rs"]
+mod transaction_recovery;
 
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     let declared = declared_controls(scenario);
@@ -32,6 +34,7 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     verify_process(index, violations);
     crate::network_proxy_progress::verify(scenario, index, violations);
     consumer_progress::verify(scenario, index, violations);
+    transaction_recovery::verify(scenario, index, violations);
 }
 
 fn declared_controls(scenario: &Scenario) -> Vec<NetworkProxyControl> {

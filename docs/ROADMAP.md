@@ -72,8 +72,8 @@
   and minimized metadata and producer replay cases.
 - A versioned external TCP proxy covers live connection cuts, bidirectional
   blackholes, and one-way latency, with separate adapter, hidden upstream, and
-  independent observer routes plus deterministic single-record, batch, and
-  consumer recovery contracts.
+  independent observer routes plus deterministic single-record, batch,
+  transactional-batch, and consumer recovery contracts.
 - Deterministic concurrent actor groups cover multiple public producers and
   assigned producer/consumer pipelines with exact start/join boundaries,
   stable actor identities, and independent broker truth.

@@ -4,6 +4,7 @@ title = "packaged Kafkars external network-fault coverage"
 scenarios = [
   "scenarios/kafka/producer-network-connection-cut-recovery.toml",
   "scenarios/kafka/producer-batch-network-connection-cut-recovery.toml",
+  "scenarios/kafka/transaction-network-connection-cut-recovery.toml",
   "scenarios/kafka/assigned-consumer-network-connection-cut-recovery.toml",
   "scenarios/kafka/group-network-connection-cut-recovery.toml",
   "scenarios/kafka/share-consumer-network-connection-cut-recovery.toml",

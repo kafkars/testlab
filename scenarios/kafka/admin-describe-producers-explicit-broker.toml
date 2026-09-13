@@ -1,4 +1,4 @@
-schema_version = 157
+schema_version = 158
 id = "kafka.admin-describe-producers-explicit-broker"
 title = "packaged admin routes active producer description to broker one"
 description = "On declared single-broker cells, the packaged client's public partition producer-state request must preserve the exact broker-one route and every field from the pinned Kafka administration CLI."

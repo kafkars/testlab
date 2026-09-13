@@ -1045,6 +1045,12 @@ statement = "Every assigned, group, or Share receive declared after a fault remo
 category = "network"
 
 [[contract]]
+id = "NET-006"
+title = "Network restoration recovers public transaction progress"
+statement = "Every ordinary transaction declared after a fault removal or connection cut and before the next network control is issued through one exact post-control command, stages its complete operation set, and completes once with the requested disposition inside that recovery window."
+category = "network"
+
+[[contract]]
 id = "PROD-009"
 title = "Producer failures retain the exact declared public code"
 statement = "A producer operation with a declared failure expectation emits exactly one matching normalized rejection or terminal error code."

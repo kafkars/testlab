@@ -1,0 +1,118 @@
+schema_version = 158
+id = "kafka.transaction-network-connection-cut-recovery"
+title = "packaged transactional producer reconnects after an external connection cut"
+description = "The external proxy proves a live Kafka connection was cut after one committed transaction, then the same packaged transactional producer stages an exact public batch and commits every record through re-established connections."
+timeout_ms = 150000
+requires = ["producer", "transactions", "transaction_batch_send", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transactional-producer-1"
+transactional_id = "testlab-transaction-network-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 45000
+
+[[steps]]
+id = "commit-before-cut"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-network-before-cut"
+disposition = "commit"
+timeout_ms = 45000
+
+[[steps.operations]]
+operation_id = "transaction-network-baseline"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-network"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "before-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-network-baseline" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "cut-live-connections"
+kind = "cut_network_connections"
+operation_id = "transaction-network-cut-live-connections"
+broker_ordinal = 1
+timeout_ms = 5000
+
+[[steps]]
+id = "commit-batch-after-cut"
+kind = "execute_transaction"
+producer_id = "transactional-producer-1"
+transaction_id = "transaction-network-after-cut"
+method = "send_batch"
+disposition = "commit"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "transaction-network-recovered-1"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-network"
+partition = 0
+sequence = 2
+key = { encoding = "utf8", data = "recovered-1" }
+value = { encoding = "utf8", data = "after-cut-1" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-network-recovered-1" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps.operations]]
+operation_id = "transaction-network-recovered-2"
+
+[steps.operations.record]
+topic = "testlab-kafkars-transaction-network"
+partition = 0
+sequence = 3
+key = { encoding = "utf8", data = "recovered-2" }
+value = { encoding = "utf8", data = "after-cut-2" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-network-recovered-2" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "3" } },
+]
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transactional-producer-1"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "transaction-network-baseline"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "transaction-network-recovered-1"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "transaction-network-recovered-2"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
