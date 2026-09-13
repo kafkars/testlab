@@ -105,7 +105,7 @@ category = "admin"
 [[contract]]
 id = "ADMIN-008"
 title = "Admin cluster description matches broker state"
-statement = "Each requested public cluster description emits exactly one completion whose cluster identity and broker IDs match an independent broker-state query and the environment topology."
+statement = "Each requested public cluster description preserves its exact authorization-bitfield option and emits exactly one completion whose requested metadata, cluster identity, and broker IDs match the applicable public and independent evidence."
 category = "admin"
 
 [[contract]]

@@ -15,6 +15,8 @@ pub struct DescribeClusterAction {
     pub client_id: ClientId,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Whether Kafka must return the cluster authorization bitfield.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -27,6 +29,8 @@ pub struct DescribeClusterCommand {
     pub client_id: ClientId,
     /// Stable admin operation identity.
     pub operation_id: OperationId,
+    /// Whether Kafka must return the cluster authorization bitfield.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -41,6 +45,8 @@ pub struct AdminClusterDescription {
     pub cluster_id: Option<String>,
     /// Sorted broker identifiers reported by the adapter.
     pub broker_ids: Vec<i32>,
+    /// Raw Kafka authorization bitfield, when requested.
+    pub authorized_operations: Option<i32>,
 }
 
 /// Scenario intent for one bounded cluster feature description.

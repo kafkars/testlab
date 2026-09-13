@@ -1,4 +1,4 @@
-schema_version = 118
+schema_version = 119
 id = "kafka.admin-fence-producers"
 title = "packaged admin fences caller-ordered transactional producers"
 description = "Two initialized and closed transactional producers are fenced through one public caller-ordered Admin batch; every returned identity and epoch must match immediate pinned Kafka CLI descriptions, whose positive transaction timeout is bounded by the public deadline."

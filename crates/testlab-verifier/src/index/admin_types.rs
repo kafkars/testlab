@@ -107,6 +107,7 @@ pub(crate) struct IndexedClusterDescription {
     pub(crate) history_sequence: u64,
     pub(crate) cluster_id: Option<String>,
     pub(crate) broker_ids: Vec<i32>,
+    pub(crate) authorized_operations: Option<i32>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -78,6 +78,7 @@ fn history(intervening_command: bool) -> Vec<HistoryEntry> {
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id: client_id.clone(),
                 operation_id: baseline.clone(),
+                include_authorized_operations: false,
                 timeout_ms: 20_000,
             }),
         ),
@@ -87,6 +88,7 @@ fn history(intervening_command: bool) -> Vec<HistoryEntry> {
                 operation_id: baseline.clone(),
                 cluster_id: Some("cluster-a".to_owned()),
                 broker_ids: vec![1, 2, 3],
+                authorized_operations: None,
             }),
         ),
         state(2, baseline, vec![1, 2, 3]),
@@ -122,6 +124,7 @@ fn history(intervening_command: bool) -> Vec<HistoryEntry> {
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id,
                 operation_id: restored.clone(),
+                include_authorized_operations: false,
                 timeout_ms: 30_000,
             }),
         ),
@@ -131,6 +134,7 @@ fn history(intervening_command: bool) -> Vec<HistoryEntry> {
                 operation_id: restored.clone(),
                 cluster_id: Some("cluster-a".to_owned()),
                 broker_ids: vec![1, 2, 3],
+                authorized_operations: None,
             }),
         ),
         state(sequence + 4, restored, vec![1, 2, 3]),

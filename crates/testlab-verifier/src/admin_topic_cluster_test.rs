@@ -17,7 +17,6 @@ const CLUSTER_OPERATION: &str = "admin-describe-cluster-1";
 #[test]
 fn deleted_topic_with_independent_absence_passes() {
     let history = topic_history(1, false, Vec::new());
-
     assert!(violations(delete_topic_action(), &history).is_empty());
 }
 
@@ -33,8 +32,7 @@ fn topic_deletion_rejects_duplicate_public_results_or_present_state() {
 
 #[test]
 fn matching_cluster_identity_and_sorted_brokers_pass() {
-    let history = cluster_history(Some("cluster-a"), vec![1, 2], Some("cluster-a"), vec![1, 2]);
-
+    let history = authorization_history(true, Some(1));
     assert!(violations(describe_cluster_action(), &history).is_empty());
 }
 
@@ -45,10 +43,25 @@ fn cluster_description_rejects_identity_mismatch() {
         vec![1, 2],
         Some("broker-cluster"),
         vec![1, 2],
+        true,
+        Some(1),
     );
-
     assert_contract(
         &violations(describe_cluster_action(), &history),
+        "ADMIN-008",
+    );
+}
+
+#[test]
+fn cluster_description_rejects_missing_authorization_or_changed_option() {
+    let missing = authorization_history(true, None);
+    assert_contract(
+        &violations(describe_cluster_action(), &missing),
+        "ADMIN-008",
+    );
+    let changed = authorization_history(false, Some(1));
+    assert_contract(
+        &violations(describe_cluster_action(), &changed),
         "ADMIN-008",
     );
 }
@@ -62,7 +75,6 @@ fn immediate_state_must_precede_the_next_harness_command() {
     };
     state.sequence = 3;
     state.observed_unix_ms = 3;
-
     assert_contract(&violations(delete_topic_action(), &history), "ADMIN-007");
 }
 
@@ -76,6 +88,7 @@ fn admin_commands_must_follow_declared_scenario_order() {
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id: client(),
                 operation_id: cluster_operation.clone(),
+                include_authorized_operations: true,
                 timeout_ms: 1_000,
             }),
         ),
@@ -85,6 +98,7 @@ fn admin_commands_must_follow_declared_scenario_order() {
                 operation_id: cluster_operation.clone(),
                 cluster_id: Some("cluster-a".to_owned()),
                 broker_ids: vec![1, 2],
+                authorized_operations: Some(1),
             }),
         ),
         state(
@@ -175,11 +189,27 @@ fn topic_history(public_count: usize, exists: bool, partitions: Vec<i32>) -> Vec
     history
 }
 
+fn authorization_history(
+    include_authorized_operations: bool,
+    authorized_operations: Option<i32>,
+) -> Vec<HistoryEntry> {
+    cluster_history(
+        Some("cluster-a"),
+        vec![1, 2],
+        Some("cluster-a"),
+        vec![1, 2],
+        include_authorized_operations,
+        authorized_operations,
+    )
+}
+
 fn cluster_history(
     public_cluster: Option<&str>,
     public_brokers: Vec<i32>,
     observed_cluster: Option<&str>,
     observed_brokers: Vec<i32>,
+    include_authorized_operations: bool,
+    authorized_operations: Option<i32>,
 ) -> Vec<HistoryEntry> {
     let operation_id = operation(CLUSTER_OPERATION);
     vec![
@@ -188,6 +218,7 @@ fn cluster_history(
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id: client(),
                 operation_id: operation_id.clone(),
+                include_authorized_operations,
                 timeout_ms: 1_000,
             }),
         ),
@@ -197,6 +228,7 @@ fn cluster_history(
                 operation_id: operation_id.clone(),
                 cluster_id: public_cluster.map(str::to_owned),
                 broker_ids: public_brokers,
+                authorized_operations,
             }),
         ),
         state(
@@ -225,6 +257,7 @@ fn describe_cluster_action() -> ScenarioAction {
     ScenarioAction::DescribeCluster(DescribeClusterAction {
         client_id: client(),
         operation_id: operation(CLUSTER_OPERATION),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     })
 }

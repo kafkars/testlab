@@ -18,7 +18,8 @@
   and topic-configuration replacement, metadata-backed and explicit
   `DescribeTopicPartitions` singleton topic description, caller-ordered
   detailed plural name- and topic-ID descriptions with requested authorization
-  bitfields and name-based deletion with mixed resource outcomes, scoped topic, cluster,
+  bitfields and name-based deletion with mixed resource outcomes, scoped topic,
+  cluster identity with requested authorization metadata,
   consumer-only and generic all-group discovery with exact state and group-type
   filters plus generic protocol-type filtering, singleton earliest-, latest-,
   maximum-timestamp-, and caller-timestamp-offset administration plus

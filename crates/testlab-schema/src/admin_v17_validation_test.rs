@@ -140,6 +140,7 @@ fn admin_validation_accepts_inclusive_name_offset_and_timeout_bounds() {
         ScenarioAction::DescribeCluster(DescribeClusterAction {
             client_id: client(),
             operation_id: operation("admin-cluster-min"),
+            include_authorized_operations: false,
             timeout_ms: 100,
         }),
         ScenarioAction::AlterConsumerGroupOffset(AlterConsumerGroupOffsetAction {

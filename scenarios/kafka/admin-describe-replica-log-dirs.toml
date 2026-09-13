@@ -1,4 +1,4 @@
-schema_version = 118
+schema_version = 119
 id = "kafka.admin-describe-replica-log-dirs"
 title = "packaged admin describes exact replica log-directory placements"
 description = "After creating a one-replica topic and writing one exact record, the packaged client must query that topic-partition on every discovered broker in descending order and preserve each current or absent placement exactly as Kafka's pinned log-directory CLI observes it."

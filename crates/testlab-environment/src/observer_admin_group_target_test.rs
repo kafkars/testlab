@@ -14,6 +14,7 @@ fn cluster_and_group_discovery_targets_are_exact() {
     let cluster = ScenarioAction::DescribeCluster(DescribeClusterAction {
         client_id: client(),
         operation_id: operation("describe-cluster"),
+        include_authorized_operations: true,
         timeout_ms: 500,
     });
     assert!(matches!(exact(&cluster), AdminTarget::Cluster(_)));
@@ -135,6 +136,7 @@ fn duplicate_group_listing_targets_are_rejected() {
         &ScenarioAction::DescribeCluster(DescribeClusterAction {
             client_id: client(),
             operation_id: operation("describe-cluster"),
+            include_authorized_operations: true,
             timeout_ms: 500,
         }),
     )

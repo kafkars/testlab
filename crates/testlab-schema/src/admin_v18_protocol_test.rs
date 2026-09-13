@@ -85,6 +85,7 @@ fn admin_commands_have_exact_v18_kinds() {
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id: client(),
                 operation_id: operation("admin-cluster-describe"),
+                include_authorized_operations: true,
                 timeout_ms: 1_000,
             }),
         ),

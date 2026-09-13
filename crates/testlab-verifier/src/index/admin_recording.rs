@@ -140,6 +140,7 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     cluster_id: value.cluster_id.clone(),
                     broker_ids: value.broker_ids.clone(),
+                    authorized_operations: value.authorized_operations,
                 }),
             AdapterEvent::ConsumerGroupsListed(value) => self
                 .consumer_groups_listed

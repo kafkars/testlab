@@ -17,12 +17,17 @@ pub(crate) fn verify_cluster_action(
     };
     let public = index.clusters_described.get(&action.operation_id);
     let independent = index.clusters_observed.get(&action.operation_id);
-    if exact_match(public, independent, command_window) {
+    if exact_match(
+        public,
+        independent,
+        command_window,
+        action.include_authorized_operations,
+    ) {
         return true;
     }
     violations.push(violation(
         "ADMIN-008",
-        format!("admin operation {} expected one public cluster identity exactly matching one independent metadata snapshot", action.operation_id),
+        format!("admin operation {} expected one public cluster identity with requested authorization metadata exactly matching one independent metadata snapshot", action.operation_id),
         Some(action.operation_id.clone()),
         evidence(public, independent),
     ));
@@ -33,6 +38,7 @@ fn exact_match(
     public: Option<&Vec<IndexedClusterDescription>>,
     independent: Option<&Vec<IndexedClusterObservation>>,
     command_window: Option<AdminCommandWindow>,
+    include_authorized_operations: bool,
 ) -> bool {
     let (Some(public), Some(independent)) = (public, independent) else {
         return false;
@@ -47,6 +53,7 @@ fn exact_match(
         && public.cluster_id == independent.cluster_id
         && strictly_sorted(&public.broker_ids)
         && public.broker_ids == independent.broker_ids
+        && public.authorized_operations.is_some() == include_authorized_operations
         && public_after_command(command_window, public.history_sequence)
         && immediate_after_public(
             command_window,

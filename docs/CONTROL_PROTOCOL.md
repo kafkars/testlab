@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v115 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v118 and evidence schema v104.
+Protocol v116 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v119 and evidence schema v105.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -980,9 +980,12 @@ deleted identities absent without retaining unrelated group rows.
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
-delete completion. Cluster description reports the public cluster identity and
-broker IDs; the environment independently queries the same facts and owns the
-expected broker count through its declared topology.
+delete completion. Cluster description carries the exact
+`include_authorized_operations` option and reports the public cluster identity,
+broker IDs, and requested authorization bitfield. The environment independently
+queries the identity and broker IDs and owns the expected broker count through
+its declared topology; that coarse snapshot does not substitute for the public
+option-specific metadata.
 
 Broker unregistration carries only the exact client, operation, broker ID, and
 deadline. Scenario validation confines it to a contiguous public cluster
@@ -1204,6 +1207,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v115 is an exact semantic contract. New capabilities may be declared
+Protocol v116 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

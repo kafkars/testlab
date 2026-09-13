@@ -23,6 +23,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
+                include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::Cluster(action.operation_id.clone()),

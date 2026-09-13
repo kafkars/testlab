@@ -191,6 +191,10 @@ option-and-result treatment to caller-ordered topic descriptions by name and by
 Kafka UUID. Immediate metadata and pinned topic-CLI snapshots continue to
 independently anchor topic identity and topology; only the public result proves
 that the requested authorization bitfield survived the client surface.
+Protocol v116, scenario schema v119, and evidence schema v105 apply the same
+separation to cluster description. The exact request and returned authorization
+bitfield remain public evidence, while an immediate metadata snapshot remains
+the independent authority for cluster identity and broker membership.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

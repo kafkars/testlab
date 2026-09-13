@@ -10,9 +10,38 @@ use crate::{
 
 #[test]
 fn producer_state_cut_advances_every_versioned_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 115);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 118);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 104);
+    assert_eq!(PROTOCOL_VERSION, 116);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 119);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 105);
+}
+
+#[test]
+fn cluster_authorization_option_and_result_round_trip() {
+    let operation_id =
+        OperationId::new("admin-cluster").unwrap_or_else(|error| panic!("operation id: {error}"));
+    let action = ScenarioAction::DescribeCluster(DescribeClusterAction {
+        client_id: client(),
+        operation_id: operation_id.clone(),
+        include_authorized_operations: true,
+        timeout_ms: 1_000,
+    });
+    let command = AdapterCommand::DescribeCluster(DescribeClusterCommand {
+        client_id: client(),
+        operation_id: operation_id.clone(),
+        include_authorized_operations: true,
+        timeout_ms: 1_000,
+    });
+    round_trip(&action);
+    round_trip(&command);
+    round_trip(&AdapterEvent::ClusterDescribed(AdminClusterDescription {
+        operation_id,
+        cluster_id: Some("cluster-a".to_owned()),
+        broker_ids: vec![1],
+        authorized_operations: Some(1),
+    }));
+    let encoded = serde_json::to_string(&command)
+        .unwrap_or_else(|error| panic!("encode cluster command: {error}"));
+    assert!(encoded.contains("\"include_authorized_operations\":true"));
 }
 
 #[test]

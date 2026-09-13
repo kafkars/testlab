@@ -32,7 +32,7 @@ pub(crate) fn describe<W: Write>(
                 .admin()
                 .describe_cluster()
                 .include_fenced_brokers(false)
-                .include_authorized_operations(false)
+                .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
                 .wait()
@@ -55,6 +55,7 @@ pub(crate) fn describe<W: Write>(
                 operation_id: command.operation_id,
                 cluster_id: Some(description.cluster_id().to_owned()),
                 broker_ids,
+                authorized_operations: description.authorized_operations(),
             }),
         ),
     )

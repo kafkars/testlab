@@ -114,14 +114,16 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 && a.position == c.position
                 && a.timestamp_millis == c.timestamp_millis
         }
-        (ScenarioAction::DescribeCluster(a), AdapterCommand::DescribeCluster(c)) => same_base(
-            &a.client_id,
-            &a.operation_id,
-            a.timeout_ms,
-            &c.client_id,
-            &c.operation_id,
-            c.timeout_ms,
-        ),
+        (ScenarioAction::DescribeCluster(a), AdapterCommand::DescribeCluster(c)) => {
+            same_base(
+                &a.client_id,
+                &a.operation_id,
+                a.timeout_ms,
+                &c.client_id,
+                &c.operation_id,
+                c.timeout_ms,
+            ) && a.include_authorized_operations == c.include_authorized_operations
+        }
         (ScenarioAction::ListConsumerGroups(a), AdapterCommand::ListConsumerGroups(c)) => {
             group_listing::matches(a, c)
         }
