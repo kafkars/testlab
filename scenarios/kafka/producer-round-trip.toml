@@ -1,4 +1,4 @@
-schema_version = 165
+schema_version = 166
 id = "kafka.producer-round-trip"
 title = "packaged producer record is independently visible"
 description = "One packaged-client send is acknowledged and independently observed once with exact Kafka bytes."

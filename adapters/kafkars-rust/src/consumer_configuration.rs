@@ -1,4 +1,4 @@
-//! Portable consumer policy maps to Kafkars' public Fetch and capacity types.
+//! Portable consumer policy maps to and from Kafkars' public Fetch and capacity types.
 
 use std::time::Duration;
 
@@ -35,10 +35,58 @@ pub(crate) fn public_limits(
     ))
 }
 
+pub(crate) fn selected_fetch(
+    selected: ConsumerFetchConfig,
+) -> Result<ConsumerFetchConfiguration, StateError> {
+    Ok(ConsumerFetchConfiguration {
+        max_wait_ms: whole_millis(selected.max_wait(), "fetch.max_wait")?,
+        min_bytes: selected_u64(selected.min_bytes(), "fetch.min_bytes")?,
+        max_bytes: selected_u64(selected.max_bytes(), "fetch.max_bytes")?,
+        partition_max_bytes: selected_u64(
+            selected.partition_max_bytes(),
+            "fetch.partition_max_bytes",
+        )?,
+        attempt_timeout_ms: whole_millis(selected.attempt_timeout(), "fetch.attempt_timeout")?,
+    })
+}
+
+pub(crate) fn selected_limits(
+    selected: ConsumerLimits,
+) -> Result<ConsumerLimitsConfiguration, StateError> {
+    Ok(ConsumerLimitsConfiguration {
+        in_flight_fetches: selected_u32(selected.in_flight_fetches(), "limits.in_flight_fetches")?,
+        buffered_batches: selected_u32(selected.buffered_batches(), "limits.buffered_batches")?,
+        buffered_bytes: selected_u64(selected.buffered_bytes(), "limits.buffered_bytes")?,
+        max_batch_bytes: selected_u64(selected.max_batch_bytes(), "limits.max_batch_bytes")?,
+    })
+}
+
+pub(crate) fn whole_millis(value: Duration, field: &str) -> Result<u64, StateError> {
+    let millis = u64::try_from(value.as_millis()).map_err(|_| selected_invalid(field))?;
+    if Duration::from_millis(millis) != value {
+        return Err(selected_invalid(field));
+    }
+    Ok(millis)
+}
+
 fn portable(value: u64, field: &str) -> Result<usize, StateError> {
     usize::try_from(value).map_err(|_| invalid(field))
 }
 
 fn invalid(field: &str) -> StateError {
     StateError::ConsumerConfiguration(format!("{field} exceeds this adapter target"))
+}
+
+fn selected_u64(value: usize, field: &str) -> Result<u64, StateError> {
+    u64::try_from(value).map_err(|_| selected_invalid(field))
+}
+
+fn selected_u32(value: usize, field: &str) -> Result<u32, StateError> {
+    u32::try_from(value).map_err(|_| selected_invalid(field))
+}
+
+fn selected_invalid(field: &str) -> StateError {
+    StateError::ConsumerConfiguration(format!(
+        "selected {field} was not representable in the portable protocol"
+    ))
 }

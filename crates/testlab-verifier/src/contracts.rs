@@ -202,6 +202,7 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "CONS-032",
     "CONS-033",
     "CONS-034",
+    "CONS-035",
     "SHARE-001",
     "SHARE-002",
     "SHARE-003",

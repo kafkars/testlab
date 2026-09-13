@@ -51,6 +51,7 @@ impl GroupConsumers {
         if self.contains(&registration.consumer_id) {
             return Err(StateError::DuplicateConsumer(registration.consumer_id));
         }
+        let configured = registration.configuration.is_some();
         let configuration = registration
             .configuration
             .unwrap_or(GroupConsumerConfiguration {
@@ -86,7 +87,7 @@ impl GroupConsumers {
             .close_timeout(OPERATION_TIMEOUT);
         let builder = apply_runtime_configuration(builder, &configuration)?;
         let builder = apply_fetch_and_limits(builder, &configuration)?;
-        let builder = match configuration.group_instance_id {
+        let builder = match configuration.group_instance_id.as_deref() {
             Some(group_instance_id) => builder.group_instance_id(group_instance_id),
             None => builder,
         };
@@ -98,6 +99,11 @@ impl GroupConsumers {
             Some(configuration) => builder.classic_group_config(configuration),
             None => builder,
         };
+        let (selected_protocol, selected_configuration) =
+            crate::group_consumer_configuration::selected(
+                &builder,
+                configured.then_some(&configuration),
+            )?;
         let consumer = retry_owned_safe(builder, |builder| {
             builder.build().map_err(ConsumerBuildError::into_parts)
         })
@@ -106,6 +112,8 @@ impl GroupConsumers {
             consumer_id: registration.consumer_id.clone(),
             group_id: consumer.group_id().to_owned(),
             subscription: consumer.subscription().to_vec(),
+            selected_protocol,
+            selected_configuration,
         };
         self.owners.insert(
             registration.consumer_id,

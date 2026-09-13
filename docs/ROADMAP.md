@@ -87,6 +87,11 @@
 - Classic and KIP-848 assignment transitions are observed through both the
   public `next_event` future and immediate `try_take_event` method, with the
   exact selection retained beside stable assignment and broker-visible proof.
+- Successful classic and KIP-848 registration records the selected public
+  builder protocol and every explicit reset, isolation, Fetch, capacity,
+  lifecycle, static-member, assignor, and classic-timing value while preserving
+  optional/default distinctions; returned handles and broker behavior remain
+  separate evidence.
 - Direct-consumer batches reach owned records through both the owned-batch
   chain and direct `into_owned_records` conversion before transfer through an
   ordinary producer. Exact source coordinates and bytes are read again after
@@ -219,8 +224,8 @@
 
 ## Now — complete the stable boundary
 
-1. Extend black-box coverage across high-use public group configuration and
-   Admin operations that currently have only client-repository evidence.
+1. Extend black-box coverage across remaining high-use public group and Admin
+   operations that currently have only client-repository evidence.
 2. Fix client failures exposed by Testlab until every gating release cell
    passes.
 3. Derive Kafkars support and release eligibility from archived qualification

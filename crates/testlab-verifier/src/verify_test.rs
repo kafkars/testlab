@@ -207,6 +207,8 @@ fn classic_group_exact_round_trip_requires_commit() {
                     consumer_id: consumer.clone(),
                     group_id: "group-1".to_owned(),
                     subscription: vec!["topic-a".to_owned()],
+                    selected_protocol: GroupProtocol::Classic,
+                    selected_configuration: None,
                 },
             ),
         ),

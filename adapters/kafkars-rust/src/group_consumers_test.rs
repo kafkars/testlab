@@ -4,14 +4,17 @@ use std::time::Duration;
 
 use testlab_schema::{
     GroupClassicAssignor, GroupConsumerConfiguration, GroupOffsetReset, GroupOperationConfigMethod,
-    GroupReadIsolation,
+    GroupProtocol, GroupReadIsolation,
 };
 
 use crate::group_consumer_configuration::{
     apply_fetch_and_limits, apply_runtime_configuration, public_classic_group_config,
+    selected as read_selected,
 };
 use crate::group_consumers::{public_classic_assignor, public_offset_reset, public_read_isolation};
-use crate::kafkars_api::{ClassicGroupAssignor, Client, OffsetReset, ReadIsolation};
+use crate::kafkars_api::{
+    ClassicGroupAssignor, Client, ConsumerGroupProtocol, OffsetReset, ReadIsolation,
+};
 
 #[test]
 fn public_group_shutdown_surface_is_facade_only() {
@@ -94,13 +97,20 @@ fn portable_group_runtime_maps_every_public_deadline() {
         .bootstrap_servers(["127.0.0.1:1"])
         .build()
         .unwrap_or_else(|error| panic!("start lazy public client: {error}"));
+    let consumer_builder = client
+        .consumer("workers")
+        .group_protocol(ConsumerGroupProtocol::Consumer);
+    let (protocol, configuration) = read_selected(&consumer_builder, None)
+        .unwrap_or_else(|error| panic!("read public group protocol: {error}"));
+    assert_eq!(protocol, GroupProtocol::Consumer);
+    assert_eq!(configuration, None);
     for method in [
         GroupOperationConfigMethod::IndividualSetters,
         GroupOperationConfigMethod::OperationConfig,
     ] {
         let configuration = GroupConsumerConfiguration {
-            offset_reset: GroupOffsetReset::Earliest,
-            read_isolation: GroupReadIsolation::ReadUncommitted,
+            offset_reset: GroupOffsetReset::Latest,
+            read_isolation: GroupReadIsolation::ReadCommitted,
             fetch: Some(testlab_schema::ConsumerFetchConfiguration {
                 max_wait_ms: 250,
                 min_bytes: 2,
@@ -119,19 +129,40 @@ fn portable_group_runtime_maps_every_public_deadline() {
             seek_timeout_ms: Some(17_000),
             close_timeout_ms: Some(19_000),
             operation_config_method: method,
-            group_instance_id: None,
-            classic_assignor: None,
-            classic_session_timeout_ms: None,
-            classic_rebalance_timeout_ms: None,
-            classic_heartbeat_interval_ms: None,
-            classic_heartbeat_attempt_timeout_ms: None,
-            classic_rejoin_backoff_ms: None,
-            classic_rejoin_attempt_timeout_ms: None,
+            group_instance_id: Some("worker-1".to_owned()),
+            classic_assignor: Some(GroupClassicAssignor::CooperativeSticky),
+            classic_session_timeout_ms: Some(11_000),
+            classic_rebalance_timeout_ms: Some(31_000),
+            classic_heartbeat_interval_ms: Some(4_000),
+            classic_heartbeat_attempt_timeout_ms: Some(12_000),
+            classic_rejoin_backoff_ms: Some(2_000),
+            classic_rejoin_attempt_timeout_ms: Some(32_000),
         };
-        let selected = apply_runtime_configuration(client.consumer("workers"), &configuration)
+        let builder = client
+            .consumer("workers")
+            .subscribe(["orders"])
+            .group_protocol(ConsumerGroupProtocol::Classic)
+            .on_missing_offset(public_offset_reset(configuration.offset_reset))
+            .read_isolation(public_read_isolation(configuration.read_isolation))
+            .group_instance_id("worker-1")
+            .classic_group_assignor(ClassicGroupAssignor::CooperativeSticky);
+        let builder = builder.classic_group_config(
+            public_classic_group_config(&configuration)
+                .unwrap_or_else(|| panic!("explicit classic timing must map")),
+        );
+        let selected = apply_runtime_configuration(builder, &configuration)
             .unwrap_or_else(|error| panic!("apply group runtime policy: {error}"));
         let selected = apply_fetch_and_limits(selected, &configuration)
             .unwrap_or_else(|error| panic!("apply group Fetch policy: {error}"));
+        let (protocol, observation) = read_selected(&selected, Some(&configuration))
+            .unwrap_or_else(|error| panic!("read public group configuration: {error}"));
+        assert_eq!(protocol, GroupProtocol::Classic);
+        assert_eq!(
+            observation,
+            Some(testlab_schema::GroupConsumerConfigurationSelection::from(
+                &configuration
+            ))
+        );
         assert_eq!(
             selected.selected_processing_timeout(),
             Duration::from_secs(61)

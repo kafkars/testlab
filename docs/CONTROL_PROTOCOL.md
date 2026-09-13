@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v161 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v165 and evidence schema v151.
+Protocol v162 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v166 and evidence schema v152.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -607,7 +607,11 @@ complete optional configuration; a same-ID direct or Share consumer is not
 equivalent.
 Its correlated `group_consumer_created` event carries the scenario-local member
 identity plus the exact group ID and caller-ordered subscription read from the
-returned public consumer handle.
+returned public consumer handle. It also carries the public builder's selected
+group protocol and, when a configuration block was supplied, every explicitly
+selected value read through the builder before registration. Optional fields
+preserve command omission rather than assigning portable meaning to a client's
+implementation-defined defaults.
 Missing-offset reset selects fail-closed error, earliest, or latest behavior,
 and read isolation selects
 uncommitted or committed visibility before membership starts. Optional Fetch
@@ -1383,6 +1387,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v161 is an exact semantic contract. New capabilities may be declared
+Protocol v162 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

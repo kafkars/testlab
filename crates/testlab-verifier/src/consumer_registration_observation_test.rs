@@ -207,6 +207,8 @@ fn group_observation() -> GroupConsumerRegistrationObservation {
         consumer_id: consumer("group-consumer"),
         group_id: "group-1".to_owned(),
         subscription: topics(),
+        selected_protocol: GroupProtocol::Consumer,
+        selected_configuration: None,
     }
 }
 
@@ -269,3 +271,6 @@ fn assert_contract(violations: &[testlab_schema::Violation], contract_id: &str) 
         "{violations:?}"
     );
 }
+
+#[path = "consumer_registration_policy_test.rs"]
+mod policy_tests;

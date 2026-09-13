@@ -149,7 +149,10 @@ Every classic and KIP-848 group member now requires one exact registration
 command retaining its identities, caller-ordered topics, selected protocol, and
 complete optional public policy before assignment and record evidence applies.
 Each successful registration also records the exact group ID and caller-ordered
-subscription read from the returned public consumer handle.
+subscription read from the returned public consumer handle. The same correlated
+event records the public builder's selected group protocol and every explicitly
+configured reset, isolation, Fetch, capacity, lifecycle, static-member,
+assignor, and classic-timing value exactly.
 Every hosted group receive also preserves its exact consumer, receive identity,
 waiting or immediate observer, checkpoint conversion, processing plan, and
 complete timeout in scenario order.

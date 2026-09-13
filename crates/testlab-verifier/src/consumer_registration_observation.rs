@@ -1,7 +1,8 @@
-//! Hosted consumer registration proves returned public identity and subscription state.
+//! Hosted consumer registration proves selected builder policy and returned-handle identity.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, CommandId, ConsumerId, Scenario, ScenarioAction, Violation,
+    AdapterCommand, AdapterEvent, CommandId, ConsumerId, GroupConsumerConfigurationSelection,
+    GroupProtocol, Scenario, ScenarioAction, Violation,
 };
 
 use crate::index::HistoryIndex;
@@ -13,6 +14,8 @@ enum ExpectedRegistration {
         consumer_id: ConsumerId,
         group_id: String,
         subscription: Vec<String>,
+        selected_protocol: GroupProtocol,
+        selected_configuration: Option<GroupConsumerConfigurationSelection>,
     },
     Share {
         command: AdapterCommand,
@@ -65,24 +68,65 @@ fn verify_registration(
         && events.first().is_some_and(|(sequence, event)| {
             *sequence > command_sequence && expected.matches(event)
         });
-    if exact {
-        return;
+    if !exact {
+        let mut evidence = vec![format!("history:{command_sequence}")];
+        evidence.extend(
+            events
+                .iter()
+                .map(|(sequence, _)| format!("history:{sequence}")),
+        );
+        violations.push(violation(
+            expected.contract_id(),
+            format!(
+                "hosted consumer {} expected one later exact public registration observation",
+                expected.consumer_id()
+            ),
+            None,
+            evidence,
+        ));
     }
-    let mut evidence = vec![format!("history:{command_sequence}")];
-    evidence.extend(
-        events
-            .iter()
-            .map(|(sequence, _)| format!("history:{sequence}")),
-    );
-    violations.push(violation(
-        expected.contract_id(),
-        format!(
-            "hosted consumer {} expected one later exact public registration observation",
-            expected.consumer_id()
-        ),
-        None,
-        evidence,
-    ));
+    verify_group_configuration(expected, command_sequence, &events, violations);
+}
+
+fn verify_group_configuration(
+    expected: &ExpectedRegistration,
+    command_sequence: u64,
+    events: &[(u64, &AdapterEvent)],
+    violations: &mut Vec<Violation>,
+) {
+    let ExpectedRegistration::Group {
+        consumer_id,
+        selected_protocol,
+        selected_configuration,
+        ..
+    } = expected
+    else {
+        return;
+    };
+    let exact = events.len() == 1
+        && events.first().is_some_and(|(sequence, event)| {
+            *sequence > command_sequence
+                && matches!(
+                    event,
+                    AdapterEvent::GroupConsumerCreated(observation)
+                        if observation.selected_protocol == *selected_protocol
+                            && observation.selected_configuration.as_ref()
+                                == selected_configuration.as_ref()
+                )
+        });
+    if !exact {
+        violations.push(violation(
+            "CONS-035",
+            format!(
+                "group consumer {consumer_id} expected one later exact selected builder-policy observation"
+            ),
+            None,
+            std::iter::once(command_sequence)
+                .chain(events.iter().map(|(sequence, _)| *sequence))
+                .map(|sequence| format!("history:{sequence}"))
+                .collect(),
+        ));
+    }
 }
 
 impl ExpectedRegistration {
@@ -169,6 +213,10 @@ fn registration(action: &ScenarioAction) -> Option<ExpectedRegistration> {
             consumer_id: consumer_id.clone(),
             group_id: group_id.clone(),
             subscription: topics.clone(),
+            selected_protocol: *protocol,
+            selected_configuration: configuration
+                .as_ref()
+                .map(GroupConsumerConfigurationSelection::from),
         }),
         ScenarioAction::CreateShareConsumer {
             client_id,

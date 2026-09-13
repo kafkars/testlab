@@ -37,9 +37,9 @@ fn description_expectation_does_not_cross_the_wire_boundary() {
 
 #[test]
 fn config_protocol_and_independent_evidence_versions_are_explicit() {
-    assert_eq!(PROTOCOL_VERSION, 161);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 165);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 151);
+    assert_eq!(PROTOCOL_VERSION, 162);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 166);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 152);
     let observation = BrokerStateObservation::TopicConfig(BrokerTopicConfigState {
         observation: 7,
         operation_id: operation("config-describe"),

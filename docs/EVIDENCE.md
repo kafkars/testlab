@@ -417,6 +417,12 @@ client producer policy self-describing. PROD-024 requires the successful client
 creation event to carry the exact complete policy read through the public
 `ClientBuilder::selected_*` producer getters. Baseline and assigned-consumer
 clients must omit that field.
+Protocol v162, scenario schema v166, and evidence schema v152 make hosted group
+builder policy self-describing. CONS-035 requires every successful classic or
+KIP-848 creation event to carry the exact selected public protocol and, when
+configured, every explicit reset, isolation, Fetch, capacity, lifecycle,
+static-member, assignor, and classic-timing value. Omitted optional fields do
+not turn implementation defaults into portable claims.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1299,6 +1305,10 @@ behavioral truth.
 CONS-034 additionally requires each successful classic or KIP-848 registration
 to emit one later correlated creation observation whose group ID and
 caller-ordered subscription come from the returned public consumer handle.
+CONS-035 uses that same correlated event to require the selected public builder
+protocol and every explicitly configured policy value to match exactly. This is
+adapter-reported builder evidence; assignment, records, checkpoints, and broker
+state remain independently qualified by their existing contracts.
 CONS-025 retains the exact `into_checkpoint` selector on one full-batch group
 receive. Its successful commit, positive group epoch, exact public record, and
 independent broker observation remain required by the ordinary consumer

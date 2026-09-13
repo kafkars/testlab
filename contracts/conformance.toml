@@ -1303,6 +1303,12 @@ statement = "Each successful classic or KIP-848 registration emits one later cor
 category = "consumer"
 
 [[contract]]
+id = "CONS-035"
+title = "Group-consumer registration reports selected builder policy"
+statement = "Each successful classic or KIP-848 registration emits one later correlated observation whose public group protocol and every explicitly configured missing-offset, isolation, Fetch, capacity, lifecycle, static-member, assignor, and classic-timing selection exactly match the creation command."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
