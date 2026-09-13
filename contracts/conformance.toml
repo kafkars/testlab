@@ -589,6 +589,12 @@ statement = "One singleton public offset request preserves caller-selected read-
 category = "admin"
 
 [[contract]]
+id = "ADMIN-089"
+title = "Batch Admin offset isolation preserves exact public selection"
+statement = "One caller-ordered batch public offset request preserves read-uncommitted isolation on the wire, completes exactly once, and returns every exact offset in request order against contiguous immediate independent watermarks."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

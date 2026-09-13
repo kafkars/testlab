@@ -163,6 +163,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DeleteConsumerGroupOffsets(_) => "ADMIN-026",
         ScenarioAction::DescribeClassicGroups(_) => "ADMIN-027",
         ScenarioAction::DescribeConsumerGroups(_) => "ADMIN-069",
+        ScenarioAction::ListOffsetsBatch(value)
+            if value.read_isolation == testlab_schema::AdminReadIsolation::ReadUncommitted =>
+        {
+            "ADMIN-089"
+        }
         ScenarioAction::ListOffsetsBatch(_) => "ADMIN-028",
         ScenarioAction::ListConsumerGroups(value)
             if crate::admin_group::filters::selected(value) =>

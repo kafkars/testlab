@@ -77,6 +77,7 @@ fn wire(action: &ScenarioAction) -> AdapterCommand {
             AdapterCommand::ListOffsetsBatch(ListOffsetsBatchCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
+                read_isolation: action.read_isolation,
                 queries: action
                     .queries
                     .iter()

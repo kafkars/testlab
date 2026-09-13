@@ -25,7 +25,7 @@ pub(crate) fn verify_offset_batch_action(
         return true;
     }
     violations.push(violation(
-        "ADMIN-028",
+        contract(action.read_isolation),
         format!(
             "admin operation {} expected one caller-ordered batch offset listing with immediate independent watermarks",
             action.operation_id
@@ -34,6 +34,13 @@ pub(crate) fn verify_offset_batch_action(
         evidence(public, independent),
     ));
     true
+}
+
+const fn contract(read_isolation: testlab_schema::AdminReadIsolation) -> &'static str {
+    match read_isolation {
+        testlab_schema::AdminReadIsolation::ReadCommitted => "ADMIN-028",
+        testlab_schema::AdminReadIsolation::ReadUncommitted => "ADMIN-089",
+    }
 }
 
 fn batch_matches(

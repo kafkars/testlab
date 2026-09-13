@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AdminOffsetPosition, ClientId, OperationId};
+use crate::{AdminOffsetPosition, AdminReadIsolation, ClientId, OperationId};
 
 /// Scenario intent for one ordered public batch offset-listing call.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -12,6 +12,9 @@ pub struct ListOffsetsBatchAction {
     pub client_id: ClientId,
     /// Stable identity for the complete public batch call.
     pub operation_id: OperationId,
+    /// Transactional visibility for the complete public batch call.
+    #[serde(default)]
+    pub read_isolation: AdminReadIsolation,
     /// Caller-ordered topic-partition queries and exact expected offsets.
     pub queries: Vec<OffsetListingExpectation>,
     /// Complete public operation bound.
@@ -40,6 +43,8 @@ pub struct ListOffsetsBatchCommand {
     pub client_id: ClientId,
     /// Stable identity for the complete public batch call.
     pub operation_id: OperationId,
+    /// Transactional visibility for the complete public batch call.
+    pub read_isolation: AdminReadIsolation,
     /// Caller-ordered queries without verifier-owned expectations.
     pub queries: Vec<OffsetListingSelection>,
     /// Complete public operation bound.

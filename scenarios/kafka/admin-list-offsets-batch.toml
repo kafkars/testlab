@@ -1,7 +1,7 @@
-schema_version = 128
+schema_version = 129
 id = "kafka.admin-list-offsets-batch"
-title = "packaged admin lists a caller-ordered offset batch"
-description = "One public ListOffsets call preserves a deliberately non-partition-sorted query order while reporting exact earliest and latest offsets independently confirmed from broker watermarks."
+title = "packaged admin lists a read-uncommitted caller-ordered offset batch"
+description = "One read-uncommitted public ListOffsets call preserves a deliberately non-partition-sorted query order while reporting exact earliest and latest offsets independently confirmed from broker watermarks."
 timeout_ms = 100000
 requires = ["producer", "producer_batch", "admin", "lifecycle", "client_readiness"]
 
@@ -92,6 +92,7 @@ id = "list-offset-batch"
 kind = "list_offsets_batch"
 client_id = "client-1"
 operation_id = "admin-list-offset-batch"
+read_isolation = "read_uncommitted"
 timeout_ms = 20000
 
 [[steps.queries]]

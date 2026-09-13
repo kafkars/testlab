@@ -1,7 +1,7 @@
 //! Batch admin translation preserves ordering while omitting scenario-only outcomes.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, ClientId, CreateTopicBatchActionItem,
+    AdapterCommand, AdminOffsetPosition, AdminReadIsolation, ClientId, CreateTopicBatchActionItem,
     CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,
     ListOffsetsBatchAction, ListOffsetsBatchCommand, OffsetListingExpectation,
     OffsetListingSelection, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
@@ -55,6 +55,7 @@ fn offset_batch_translation_preserves_queries_without_expected_offsets() {
     let action = ScenarioAction::ListOffsetsBatch(ListOffsetsBatchAction {
         client_id: client_id.clone(),
         operation_id: operation_id.clone(),
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         queries: vec![
             offset_expectation("records", 2, AdminOffsetPosition::Latest, 7),
             offset_expectation("records", 0, AdminOffsetPosition::Earliest, 0),
@@ -70,6 +71,7 @@ fn offset_batch_translation_preserves_queries_without_expected_offsets() {
         AdapterCommand::ListOffsetsBatch(ListOffsetsBatchCommand {
             client_id,
             operation_id: operation_id.clone(),
+            read_isolation: AdminReadIsolation::ReadUncommitted,
             queries: vec![
                 offset_selection("records", 2, AdminOffsetPosition::Latest),
                 offset_selection("records", 0, AdminOffsetPosition::Earliest),

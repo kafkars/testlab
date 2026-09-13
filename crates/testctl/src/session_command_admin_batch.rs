@@ -103,6 +103,7 @@ fn list_offsets(
         AdapterCommand::ListOffsetsBatch(ListOffsetsBatchCommand {
             client_id: action.client_id.clone(),
             operation_id: action.operation_id.clone(),
+            read_isolation: action.read_isolation,
             queries,
             timeout_ms: action.timeout_ms,
         }),

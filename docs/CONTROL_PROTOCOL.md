@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v124 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v128 and evidence schema v114.
+Protocol v125 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v129 and evidence schema v115.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -750,12 +750,17 @@ offset distinction. Other broker-relative positions and leader epochs are
 outside this slice.
 
 `list_offsets_batch` carries two through 32 unique topic-partition selections
-in caller order and invokes one public Admin operation. Scenario-only expected
-offsets stay in Testlab. Its single `offsets_listed` completion preserves one
-nullable offset and optional normalized error per requested identity in that
-same order; an unexpected resource error cannot disappear into a successful
-batch claim. Immediate independent watermark queries run in the declared order
-and must select every expected earliest or latest offset exactly.
+in caller order, exact `read_committed` or `read_uncommitted` isolation for the
+whole request, and invokes one public Admin operation. Omitted scenario fields
+select the backward-compatible `read_committed` default; the wire command never
+defaults. Scenario-only expected offsets stay in Testlab. Its single
+`offsets_listed` completion preserves one nullable offset and optional
+normalized error per requested identity in that same order; an unexpected
+resource error cannot disappear into a successful batch claim. Immediate
+independent watermark queries run in the declared order and must select every
+expected earliest or latest offset exactly. The packaged read-uncommitted batch
+uses ordinary committed records and does not claim open-transaction LSO
+differentiation.
 
 Singleton record deletion selects one explicit positive cutoff on a fresh
 independently seeded partition. Ordered earliest and latest queries establish

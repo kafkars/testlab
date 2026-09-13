@@ -245,6 +245,11 @@ read-uncommitted value on the wire and joins its exact earliest result to an
 immediate independent watermark. A paired read-committed latest query retains
 the compatibility path over the same committed records; unresolved-transaction
 last-stable-offset differentiation remains unclaimed.
+Protocol v125, scenario schema v129, and evidence schema v115 extend exact Admin
+offset read isolation to caller-ordered batches. ADMIN-089 preserves one
+read-uncommitted selection for the complete public call and joins every ordered
+earliest or latest result to contiguous immediate independent watermarks over
+committed records.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -983,6 +988,13 @@ immediate independent low watermark, while the paired `read_committed` latest
 query continues to satisfy ADMIN-005 against the high watermark. This proves
 the two exact public selections and their results without claiming behavior in
 the presence of an unresolved transaction.
+
+ADMIN-089 applies exact `read_uncommitted` selection to one public batch
+`ListOffsets` call. Its deliberately non-partition-sorted earliest/latest
+queries must retain caller order, succeed without per-resource errors, and
+equal contiguous immediate independent low or high watermarks respectively.
+The fixture uses acknowledged nontransactional records and therefore does not
+claim an unresolved-transaction last-stable-offset distinction.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

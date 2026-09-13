@@ -2,7 +2,7 @@
 
 use std::io::Write;
 
-use crate::kafkars_api::{ListOffsetsQuery, ReadIsolation};
+use crate::kafkars_api::ListOffsetsQuery;
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminOffsetListingOutcome, AdminOffsetPosition,
     AdminOffsetsListing, CommandId, ListOffsetsBatchCommand, OffsetListingSelection,
@@ -14,7 +14,7 @@ use crate::protocol::emit;
 use crate::protocol_admin_plural_result::{
     PartitionResult, ResourceResult, ordered_partition_results,
 };
-use crate::protocol_admin_read::{deadline_after, retry_safe};
+use crate::protocol_admin_read::{deadline_after, public_read_isolation, retry_safe};
 use crate::state::AdapterState;
 
 pub(crate) fn list<W: Write>(
@@ -31,7 +31,7 @@ pub(crate) fn list<W: Write>(
             client
                 .admin()
                 .list_offsets(public_queries(&command.queries))
-                .read_isolation(ReadIsolation::ReadCommitted)
+                .read_isolation(public_read_isolation(command.read_isolation))
                 .deadline_after(remaining)
                 .submit()
                 .wait()

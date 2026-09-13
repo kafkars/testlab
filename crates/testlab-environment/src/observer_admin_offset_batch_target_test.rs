@@ -1,8 +1,9 @@
 //! Batch offset target tests pin exact wire matching and observation order.
 
 use testlab_schema::{
-    AdapterCommand, AdminOffsetPosition, ClientId, ListOffsetsBatchAction, ListOffsetsBatchCommand,
-    OffsetListingExpectation, OffsetListingSelection, OperationId, ScenarioAction,
+    AdapterCommand, AdminOffsetPosition, AdminReadIsolation, ClientId, ListOffsetsBatchAction,
+    ListOffsetsBatchCommand, OffsetListingExpectation, OffsetListingSelection, OperationId,
+    ScenarioAction,
 };
 
 use crate::observer_admin_target::AdminTarget;
@@ -37,10 +38,22 @@ fn batch_offset_target_rejects_a_reordered_wire_command() {
     assert!(AdminTarget::from_exact(&action, &AdapterCommand::ListOffsetsBatch(command)).is_err());
 }
 
+#[test]
+fn batch_offset_target_rejects_a_different_wire_isolation() {
+    let action = action();
+    let AdapterCommand::ListOffsetsBatch(mut command) = command() else {
+        panic!("command changed shape");
+    };
+    command.read_isolation = AdminReadIsolation::ReadCommitted;
+
+    assert!(AdminTarget::from_exact(&action, &AdapterCommand::ListOffsetsBatch(command)).is_err());
+}
+
 fn action() -> ScenarioAction {
     ScenarioAction::ListOffsetsBatch(ListOffsetsBatchAction {
         client_id: client(),
         operation_id: operation(),
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         queries: vec![
             expectation(2, AdminOffsetPosition::Latest, 5),
             expectation(0, AdminOffsetPosition::Earliest, 0),
@@ -53,6 +66,7 @@ fn command() -> AdapterCommand {
     AdapterCommand::ListOffsetsBatch(ListOffsetsBatchCommand {
         client_id: client(),
         operation_id: operation(),
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         queries: vec![
             selection(2, AdminOffsetPosition::Latest),
             selection(0, AdminOffsetPosition::Earliest),

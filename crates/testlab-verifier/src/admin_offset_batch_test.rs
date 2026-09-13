@@ -2,9 +2,10 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdminOffsetListingOutcome, AdminOffsetPosition,
-    AdminOffsetsListing, BrokerPartitionOffsets, BrokerStateObservation, HistoryEntry,
-    HistoryPayload, ListOffsetsBatchAction, ListOffsetsBatchCommand, OffsetListingExpectation,
-    OffsetListingSelection, OperationId, ScenarioAction, TerminalStatus, VisibilityExpectation,
+    AdminOffsetsListing, AdminReadIsolation, BrokerPartitionOffsets, BrokerStateObservation,
+    HistoryEntry, HistoryPayload, ListOffsetsBatchAction, ListOffsetsBatchCommand,
+    OffsetListingExpectation, OffsetListingSelection, OperationId, ScenarioAction, TerminalStatus,
+    VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -13,31 +14,34 @@ use crate::verify_fixture::{command, event, scenario, step};
 
 #[test]
 fn ordered_batch_offsets_pass_with_matching_independent_watermarks() {
-    let scenario = offset_batch_scenario();
-    let history = offset_batch_history(outcomes(), [(4, 5), (0, 1), (0, 2)]);
+    let isolation = AdminReadIsolation::ReadUncommitted;
+    let scenario = offset_batch_scenario(isolation);
+    let history = offset_batch_history(outcomes(), [(4, 5), (0, 1), (0, 2)], isolation);
 
     assert!(violations(&scenario, &history).is_empty());
 }
 
 #[test]
 fn reordered_public_outcomes_fail_the_batch_contract() {
-    let scenario = offset_batch_scenario();
+    let isolation = AdminReadIsolation::ReadUncommitted;
+    let scenario = offset_batch_scenario(isolation);
     let mut reordered = outcomes();
     reordered.swap(0, 1);
-    let history = offset_batch_history(reordered, [(4, 5), (0, 1), (0, 2)]);
+    let history = offset_batch_history(reordered, [(4, 5), (0, 1), (0, 2)], isolation);
 
-    assert_admin_028(&violations(&scenario, &history));
+    assert_contract(&violations(&scenario, &history), "ADMIN-089");
 }
 
 #[test]
 fn incorrect_independent_watermark_fails_the_batch_contract() {
-    let scenario = offset_batch_scenario();
-    let history = offset_batch_history(outcomes(), [(4, 6), (0, 1), (0, 2)]);
+    let isolation = AdminReadIsolation::ReadCommitted;
+    let scenario = offset_batch_scenario(isolation);
+    let history = offset_batch_history(outcomes(), [(4, 6), (0, 1), (0, 2)], isolation);
 
-    assert_admin_028(&violations(&scenario, &history));
+    assert_contract(&violations(&scenario, &history), "ADMIN-028");
 }
 
-fn offset_batch_scenario() -> testlab_schema::Scenario {
+fn offset_batch_scenario(read_isolation: AdminReadIsolation) -> testlab_schema::Scenario {
     let mut value = scenario(
         TerminalStatus::Acknowledged,
         VisibilityExpectation::ExactlyOnce,
@@ -49,6 +53,7 @@ fn offset_batch_scenario() -> testlab_schema::Scenario {
             ScenarioAction::ListOffsetsBatch(ListOffsetsBatchAction {
                 client_id: client(),
                 operation_id: operation(),
+                read_isolation,
                 queries: expectations(),
                 timeout_ms: 1_000,
             }),
@@ -60,12 +65,14 @@ fn offset_batch_scenario() -> testlab_schema::Scenario {
 fn offset_batch_history(
     outcomes: Vec<AdminOffsetListingOutcome>,
     watermarks: [(i64, i64); 3],
+    read_isolation: AdminReadIsolation,
 ) -> Vec<HistoryEntry> {
     let mut entries = vec![command(
         10,
         AdapterCommand::ListOffsetsBatch(ListOffsetsBatchCommand {
             client_id: client(),
             operation_id: operation(),
+            read_isolation,
             queries: selections(),
             timeout_ms: 1_000,
         }),
@@ -168,11 +175,11 @@ fn violations(
     violations
 }
 
-fn assert_admin_028(violations: &[testlab_schema::Violation]) {
+fn assert_contract(violations: &[testlab_schema::Violation], contract_id: &str) {
     assert!(
         violations
             .iter()
-            .any(|violation| violation.contract_id.as_str() == "ADMIN-028"),
+            .any(|violation| violation.contract_id.as_str() == contract_id),
         "{violations:?}"
     );
 }

@@ -4,8 +4,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     AdapterCommand, AdapterEvent, AdminOffsetListingOutcome, AdminOffsetPosition,
-    AdminOffsetsListing, ClientId, ListOffsetsBatchAction, ListOffsetsBatchCommand,
-    OffsetListingExpectation, OffsetListingSelection, OperationId, ScenarioAction,
+    AdminOffsetsListing, AdminReadIsolation, ClientId, ListOffsetsBatchAction,
+    ListOffsetsBatchCommand, OffsetListingExpectation, OffsetListingSelection, OperationId,
+    ScenarioAction,
 };
 
 #[test]
@@ -24,12 +25,27 @@ fn batch_offset_wire_omits_expectations_and_round_trips_order() {
     let encoded_command = encode(&command);
     let encoded_event = encode(&event);
     assert!(encoded_action.contains("kind = \"list_offsets_batch\""));
+    assert!(encoded_command.contains("read_isolation = \"read_uncommitted\""));
     assert!(encoded_action.contains("expected_offset = 1"));
     assert!(!encoded_command.contains("expected_offset"));
     assert!(encoded_event.contains("kind = \"offsets_listed\""));
     assert_eq!(decode::<ScenarioAction>(&encoded_action), action);
     assert_eq!(decode::<AdapterCommand>(&encoded_command), command);
     assert_eq!(decode::<AdapterEvent>(&encoded_event), event);
+}
+
+#[test]
+fn batch_offset_action_defaults_to_read_committed() {
+    let encoded = encode(&ScenarioAction::ListOffsetsBatch(action()))
+        .replace("read_isolation = \"read_uncommitted\"\n", "");
+    let decoded = decode::<ScenarioAction>(&encoded);
+    assert!(matches!(
+        decoded,
+        ScenarioAction::ListOffsetsBatch(ListOffsetsBatchAction {
+            read_isolation: AdminReadIsolation::ReadCommitted,
+            ..
+        })
+    ));
 }
 
 #[test]
@@ -68,6 +84,7 @@ fn action() -> ListOffsetsBatchAction {
     ListOffsetsBatchAction {
         client_id: client(),
         operation_id: operation(),
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         queries: vec![
             expectation("records", 2, AdminOffsetPosition::Latest, 1),
             expectation("records", 0, AdminOffsetPosition::Earliest, 0),
@@ -80,6 +97,7 @@ fn command() -> ListOffsetsBatchCommand {
     ListOffsetsBatchCommand {
         client_id: client(),
         operation_id: operation(),
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         queries: vec![
             selection("records", 2, AdminOffsetPosition::Latest),
             selection("records", 0, AdminOffsetPosition::Earliest),

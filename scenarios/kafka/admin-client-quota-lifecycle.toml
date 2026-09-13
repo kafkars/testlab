@@ -1,4 +1,4 @@
-schema_version = 128
+schema_version = 129
 id = "kafka.admin-client-quota-lifecycle"
 title = "packaged admin validates, sets, describes, and removes exact client quotas"
 description = "The packaged client's public quota operations set, describe, validate without mutation, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."
