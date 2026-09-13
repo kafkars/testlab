@@ -80,6 +80,9 @@ pub struct DescribeConsumerGroupAction {
     pub group_id: String,
     /// Exact public member count required by the scenario.
     pub expected_member_count: u32,
+    /// Whether Kafka must return the authorized-operation bitfield.
+    #[serde(default)]
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -94,6 +97,8 @@ pub struct DescribeConsumerGroupCommand {
     pub operation_id: OperationId,
     /// Exact Kafka consumer-group identity.
     pub group_id: String,
+    /// Whether Kafka must return the authorized-operation bitfield.
+    pub include_authorized_operations: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -201,6 +206,8 @@ pub struct AdminConsumerGroupDescription {
     pub group_id: String,
     /// Public member count reported by the adapter.
     pub member_count: u32,
+    /// Raw Kafka authorization bitfield, when requested.
+    pub authorized_operations: Option<i32>,
 }
 
 /// One public Share-group member and its exact current assignment.

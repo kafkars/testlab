@@ -1,7 +1,7 @@
-schema_version = 130
+schema_version = 131
 id = "kafka.admin-describe-consumer-group"
-title = "packaged admin describes an independently observed live consumer group"
-description = "After one classic member publicly consumes and commits an exact record, the packaged client's public group description reports one member while that consumer remains open and an immediate independent query confirms the same membership count."
+title = "packaged admin preserves singleton consumer-group authorization selection"
+description = "After one classic member publicly consumes and commits an exact record, paired packaged public group descriptions exclude then include authorization metadata while reporting one member, and immediate independent queries confirm the same live membership count."
 timeout_ms = 120000
 requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
 
@@ -72,6 +72,17 @@ client_id = "client-1"
 operation_id = "admin-describe-group-1"
 group_id = "testlab-admin-described-group"
 expected_member_count = 1
+include_authorized_operations = false
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-live-group-with-authorized-operations"
+kind = "describe_consumer_group"
+client_id = "client-1"
+operation_id = "admin-describe-group-authorized"
+group_id = "testlab-admin-described-group"
+expected_member_count = 1
+include_authorized_operations = true
 timeout_ms = 20000
 
 [[steps]]

@@ -255,6 +255,11 @@ client-quota description strictness. ADMIN-090 preserves a non-strict named-user
 filter on the wire and joins its result to an immediate independent Kafka CLI
 value; the paired strict call proves both selections over one simple entity
 without claiming composite-entity result divergence.
+Protocol v127, scenario schema v131, and evidence schema v117 add exact
+singleton consumer-group authorization selection. ADMIN-091 preserves an
+included bitfield request on the wire and requires its public presence beside
+the exact member count; the paired excluded call and immediate group queries
+prove both selections over unchanged live membership.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -576,6 +581,10 @@ batch offset result to contiguous immediate watermark observations for every
 unique topic-partition selection and requires each selected earliest or latest
 offset exactly. ADMIN-029 applies the generic public group listing to the same
 independent group facts without narrowing the result to consumer groups.
+ADMIN-010 retains the singleton excluded-authorization description and exact
+live member count. ADMIN-091 applies the same public and immediate independent
+membership proof to the paired included-authorization request and additionally
+requires the raw public bitfield to be present.
 ADMIN-082 requires exact group-listing filter intent on the wire. Both public
 listing paths retain caller-ordered state and group-type filters; the generic
 path additionally retains its client-side protocol-type filter. Each filtered

@@ -601,6 +601,12 @@ statement = "One exact named-user client-quota description preserves non-strict 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-091"
+title = "Singleton consumer-group description preserves authorization selection"
+statement = "One exact singleton public consumer-group description preserves requested authorization metadata inclusion on the wire, returns the bitfield with the exact live member count, and is followed immediately by an independent broker-state query of the same group and count."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

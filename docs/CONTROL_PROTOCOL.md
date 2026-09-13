@@ -836,6 +836,13 @@ independent Kafka CLI read of that unchanged rate. A finite snapshot does not
 claim that Kafka could never mutate later, so the scenarios add later public
 description or real-mutation barriers that expose delayed effects.
 
+The singleton `describe_consumer_group` command carries one exact group and the
+`include_authorized_operations` selection while keeping the expected member
+count scenario-side. Its public result preserves the optional raw bitfield and
+member count; an immediate independent group query confirms the same live group
+and count. The paired packaged calls exclude and then include the bitfield while
+the membership remains unchanged.
+
 The consumer-group offset slice selects one exact group and topic-partition
 after a public classic-group receive commits its checkpoint. The adapter command
 carries the requested stable-read option but omits the expected offset. Its

@@ -10,7 +10,7 @@ use crate::admin_delegation_token::verify as verify_delegation_token;
 use crate::admin_discovery::verify_discovery_action;
 use crate::admin_failure::verify_expected_failure;
 use crate::admin_features::verify_features_action;
-use crate::admin_group::verify_group_action;
+use crate::admin_group::{describe_group_contract as group_contract, verify_group_action};
 use crate::admin_group_batch::verify_group_batch_action;
 use crate::admin_leader_election::verify_leader_election_action;
 use crate::admin_log_dirs::verify_log_dirs_action;
@@ -291,7 +291,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::DescribeCluster(_) => "ADMIN-008",
         ScenarioAction::UnregisterBroker(_) => "ADMIN-076",
         ScenarioAction::ListConsumerGroups(_) => "ADMIN-009",
-        ScenarioAction::DescribeConsumerGroup(_) => "ADMIN-010",
+        ScenarioAction::DescribeConsumerGroup(value) => group_contract(value),
         ScenarioAction::AlterConsumerGroupOffset(_) => "ADMIN-011",
         ScenarioAction::DeleteConsumerGroupOffset(_) => "ADMIN-012",
         ScenarioAction::DeleteConsumerGroup(_) => "ADMIN-013",

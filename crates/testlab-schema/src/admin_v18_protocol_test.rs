@@ -51,12 +51,14 @@ fn group_description_expectations_do_not_cross_the_wire_boundary() {
         operation_id: operation("admin-group-describe"),
         group_id: "group-1".to_owned(),
         expected_member_count: 2,
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     });
     let command = AdapterCommand::DescribeConsumerGroup(DescribeConsumerGroupCommand {
         client_id: client(),
         operation_id: operation("admin-group-describe"),
         group_id: "group-1".to_owned(),
+        include_authorized_operations: true,
         timeout_ms: 1_000,
     });
 
@@ -64,6 +66,7 @@ fn group_description_expectations_do_not_cross_the_wire_boundary() {
     let command = encode(&command);
 
     assert!(action.contains("expected_member_count = 2"));
+    assert!(command.contains("include_authorized_operations = true"));
     assert!(!command.contains("expected_member_count"));
     assert_round_trip::<AdapterCommand>(&command);
 }
@@ -108,6 +111,7 @@ fn admin_commands_have_exact_v18_kinds() {
                 client_id: client(),
                 operation_id: operation("admin-group-describe"),
                 group_id: "group-1".to_owned(),
+                include_authorized_operations: true,
                 timeout_ms: 1_000,
             }),
         ),
@@ -166,12 +170,14 @@ fn group_events_report_observed_facts_instead_of_expectations() {
             operation_id: operation("admin-group-describe"),
             group_id: "group-1".to_owned(),
             member_count: 2,
+            authorized_operations: Some(0x20),
         },
     ));
 
     assert!(listed.contains("group_ids = [\"group-1\"]"));
     assert!(!listed.contains("required_group_ids"));
     assert!(described.contains("member_count = 2"));
+    assert!(described.contains("authorized_operations = 32"));
     assert!(!described.contains("expected_member_count"));
 }
 

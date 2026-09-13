@@ -8,7 +8,6 @@ use super::{
     admin_command_router::{action_operation_id, command_matches, command_operation_id},
 };
 use testlab_schema::{AdapterCommand, AdapterEvent, CommandId, ScenarioAction};
-
 impl HistoryIndex {
     #[allow(
         clippy::too_many_lines,
@@ -160,6 +159,7 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     group_id: value.group_id.clone(),
                     member_count: value.member_count,
+                    authorized_operations: value.authorized_operations,
                 }),
             AdapterEvent::ConsumerGroupOffsetListed(value) => self
                 .consumer_group_offsets_listed

@@ -44,6 +44,7 @@ fn cluster_and_group_discovery_targets_are_exact() {
         operation_id: operation("describe-group"),
         group_id: "orders-group".to_owned(),
         expected_member_count: 2,
+        include_authorized_operations: true,
         timeout_ms: 500,
     });
     let AdminTarget::ConsumerGroup(target) = exact(&describe) else {

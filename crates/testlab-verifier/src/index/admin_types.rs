@@ -124,6 +124,7 @@ pub(crate) struct IndexedConsumerGroupDescription {
     pub(crate) history_sequence: u64,
     pub(crate) group_id: String,
     pub(crate) member_count: u32,
+    pub(crate) authorized_operations: Option<i32>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -58,14 +58,29 @@ fn generic_group_listing_uses_its_own_contract() {
 
 #[test]
 fn matching_group_description_passes() {
-    assert!(violations(describe_action(), &describe_history(2, 2)).is_empty());
+    assert!(violations(describe_action(false), &describe_history(2, 2, false, None)).is_empty());
 }
 
 #[test]
 fn group_description_rejects_independent_member_mismatch() {
     assert_contract(
-        &violations(describe_action(), &describe_history(2, 1)),
+        &violations(describe_action(false), &describe_history(2, 1, false, None)),
         "ADMIN-010",
+    );
+}
+
+#[test]
+fn group_description_preserves_requested_authorization_metadata() {
+    assert!(
+        violations(
+            describe_action(true),
+            &describe_history(2, 2, true, Some(0x20))
+        )
+        .is_empty()
+    );
+    assert_contract(
+        &violations(describe_action(true), &describe_history(2, 2, true, None)),
+        "ADMIN-091",
     );
 }
 
@@ -112,7 +127,12 @@ fn list_history(api: GroupListingApi, broker_errors: Vec<AdminBrokerError>) -> V
     ]
 }
 
-fn describe_history(public_members: u32, observed_members: u32) -> Vec<HistoryEntry> {
+fn describe_history(
+    public_members: u32,
+    observed_members: u32,
+    include_authorized_operations: bool,
+    authorized_operations: Option<i32>,
+) -> Vec<HistoryEntry> {
     let operation_id = operation("admin-describe-group-1");
     vec![
         command(
@@ -121,6 +141,7 @@ fn describe_history(public_members: u32, observed_members: u32) -> Vec<HistoryEn
                 client_id: client(),
                 operation_id: operation_id.clone(),
                 group_id: "group-a".to_owned(),
+                include_authorized_operations,
                 timeout_ms: 1_000,
             }),
         ),
@@ -130,6 +151,7 @@ fn describe_history(public_members: u32, observed_members: u32) -> Vec<HistoryEn
                 operation_id: operation_id.clone(),
                 group_id: "group-a".to_owned(),
                 member_count: public_members,
+                authorized_operations,
             }),
         ),
         group_state(2, operation_id, "group-a", true, Some(observed_members)),
@@ -192,12 +214,13 @@ fn all_groups_action() -> ScenarioAction {
     ScenarioAction::ListConsumerGroups(action)
 }
 
-fn describe_action() -> ScenarioAction {
+fn describe_action(include_authorized_operations: bool) -> ScenarioAction {
     ScenarioAction::DescribeConsumerGroup(DescribeConsumerGroupAction {
         client_id: client(),
         operation_id: operation("admin-describe-group-1"),
         group_id: "group-a".to_owned(),
         expected_member_count: 2,
+        include_authorized_operations,
         timeout_ms: 1_000,
     })
 }

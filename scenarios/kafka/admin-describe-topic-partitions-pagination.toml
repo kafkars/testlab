@@ -1,4 +1,4 @@
-schema_version = 130
+schema_version = 131
 id = "kafka.admin-describe-topic-partitions-pagination"
 title = "packaged admin follows explicit topic-partition pages"
 description = "The packaged client separately submits every public DescribeTopicPartitions continuation cursor, preserves exact page boundaries, and joins the complete five-partition result to immediate independent metadata."

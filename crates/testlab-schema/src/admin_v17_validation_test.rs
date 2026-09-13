@@ -107,6 +107,7 @@ fn admin_mutations_reject_invalid_names_offsets_and_timeouts() {
             operation_id: operation("admin-group-invalid"),
             group_id: String::new(),
             expected_member_count: 0,
+            include_authorized_operations: false,
             timeout_ms: 99,
         }),
         &clients,

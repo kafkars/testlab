@@ -1,4 +1,4 @@
-schema_version = 130
+schema_version = 131
 id = "kafka.classic-group-latest-offset-reset"
 title = "fully timed classic group latest reset skips an existing record"
 description = "A classic member built with every public membership-timing value stabilizes after one broker-visible record already exists, then latest-offset reset returns and commits only the exact later record."

@@ -186,6 +186,7 @@ fn verify_describe_group(
     let public_matches = public_value.is_some_and(|value| {
         value.group_id == expected.group_id
             && value.member_count == expected.expected_member_count
+            && value.authorized_operations.is_some() == expected.include_authorized_operations
             && public_after_command(command_window, value.history_sequence)
     });
     let independent_matches = independent.is_some_and(|values| {
@@ -207,11 +208,21 @@ fn verify_describe_group(
         return;
     }
     violations.push(violation(
-        "ADMIN-010",
-        format!("admin operation {} expected group {} with {} member(s) in both public and independent descriptions", expected.operation_id, expected.group_id, expected.expected_member_count),
+        describe_group_contract(expected),
+        format!("admin operation {} expected group {} with {} member(s), exact requested authorization metadata, and matching public and independent descriptions", expected.operation_id, expected.group_id, expected.expected_member_count),
         Some(expected.operation_id.clone()),
         group_description_evidence(public, independent),
     ));
+}
+
+pub(crate) const fn describe_group_contract(
+    action: &testlab_schema::DescribeConsumerGroupAction,
+) -> &'static str {
+    if action.include_authorized_operations {
+        "ADMIN-091"
+    } else {
+        "ADMIN-010"
+    }
 }
 
 fn verify_delete_group(

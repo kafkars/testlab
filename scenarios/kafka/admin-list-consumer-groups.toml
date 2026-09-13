@@ -1,4 +1,4 @@
-schema_version = 130
+schema_version = 131
 id = "kafka.admin-list-consumer-groups"
 title = "packaged admin filters an independently observed consumer group"
 description = "After a classic group publicly consumes and commits one exact record, the packaged client's consumer-only listing selects exact Stable and classic filters, retains that group, and is corroborated by an independent query."

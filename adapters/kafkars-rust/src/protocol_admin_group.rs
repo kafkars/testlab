@@ -145,7 +145,7 @@ fn describe<W: Write>(
             client
                 .admin()
                 .describe_consumer_groups([command.group_id.clone()])
-                .include_authorized_operations(false)
+                .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
                 .wait()
@@ -172,6 +172,7 @@ fn describe<W: Write>(
             operation_id: command.operation_id,
             group_id: command.group_id,
             member_count,
+            authorized_operations: description.authorized_operations(),
         }),
     )
 }

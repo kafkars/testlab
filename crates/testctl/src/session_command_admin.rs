@@ -7,7 +7,6 @@ use testlab_schema::{
     DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
     ListOffsetsCommand, ListTopicsCommand, ScenarioAction, ValidateFeatureUpdatesCommand,
 };
-
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     crate::session_command_admin_broker_unregistration::translate(action)
         .or_else(|| crate::session_command_admin_streams_group::translate(action))
@@ -226,6 +225,7 @@ fn translate_group(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
                 group_id: action.group_id.clone(),
+                include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::ConsumerGroupDescribed {

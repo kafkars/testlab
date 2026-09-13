@@ -176,6 +176,7 @@ fn describe_group(group_id: &str, member_count: u32) -> ScenarioAction {
         operation_id: operation(&format!("describe-group-{group_id}")),
         group_id: group_id.to_owned(),
         expected_member_count: member_count,
+        include_authorized_operations: false,
         timeout_ms: 1_000,
     })
 }
