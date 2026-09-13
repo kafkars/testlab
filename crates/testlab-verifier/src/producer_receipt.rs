@@ -96,7 +96,21 @@ fn verify_one(
     let scenario_exact = description.is_some_and(|action| {
         action.selection == TopicSelection::TopicId
             && action.operation_id == *identity_operation_id
-            && matches!(action.topics.as_slice(), [topic] if topic.topic == record.topic)
+            && {
+                let mut topics = action
+                    .topics
+                    .iter()
+                    .filter(|topic| topic.topic == record.topic);
+                let topic = topics.next();
+                topics.next().is_none()
+                    && topic.is_some_and(|topic| {
+                        topic.expected_error_code.is_none()
+                            && topic
+                                .expected_partitions
+                                .as_ref()
+                                .is_some_and(|partitions| partitions.contains(&record.partition))
+                    })
+            }
     });
     let chronology = command_sequence.is_some_and(|command| {
         public.is_some_and(|value| value.history_sequence < command)
@@ -145,9 +159,15 @@ fn verify_one(
 }
 
 fn public_topic_id(value: &IndexedAdminTopicsDescription, record: &RecordSpec) -> Option<[u8; 16]> {
-    let [outcome] = value.value.outcomes.as_slice() else {
+    let mut outcomes = value
+        .value
+        .outcomes
+        .iter()
+        .filter(|outcome| outcome.topic == record.topic);
+    let outcome = outcomes.next()?;
+    if outcomes.next().is_some() {
         return None;
-    };
+    }
     let id = outcome.topic_id?;
     (outcome.topic == record.topic
         && id != [0; 16]

@@ -3,7 +3,7 @@
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AssignedConsumerEventExpectation,
     AssignedConsumerEventObservationKind, AssignedConsumerPositionFailure, BrokerObservation,
-    Scenario, ScenarioAction,
+    ObserveAssignedConsumerEventAction, Scenario, ScenarioAction,
 };
 
 use crate::broker_policy::{PolicyWindow, active};
@@ -15,7 +15,7 @@ pub(crate) fn denial(
     window: &PolicyWindow<'_>,
     index: &HistoryIndex,
 ) -> Option<u64> {
-    scenario.steps.iter().find_map(|step| {
+    let mut actions = scenario.steps.iter().filter_map(|step| {
         let ScenarioAction::ObserveAssignedConsumerEvent(action) = &step.action else {
             return None;
         };
@@ -30,45 +30,61 @@ pub(crate) fn denial(
         if expected_topic != topic {
             return None;
         }
-        let commands = index
-            .commands
-            .iter()
-            .filter_map(|(sequence, _, command)| match command {
-                AdapterCommand::ObserveAssignedConsumerEvent(command)
-                    if command.operation_id == action.operation_id
-                        && command.consumer_id == action.consumer_id
-                        && command.method == action.method
-                        && command.timeout_ms == action.timeout_ms =>
-                {
-                    Some(*sequence)
-                }
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-        let events = index
-            .adapter_events
-            .iter()
-            .filter_map(|(sequence, envelope)| match &envelope.event {
-                AdapterEvent::AssignedConsumerEventObserved(observation)
-                    if observation.operation_id == action.operation_id
-                        && observation.consumer_id == action.consumer_id
-                        && observation.method == action.method
-                        && event_matches(&observation.event, topic, *partition) =>
-                {
-                    Some(*sequence)
-                }
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-        match (commands.as_slice(), events.as_slice()) {
-            ([command], [event])
-                if command < event && active(window, *command) && active(window, *event) =>
+        Some((action, *partition))
+    });
+    let (first, partition) = actions.next()?;
+    let mut last = exact_denial(first, topic, partition, window, index)?;
+    for (action, partition) in actions {
+        last = exact_denial(action, topic, partition, window, index)?;
+    }
+    Some(last)
+}
+
+fn exact_denial(
+    action: &ObserveAssignedConsumerEventAction,
+    topic: &str,
+    partition: i32,
+    window: &PolicyWindow<'_>,
+    index: &HistoryIndex,
+) -> Option<u64> {
+    let commands = index
+        .commands
+        .iter()
+        .filter_map(|(sequence, _, command)| match command {
+            AdapterCommand::ObserveAssignedConsumerEvent(command)
+                if command.operation_id == action.operation_id
+                    && command.consumer_id == action.consumer_id
+                    && command.method == action.method
+                    && command.timeout_ms == action.timeout_ms =>
             {
-                Some(*event)
+                Some(*sequence)
             }
             _ => None,
+        })
+        .collect::<Vec<_>>();
+    let events = index
+        .adapter_events
+        .iter()
+        .filter_map(|(sequence, envelope)| match &envelope.event {
+            AdapterEvent::AssignedConsumerEventObserved(observation)
+                if observation.operation_id == action.operation_id
+                    && observation.consumer_id == action.consumer_id
+                    && observation.method == action.method
+                    && event_matches(&observation.event, topic, partition) =>
+            {
+                Some(*sequence)
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    match (commands.as_slice(), events.as_slice()) {
+        ([command], [event])
+            if command < event && active(window, *command) && active(window, *event) =>
+        {
+            Some(*event)
         }
-    })
+        _ => None,
+    }
 }
 
 pub(crate) fn recovery(
