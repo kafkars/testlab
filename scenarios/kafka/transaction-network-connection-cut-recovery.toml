@@ -1,7 +1,7 @@
-schema_version = 158
+schema_version = 159
 id = "kafka.transaction-network-connection-cut-recovery"
 title = "packaged transactional producer reconnects after an external connection cut"
-description = "The external proxy proves a live Kafka connection was cut after one committed transaction, then the same packaged transactional producer stages an exact public batch and commits every record through re-established connections."
+description = "The external proxy proves a live Kafka connection was cut after one committed transaction, an exact ordinary producer probe acknowledges after reconnection, and the same packaged transactional producer stages an exact public batch and commits every record through re-established connections."
 timeout_ms = 150000
 requires = ["producer", "transactions", "transaction_batch_send", "lifecycle", "client_readiness"]
 
@@ -14,6 +14,12 @@ client_id = "client-1"
 id = "await-client-ready"
 kind = "await_client_ready"
 client_id = "client-1"
+
+[[steps]]
+id = "create-reconnect-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "reconnect-producer"
 
 [[steps]]
 id = "create-transactional-producer"
@@ -51,6 +57,22 @@ kind = "cut_network_connections"
 operation_id = "transaction-network-cut-live-connections"
 broker_ordinal = 1
 timeout_ms = 5000
+
+[[steps]]
+id = "send-reconnect-probe"
+kind = "send"
+producer_id = "reconnect-producer"
+operation_id = "transaction-network-reconnect-probe"
+
+[steps.record]
+topic = "testlab-kafkars-transaction-network-probe"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "after-cut" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "transaction-network-reconnect-probe" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
 
 [[steps]]
 id = "commit-batch-after-cut"
@@ -95,6 +117,16 @@ kind = "close_transactional_producer"
 producer_id = "transactional-producer-1"
 
 [[steps]]
+id = "flush-reconnect-producer"
+kind = "flush"
+producer_id = "reconnect-producer"
+
+[[steps]]
+id = "close-reconnect-producer"
+kind = "close_producer"
+producer_id = "reconnect-producer"
+
+[[steps]]
 id = "shutdown-client"
 kind = "shutdown_client"
 client_id = "client-1"
@@ -103,6 +135,12 @@ client_id = "client-1"
 operation_id = "transaction-network-baseline"
 accepted = true
 terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "transaction-network-reconnect-probe"
+accepted = true
+terminal = "acknowledged"
 visibility = "exactly_once"
 
 [[assertions]]

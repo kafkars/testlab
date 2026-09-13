@@ -1,0 +1,180 @@
+schema_version = 159
+id = "kafka.classic-transactional-transform-network-connection-cut-recovery"
+title = "classic transactional transform recovers after an external connection cut"
+description = "A classic member and transactional producer transfer one exact baseline checkpoint, the external proxy cuts their live broker connections, and the same handles consume, transform, commit, and independently expose the next checkpoint after reconnecting."
+timeout_ms = 210000
+requires = ["producer", "consumer_groups", "admin", "transactions", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-source-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "source-producer"
+
+[[steps]]
+id = "create-transactional-producer"
+kind = "create_transactional_producer"
+client_id = "client-1"
+producer_id = "transform-producer"
+transactional_id = "testlab-classic-network-transform-owner"
+transaction_timeout_ms = 30000
+initialization_timeout_ms = 45000
+
+[[steps]]
+id = "send-baseline-input"
+kind = "send"
+producer_id = "source-producer"
+operation_id = "classic-network-transform-input-baseline"
+
+[steps.record]
+topic = "testlab-kafkars-classic-network-transform-input"
+partition = 0
+sequence = 1
+value = { encoding = "utf8", data = "baseline-input" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-network-transform-input-baseline" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "create-classic-member"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "classic-transform-member"
+group_id = "testlab-classic-network-transform-group"
+topics = ["testlab-kafkars-classic-network-transform-input"]
+protocol = "classic"
+
+[[steps]]
+id = "commit-baseline-transform"
+kind = "execute_transactional_transform"
+producer_id = "transform-producer"
+consumer_id = "classic-transform-member"
+transaction_id = "classic-network-transform-baseline"
+expected_input_operation_id = "classic-network-transform-input-baseline"
+disposition = "commit"
+timeout_ms = 45000
+
+[[steps.operations]]
+operation_id = "classic-network-transform-output-baseline"
+record = { topic = "testlab-kafkars-classic-network-transform-output", partition = 0, sequence = 101, value = { encoding = "utf8", data = "baseline-output" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-network-transform-output-baseline" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "101" } }] }
+
+[[steps]]
+id = "observe-baseline-checkpoint"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "classic-network-transform-checkpoint-baseline"
+group_id = "testlab-classic-network-transform-group"
+topic = "testlab-kafkars-classic-network-transform-input"
+partition = 0
+require_stable = true
+expected_offset = 1
+timeout_ms = 20000
+
+[[steps]]
+id = "cut-live-connections"
+kind = "cut_network_connections"
+operation_id = "classic-network-transform-cut-live-connections"
+broker_ordinal = 1
+timeout_ms = 5000
+
+[[steps]]
+id = "send-recovered-input"
+kind = "send"
+producer_id = "source-producer"
+operation_id = "classic-network-transform-input-recovered"
+
+[steps.record]
+topic = "testlab-kafkars-classic-network-transform-input"
+partition = 0
+sequence = 2
+value = { encoding = "utf8", data = "recovered-input" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-network-transform-input-recovered" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "2" } },
+]
+
+[[steps]]
+id = "commit-recovered-transform"
+kind = "execute_transactional_transform"
+producer_id = "transform-producer"
+consumer_id = "classic-transform-member"
+transaction_id = "classic-network-transform-recovered"
+expected_input_operation_id = "classic-network-transform-input-recovered"
+disposition = "commit"
+timeout_ms = 60000
+
+[[steps.operations]]
+operation_id = "classic-network-transform-output-recovered"
+record = { topic = "testlab-kafkars-classic-network-transform-output", partition = 0, sequence = 102, value = { encoding = "utf8", data = "recovered-output" }, headers = [{ name = "testlab-operation-id", value = { encoding = "utf8", data = "classic-network-transform-output-recovered" } }, { name = "testlab-sequence", value = { encoding = "utf8", data = "102" } }] }
+
+[[steps]]
+id = "observe-recovered-checkpoint"
+kind = "list_consumer_group_offsets"
+client_id = "client-1"
+operation_id = "classic-network-transform-checkpoint-recovered"
+group_id = "testlab-classic-network-transform-group"
+topic = "testlab-kafkars-classic-network-transform-input"
+partition = 0
+require_stable = true
+expected_offset = 2
+timeout_ms = 20000
+
+[[steps]]
+id = "close-classic-member"
+kind = "close_group_consumer"
+consumer_id = "classic-transform-member"
+
+[[steps]]
+id = "close-transactional-producer"
+kind = "close_transactional_producer"
+producer_id = "transform-producer"
+
+[[steps]]
+id = "flush-source-producer"
+kind = "flush"
+producer_id = "source-producer"
+
+[[steps]]
+id = "close-source-producer"
+kind = "close_producer"
+producer_id = "source-producer"
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "classic-network-transform-input-baseline"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "classic-network-transform-output-baseline"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "classic-network-transform-input-recovered"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"
+
+[[assertions]]
+operation_id = "classic-network-transform-output-recovered"
+accepted = true
+terminal = "transaction_staged"
+visibility = "exactly_once"

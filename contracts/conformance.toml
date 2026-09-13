@@ -1047,7 +1047,7 @@ category = "network"
 [[contract]]
 id = "NET-006"
 title = "Network restoration recovers public transaction progress"
-statement = "Every ordinary transaction declared after a fault removal or connection cut and before the next network control is issued through one exact post-control command, stages its complete operation set, and completes once with the requested disposition inside that recovery window."
+statement = "Every ordinary or consume-transform-produce transaction declared after a fault removal or connection cut and before the next network control is issued through one exact post-control command, stages its complete output set, and completes once with the requested disposition inside that recovery window."
 category = "network"
 
 [[contract]]

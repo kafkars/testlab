@@ -382,6 +382,11 @@ transaction recovery after network controls. NET-006 preserves the complete
 ordinary transaction command, requires every operation to accept and stage
 after the control, and binds the requested disposition before another network
 control.
+Protocol v155, scenario schema v159, and evidence schema v145 extend exact
+transaction recovery to consume-transform-produce. NET-006 now also preserves
+the public consumer and transactional producer identities, complete output set,
+checkpoint-bearing completion, and requested disposition inside the recovery
+window for both classic and KIP-848 membership.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1320,11 +1325,12 @@ every included operation to acknowledge before any next network control.
 NET-005 binds every subsequent
 declared assigned, group, or Share receive before the next network control to
 one exact command and a later nonempty public completion; group progress must
-also commit. NET-006 binds every ordinary transaction declared in a recovery
-window to its exact post-control command, complete staged operation set, and
-requested terminal disposition before the next network control. Proxy facts
-cannot manufacture a client result, and adapter success cannot establish that
-a transport fault occurred.
+also commit. NET-006 binds every ordinary or consume-transform-produce
+transaction declared in a recovery window to its exact post-control command,
+complete staged output set, and requested terminal disposition before the next
+network control. Existing transaction contracts independently bind transformed
+input and checkpoint truth. Proxy facts cannot manufacture a client result,
+and adapter success cannot establish that a transport fault occurred.
 
 Protocol-adversary runs additionally retain `protocol-adversary.jsonl` and
 `protocol-adversary.stderr.txt`, named from one terminal

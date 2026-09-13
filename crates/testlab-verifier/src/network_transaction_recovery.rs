@@ -3,10 +3,14 @@
 #[cfg(test)]
 #[path = "network_transaction_recovery_test.rs"]
 mod tests;
+#[cfg(test)]
+#[path = "network_transaction_transform_recovery_test.rs"]
+mod transform_tests;
 
 use testlab_schema::{
     AdapterCommand, BatchRecord, EnvironmentOperationId, NetworkFaultState, OperationId, Scenario,
-    ScenarioAction, TerminalStatus, TransactionDisposition, Violation,
+    ScenarioAction, TerminalStatus, TransactionDisposition, TransactionalTransformCommand,
+    Violation,
 };
 
 use crate::index::HistoryIndex;
@@ -118,27 +122,36 @@ fn exact_staging(
 }
 
 fn transaction_command(action: &ScenarioAction) -> Option<AdapterCommand> {
-    let ScenarioAction::ExecuteTransaction {
-        producer_id,
-        transaction_id,
-        operations,
-        method,
-        disposition,
-        topic_identity_operation_id,
-        timeout_ms,
-    } = action
-    else {
-        return None;
-    };
-    Some(AdapterCommand::ExecuteTransaction {
-        producer_id: producer_id.clone(),
-        transaction_id: transaction_id.clone(),
-        operations: operations.clone(),
-        method: *method,
-        disposition: *disposition,
-        validate_topic_uuids: topic_identity_operation_id.is_some(),
-        timeout_ms: *timeout_ms,
-    })
+    match action {
+        ScenarioAction::ExecuteTransaction {
+            producer_id,
+            transaction_id,
+            operations,
+            method,
+            disposition,
+            topic_identity_operation_id,
+            timeout_ms,
+        } => Some(AdapterCommand::ExecuteTransaction {
+            producer_id: producer_id.clone(),
+            transaction_id: transaction_id.clone(),
+            operations: operations.clone(),
+            method: *method,
+            disposition: *disposition,
+            validate_topic_uuids: topic_identity_operation_id.is_some(),
+            timeout_ms: *timeout_ms,
+        }),
+        ScenarioAction::ExecuteTransactionalTransform(action) => Some(
+            AdapterCommand::ExecuteTransactionalTransform(TransactionalTransformCommand {
+                producer_id: action.producer_id.clone(),
+                consumer_id: action.consumer_id.clone(),
+                transaction_id: action.transaction_id.clone(),
+                operations: action.operations.clone(),
+                disposition: action.disposition,
+                timeout_ms: action.timeout_ms,
+            }),
+        ),
+        _ => None,
+    }
 }
 
 fn transaction_fields(
@@ -151,6 +164,11 @@ fn transaction_fields(
             disposition,
             ..
         } => Some((transaction_id, operations, *disposition)),
+        ScenarioAction::ExecuteTransactionalTransform(action) => Some((
+            &action.transaction_id,
+            &action.operations,
+            action.disposition,
+        )),
         _ => None,
     }
 }

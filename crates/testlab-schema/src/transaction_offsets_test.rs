@@ -21,6 +21,12 @@ fn checked_in_transactional_offset_scenarios_are_valid() {
     for source in [
         include_str!("../../../scenarios/kafka/transactional-offset-classic.toml"),
         include_str!("../../../scenarios/kafka/transactional-offset-consumer.toml"),
+        include_str!(
+            "../../../scenarios/kafka/classic-transactional-transform-network-connection-cut-recovery.toml"
+        ),
+        include_str!(
+            "../../../scenarios/kafka/consumer-transactional-transform-network-connection-cut-recovery.toml"
+        ),
     ] {
         let scenario: Scenario =
             toml::from_str(source).unwrap_or_else(|error| panic!("parse scenario: {error}"));

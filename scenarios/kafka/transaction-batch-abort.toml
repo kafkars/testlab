@@ -1,4 +1,4 @@
-schema_version = 158
+schema_version = 159
 id = "kafka.transaction-batch-abort"
 title = "one public transactional batch aborts atomically"
 description = "One homogeneous record set is staged through the public transaction send_batch method and aborted; independent read-committed observation must expose none of the declared records."
