@@ -1,5 +1,6 @@
 //! Plural group-admin protocol tests preserve ordered intent and public facts.
 
+#[cfg(test)]
 #[path = "admin_consumer_group_description_batch_test.rs"]
 mod consumer_group_description_batch;
 

@@ -7,6 +7,7 @@ use testlab_schema::Scenario;
 use crate::compose_provision::operation_args;
 use crate::compose_provision_targets::{SeedTarget, seed_targets, share_groups, topics};
 
+#[cfg(test)]
 #[path = "compose_read_only_provision_test.rs"]
 mod read_only_tests;
 

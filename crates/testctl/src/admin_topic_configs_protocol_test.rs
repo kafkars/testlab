@@ -286,5 +286,6 @@ fn mutation_operation() -> OperationId {
     OperationId::new("alter-topic-configs").unwrap_or_else(|error| panic!("operation: {error}"))
 }
 
+#[cfg(test)]
 #[path = "admin_topic_config_method_protocol_test.rs"]
 mod method_test;

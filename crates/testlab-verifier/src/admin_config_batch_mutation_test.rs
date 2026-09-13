@@ -65,7 +65,7 @@ fn missing_mismatched_or_stale_named_baseline_fails() {
             AdapterCommand::AlterTopicConfig(AlterTopicConfigCommand {
                 client_id: client(),
                 operation_id: operation("intervening-alter"),
-                topic: zulu_topic().to_owned(),
+                topic: ZULU_TOPIC.to_owned(),
                 config_name: CONFIG.to_owned(),
                 value: "compact".to_owned(),
                 validate_only: false,
@@ -100,12 +100,12 @@ fn history() -> Vec<HistoryEntry> {
             1,
             AdapterEvent::TopicConfigsDescribed(description_completion()),
         ),
-        state(2, 40, BEFORE, zulu_topic(), "delete"),
-        state(3, 41, BEFORE, alpha_topic(), "delete"),
+        state(2, 40, BEFORE, ZULU_TOPIC, "delete"),
+        state(3, 41, BEFORE, ALPHA_TOPIC, "delete"),
         command(4, AdapterCommand::AlterTopicConfigs(alter_command())),
         event(5, AdapterEvent::TopicConfigsAltered(alter_completion())),
-        state(6, 42, ALTER, zulu_topic(), "compact"),
-        state(7, 43, ALTER, alpha_topic(), "compact"),
+        state(6, 42, ALTER, ZULU_TOPIC, "compact"),
+        state(7, 43, ALTER, ALPHA_TOPIC, "compact"),
     ]
 }
 
@@ -268,7 +268,7 @@ fn assert_contract(violations: &[testlab_schema::Violation]) {
 }
 
 fn topics() -> Vec<String> {
-    vec![zulu_topic().to_owned(), alpha_topic().to_owned()]
+    vec![ZULU_TOPIC.to_owned(), ALPHA_TOPIC.to_owned()]
 }
 
 fn client() -> ClientId {
@@ -279,21 +279,18 @@ fn operation(value: &str) -> OperationId {
     OperationId::new(value).unwrap_or_else(|error| panic!("operation: {error}"))
 }
 
+#[cfg(test)]
 #[path = "admin_config_incremental_method_test.rs"]
 mod incremental_method_test;
+#[cfg(test)]
 #[path = "admin_config_resource_mutation_test.rs"]
 mod resource_test;
+#[cfg(test)]
 #[path = "admin_config_restore_default_test.rs"]
 mod restore_default_test;
 
-fn zulu_topic() -> &'static str {
-    "testlab-kafkars-admin-alter-topic-configs-zulu"
-}
-
-fn alpha_topic() -> &'static str {
-    "testlab-kafkars-admin-alter-topic-configs-alpha"
-}
-
+const ZULU_TOPIC: &str = "testlab-kafkars-admin-alter-topic-configs-zulu";
+const ALPHA_TOPIC: &str = "testlab-kafkars-admin-alter-topic-configs-alpha";
 const BEFORE: &str = "admin-alter-topic-configs-before";
 const ALTER: &str = "admin-alter-topic-configs";
 const CONFIG: &str = "cleanup.policy";

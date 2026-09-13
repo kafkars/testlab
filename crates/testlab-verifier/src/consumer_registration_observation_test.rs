@@ -282,8 +282,10 @@ fn assert_contract(violations: &[testlab_schema::Violation], contract_id: &str) 
     );
 }
 
+#[cfg(test)]
 #[path = "consumer_registration_policy_test.rs"]
 mod policy_tests;
 
+#[cfg(test)]
 #[path = "consumer_registration_share_policy_test.rs"]
 mod share_policy_tests;

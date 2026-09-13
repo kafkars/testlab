@@ -10,8 +10,10 @@ use testlab_schema::{
     TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicCreationConfig, TopicDescriptionPagination,
     TopicListingExpectation,
 };
+#[cfg(test)]
 #[path = "session_command_admin_offset_test.rs"]
 mod offset_tests;
+#[cfg(test)]
 #[path = "session_command_admin_timestamp_test.rs"]
 mod timestamp_tests;
 

@@ -12,10 +12,13 @@ use crate::admin::verify_admin;
 use crate::index::HistoryIndex;
 use crate::verify_fixture::{command, event, scenario, step};
 
+#[cfg(test)]
 #[path = "admin_timestamp_offset_verifier_test.rs"]
 mod timestamp_tests;
+#[cfg(test)]
 #[path = "admin_topic_listing_test.rs"]
 mod topic_listing_tests;
+#[cfg(test)]
 #[path = "admin_topic_pagination_verifier_test.rs"]
 mod topic_pagination_tests;
 

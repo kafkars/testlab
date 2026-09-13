@@ -260,5 +260,6 @@ fn operation(value: &str) -> OperationId {
     OperationId::new(value).unwrap_or_else(|error| panic!("operation: {error}"))
 }
 
+#[cfg(test)]
 #[path = "admin_config_mutation_method_test.rs"]
 mod mutation_method_test;

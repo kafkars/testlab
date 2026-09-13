@@ -12,6 +12,7 @@ use crate::index::HistoryIndex;
 use crate::share::verify_share;
 use crate::verify_fixture::{command, event, step};
 
+#[cfg(test)]
 #[path = "share_acknowledgement_method_test.rs"]
 mod acknowledgement_method;
 

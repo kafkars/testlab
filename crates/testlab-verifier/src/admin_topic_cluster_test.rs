@@ -12,6 +12,7 @@ use crate::verify_fixture::{command, event, scenario, step};
 
 const TOPIC_OPERATION: &str = "admin-delete-topic-1";
 
+#[cfg(test)]
 #[path = "admin_cluster_description_test.rs"]
 mod cluster_tests;
 

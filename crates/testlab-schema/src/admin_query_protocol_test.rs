@@ -8,8 +8,10 @@ use super::{
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
+#[cfg(test)]
 #[path = "admin_topic_listing_protocol_test.rs"]
 mod topic_listing_tests;
+#[cfg(test)]
 #[path = "admin_topic_pagination_protocol_test.rs"]
 mod topic_pagination_tests;
 

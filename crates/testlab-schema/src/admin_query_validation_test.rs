@@ -9,12 +9,15 @@ use super::{
 };
 use crate::admin_action_validation::validate;
 
+#[cfg(test)]
 #[path = "admin_timestamp_selector_validation_test.rs"]
 mod timestamp_tests;
 
+#[cfg(test)]
 #[path = "admin_topic_pagination_test.rs"]
 mod topic_pagination_tests;
 
+#[cfg(test)]
 #[path = "admin_topic_listing_expectation_validation_test.rs"]
 mod topic_listing_tests;
 

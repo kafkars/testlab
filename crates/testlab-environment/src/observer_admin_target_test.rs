@@ -8,6 +8,7 @@ use testlab_schema::{
 
 use crate::observer_admin_target::AdminTarget;
 
+#[cfg(test)]
 #[path = "observer_admin_topic_listing_target_test.rs"]
 mod topic_listing_tests;
 
