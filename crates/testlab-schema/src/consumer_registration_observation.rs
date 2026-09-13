@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     ConsumerFetchConfiguration, ConsumerId, ConsumerLimitsConfiguration, GroupClassicAssignor,
     GroupConsumerConfiguration, GroupOffsetReset, GroupProtocol, GroupReadIsolation,
+    ShareConsumerFetchConfiguration,
 };
 
 /// Caller-selected group policy read back through public consumer-builder views.
@@ -114,11 +115,32 @@ pub struct ShareConsumerRegistrationObservation {
     pub subscription: Vec<String>,
     /// Public `ShareConsumer::rack` result.
     pub rack: Option<String>,
+    /// Public builder values selected on the successful registration attempt.
+    pub selected_builder: ShareConsumerBuilderSelection,
+}
+
+/// Exact public Share builder values retained for a successful registration attempt.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ShareConsumerBuilderSelection {
+    /// Public `ShareConsumerBuilder::selected_rack` result.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rack: Option<String>,
+    /// Explicit public Fetch policy, when selected by the command.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fetch: Option<ShareConsumerFetchConfiguration>,
+    /// Exact retry-adjusted public membership-start duration in nanoseconds.
+    pub membership_start_timeout_ns: u64,
+    /// Public selected close duration in whole milliseconds.
+    pub close_timeout_ms: u64,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{GroupConsumerRegistrationObservation, ShareConsumerRegistrationObservation};
+    use super::{
+        GroupConsumerRegistrationObservation, ShareConsumerBuilderSelection,
+        ShareConsumerRegistrationObservation,
+    };
     use crate::{
         AdapterEvent, ConsumerId, GroupConsumerConfigurationSelection, GroupOffsetReset,
         GroupProtocol, GroupReadIsolation,
@@ -172,6 +194,12 @@ mod tests {
                 group_id: "share-workers".to_owned(),
                 subscription: vec!["orders".to_owned(), "returns".to_owned()],
                 rack: Some("rack-a".to_owned()),
+                selected_builder: ShareConsumerBuilderSelection {
+                    rack: Some("rack-a".to_owned()),
+                    fetch: None,
+                    membership_start_timeout_ns: 29_500_000_000,
+                    close_timeout_ms: 10_000,
+                },
             }),
             serde_json::json!({
                 "kind": "share_consumer_created",
@@ -179,6 +207,11 @@ mod tests {
                 "group_id": "share-workers",
                 "subscription": ["orders", "returns"],
                 "rack": "rack-a",
+                "selected_builder": {
+                    "rack": "rack-a",
+                    "membership_start_timeout_ns": 29500000000u64,
+                    "close_timeout_ms": 10000,
+                },
             }),
         );
     }

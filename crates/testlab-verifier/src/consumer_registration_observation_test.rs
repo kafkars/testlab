@@ -3,8 +3,8 @@
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, ClientId, CommandEnvelope, CommandId,
     ConsumerId, GroupConsumerRegistrationObservation, GroupProtocol, HistoryEntry, HistoryPayload,
-    Scenario, ScenarioAction, ShareConsumerRegistrationObservation, TerminalStatus,
-    VisibilityExpectation,
+    Scenario, ScenarioAction, ShareConsumerBuilderSelection, ShareConsumerRegistrationObservation,
+    TerminalStatus, VisibilityExpectation,
 };
 
 use super::verify;
@@ -218,6 +218,12 @@ fn share_observation() -> ShareConsumerRegistrationObservation {
         group_id: "share-group-1".to_owned(),
         subscription: topics(),
         rack: Some("rack-a".to_owned()),
+        selected_builder: ShareConsumerBuilderSelection {
+            rack: Some("rack-a".to_owned()),
+            fetch: None,
+            membership_start_timeout_ns: 29_500_000_000,
+            close_timeout_ms: 10_000,
+        },
     }
 }
 
@@ -274,3 +280,6 @@ fn assert_contract(violations: &[testlab_schema::Violation], contract_id: &str) 
 
 #[path = "consumer_registration_policy_test.rs"]
 mod policy_tests;
+
+#[path = "consumer_registration_share_policy_test.rs"]
+mod share_policy_tests;

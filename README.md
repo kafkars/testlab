@@ -164,6 +164,9 @@ identities, caller-ordered topics, optional rack, deadlines, and complete
 optional acquisition policy before Share delivery evidence applies.
 Each successful registration also records the exact group ID, caller-ordered
 subscription, and optional rack read from the returned public Share handle.
+It additionally records the public rack, explicit Fetch policy, exact close
+timeout, and exact positive retry-adjusted membership-start timeout selected on
+the builder used for the successful registration attempt.
 Every Share receive also preserves its exact consumer, retained-batch identity,
 timeout, multiplicity, and scenario order before acquisition and independent
 record evidence applies.

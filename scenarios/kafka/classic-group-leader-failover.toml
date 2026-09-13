@@ -1,4 +1,4 @@
-schema_version = 166
+schema_version = 167
 id = "kafka.classic-group-leader-failover"
 title = "classic Fetch recovers across an observed partition leader election"
 description = "A classic member commits a baseline, then the same live member commits an exact new record through a distinct replacement partition leader while the independently selected original owner remains offline."

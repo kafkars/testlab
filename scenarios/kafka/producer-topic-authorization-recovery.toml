@@ -1,4 +1,4 @@
-schema_version = 166
+schema_version = 167
 id = "kafka.producer-topic-authorization-recovery"
 title = "packaged producer reports topic denial and recovers after permission restoration"
 description = "An independently observed topic WRITE deny ACL forces the exact public producer error and broker absence, then its observed removal permits one acknowledged exact record."

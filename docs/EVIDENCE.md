@@ -423,6 +423,11 @@ KIP-848 creation event to carry the exact selected public protocol and, when
 configured, every explicit reset, isolation, Fetch, capacity, lifecycle,
 static-member, assignor, and classic-timing value. Omitted optional fields do
 not turn implementation defaults into portable claims.
+Protocol v163, scenario schema v167, and evidence schema v153 make the successful
+Share builder attempt self-describing. SHARE-016 requires its selected rack,
+complete explicit Fetch policy, and close timeout to match the command exactly;
+the exact retry-adjusted membership-start duration must be positive and no
+greater than the original command deadline.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -641,6 +646,11 @@ and independent broker records remain authoritative.
 SHARE-015 additionally requires each successful registration to emit one later
 correlated creation observation whose group ID, caller-ordered subscription,
 and optional rack come from the returned public Share consumer handle.
+SHARE-016 uses that same correlated event to retain the exact public builder
+selection used by the successful attempt. It preserves sub-millisecond retry
+deadline adjustment in nanoseconds rather than manufacturing equality with the
+original millisecond command bound; records and group state remain independent
+evidence.
 
 Lifecycle-isolation scenarios retain every readiness, flush, close, and
 shutdown completion under its originating command. A later send on a sibling,

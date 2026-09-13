@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v162 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v166 and evidence schema v152.
+Protocol v163 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v167 and evidence schema v153.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -680,7 +680,11 @@ acquisition policy; a same-ID direct or ordinary group consumer is not
 equivalent.
 Its correlated `share_consumer_created` event carries the scenario-local member
 identity plus the exact group ID, caller-ordered subscription, and optional rack
-read from the returned public Share consumer handle.
+read from the returned public Share consumer handle. A nested builder selection
+also carries the selected rack, complete explicit Fetch policy, whole-millisecond
+close duration, and exact nanosecond membership-start duration used by the
+successful retry attempt. That membership duration must be positive and no
+greater than the original command bound.
 
 A share receive command retains its consumer, retained-batch identity, and
 complete observation timeout exactly once in scenario order. Its public result
@@ -1387,6 +1391,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v162 is an exact semantic contract. New capabilities may be declared
+Protocol v163 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

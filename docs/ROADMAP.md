@@ -174,7 +174,9 @@
   from both topics against independent broker observations. Returned-handle
   readback retains the subscription and configured rack identity, which is also
   retained by broker-reported singleton and caller-ordered plural Share-group
-  descriptions.
+  descriptions. Successful registration additionally retains the selected
+  public builder rack, explicit Fetch policy, close timeout, and exact
+  retry-adjusted membership-start duration.
 - Classic and KIP-848 configured groups cover fail-closed, earliest, and latest
   missing-offset reset behavior plus read-committed isolation against
   pre-membership records and independently

@@ -98,6 +98,8 @@ mod protocol_send_outcome;
 #[cfg(kafkars_share_candidate)]
 mod protocol_share;
 #[cfg(kafkars_share_candidate)]
+mod share_consumer_configuration;
+#[cfg(kafkars_share_candidate)]
 mod share_consumers;
 #[cfg(kafkars_share_candidate)]
 mod share_consumers_acknowledge;

@@ -65,6 +65,7 @@ impl ShareConsumers {
         let deadline = started
             .checked_add(registration.membership_timeout)
             .unwrap_or(started);
+        let configured_fetch = registration.configuration.is_some();
         let fetch = public_fetch_configuration(registration.configuration)?;
         let mut builder = client
             .share_consumer(registration.group_id)
@@ -74,10 +75,13 @@ impl ShareConsumers {
         if let Some(rack) = registration.rack.as_deref() {
             builder = builder.rack(rack);
         }
-        let consumer = loop {
+        let (consumer, selected_builder) = loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
-            match builder.membership_start_timeout(remaining).build() {
-                Ok(consumer) => break consumer,
+            let attempt = builder.membership_start_timeout(remaining);
+            let selected_builder =
+                crate::share_consumer_configuration::selected(&attempt, configured_fetch)?;
+            match attempt.build() {
+                Ok(consumer) => break (consumer, selected_builder),
                 Err(rejection) => {
                     let (returned, error) = rejection.into_parts();
                     if error.retry_advice() != RetryAdvice::RetrySafe || Instant::now() >= deadline
@@ -100,6 +104,7 @@ impl ShareConsumers {
             group_id: consumer.group_id().to_owned(),
             subscription: consumer.subscription().to_vec(),
             rack: consumer.rack().map(str::to_owned),
+            selected_builder,
         };
         self.owners.insert(
             registration.consumer_id,

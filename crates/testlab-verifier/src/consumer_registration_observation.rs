@@ -2,7 +2,7 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, CommandId, ConsumerId, GroupConsumerConfigurationSelection,
-    GroupProtocol, Scenario, ScenarioAction, Violation,
+    GroupProtocol, Scenario, ScenarioAction, ShareConsumerFetchConfiguration, Violation,
 };
 
 use crate::index::HistoryIndex;
@@ -23,6 +23,9 @@ enum ExpectedRegistration {
         group_id: String,
         subscription: Vec<String>,
         rack: Option<String>,
+        membership_timeout_ms: u64,
+        close_timeout_ms: u64,
+        configuration: Option<ShareConsumerFetchConfiguration>,
     },
 }
 
@@ -85,48 +88,7 @@ fn verify_registration(
             evidence,
         ));
     }
-    verify_group_configuration(expected, command_sequence, &events, violations);
-}
-
-fn verify_group_configuration(
-    expected: &ExpectedRegistration,
-    command_sequence: u64,
-    events: &[(u64, &AdapterEvent)],
-    violations: &mut Vec<Violation>,
-) {
-    let ExpectedRegistration::Group {
-        consumer_id,
-        selected_protocol,
-        selected_configuration,
-        ..
-    } = expected
-    else {
-        return;
-    };
-    let exact = events.len() == 1
-        && events.first().is_some_and(|(sequence, event)| {
-            *sequence > command_sequence
-                && matches!(
-                    event,
-                    AdapterEvent::GroupConsumerCreated(observation)
-                        if observation.selected_protocol == *selected_protocol
-                            && observation.selected_configuration.as_ref()
-                                == selected_configuration.as_ref()
-                )
-        });
-    if !exact {
-        violations.push(violation(
-            "CONS-035",
-            format!(
-                "group consumer {consumer_id} expected one later exact selected builder-policy observation"
-            ),
-            None,
-            std::iter::once(command_sequence)
-                .chain(events.iter().map(|(sequence, _)| *sequence))
-                .map(|sequence| format!("history:{sequence}"))
-                .collect(),
-        ));
-    }
+    policy::verify(expected, command_sequence, &events, violations);
 }
 
 impl ExpectedRegistration {
@@ -242,10 +204,16 @@ fn registration(action: &ScenarioAction) -> Option<ExpectedRegistration> {
             group_id: group_id.clone(),
             subscription: topics.clone(),
             rack: rack.clone(),
+            membership_timeout_ms: *membership_timeout_ms,
+            close_timeout_ms: *close_timeout_ms,
+            configuration: *configuration,
         }),
         _ => None,
     }
 }
+
+#[path = "consumer_registration_policy.rs"]
+mod policy;
 
 #[cfg(test)]
 #[path = "consumer_registration_observation_test.rs"]

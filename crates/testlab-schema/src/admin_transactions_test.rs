@@ -5,9 +5,9 @@ use crate::{AdapterCommand, AdapterEvent, BrokerStateObservation, ScenarioAction
 
 #[test]
 fn transaction_discovery_versions_are_explicit() {
-    assert_eq!(crate::PROTOCOL_VERSION, 162);
-    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 166);
-    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 152);
+    assert_eq!(crate::PROTOCOL_VERSION, 163);
+    assert_eq!(crate::SCENARIO_SCHEMA_VERSION, 167);
+    assert_eq!(crate::EVIDENCE_SCHEMA_VERSION, 153);
 }
 
 #[test]

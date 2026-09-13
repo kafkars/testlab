@@ -1,4 +1,4 @@
-schema_version = 166
+schema_version = 167
 id = "kafka.consumer-transactional-transform-network-connection-cut-recovery"
 title = "KIP-848 transactional transform recovers after an external connection cut"
 description = "A KIP-848 member and transactional producer transfer one exact baseline checkpoint, the external proxy cuts their live broker connections, and the same handles consume, transform, commit, and independently expose the next checkpoint after reconnecting."

@@ -1387,6 +1387,12 @@ statement = "Each successful Share registration emits one later correlated obser
 category = "consumer"
 
 [[contract]]
+id = "SHARE-016"
+title = "Share registration reports selected builder policy"
+statement = "Each successful Share registration emits one later correlated observation whose selected public rack, complete explicit Fetch policy, exact close timeout, and positive retry-adjusted membership-start timeout no greater than the command deadline describe the builder used for the successful attempt."
+category = "consumer"
+
+[[contract]]
 id = "LIFE-015"
 title = "Hosted group shutdown observes public termination"
 statement = "Every hosted group shutdown preserves its exact repeated public request count and reaches one correlated public event-stream termination before releasing the handle."
