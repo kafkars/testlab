@@ -321,6 +321,10 @@ Protocol v140, scenario schema v144, and evidence schema v130 add exact ordinary
 producer calls. PROD-021 requires every single or batch command exactly once in
 scenario order with its public kind, identities, method, partition and topic-ID
 choices, and complete caller-ordered records.
+Protocol v141, scenario schema v145, and evidence schema v131 add exact assigned
+receive commands. CONS-031 requires every waiting or immediate receive exactly
+once in scenario order, preserving its consumer, receive identity, public
+observer, and complete timeout.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -473,6 +477,9 @@ assignments per command rather than by aggregate resource counts.
 CONS-030 separately requires the complete ordered single and batch assignment
 command sequence, including each exact topic-partition and batch timeout;
 lifecycle completion and independent record evidence remain distinct requirements.
+CONS-031 extends exact command preservation to every default `recv` and immediate
+`try_take_batch` request in scenario order. Expected producer operations stay
+scenario-side, and independently observed records remain the delivery authority.
 The configured read-committed scenario also retains non-default public Fetch
 and capacity policy, then joins its visible sentinel to independent broker and
 aborted-transaction evidence; configuration alone cannot pass.

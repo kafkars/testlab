@@ -18,22 +18,8 @@ use crate::support::{observation_references, references, terminal_references, vi
 use crate::transaction::verify_transactions;
 use crate::verify_index::{assertions, observations_by_operation};
 
-#[path = "assigned_consumer_assignment_command.rs"]
-mod assigned_consumer_assignment_command;
-#[path = "assigned_consumer_configuration_command.rs"]
-mod assigned_consumer_configuration_command;
-#[path = "child_handle_registration.rs"]
-mod child_handle_registration;
-#[path = "group_consumer_registration.rs"]
-mod group_consumer_registration;
-#[path = "producer_configuration_method.rs"]
-mod producer_configuration_method;
-#[path = "producer_operation_command.rs"]
-mod producer_operation_command;
-#[path = "share_consumer_registration.rs"]
-mod share_consumer_registration;
-#[path = "transactional_producer_registration.rs"]
-mod transactional_producer_registration;
+#[path = "exact_commands.rs"]
+mod exact_commands;
 
 /// Deterministically verifies one validly executed scenario.
 pub fn verify(
@@ -72,14 +58,7 @@ pub fn verify(
     crate::transaction_send_method::verify(scenario, &index, &mut violations);
     crate::transaction_topic_uuid::verify(scenario, &index, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
-    producer_configuration_method::verify(scenario, &index, &mut violations);
-    producer_operation_command::verify(scenario, &index, &mut violations);
-    assigned_consumer_assignment_command::verify(scenario, &index, &mut violations);
-    assigned_consumer_configuration_command::verify(scenario, &index, &mut violations);
-    child_handle_registration::verify(scenario, &index, &mut violations);
-    group_consumer_registration::verify(scenario, &index, &mut violations);
-    share_consumer_registration::verify(scenario, &index, &mut violations);
-    transactional_producer_registration::verify(scenario, &index, &mut violations);
+    exact_commands::verify(scenario, &index, &mut violations);
     verify_operations(&sends, &assertions, &index, &observed, &mut violations);
     crate::producer_send_method::verify(scenario, &index, &mut violations);
     crate::producer_receipt::verify(scenario, &index, observations, &mut violations);

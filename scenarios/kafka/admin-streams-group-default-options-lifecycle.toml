@@ -1,4 +1,4 @@
-schema_version = 144
+schema_version = 145
 id = "kafka.admin-streams-group-default-options-lifecycle"
 title = "packaged Streams-group admin preserves default description and offset selections"
 description = "On Kafka 4.3.1, two real bundled WordCount Streams applications establish quiescent modern Streams groups, then the packaged client's public Admin omits authorization and full-topology metadata, selects non-stable offset reads, completes the full lifecycle, and is followed by an independent pinned Streams CLI absence check."

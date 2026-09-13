@@ -1,4 +1,4 @@
-schema_version = 144
+schema_version = 145
 id = "kafka.transaction-batch-commit"
 title = "one public transactional batch commits in caller order"
 description = "One homogeneous record set is staged through the public transaction send_batch method and committed; independent read-committed observation must preserve every record exactly once in caller and offset order."

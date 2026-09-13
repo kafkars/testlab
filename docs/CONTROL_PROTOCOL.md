@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v140 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v144 and evidence schema v130.
+Protocol v141 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v145 and evidence schema v131.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -93,6 +93,12 @@ command retains only the operation, consumer, method, and Testlab-owned bound;
 the expected target and failure remain scenario-only. Its completion preserves
 the public topic-partition fence, positive assignment and position generations,
 optional Fetch revision, terminal category, and exact broker code.
+
+Every direct `receive` command is required exactly once in scenario order. It
+retains the consumer, receive identity, complete observation timeout, and exact
+public retained-batch observer. `recv` is the default waiting path;
+`try_take_batch` repeatedly selects immediate observation within the same bound.
+The expected producer operation remains scenario-only.
 
 Every ordinary producer command is required exactly once in scenario order. A
 single `send` retains its producer and operation identities, complete record,
@@ -1321,6 +1327,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v140 is an exact semantic contract. New capabilities may be declared
+Protocol v141 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.
