@@ -1,4 +1,4 @@
-schema_version = 127
+schema_version = 128
 id = "kafka.admin-validate-feature-updates"
 title = "packaged admin validates a finalized-feature update without mutation"
 description = "On Kafka 4.3.1, the packaged client's public update_features validation accepts the finalized metadata level in caller order while independent CLI snapshots prove feature state and epoch remain unchanged."

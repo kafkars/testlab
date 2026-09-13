@@ -83,7 +83,7 @@ fn verify_timestamp(
         return;
     }
     violations.push(violation(
-        "ADMIN-077",
+        expected.contract,
         format!(
             "admin operation {} expected timestamp {:?} to select offset {} with the same returned timestamp for {}[{}]",
             expected.operation_id,
@@ -154,7 +154,7 @@ fn verify_max_timestamp(
         return;
     }
     violations.push(violation(
-        "ADMIN-078",
+        expected.contract,
         format!(
             "admin operation {} expected greatest timestamp {:?} at offset {} before a later lower-timestamp record for {}[{}]",
             expected.operation_id,

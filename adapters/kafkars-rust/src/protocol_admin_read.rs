@@ -8,7 +8,7 @@ use crate::kafkars_api::{
 };
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AdminConsumerGroupOffsetListing,
-    AdminOffsetListing, AdminOffsetSelector, AdminTopicsListing, CommandId,
+    AdminOffsetListing, AdminOffsetSelector, AdminReadIsolation, AdminTopicsListing, CommandId,
     ListConsumerGroupOffsetsCommand, ListOffsetsCommand, ListTopicsCommand,
 };
 
@@ -98,7 +98,7 @@ fn list_offset<W: Write>(
             client
                 .admin()
                 .list_offsets([query])
-                .read_isolation(ReadIsolation::ReadCommitted)
+                .read_isolation(public_read_isolation(command.read_isolation))
                 .deadline_after(remaining)
                 .submit()
                 .wait()
@@ -134,6 +134,13 @@ fn list_offset<W: Write>(
             timestamp_millis,
         }),
     )
+}
+
+pub(crate) const fn public_read_isolation(value: AdminReadIsolation) -> ReadIsolation {
+    match value {
+        AdminReadIsolation::ReadCommitted => ReadIsolation::ReadCommitted,
+        AdminReadIsolation::ReadUncommitted => ReadIsolation::ReadUncommitted,
+    }
 }
 
 pub(crate) const fn offset_spec(

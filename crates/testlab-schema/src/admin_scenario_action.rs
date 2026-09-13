@@ -108,6 +108,9 @@ pub struct ListOffsetsAction {
     pub partition: i32,
     /// Broker-relative offset position.
     pub position: AdminOffsetSelector,
+    /// Transactional visibility for this public offset query.
+    #[serde(default)]
+    pub read_isolation: crate::AdminReadIsolation,
     /// Caller-selected timestamp for the caller-timestamp selector.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub timestamp_millis: Option<i64>,

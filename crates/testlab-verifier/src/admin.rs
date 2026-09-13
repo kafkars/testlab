@@ -212,6 +212,11 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             testlab_schema::ConfigResourceListingApi::Resource => "ADMIN-063",
             testlab_schema::ConfigResourceListingApi::ClientMetrics => "ADMIN-071",
         },
+        ScenarioAction::ListOffsets(value)
+            if value.read_isolation == testlab_schema::AdminReadIsolation::ReadUncommitted =>
+        {
+            "ADMIN-088"
+        }
         ScenarioAction::ListOffsets(value) => match value.position {
             testlab_schema::AdminOffsetSelector::Timestamp => "ADMIN-077",
             testlab_schema::AdminOffsetSelector::MaxTimestamp => "ADMIN-078",

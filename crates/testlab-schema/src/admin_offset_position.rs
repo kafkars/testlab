@@ -2,6 +2,17 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Transactional visibility selected for an Admin offset query.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AdminReadIsolation {
+    /// Excludes offsets from unresolved transactions.
+    #[default]
+    ReadCommitted,
+    /// Allows unresolved transactions to influence the selected offset.
+    ReadUncommitted,
+}
+
 /// One bounded offset position exposed by scenario and adapter schemas.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]

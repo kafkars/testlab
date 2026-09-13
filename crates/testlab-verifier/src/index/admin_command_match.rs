@@ -1,4 +1,3 @@
-//! Exact admin-command matching prevents scenario expectations from leaking onto the wire.
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
 #[path = "admin_group_listing_command_match.rs"]
 mod group_listing;
@@ -113,6 +112,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 c.timeout_ms,
             ) && a.partition == c.partition
                 && a.position == c.position
+                && a.read_isolation == c.read_isolation
                 && a.timestamp_millis == c.timestamp_millis
         }
         (ScenarioAction::DescribeCluster(a), AdapterCommand::DescribeCluster(c)) => {

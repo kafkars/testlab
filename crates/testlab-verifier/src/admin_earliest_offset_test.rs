@@ -1,9 +1,10 @@
 //! Earliest-offset verification requires an independent low watermark.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, BrokerPartitionOffsets,
-    BrokerStateObservation, HistoryEntry, HistoryPayload, ListOffsetsAction, ListOffsetsCommand,
-    OperationId, ScenarioAction, TerminalStatus, VisibilityExpectation,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminReadIsolation,
+    BrokerPartitionOffsets, BrokerStateObservation, HistoryEntry, HistoryPayload,
+    ListOffsetsAction, ListOffsetsCommand, OperationId, ScenarioAction, TerminalStatus,
+    VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -12,7 +13,7 @@ use crate::verify_fixture::{command, event, scenario, step};
 
 #[test]
 fn earliest_offset_matches_an_independently_observed_zero() {
-    let scenario = earliest_scenario();
+    let scenario = earliest_scenario(AdminReadIsolation::ReadCommitted);
     let history = offset_history(Some(0), 0);
 
     assert!(violations(&scenario, &history).is_empty());
@@ -20,21 +21,29 @@ fn earliest_offset_matches_an_independently_observed_zero() {
 
 #[test]
 fn earliest_offset_rejects_a_nonzero_independent_minimum() {
-    let scenario = earliest_scenario();
+    let scenario = earliest_scenario(AdminReadIsolation::ReadCommitted);
     let history = offset_history(Some(0), 1);
 
-    assert_admin_005(&violations(&scenario, &history));
+    assert_contract(&violations(&scenario, &history), "ADMIN-005");
 }
 
 #[test]
 fn earliest_offset_rejects_a_nonzero_public_result() {
-    let scenario = earliest_scenario();
+    let scenario = earliest_scenario(AdminReadIsolation::ReadCommitted);
     let history = offset_history(Some(1), 0);
 
-    assert_admin_005(&violations(&scenario, &history));
+    assert_contract(&violations(&scenario, &history), "ADMIN-005");
 }
 
-fn earliest_scenario() -> testlab_schema::Scenario {
+#[test]
+fn read_uncommitted_offset_mismatch_reports_its_exact_contract() {
+    let scenario = earliest_scenario(AdminReadIsolation::ReadUncommitted);
+    let history = offset_history(Some(0), 1);
+
+    assert_contract(&violations(&scenario, &history), "ADMIN-088");
+}
+
+fn earliest_scenario(read_isolation: AdminReadIsolation) -> testlab_schema::Scenario {
     let mut value = scenario(
         TerminalStatus::Acknowledged,
         VisibilityExpectation::ExactlyOnce,
@@ -49,6 +58,7 @@ fn earliest_scenario() -> testlab_schema::Scenario {
                 topic: "offsets".to_owned(),
                 partition: 0,
                 position: AdminOffsetSelector::Earliest,
+                read_isolation,
                 timestamp_millis: None,
                 expected_offset: Some(0),
                 expected_error_code: None,
@@ -104,6 +114,7 @@ fn violations(
             topic: action.topic.clone(),
             partition: action.partition,
             position: action.position,
+            read_isolation: action.read_isolation,
             timestamp_millis: action.timestamp_millis,
             timeout_ms: action.timeout_ms,
         }),
@@ -115,11 +126,11 @@ fn violations(
     violations
 }
 
-fn assert_admin_005(violations: &[testlab_schema::Violation]) {
+fn assert_contract(violations: &[testlab_schema::Violation], contract_id: &str) {
     assert!(
         violations
             .iter()
-            .any(|violation| violation.contract_id.as_str() == "ADMIN-005"),
+            .any(|violation| violation.contract_id.as_str() == contract_id),
         "{violations:?}"
     );
 }

@@ -583,6 +583,12 @@ statement = "One authenticated delegation-token lifecycle preserves an explicit 
 category = "admin"
 
 [[contract]]
+id = "ADMIN-088"
+title = "Admin offset isolation preserves exact public selection"
+statement = "One singleton public offset request preserves caller-selected read-uncommitted isolation on the wire, completes exactly once for a committed partition, and returns the exact offset corroborated by immediate independent broker evidence."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

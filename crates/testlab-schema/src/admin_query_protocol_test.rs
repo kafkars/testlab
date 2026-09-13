@@ -1,9 +1,9 @@
 //! Read-only admin wire tests separate verifier expectations from public facts.
 
 use super::{
-    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminTopicDescription,
-    AdminTopicDescriptionPage, AdminTopicPageCursor, AdminTopicsListing, ClientId,
-    DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction, ListOffsetsCommand,
+    AdapterCommand, AdapterEvent, AdminOffsetListing, AdminOffsetSelector, AdminReadIsolation,
+    AdminTopicDescription, AdminTopicDescriptionPage, AdminTopicPageCursor, AdminTopicsListing,
+    ClientId, DescribeTopicAction, DescribeTopicCommand, ListOffsetsAction, ListOffsetsCommand,
     ListTopicsAction, ListTopicsCommand, OperationId, PROTOCOL_VERSION, ROUTING_ERROR_CODE,
     SCENARIO_SCHEMA_VERSION, ScenarioAction, TopicDescriptionApi,
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
@@ -16,8 +16,8 @@ mod topic_pagination_tests;
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 123);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 127);
+    assert_eq!(PROTOCOL_VERSION, 124);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 128);
 }
 
 #[test]
@@ -44,13 +44,14 @@ timeout_ms = 1000
 }
 
 #[test]
-fn list_offsets_command_excludes_expected_offset() {
+fn list_offsets_command_preserves_isolation_and_excludes_expected_offset() {
     let action = ScenarioAction::ListOffsets(ListOffsetsAction {
         client_id: client(),
         operation_id: operation("admin-offset-1"),
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Latest,
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         timestamp_millis: None,
         expected_offset: Some(3),
         expected_error_code: None,
@@ -62,6 +63,7 @@ fn list_offsets_command_excludes_expected_offset() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Latest,
+        read_isolation: AdminReadIsolation::ReadUncommitted,
         timestamp_millis: None,
         timeout_ms: 1_000,
     });
@@ -73,6 +75,7 @@ fn list_offsets_command_excludes_expected_offset() {
     assert!(action.contains("expected_offset = 3"));
     assert!(command.contains("kind = \"list_offsets\""));
     assert!(command.contains("position = \"latest\""));
+    assert!(command.contains("read_isolation = \"read_uncommitted\""));
     assert!(!command.contains("timestamp_millis"));
     assert!(!command.contains("expected_offset"));
 }
@@ -129,6 +132,7 @@ fn list_offsets_accepts_an_earliest_position() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Latest,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         timeout_ms: 1_000,
     }));
@@ -146,6 +150,30 @@ fn list_offsets_accepts_an_earliest_position() {
 }
 
 #[test]
+fn list_offsets_action_defaults_to_read_committed() {
+    let action = toml::from_str::<ScenarioAction>(
+        r#"
+kind = "list_offsets"
+client_id = "client-1"
+operation_id = "admin-offset-default-isolation"
+topic = "records"
+partition = 0
+position = "earliest"
+expected_offset = 0
+timeout_ms = 1000
+"#,
+    )
+    .unwrap_or_else(|error| panic!("deserialize default offset isolation: {error}"));
+    assert!(matches!(
+        action,
+        ScenarioAction::ListOffsets(ListOffsetsAction {
+            read_isolation: AdminReadIsolation::ReadCommitted,
+            ..
+        })
+    ));
+}
+
+#[test]
 fn list_offsets_preserves_a_timestamp_selector_and_result() {
     let command = AdapterCommand::ListOffsets(ListOffsetsCommand {
         client_id: client(),
@@ -153,6 +181,7 @@ fn list_offsets_preserves_a_timestamp_selector_and_result() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Timestamp,
+        read_isolation: Default::default(),
         timestamp_millis: Some(1_700_000_000_123),
         timeout_ms: 1_000,
     });
@@ -181,6 +210,7 @@ fn list_offsets_preserves_a_max_timestamp_selector() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::MaxTimestamp,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         timeout_ms: 1_000,
     });
@@ -213,6 +243,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         topic: "records".to_owned(),
         partition: 1,
         position: AdminOffsetSelector::Latest,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         expected_offset: None,
         expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),
@@ -232,6 +263,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         topic: "records".to_owned(),
         partition: 1,
         position: AdminOffsetSelector::Latest,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         timeout_ms: 1_000,
     });

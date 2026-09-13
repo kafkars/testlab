@@ -18,6 +18,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Option<TargetMatch> {
                 topic: action.topic.clone(),
                 partition: action.partition,
                 position: action.position,
+                read_isolation: action.read_isolation,
                 timestamp_millis: action.timestamp_millis,
                 timeout_ms: action.timeout_ms,
             }),

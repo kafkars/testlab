@@ -1,4 +1,4 @@
-schema_version = 127
+schema_version = 128
 id = "kafka.admin-topic-delete-recreate"
 title = "packaged admin deletes and recreates the same topic"
 description = "The packaged admin creates and describes a one-partition topic, deletes it to independently observed absence, then recreates the same name with two partitions and independently confirms the new topology."

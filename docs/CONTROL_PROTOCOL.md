@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v123 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v127 and evidence schema v113.
+Protocol v124 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v128 and evidence schema v114.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -741,7 +741,13 @@ associated timestamp matching independent record truth. The maximum-timestamp
 fixture places its greatest timestamp before a later lower timestamp; the
 caller-timestamp fixture places a lower timestamp before its selected record.
 Those orderings distinguish both paths from earliest and latest selection.
-Other broker-relative positions and leader epochs are outside this slice.
+Every singleton command carries exact `read_committed` or `read_uncommitted`
+isolation; omitted scenario fields select the backward-compatible
+`read_committed` default. The paired release scenario selects both values over
+ordinary committed records and proves each exact command plus its immediate
+independent watermark result. It does not claim an open-transaction last-stable-
+offset distinction. Other broker-relative positions and leader epochs are
+outside this slice.
 
 `list_offsets_batch` carries two through 32 unique topic-partition selections
 in caller order and invokes one public Admin operation. Scenario-only expected

@@ -15,6 +15,7 @@ fn timestamp_offset_translation_preserves_the_exact_public_selector() {
         topic: "orders".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Timestamp,
+        read_isolation: Default::default(),
         timestamp_millis: Some(1_700_000_000_123),
         expected_offset: Some(1),
         expected_error_code: None,
@@ -32,6 +33,7 @@ fn timestamp_offset_translation_preserves_the_exact_public_selector() {
             topic: "orders".to_owned(),
             partition: 0,
             position: AdminOffsetSelector::Timestamp,
+            read_isolation: Default::default(),
             timestamp_millis: Some(1_700_000_000_123),
             timeout_ms: 20_000,
         })
@@ -48,6 +50,7 @@ fn max_timestamp_translation_preserves_the_exact_public_selector() {
         topic: "orders".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::MaxTimestamp,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         expected_offset: Some(0),
         expected_error_code: None,
@@ -65,6 +68,7 @@ fn max_timestamp_translation_preserves_the_exact_public_selector() {
             topic: "orders".to_owned(),
             partition: 0,
             position: AdminOffsetSelector::MaxTimestamp,
+            read_isolation: Default::default(),
             timestamp_millis: None,
             timeout_ms: 20_000,
         })

@@ -1,6 +1,7 @@
 //! Read-only admin verification joins public results to independent broker observations.
 use testlab_schema::{
-    AdminOffsetSelector, BrokerObservation, OperationId, ScenarioAction, Violation,
+    AdminOffsetSelector, AdminReadIsolation, BrokerObservation, OperationId, ScenarioAction,
+    Violation,
 };
 #[path = "admin_timestamp_offset.rs"]
 mod timestamp_offset;
@@ -55,6 +56,7 @@ pub(crate) fn verify_discovery_action(
                     topic: &action.topic,
                     partition: action.partition,
                     position: action.position,
+                    contract: offset_contract(action.read_isolation, action.position),
                     timestamp_millis: action.timestamp_millis,
                     expected_offset,
                 },
@@ -127,6 +129,7 @@ pub(super) struct OffsetExpectation<'a> {
     topic: &'a str,
     partition: i32,
     pub(super) position: AdminOffsetSelector,
+    pub(super) contract: &'static str,
     pub(super) timestamp_millis: Option<i64>,
     pub(super) expected_offset: i64,
 }
@@ -155,6 +158,7 @@ fn verify_offset(
         topic,
         partition,
         position,
+        contract,
         timestamp_millis: _,
         expected_offset,
     } = expected;
@@ -194,13 +198,28 @@ fn verify_offset(
         return;
     }
     violations.push(violation(
-        "ADMIN-005",
+        contract,
         format!(
             "admin operation {operation_id} expected {position:?} offset {expected_offset} for {topic}[{partition}], independently derived {independent_offset:?}"
         ),
         Some(operation_id.clone()),
         offset_evidence(completions, independent),
     ));
+}
+
+const fn offset_contract(
+    read_isolation: AdminReadIsolation,
+    position: AdminOffsetSelector,
+) -> &'static str {
+    if matches!(read_isolation, AdminReadIsolation::ReadUncommitted) {
+        "ADMIN-088"
+    } else {
+        match position {
+            AdminOffsetSelector::Timestamp => "ADMIN-077",
+            AdminOffsetSelector::MaxTimestamp => "ADMIN-078",
+            AdminOffsetSelector::Earliest | AdminOffsetSelector::Latest => "ADMIN-005",
+        }
+    }
 }
 
 fn offset_evidence(

@@ -1,4 +1,4 @@
-schema_version = 127
+schema_version = 128
 id = "kafka.admin-config-resource-lifecycle"
 title = "packaged admin manages caller-ordered generic configuration resources"
 description = "The resource-generic public describe and incremental-alter surfaces preserve caller order, one post-Set description requests complete synonym and documentation metadata, exact Set, Delete, Append, and Subtract methods change two topic resources, and immediate independent reads prove every transition."

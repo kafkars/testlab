@@ -1,4 +1,4 @@
-schema_version = 127
+schema_version = 128
 id = "adversary.metadata-wrong-correlation"
 title = "metadata wrong correlation identity is rejected"
 description = "The external Kafka peer returns a valid Metadata body under a different correlation ID; the packaged client must not associate it with the public request."

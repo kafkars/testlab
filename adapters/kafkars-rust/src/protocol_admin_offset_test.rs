@@ -1,11 +1,13 @@
 //! Offset-result normalization tests enforce one exact topic-partition identity.
 
-use crate::kafkars_api::{ErrorKind, KafkaError, OffsetSpec, StartPosition, TopicPartition};
-use testlab_schema::{AdminOffsetSelector, OperationId, ROUTING_ERROR_CODE};
+use crate::kafkars_api::{
+    ErrorKind, KafkaError, OffsetSpec, ReadIsolation, StartPosition, TopicPartition,
+};
+use testlab_schema::{AdminOffsetSelector, AdminReadIsolation, OperationId, ROUTING_ERROR_CODE};
 
 use crate::AdapterError;
 use crate::normalize::error_code;
-use crate::protocol_admin_read::offset_spec;
+use crate::protocol_admin_read::{offset_spec, public_read_isolation};
 use crate::protocol_admin_result::listed_offset;
 
 #[test]
@@ -33,6 +35,18 @@ fn offset_positions_map_to_exact_public_specs() {
         None
     );
     assert_eq!(offset_spec(AdminOffsetSelector::Latest, Some(1)), None);
+}
+
+#[test]
+fn admin_read_isolation_maps_both_public_selections() {
+    assert_eq!(
+        public_read_isolation(AdminReadIsolation::ReadCommitted),
+        ReadIsolation::ReadCommitted
+    );
+    assert_eq!(
+        public_read_isolation(AdminReadIsolation::ReadUncommitted),
+        ReadIsolation::ReadUncommitted
+    );
 }
 
 #[test]

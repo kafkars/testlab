@@ -3,13 +3,14 @@
 use crate::runner_protocol::ExpectedEvent;
 use crate::session_command_admin::translate;
 use testlab_schema::{
-    AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreatePartitionsCommand,
-    CreateTopicAction, CreateTopicCommand, DeleteRecordsAction, DeleteRecordsCommand,
-    DescribeTopicAction, DescribeTopicCommand, ListConsumerGroupOffsetsAction,
-    ListConsumerGroupOffsetsCommand, ListOffsetsAction, ListOffsetsCommand, ListTopicsAction,
-    ListTopicsCommand, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
-    TopicDescriptionPagination, TopicListingExpectation,
+    AdapterCommand, ClientId, CreatePartitionsAction, CreatePartitionsCommand, CreateTopicAction,
+    CreateTopicCommand, DeleteRecordsAction, DeleteRecordsCommand, DescribeTopicAction,
+    DescribeTopicCommand, ListConsumerGroupOffsetsAction, ListConsumerGroupOffsetsCommand,
+    ListTopicsAction, ListTopicsCommand, OperationId, ScenarioAction,
+    TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicDescriptionPagination, TopicListingExpectation,
 };
+#[path = "session_command_admin_offset_test.rs"]
+mod offset_tests;
 #[path = "session_command_admin_timestamp_test.rs"]
 mod timestamp_tests;
 
@@ -149,73 +150,6 @@ fn topic_listing_translation_keeps_expected_inclusion_private() {
             operation_id,
             include_internal: false,
             include_authorized_operations: true,
-            timeout_ms: 20_000,
-        })
-    );
-}
-
-#[test]
-fn offset_translation_keeps_expected_result_private() {
-    let client_id = id(ClientId::new("client-1"));
-    let operation_id = id(OperationId::new("admin-list-offsets-1"));
-    let action = ScenarioAction::ListOffsets(ListOffsetsAction {
-        client_id: client_id.clone(),
-        operation_id: operation_id.clone(),
-        topic: "orders".to_owned(),
-        partition: 2,
-        position: AdminOffsetSelector::Latest,
-        timestamp_millis: None,
-        expected_offset: Some(42),
-        expected_error_code: None,
-        timeout_ms: 20_000,
-    });
-
-    let Some((command, _)) = translate(&action) else {
-        panic!("offset listing must cross the adapter boundary");
-    };
-
-    assert_eq!(
-        command,
-        AdapterCommand::ListOffsets(ListOffsetsCommand {
-            client_id,
-            operation_id,
-            topic: "orders".to_owned(),
-            partition: 2,
-            position: AdminOffsetSelector::Latest,
-            timestamp_millis: None,
-            timeout_ms: 20_000,
-        })
-    );
-}
-
-#[test]
-fn earliest_offset_translation_preserves_the_public_selector() {
-    let client_id = id(ClientId::new("client-1"));
-    let operation_id = id(OperationId::new("admin-list-earliest-offset"));
-    let action = ScenarioAction::ListOffsets(ListOffsetsAction {
-        client_id: client_id.clone(),
-        operation_id: operation_id.clone(),
-        topic: "orders".to_owned(),
-        partition: 0,
-        position: AdminOffsetSelector::Earliest,
-        timestamp_millis: None,
-        expected_offset: Some(0),
-        expected_error_code: None,
-        timeout_ms: 20_000,
-    });
-
-    let Some((command, _)) = translate(&action) else {
-        panic!("earliest offset listing must cross the adapter boundary");
-    };
-    assert_eq!(
-        command,
-        AdapterCommand::ListOffsets(ListOffsetsCommand {
-            client_id,
-            operation_id,
-            topic: "orders".to_owned(),
-            partition: 0,
-            position: AdminOffsetSelector::Earliest,
-            timestamp_millis: None,
             timeout_ms: 20_000,
         })
     );

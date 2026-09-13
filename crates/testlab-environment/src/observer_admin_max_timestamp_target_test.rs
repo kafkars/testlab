@@ -15,6 +15,7 @@ fn max_timestamp_maps_to_an_exact_command_and_immediate_watermarks() {
         topic: "orders".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::MaxTimestamp,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         expected_offset: Some(0),
         expected_error_code: None,

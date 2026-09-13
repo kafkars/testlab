@@ -1,7 +1,7 @@
-schema_version = 127
+schema_version = 128
 id = "kafka.admin-list-offsets-paired"
-title = "packaged admin lists earliest and latest offsets for the same partition"
-description = "After two acknowledged records reach one isolated partition, consecutive public queries report earliest offset 0 and latest end offset 2 for that exact partition, grounded in the same independent broker record evidence."
+title = "packaged admin preserves paired offset isolation selections"
+description = "After two acknowledged records reach one isolated partition, a read-uncommitted earliest query reports offset 0 and a read-committed latest query reports end offset 2 for that exact partition, grounded in the same independent broker record evidence."
 timeout_ms = 100000
 requires = ["producer", "producer_batch", "admin", "lifecycle", "client_readiness"]
 
@@ -67,6 +67,7 @@ operation_id = "admin-list-offset-range-earliest"
 topic = "testlab-kafkars-admin-offset-range"
 partition = 0
 position = "earliest"
+read_isolation = "read_uncommitted"
 expected_offset = 0
 timeout_ms = 20000
 
@@ -78,6 +79,7 @@ operation_id = "admin-list-offset-range-latest"
 topic = "testlab-kafkars-admin-offset-range"
 partition = 0
 position = "latest"
+read_isolation = "read_committed"
 expected_offset = 2
 timeout_ms = 20000
 

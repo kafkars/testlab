@@ -191,6 +191,7 @@ fn list_offsets(
         topic: "records".to_owned(),
         partition,
         position: AdminOffsetSelector::Latest,
+        read_isolation: Default::default(),
         timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,

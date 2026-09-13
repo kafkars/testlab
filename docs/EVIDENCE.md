@@ -239,6 +239,12 @@ Protocol v123, scenario schema v127, and evidence schema v113 add an explicit
 delegation-token expiration delay. ADMIN-087 preserves a selected zero-millisecond
 delay on the wire and joins the public immediate expiration result to the same
 sanitized independent owner-filtered absence required by ADMIN-073.
+Protocol v124, scenario schema v128, and evidence schema v114 add explicit
+singleton Admin offset read isolation. ADMIN-088 preserves a selected
+read-uncommitted value on the wire and joins its exact earliest result to an
+immediate independent watermark. A paired read-committed latest query retains
+the compatibility path over the same committed records; unresolved-transaction
+last-stable-offset differentiation remains unclaimed.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -969,6 +975,14 @@ public offset and returned timestamp must match that record and lie within
 immediate independent partition watermarks. A later record with a lower
 timestamp makes the greatest-timestamp result differ from both the earliest
 boundary result and the latest offset.
+
+ADMIN-088 binds one exact singleton public `ListOffsets` command to its
+caller-selected `read_uncommitted` isolation. The packaged pair uses only
+acknowledged nontransactional records: its public earliest result must equal the
+immediate independent low watermark, while the paired `read_committed` latest
+query continues to satisfy ADMIN-005 against the high watermark. This proves
+the two exact public selections and their results without claiming behavior in
+the presence of an unresolved transaction.
 
 CONS-005 through CONS-011 retain public assignment transitions, stable member
 snapshots, and multi-member receive attribution. These public facts prove which

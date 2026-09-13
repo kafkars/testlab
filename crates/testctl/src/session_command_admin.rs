@@ -1,4 +1,3 @@
-//! Admin scenario actions translate into exact bounded wire commands and completions.
 use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
@@ -101,6 +100,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 topic: action.topic.clone(),
                 partition: action.partition,
                 position: action.position,
+                read_isolation: action.read_isolation,
                 timestamp_millis: action.timestamp_millis,
                 timeout_ms: action.timeout_ms,
             }),
