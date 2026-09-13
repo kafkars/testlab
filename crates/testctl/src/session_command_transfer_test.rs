@@ -92,7 +92,7 @@ fn transfer_admission_and_terminal_are_intermediate_until_completion() {
     );
 }
 
-fn classify_error(error: crate::run_error::RunFailure) -> ! {
+fn classify_error(error: crate::run_error::RunFailure) -> EventDisposition {
     panic!("classify owned transfer event: {error}")
 }
 

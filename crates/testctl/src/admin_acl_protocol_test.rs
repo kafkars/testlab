@@ -21,9 +21,9 @@ fn acl_actions_translate_without_changing_public_intent() {
 #[test]
 fn acl_completions_require_exact_operation_and_event_family() {
     let expected = expected_events("acl-operation");
-    let events = events("acl-operation");
+    let actual_events = events("acl-operation");
     for (expected_index, expected) in expected.iter().enumerate() {
-        for (event_index, event) in events.iter().enumerate() {
+        for (event_index, event) in actual_events.iter().enumerate() {
             let result = expected.classify(event);
             if expected_index == event_index {
                 assert_eq!(

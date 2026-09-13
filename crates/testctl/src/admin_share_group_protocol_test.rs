@@ -39,18 +39,25 @@ fn completion_requires_exact_operation_and_group_identities() {
             .unwrap_or_else(|error| panic!("classify Share-group event: {error}")),
         EventDisposition::Complete
     );
-    let AdapterEvent::ShareGroupDescribed(value) = &mut event else {
-        panic!("Share-group event kind");
-    };
-    value.group_id = "other-group".to_owned();
+    {
+        let AdapterEvent::ShareGroupDescribed(value) = &mut event else {
+            panic!("Share-group event kind");
+        };
+        value.group_id = "other-group".to_owned();
+    }
     let error = expected
         .classify(&event)
         .err()
         .unwrap_or_else(|| panic!("foreign group must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
-    value.group_id = "share-group-1".to_owned();
-    value.operation_id = OperationId::new("other-operation")
-        .unwrap_or_else(|error| panic!("other operation: {error}"));
+    {
+        let AdapterEvent::ShareGroupDescribed(value) = &mut event else {
+            panic!("Share-group event kind");
+        };
+        value.group_id = "share-group-1".to_owned();
+        value.operation_id = OperationId::new("other-operation")
+            .unwrap_or_else(|error| panic!("other operation: {error}"));
+    }
     let error = expected
         .classify(&event)
         .err()

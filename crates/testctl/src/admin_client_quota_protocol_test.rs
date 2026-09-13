@@ -62,9 +62,9 @@ fn client_quota_completions_reject_foreign_identity_and_family() {
         ExpectedEvent::ClientQuotaAlterationValidated(operation("quota-operation")),
         ExpectedEvent::ClientQuotaDescribed(operation("quota-operation")),
     ];
-    let events = events("quota-operation");
+    let actual_events = events("quota-operation");
     for (expected_index, expected) in expected.iter().enumerate() {
-        for (event_index, event) in events.iter().enumerate() {
+        for (event_index, event) in actual_events.iter().enumerate() {
             let result = expected.classify(event);
             if expected_index == event_index {
                 assert_eq!(
