@@ -190,9 +190,13 @@ mod runner_protocol_test;
 #[cfg(test)]
 mod runner_protocol_transaction_offsets_test;
 #[cfg(test)]
+mod runner_protocol_transaction_test;
+#[cfg(test)]
 mod runner_test;
 #[cfg(test)]
 mod session_command_admin_batch_test;
+#[cfg(test)]
+mod session_command_admin_broker_unregistration_test;
 #[cfg(test)]
 mod session_command_admin_config_test;
 #[cfg(test)]

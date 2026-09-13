@@ -174,6 +174,8 @@ mod protocol_admin_manual_partitions_test;
 #[cfg(test)]
 mod protocol_admin_manual_topic_test;
 #[cfg(test)]
+mod protocol_admin_metadata_quorum_test;
+#[cfg(test)]
 mod protocol_admin_offset_test;
 #[cfg(test)]
 mod protocol_admin_plural_result_test;
@@ -197,3 +199,5 @@ mod protocol_descriptor_test;
 mod protocol_test;
 #[cfg(test)]
 mod state_test;
+#[cfg(test)]
+mod transaction_admin_abort_test;

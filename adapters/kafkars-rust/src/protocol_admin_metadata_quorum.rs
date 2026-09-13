@@ -92,7 +92,7 @@ fn listener(listener: MetadataQuorumListener) -> MetadataQuorumListenerState {
     MetadataQuorumListenerState { name, host, port }
 }
 
-fn kafka_uuid(source: [u8; 16]) -> String {
+pub(crate) fn kafka_uuid(source: [u8; 16]) -> String {
     const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut encoded = String::with_capacity(22);
     for chunk in source[..15].chunks_exact(3) {
@@ -187,17 +187,4 @@ fn valid_uuid(value: &str) -> bool {
 
 fn invalid(operation_id: &OperationId, detail: &str) -> AdapterError {
     AdapterError::AdminResult(format!("admin operation {operation_id} {detail}"))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::kafka_uuid;
-
-    #[test]
-    fn kafka_uuid_uses_unpadded_url_safe_base64() {
-        assert_eq!(
-            kafka_uuid([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]),
-            "AAECAwQFBgcICQoLDA0ODw"
-        );
-    }
 }

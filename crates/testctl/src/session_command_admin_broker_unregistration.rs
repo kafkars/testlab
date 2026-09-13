@@ -18,26 +18,3 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         ExpectedEvent::BrokerUnregistered(action.operation_id.clone(), action.broker_id),
     ))
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use testlab_schema::Scenario;
-
-    #[test]
-    fn translation_excludes_scenario_only_cluster_expectations() {
-        let scenario: Scenario = toml::from_str(include_str!(
-            "../../../scenarios/kafka/admin-unregister-broker.toml"
-        ))
-        .unwrap_or_else(|error| panic!("parse broker-unregistration scenario: {error}"));
-        let action = &scenario.steps[4].action;
-        let (command, expected) =
-            translate(action).unwrap_or_else(|| panic!("translate broker-unregistration action"));
-        let AdapterCommand::UnregisterBroker(command) = command else {
-            panic!("unexpected wire command");
-        };
-        assert_eq!(command.broker_id, 3);
-        assert_eq!(command.timeout_ms, 30_000);
-        assert!(matches!(expected, ExpectedEvent::BrokerUnregistered(_, 3)));
-    }
-}
