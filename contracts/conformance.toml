@@ -553,6 +553,12 @@ statement = "Consumer-only and generic group listings preserve caller-ordered st
 category = "admin"
 
 [[contract]]
+id = "ADMIN-083"
+title = "Transaction listing filters strictly narrow a stable baseline"
+statement = "Each state, producer-ID, duration, or transactional-ID-pattern selection is preserved in the public command, returns the exact scenario-declared strict subset of one prior nonempty public baseline, and an immediate independent full listing matches that unchanged baseline."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."
