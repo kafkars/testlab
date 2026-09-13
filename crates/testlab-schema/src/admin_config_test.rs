@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{
+use crate::{
     AdapterCommand, AdapterEvent, AdminTopicConfigDescription, AlterTopicConfigAction,
     BrokerStateObservation, BrokerTopicConfigState, Capability, ClientId,
     DescribeTopicConfigAction, DescribeTopicConfigCommand, EVIDENCE_SCHEMA_VERSION, OperationId,

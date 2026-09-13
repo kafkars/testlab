@@ -29,11 +29,15 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
             }
             ScenarioAction::ListOffsetsBatch(action) => {
                 for query in &action.queries {
+                    let position = match query.position {
+                        crate::AdminOffsetPosition::Earliest => AdminOffsetSelector::Earliest,
+                        crate::AdminOffsetPosition::Latest => AdminOffsetSelector::Latest,
+                    };
                     record_baseline(
                         &mut baselines,
                         &query.topic,
                         query.partition,
-                        query.position,
+                        position,
                         query.expected_offset,
                     );
                 }

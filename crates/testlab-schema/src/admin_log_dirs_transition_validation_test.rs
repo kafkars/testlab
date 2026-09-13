@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use crate::{
     ClientId, CreateTopicAction, DescribeLogDirsAction, DescribeReplicaLogDirsAction, OperationId,
     SCENARIO_SCHEMA_VERSION, Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
@@ -17,7 +19,7 @@ fn log_directory_target_matches_a_prior_created_replica_fixture() {
         .expect_err("mismatched replica count must fail");
     assert!(
         error
-            .problems()
+            .problems
             .iter()
             .any(|problem| problem.contains("must equal the prior topic replication factor"))
     );
@@ -52,7 +54,7 @@ fn fixture() -> Scenario {
         title: "log directories".to_owned(),
         description: "log directories".to_owned(),
         timeout_ms: 90_000,
-        requires: vec![crate::Capability::Admin, crate::Capability::Lifecycle],
+        requires: BTreeSet::from([crate::Capability::Admin, crate::Capability::Lifecycle]),
         steps: vec![
             step(
                 "create-client",

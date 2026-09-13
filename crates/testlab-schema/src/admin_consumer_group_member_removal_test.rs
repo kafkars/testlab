@@ -156,7 +156,7 @@ where
 {
     let encoded = serde_json::to_vec(value)
         .unwrap_or_else(|error| panic!("encode static-member payload: {error}"));
-    let decoded = serde_json::from_slice(&encoded)
+    let decoded: T = serde_json::from_slice(&encoded)
         .unwrap_or_else(|error| panic!("decode static-member payload: {error}"));
     assert_eq!(&decoded, value);
 }

@@ -1,7 +1,10 @@
 //! Transaction discovery payload tests pin trust-boundary ownership.
 
 use super::*;
-use crate::{AdapterCommand, AdapterEvent, BrokerStateObservation, ScenarioAction};
+use crate::{
+    AdapterCommand, AdapterEvent, BrokerStateObservation, Capability, Scenario, ScenarioAction,
+    TransactionFenceMethod,
+};
 
 #[test]
 fn transaction_discovery_versions_are_explicit() {
@@ -111,9 +114,9 @@ fn expectations_stay_off_commands_and_all_results_round_trip() {
     });
     round_trip(&describe_action);
     round_trip(&describe_command);
-    let encoded = encoded(&describe_command);
-    assert!(!encoded.contains("expected_state"));
-    assert!(!encoded.contains("expected_transaction_timeout_ms"));
+    let encoded_command = encoded(&describe_command);
+    assert!(!encoded_command.contains("expected_state"));
+    assert!(!encoded_command.contains("expected_transaction_timeout_ms"));
 
     let description = description("alpha", 71);
     round_trip(&AdapterEvent::TransactionsDescribed(

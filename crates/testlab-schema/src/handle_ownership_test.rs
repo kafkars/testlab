@@ -63,14 +63,14 @@ fn producer_handle_timeouts_are_bounded_and_capability_gated() {
     }));
 
     scenario.requires.insert(Capability::ProducerConfiguration);
-    let ScenarioAction::CreateProducer {
-        delivery_timeout_ms,
-        ..
-    } = &mut scenario.steps[2].action
-    else {
-        panic!("producer creation fixture");
-    };
     for invalid in [99, 60_001] {
+        let ScenarioAction::CreateProducer {
+            delivery_timeout_ms,
+            ..
+        } = &mut scenario.steps[2].action
+        else {
+            panic!("producer creation fixture");
+        };
         *delivery_timeout_ms = Some(invalid);
         let error = scenario
             .validate()
