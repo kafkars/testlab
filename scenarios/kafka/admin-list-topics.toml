@@ -1,4 +1,4 @@
-schema_version = 160
+schema_version = 161
 id = "kafka.admin-list-topics"
 title = "packaged admin lists detailed topics with authorization metadata"
 description = "The packaged client's public all-topic query requests and retains authorization metadata plus exact partition detail for one required harness-provisioned topic, whose topology is confirmed by an immediate independent metadata query and whose usability is later proven by one exact record observation."

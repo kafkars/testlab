@@ -391,6 +391,10 @@ Protocol v156, scenario schema v160, and evidence schema v146 add exact
 transactional partition-leader recovery. FAULT-005 preserves the complete
 committed transaction command and staged output set after independently
 observed replacement election and before original-owner restoration.
+Protocol v157, scenario schema v161, and evidence schema v147 make successful
+client construction self-describing. CLIENT-003 requires one later correlated
+event whose values read through the public client exactly preserve its client
+ID, ordered bootstrap servers, and optional expected cluster-ID guard.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

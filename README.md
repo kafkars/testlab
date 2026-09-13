@@ -159,6 +159,10 @@ before drop, redelivery, or close-certainty evidence applies.
 Every baseline client creation likewise preserves its exact identity, optional
 expected cluster-ID guard, multiplicity, and scenario order while the expected
 failure code remains harness-only.
+Every successful baseline or configured creation also records the values read
+back through the public client: its client ID, ordered bootstrap servers, and
+optional expected cluster ID. Those values must exactly match the creation
+command and session hello.
 Repeated readiness, flush, handle-close, group-abandonment, and client-shutdown
 requests likewise retain their exact command kind, resource identity,
 multiplicity, and scenario order before correlated terminal evidence applies.

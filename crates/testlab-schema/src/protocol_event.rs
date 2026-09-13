@@ -11,10 +11,8 @@ pub enum AdapterEvent {
         /// Adapter identity and capabilities.
         descriptor: AdapterDescriptor,
     },
-    /// Public client construction completed.
-    ClientCreated {
-        client_id: ClientId,
-    },
+    /// Public client construction completed with exact returned configuration.
+    ClientCreated(crate::ClientConfigurationObservation),
     /// Public client readiness completed.
     ClientReady {
         client_id: ClientId,

@@ -15,29 +15,19 @@ pub(crate) fn dispatch<W: Write>(
     command: AdapterCommand,
 ) -> Result<(), AdapterError> {
     let event = match command {
-        AdapterCommand::CreateClient(command) => {
-            state.create_client(command.client_id.clone(), command.expected_cluster_id)?;
-            AdapterEvent::ClientCreated {
-                client_id: command.client_id,
-            }
-        }
+        AdapterCommand::CreateClient(command) => AdapterEvent::ClientCreated(
+            state.create_client(command.client_id, command.expected_cluster_id)?,
+        ),
         AdapterCommand::CreateConfiguredClient(action) => {
-            state.create_configured_client(
+            AdapterEvent::ClientCreated(state.create_configured_client(
                 action.client_id.clone(),
                 action.configuration_method,
                 action.configuration,
-            )?;
-            AdapterEvent::ClientCreated {
-                client_id: action.client_id,
-            }
+            )?)
         }
-        AdapterCommand::CreateAssignedConsumerClient(action) => {
-            state
-                .create_assigned_consumer_client(action.client_id.clone(), action.configuration)?;
-            AdapterEvent::ClientCreated {
-                client_id: action.client_id,
-            }
-        }
+        AdapterCommand::CreateAssignedConsumerClient(action) => AdapterEvent::ClientCreated(
+            state.create_assigned_consumer_client(action.client_id, action.configuration)?,
+        ),
         AdapterCommand::AwaitClientReady { client_id } => {
             state.await_client_ready(&client_id)?;
             AdapterEvent::ClientReady { client_id }

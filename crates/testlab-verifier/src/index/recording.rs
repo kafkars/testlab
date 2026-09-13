@@ -97,8 +97,12 @@ impl HistoryIndex {
                     history_sequence: sequence,
                     outcomes: completion.outcomes.clone(),
                 }),
-            AdapterEvent::ClientCreated { client_id } => {
-                push(&mut self.clients_created, client_id.clone(), sequence);
+            AdapterEvent::ClientCreated(observation) => {
+                push(
+                    &mut self.clients_created,
+                    observation.client_id.clone(),
+                    sequence,
+                );
             }
             AdapterEvent::ClientReady { client_id } => {
                 push(&mut self.clients_ready, client_id.clone(), sequence);

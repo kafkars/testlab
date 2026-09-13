@@ -92,7 +92,7 @@ fn same_base_event_family(expected: &ExpectedEvent, event: &AdapterEvent) -> boo
             )
             | (
                 ExpectedEvent::ClientCreated(_),
-                AdapterEvent::ClientCreated { .. }
+                AdapterEvent::ClientCreated(..)
             )
             | (
                 ExpectedEvent::ClientMetricsObserved(..),

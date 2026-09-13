@@ -269,7 +269,7 @@ fn producer_id(value: &str) -> ProducerId {
 }
 
 fn is_client_created(event: &AdapterEvent) -> bool {
-    matches!(event, AdapterEvent::ClientCreated { .. })
+    matches!(event, AdapterEvent::ClientCreated(..))
 }
 
 fn is_client_ready(event: &AdapterEvent) -> bool {

@@ -1,4 +1,4 @@
-schema_version = 160
+schema_version = 161
 id = "kafka.admin-legacy-config-replacement"
 title = "packaged admin replaces and restores legacy configuration snapshots"
 description = "The packaged client's two public legacy full-snapshot configuration surfaces preserve caller order, restore broker defaults without receiving expected values, and use immediate independent reads to prove every distinct transition."

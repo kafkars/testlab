@@ -21,8 +21,8 @@ pub(super) fn classify_core(
         (ExpectedEvent::Ready, AdapterEvent::Ready { .. })
         | (ExpectedEvent::Finished, AdapterEvent::Finished)
         | (ExpectedEvent::Aborted, AdapterEvent::Aborted) => Ok(EventDisposition::Complete),
-        (ExpectedEvent::ClientCreated(expected), AdapterEvent::ClientCreated { client_id })
-            if expected == client_id =>
+        (ExpectedEvent::ClientCreated(expected), AdapterEvent::ClientCreated(observation))
+            if expected == &observation.client_id =>
         {
             Ok(EventDisposition::Complete)
         }

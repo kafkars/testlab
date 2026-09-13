@@ -9,9 +9,9 @@ impl ExpectedLifecycle<'_> {
         match (&self.identity, event) {
             (
                 Identity::Client(expected, ClientEvent::Created),
-                AdapterEvent::ClientCreated { client_id },
-            )
-            | (
+                AdapterEvent::ClientCreated(observation),
+            ) => *expected == &observation.client_id,
+            (
                 Identity::Client(expected, ClientEvent::Ready),
                 AdapterEvent::ClientReady { client_id },
             )

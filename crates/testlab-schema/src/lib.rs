@@ -72,6 +72,7 @@ mod broker_policy;
 mod broker_role;
 mod broker_state;
 mod bytes;
+mod client_configuration_observation;
 mod client_creation_validation;
 mod client_metrics;
 mod concurrent;
@@ -145,6 +146,7 @@ pub use broker_state::{
     BrokerPartitionOffsets, BrokerShareGroupOffset, BrokerShareGroupState, BrokerTopicState,
 };
 pub use bytes::{ByteEncoding, ByteString, ByteStringError};
+pub use client_configuration_observation::ClientConfigurationObservation;
 pub use client_metrics::*;
 pub use concurrent::*;
 pub use consumer_configuration::*;
@@ -270,8 +272,6 @@ mod admin_validate_only_validation_test;
 mod broker_policy_test;
 #[cfg(test)]
 mod broker_role_test;
-#[cfg(test)]
-mod client_metrics_test;
 #[cfg(test)]
 mod concurrent_test;
 #[cfg(test)]

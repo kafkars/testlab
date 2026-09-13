@@ -1,7 +1,8 @@
 //! Client state construction applies public policy before starting the shared host.
 
 use testlab_schema::{
-    AssignedConsumerConfiguration, ClientId, ProducerConfiguration, ProducerConfigurationMethod,
+    AssignedConsumerConfiguration, ClientConfigurationObservation, ClientId, ProducerConfiguration,
+    ProducerConfigurationMethod,
 };
 
 use crate::admission_retry::retry_safe;
@@ -13,7 +14,7 @@ impl AdapterState {
         &mut self,
         client_id: ClientId,
         expected_cluster_id: Option<String>,
-    ) -> Result<(), StateError> {
+    ) -> Result<ClientConfigurationObservation, StateError> {
         self.create_client_with_configuration(client_id, expected_cluster_id, None, None)
     }
 
@@ -22,7 +23,7 @@ impl AdapterState {
         client_id: ClientId,
         method: ProducerConfigurationMethod,
         configuration: ProducerConfiguration,
-    ) -> Result<(), StateError> {
+    ) -> Result<ClientConfigurationObservation, StateError> {
         self.create_client_with_configuration(client_id, None, Some((method, configuration)), None)
     }
 
@@ -30,7 +31,7 @@ impl AdapterState {
         &mut self,
         client_id: ClientId,
         configuration: AssignedConsumerConfiguration,
-    ) -> Result<(), StateError> {
+    ) -> Result<ClientConfigurationObservation, StateError> {
         self.create_client_with_configuration(client_id, None, None, Some(configuration))
     }
 
@@ -40,7 +41,7 @@ impl AdapterState {
         expected_cluster_id: Option<String>,
         producer_configuration: Option<(ProducerConfigurationMethod, ProducerConfiguration)>,
         assigned_consumer_configuration: Option<AssignedConsumerConfiguration>,
-    ) -> Result<(), StateError> {
+    ) -> Result<ClientConfigurationObservation, StateError> {
         let endpoints = self
             .broker_endpoints
             .as_ref()
@@ -70,13 +71,14 @@ impl AdapterState {
             None => builder,
         };
         let client = builder.build().map_err(StateError::Client)?;
-        if client.expected_cluster_id() != expected_cluster_id.as_deref() {
-            return Err(StateError::ClientSurface(
-                "expected cluster ID was not retained".to_owned(),
-            ));
-        }
+        let observation = ClientConfigurationObservation {
+            client_id: client_id.clone(),
+            observed_client_id: client.client_id().map(str::to_owned),
+            observed_bootstrap_servers: client.bootstrap_servers().to_vec(),
+            observed_expected_cluster_id: client.expected_cluster_id().map(str::to_owned),
+        };
         self.clients.insert(client_id, client);
-        Ok(())
+        Ok(observation)
     }
 
     pub(crate) fn await_client_ready(&self, client_id: &ClientId) -> Result<(), StateError> {

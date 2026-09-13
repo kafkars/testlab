@@ -129,9 +129,12 @@ pub(crate) fn history(status: TerminalStatus) -> Vec<HistoryEntry> {
         ),
         event(
             1,
-            AdapterEvent::ClientCreated {
+            AdapterEvent::ClientCreated(testlab_schema::ClientConfigurationObservation {
                 client_id: client.clone(),
-            },
+                observed_client_id: Some(client.as_str().to_owned()),
+                observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
+                observed_expected_cluster_id: None,
+            }),
         ),
         event(
             2,
@@ -192,9 +195,12 @@ pub(crate) fn rejected_history() -> Vec<HistoryEntry> {
         ),
         event(
             1,
-            AdapterEvent::ClientCreated {
+            AdapterEvent::ClientCreated(testlab_schema::ClientConfigurationObservation {
                 client_id: client.clone(),
-            },
+                observed_client_id: Some(client.as_str().to_owned()),
+                observed_bootstrap_servers: vec!["127.0.0.1:9092".to_owned()],
+                observed_expected_cluster_id: None,
+            }),
         ),
         event(
             2,

@@ -25,6 +25,12 @@ statement = "Every baseline client creation command appears exactly once in scen
 category = "client"
 
 [[contract]]
+id = "CLIENT-003"
+title = "Public clients report exact construction configuration"
+statement = "Every successful baseline, producer-configured, or assigned-consumer-configured client creation emits one later correlated observation whose public client ID, ordered bootstrap servers, and optional expected cluster ID exactly match the creation command and session hello."
+category = "client"
+
+[[contract]]
 id = "METRICS-001"
 title = "Client metrics observations retain exact ownership"
 statement = "Each requested public metrics operation has one issued command and one correlated snapshot naming the exact client and operation."

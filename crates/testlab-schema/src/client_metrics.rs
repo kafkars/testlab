@@ -1,5 +1,9 @@
 //! Client metrics preserve public snapshot facts without exposing scenario expectations.
 
+#[cfg(test)]
+#[path = "client_metrics_test.rs"]
+mod test;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{ClientId, OperationId};

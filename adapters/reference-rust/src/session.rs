@@ -71,10 +71,19 @@ fn dispatch<W: Write>(
         } => dispatch_hello(state, writer, command_id, broker_endpoints)?,
         AdapterCommand::CreateClient(command) if command.expected_cluster_id.is_none() => {
             let client_id = command.client_id;
+            let observed_bootstrap_servers = state.broker_endpoints()?.to_vec();
             state.create_client(client_id.clone())?;
             emit(
                 writer,
-                &AdapterEventEnvelope::new(command_id, AdapterEvent::ClientCreated { client_id }),
+                &AdapterEventEnvelope::new(
+                    command_id,
+                    AdapterEvent::ClientCreated(testlab_schema::ClientConfigurationObservation {
+                        observed_client_id: Some(client_id.as_str().to_owned()),
+                        client_id,
+                        observed_bootstrap_servers,
+                        observed_expected_cluster_id: None,
+                    }),
+                ),
             )?;
         }
         AdapterCommand::AwaitClientReady { client_id } => {

@@ -184,7 +184,9 @@
   non-default values while every delivered record remains joined to independent
   broker observations.
 - Lifecycle scenarios cover repeated client readiness and producer flush plus
-  independent client progress after another client shuts down.
+  independent client progress after another client shuts down. Every successful
+  client creation also reads back and records the exact public client ID,
+  caller-ordered bootstrap servers, and optional expected cluster ID.
 - Explicit child-handle ownership preserves the original shared client path
   while qualifying private producer close and replacement owners and two
   directly assigned consumers with independent cursor state from one client

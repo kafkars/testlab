@@ -40,6 +40,7 @@ pub fn verify(
     crate::network_proxy::verify(scenario, &index, &mut violations);
     crate::concurrent::verify(scenario, &index, observations, &mut violations);
     verify_client_failures(scenario, &index, &mut violations);
+    crate::client_configuration::verify(scenario, &index, &mut violations);
     crate::client_metrics::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_controls::verify(scenario, &index, &mut violations);
     crate::assigned_consumer_events::verify(scenario, &index, &mut violations);

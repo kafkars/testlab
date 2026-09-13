@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v156 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v160 and evidence schema v146.
+Protocol v157 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v161 and evidence schema v147.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -31,6 +31,11 @@ Every baseline client creation command appears exactly once in scenario order,
 retaining its client identity and optional expected cluster-ID guard. This
 prevents an unguarded successful construction from replacing the intended
 reject-then-success sequence.
+Every successful baseline, producer-configured, or assigned-consumer-configured
+creation returns `client_created` only after reading the public client's
+configured client ID, caller-ordered bootstrap servers, and optional expected
+cluster ID. The event retains those values, and CLIENT-003 joins them to the
+exact creation command and session hello.
 
 Producer and directly assigned consumer creation carry an exact child ownership
 selection. `shared` uses the originating client's execution and lifecycle
@@ -1357,6 +1362,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v156 is an exact semantic contract. New capabilities may be declared
+Protocol v157 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

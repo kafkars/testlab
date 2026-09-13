@@ -1,5 +1,9 @@
 //! Client metrics verification checks identity, public counter coherence, and declared state.
 
+#[cfg(test)]
+#[path = "client_metrics_test.rs"]
+mod test;
+
 use testlab_schema::{
     ClientMetricsSnapshot, LatencyMetricSnapshot, ObserveClientMetricsAction, Scenario,
     ScenarioAction, Violation,

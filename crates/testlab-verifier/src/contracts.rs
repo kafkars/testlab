@@ -5,6 +5,7 @@ const KNOWN_CONTRACT_IDS: &[&str] = &[
     "CAP-001",
     "CLIENT-001",
     "CLIENT-002",
+    "CLIENT-003",
     "METRICS-001",
     "METRICS-002",
     "METRICS-003",

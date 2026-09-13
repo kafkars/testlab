@@ -28,6 +28,13 @@ impl AdapterState {
             .ok_or(StateError::HelloRequired)
     }
 
+    pub(crate) fn broker_endpoints(&self) -> Result<&[String], StateError> {
+        self.broker_endpoints
+            .as_deref()
+            .filter(|endpoints| !endpoints.is_empty())
+            .ok_or(StateError::HelloRequired)
+    }
+
     pub(crate) fn create_client(&mut self, client_id: ClientId) -> Result<(), StateError> {
         self.require_hello()?;
         if !self.clients.insert(client_id.clone()) {
