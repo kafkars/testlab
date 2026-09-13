@@ -31,6 +31,10 @@ pub(super) struct AdminObserverRequest<'a> {
     pub(super) first_observation: u64,
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the exhaustive target dispatch keeps every observation backend explicit"
+)]
 pub(super) fn capture(
     request: AdminObserverRequest<'_>,
     target: &AdminTarget,

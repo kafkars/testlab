@@ -14,6 +14,10 @@ use crate::observer_admin_target::{
 };
 use crate::observer_error::ObserverError;
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the exhaustive Share-group matcher keeps exact action and command pairs adjacent"
+)]
 pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch>, ObserverError> {
     Ok(Some(match action {
         ScenarioAction::DescribeShareGroup(action) => (

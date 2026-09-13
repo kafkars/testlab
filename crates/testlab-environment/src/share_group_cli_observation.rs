@@ -138,10 +138,11 @@ fn normalize_offset(
             optional_nonnegative(start_offset, "start offset")?,
             optional_nonnegative(lag, "lag")?,
         );
-        if *topic == target.topic && partition == target.partition {
-            if matched.replace(state).is_some() {
-                return Err(invalid("offset output contained a duplicate selected row"));
-            }
+        if *topic == target.topic
+            && partition == target.partition
+            && matched.replace(state).is_some()
+        {
+            return Err(invalid("offset output contained a duplicate selected row"));
         }
     }
     let (start_offset, lag) = matched.unwrap_or((None, None));

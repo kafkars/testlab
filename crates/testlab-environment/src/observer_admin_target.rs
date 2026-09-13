@@ -217,11 +217,9 @@ impl AdminTarget {
             | Self::ClassicGroups(target) => &target.operation_id,
             Self::Cluster(target) => &target.operation_id,
             Self::BrokerUnregistration(target) => &target.operation_id,
-            Self::Features(operation_id) => operation_id,
-            Self::MetadataQuorum(operation_id) => operation_id,
+            Self::Features(operation_id) | Self::MetadataQuorum(operation_id) => operation_id,
             Self::Producers(target) => &target.operation_id,
-            Self::LogDirs(target) => &target.operation_id,
-            Self::ReplicaLogDirs(target) => &target.operation_id,
+            Self::LogDirs(target) | Self::ReplicaLogDirs(target) => &target.operation_id,
             Self::ReplicaLogDirsAlteration(target) => &target.operation_id,
             Self::Transactions(target) => target.operation_id(),
             Self::ConsumerGroup(target) => &target.operation_id,
@@ -244,16 +242,11 @@ impl AdminTarget {
     pub(super) fn observation_count(&self) -> usize {
         match self {
             Self::Acls(target) => target.bindings.len(),
-            Self::ClientQuota(_) => 1,
-            Self::UserScramCredential(_) => 1,
-            Self::DelegationTokens(_) => 1,
-            Self::StreamsGroupsLifecycle(_) => 1,
             Self::Topics(target)
             | Self::TopicIdentities(target)
             | Self::TopicDeletions(target)
             | Self::ConsumerGroups(target)
             | Self::ConsumerGroupDeletions(target) => target.names.len(),
-            Self::ClientMetricsResources(_) => 1,
             Self::ConsumerGroupOffsets(target) => target.offsets.len(),
             Self::ConsumerGroupsOffsets(target) => {
                 target.groups.iter().map(|group| group.offsets.len()).sum()

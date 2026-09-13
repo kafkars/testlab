@@ -105,7 +105,7 @@ fn normalize_directory(
     }
     let mut replicas = directory
         .partitions
-        .into_iter()
+        .iter()
         .map(|replica| normalize_replica(replica, target))
         .collect::<Result<Vec<_>, _>>()?
         .into_iter()
@@ -122,7 +122,7 @@ fn normalize_directory(
 }
 
 fn normalize_replica(
-    replica: CliReplica,
+    replica: &CliReplica,
     target: &LogDirsTarget,
 ) -> Result<Option<LogDirReplicaState>, ObserverError> {
     let prefix = format!("{}-", target.topic);
@@ -156,7 +156,7 @@ fn normalize_replica(
 fn parse_broker_list(value: &str) -> Result<Vec<i32>, ObserverError> {
     let mut brokers = value
         .split(',')
-        .map(|value| value.parse::<i32>())
+        .map(str::parse::<i32>)
         .collect::<Result<Vec<_>, _>>()
         .map_err(|_| invalid("completion line contained an invalid broker ID"))?;
     brokers.sort_unstable();

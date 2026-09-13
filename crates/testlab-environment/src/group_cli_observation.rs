@@ -44,8 +44,9 @@ pub(super) fn normalize(
     let (names, exact) = match target {
         AdminTarget::ConsumerGroups(target) => (target.names.as_slice(), false),
         AdminTarget::ConsumerGroup(target) => (std::slice::from_ref(&target.group_id), true),
-        AdminTarget::ClassicGroups(target) => (target.group_ids.as_slice(), true),
-        AdminTarget::ConsumerGroupDescriptions(target) => (target.group_ids.as_slice(), true),
+        AdminTarget::ClassicGroups(target) | AdminTarget::ConsumerGroupDescriptions(target) => {
+            (target.group_ids.as_slice(), true)
+        }
         _ => return Err(invalid("unsupported group snapshot target")),
     };
     if exact && (groups.len() != names.len() || names.iter().any(|name| !groups.contains_key(name)))

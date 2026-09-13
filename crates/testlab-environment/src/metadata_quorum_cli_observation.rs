@@ -207,7 +207,7 @@ fn replication_row(line: &str, has_directory_id: bool) -> Result<ReplicationRow,
     Ok(ReplicationRow {
         replica: MetadataQuorumReplicaState {
             replica_id: nonnegative_i32(id, "replica ID")?,
-            replica_directory_id: directory_id(directory.map(str::to_owned))?,
+            replica_directory_id: directory_id(directory)?,
             log_end_offset: optional_i64(offset, "log-end offset")?,
             last_fetch_timestamp_ms: optional_i64(fetched, "last-fetch timestamp")?,
             last_caught_up_timestamp_ms: optional_i64(caught_up, "last-caught-up timestamp")?,
@@ -222,8 +222,8 @@ fn replication_row(line: &str, has_directory_id: bool) -> Result<ReplicationRow,
     })
 }
 
-fn directory_id(value: Option<String>) -> Result<Option<String>, ObserverError> {
-    match value.as_deref() {
+fn directory_id(value: Option<&str>) -> Result<Option<String>, ObserverError> {
+    match value {
         None | Some(ZERO_UUID) => Ok(None),
         Some(value) if valid_uuid(value) => Ok(Some(value.to_owned())),
         Some(_) => Err(invalid("replica had an invalid directory ID")),

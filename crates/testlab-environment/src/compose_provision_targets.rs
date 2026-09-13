@@ -50,6 +50,10 @@ pub(super) fn seed_targets(scenario: &Scenario) -> BTreeSet<SeedTarget> {
         .collect()
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "the exhaustive action matcher keeps provisioning requirements reviewable in one place"
+)]
 fn admin_targets(
     topics: &mut BTreeMap<String, i32>,
     subject_created: &BTreeSet<String>,

@@ -27,9 +27,9 @@ fn changed_broker_id_rejects_observation() {
     let action = &scenario.steps[4].action;
     let (mut command, _) =
         match_action(action).unwrap_or_else(|| panic!("match broker-unregistration action"));
-    let AdapterCommand::UnregisterBroker(command) = &mut command else {
+    let AdapterCommand::UnregisterBroker(unregister) = &mut command else {
         panic!("unexpected wire command");
     };
-    command.broker_id = 2;
+    unregister.broker_id = 2;
     assert!(AdminTarget::from_exact(action, &command).is_err());
 }

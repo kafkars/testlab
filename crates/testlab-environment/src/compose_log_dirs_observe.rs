@@ -17,6 +17,10 @@ use crate::observer_admin_target::AdminTarget;
 const POLL_SLICE: Duration = Duration::from_millis(50);
 
 impl DockerComposeEnvironment {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the bounded polling flow keeps command execution and convergence checks together"
+    )]
     pub(super) fn observe_log_dirs_with_cli(
         &mut self,
         target: &AdminTarget,

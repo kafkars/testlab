@@ -20,7 +20,7 @@ NodeId DirectoryId LogEndOffset Lag LastFetchTimestamp LastCaughtUpTimestamp Sta
 1 AQEBAQEBAQEBAQEBAQEBAQ 40 2 100 101 Follower\n\
 3 AAAAAAAAAAAAAAAAAAAAAA 39 3 102 103 Observer\n";
 
-const LEGACY_STATUS: &str = r#"ClusterId: legacyClusterId012345w
+const LEGACY_STATUS: &str = r"ClusterId: legacyClusterId012345w
 LeaderId: 2
 LeaderEpoch: 7
 HighWatermark: 40
@@ -28,7 +28,7 @@ MaxFollowerLag: 2
 MaxFollowerLagTimeMs: 9
 CurrentVoters: [2,1]
 CurrentObservers: [3]
-"#;
+";
 
 const LEGACY_REPLICATION: &str = "\
 NodeId LogEndOffset Lag LastFetchTimestamp LastCaughtUpTimestamp Status\n\

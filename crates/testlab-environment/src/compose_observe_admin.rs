@@ -16,6 +16,10 @@ use crate::observer_error::ObserverError;
 
 impl DockerComposeEnvironment {
     /// Independently captures broker state after one correlated admin terminal.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "admin observation dispatch keeps every independent backend selection explicit"
+    )]
     pub fn observe_admin(
         &mut self,
         action: &ScenarioAction,

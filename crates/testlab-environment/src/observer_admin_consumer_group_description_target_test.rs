@@ -11,8 +11,8 @@ use crate::observer_admin_target::AdminTarget;
 #[test]
 fn mixed_descriptions_preserve_order_size_and_exact_wire_identity() {
     let action = action();
-    let command = command(vec!["consumer-group", "classic-group"]);
-    let target = AdminTarget::from_exact(&action, &command)
+    let wire_command = command(vec!["consumer-group", "classic-group"]);
+    let target = AdminTarget::from_exact(&action, &wire_command)
         .unwrap_or_else(|error| panic!("target: {error}"))
         .unwrap_or_else(|| panic!("mixed description target"));
     let AdminTarget::ConsumerGroupDescriptions(target_value) = &target else {

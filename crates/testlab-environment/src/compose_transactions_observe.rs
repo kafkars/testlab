@@ -13,6 +13,10 @@ use crate::observer_admin_target::{AdminTarget, ordinal};
 use crate::observer_admin_transaction_target::TransactionTarget;
 
 impl DockerComposeEnvironment {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "transaction list and description observations share one bounded CLI lifecycle"
+    )]
     pub(super) fn observe_transactions_with_cli(
         &mut self,
         target: &AdminTarget,
