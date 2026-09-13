@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn client_quota_cut_advances_all_versioned_boundaries() {
-    assert_eq!(PROTOCOL_VERSION, 125);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 129);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 115);
+    assert_eq!(PROTOCOL_VERSION, 126);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 130);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 116);
 }
 
 #[test]
@@ -73,6 +73,19 @@ fn actions_commands_public_results_and_broker_facts_round_trip() {
             direction: BrokerQuotaDirection::Producer,
             bytes_per_second: None,
         },
+    ));
+}
+
+#[test]
+fn quota_description_action_defaults_to_strict_filtering() {
+    let encoded = toml::to_string(&ScenarioAction::DescribeClientQuota(describe()))
+        .unwrap_or_else(|error| panic!("encode quota description: {error}"))
+        .replace("strict = false\n", "");
+    let decoded = toml::from_str::<ScenarioAction>(&encoded)
+        .unwrap_or_else(|error| panic!("decode default quota strictness: {error}"));
+    assert!(matches!(
+        decoded,
+        ScenarioAction::DescribeClientQuota(DescribeClientQuotaAction { strict: true, .. })
     ));
 }
 
@@ -200,6 +213,7 @@ fn describe() -> DescribeClientQuotaAction {
         operation_id: operation("quota-describe"),
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
+        strict: false,
         expected_bytes_per_second: 65_536,
         timeout_ms: 1_000,
     }
@@ -211,6 +225,7 @@ fn describe_command() -> DescribeClientQuotaCommand {
         operation_id: operation("quota-describe"),
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
+        strict: false,
         timeout_ms: 1_000,
     }
 }

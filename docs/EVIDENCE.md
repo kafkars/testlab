@@ -250,6 +250,11 @@ offset read isolation to caller-ordered batches. ADMIN-089 preserves one
 read-uncommitted selection for the complete public call and joins every ordered
 earliest or latest result to contiguous immediate independent watermarks over
 committed records.
+Protocol v126, scenario schema v130, and evidence schema v116 add exact
+client-quota description strictness. ADMIN-090 preserves a non-strict named-user
+filter on the wire and joins its result to an immediate independent Kafka CLI
+value; the paired strict call proves both selections over one simple entity
+without claiming composite-entity result divergence.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -585,7 +590,11 @@ replacement, and removal terminals to immediate Kafka-CLI observations of the
 same user, key, and whole-number value or explicit absence. ADMIN-086 separately
 binds the proposed validation-only alteration and its distinct public terminal
 to an immediate Kafka-CLI observation proving the exact prior rate did not
-change. Public and independent client-quota facts remain separate. ADMIN-035 and ADMIN-036 bind
+change. ADMIN-090 separately binds an exact non-strict filter selection to the
+same public and independent named-user value used by the paired strict call.
+The fixture contains no composite quota entity, so it proves option preservation
+without asserting that the two result sets differ. Public and independent
+client-quota facts remain separate. ADMIN-035 and ADMIN-036 bind
 exact named-user SCRAM-SHA-256/512 description, upsert, and deletion terminals
 to immediate Kafka-CLI observations of the same non-secret mechanism,
 iterations, or absence. The password exists only in the adapter process

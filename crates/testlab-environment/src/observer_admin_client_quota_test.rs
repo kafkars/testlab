@@ -15,6 +15,7 @@ fn action_and_wire_command_map_to_one_exact_quota_target() {
         operation_id: operation("quota-describe"),
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
+        strict: false,
         timeout_ms: 1_000,
     });
     let target = AdminTarget::from_exact(&action, &command)
@@ -32,7 +33,7 @@ fn action_and_wire_command_map_to_one_exact_quota_target() {
     let AdapterCommand::DescribeClientQuota(mut changed) = command else {
         panic!("client-quota command kind");
     };
-    changed.direction = BrokerQuotaDirection::Consumer;
+    changed.strict = true;
     assert!(
         AdminTarget::from_exact(&action, &AdapterCommand::DescribeClientQuota(changed)).is_err()
     );
@@ -158,6 +159,7 @@ fn describe() -> DescribeClientQuotaAction {
         operation_id: operation("quota-describe"),
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
+        strict: false,
         expected_bytes_per_second: 65_536,
         timeout_ms: 1_000,
     }

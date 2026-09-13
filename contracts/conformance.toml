@@ -595,6 +595,12 @@ statement = "One caller-ordered batch public offset request preserves read-uncom
 category = "admin"
 
 [[contract]]
+id = "ADMIN-090"
+title = "Client-quota description preserves non-strict selection"
+statement = "One exact named-user client-quota description preserves non-strict public filter selection on the wire, returns the exact whole-number byte rate, and is followed immediately by an independent Kafka CLI query of the same value."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

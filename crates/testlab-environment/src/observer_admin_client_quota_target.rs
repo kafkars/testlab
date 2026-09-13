@@ -31,6 +31,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 operation_id: value.operation_id.clone(),
                 user: value.user.clone(),
                 direction: value.direction,
+                strict: value.strict,
                 timeout_ms: value.timeout_ms,
             }),
             AdminTarget::ClientQuota(ClientQuotaTarget {

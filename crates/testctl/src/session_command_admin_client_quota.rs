@@ -31,6 +31,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                 operation_id: value.operation_id.clone(),
                 user: value.user.clone(),
                 direction: value.direction,
+                strict: value.strict,
                 timeout_ms: value.timeout_ms,
             }),
             ExpectedEvent::ClientQuotaDescribed(value.operation_id.clone()),

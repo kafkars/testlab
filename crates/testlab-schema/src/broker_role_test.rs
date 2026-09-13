@@ -6,7 +6,7 @@ use crate::Scenario;
 fn group_coordinator_requires_prior_group_initialization() {
     let error = validate_error(
         r#"
-schema_version = 129
+schema_version = 130
 id = "fault.uninitialized-group"
 title = "uninitialized group"
 description = "group role target must already exist"
@@ -44,7 +44,7 @@ group_id = "missing-group"
 fn partition_leader_requires_a_scenario_record_target() {
     let error = validate_error(
         r#"
-schema_version = 129
+schema_version = 130
 id = "fault.missing-partition"
 title = "missing partition"
 description = "partition role target must belong to scenario intent"

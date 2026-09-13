@@ -1,7 +1,7 @@
-schema_version = 129
+schema_version = 130
 id = "kafka.admin-client-quota-lifecycle"
-title = "packaged admin validates, sets, describes, and removes exact client quotas"
-description = "The packaged client's public quota operations set, describe, validate without mutation, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."
+title = "packaged admin preserves strict and non-strict client-quota descriptions"
+description = "The packaged client's public quota operations set, describe with paired strict and non-strict filters, validate without mutation, and remove producer and consumer byte rates while independent Kafka CLI queries confirm every terminal and the final clean state."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 
@@ -33,6 +33,18 @@ client_id = "client-1"
 operation_id = "admin-client-quota-producer-describe"
 user = "testlab-kafkars-quota-user"
 direction = "producer"
+strict = true
+expected_bytes_per_second = 65536
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-producer-quota-nonstrict"
+kind = "describe_client_quota"
+client_id = "client-1"
+operation_id = "admin-client-quota-producer-describe-nonstrict"
+user = "testlab-kafkars-quota-user"
+direction = "producer"
+strict = false
 expected_bytes_per_second = 65536
 timeout_ms = 20000
 

@@ -90,7 +90,7 @@ fn describe<W: Write>(
             "user",
             command.user.clone(),
         )])
-        .strict(true)
+        .strict(command.strict)
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()

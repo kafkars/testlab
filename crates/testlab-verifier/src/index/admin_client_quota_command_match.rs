@@ -37,6 +37,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.operation_id == command.operation_id
                 && action.user == command.user
                 && action.direction == command.direction
+                && action.strict == command.strict
                 && action.timeout_ms == command.timeout_ms
         }
         (ScenarioAction::AlterClientQuota(_) | ScenarioAction::DescribeClientQuota(_), _)

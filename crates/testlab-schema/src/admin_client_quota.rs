@@ -59,6 +59,9 @@ pub struct DescribeClientQuotaAction {
     pub user: String,
     /// Producer or consumer byte-rate key.
     pub direction: BrokerQuotaDirection,
+    /// Whether entities with unspecified component types are excluded.
+    #[serde(default = "default_strict_filter")]
+    pub strict: bool,
     /// Exact whole-number value required by the verifier.
     pub expected_bytes_per_second: u64,
     /// Complete public operation bound.
@@ -77,8 +80,14 @@ pub struct DescribeClientQuotaCommand {
     pub user: String,
     /// Producer or consumer byte-rate key.
     pub direction: BrokerQuotaDirection,
+    /// Whether entities with unspecified component types are excluded.
+    pub strict: bool,
     /// Complete public operation bound.
     pub timeout_ms: u64,
+}
+
+const fn default_strict_filter() -> bool {
+    true
 }
 
 /// Public completion for one exact named-user quota replacement or removal.

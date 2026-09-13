@@ -30,7 +30,7 @@ fn wrong_public_description_fails_description_contract() {
     };
     value.bytes_per_second = 1;
 
-    assert_contract(&violations(&entries), "ADMIN-033");
+    assert_contract(&violations(&entries), "ADMIN-090");
 }
 
 #[test]
@@ -101,6 +101,7 @@ fn history() -> Vec<HistoryEntry> {
                 operation_id: operation("quota-describe"),
                 user: "testlab-user".to_owned(),
                 direction: BrokerQuotaDirection::Producer,
+                strict: false,
                 timeout_ms: 1_000,
             }),
         ),
@@ -235,6 +236,7 @@ fn describe() -> DescribeClientQuotaAction {
         operation_id: operation("quota-describe"),
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
+        strict: false,
         expected_bytes_per_second: 65_536,
         timeout_ms: 1_000,
     }

@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v125 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v129 and evidence schema v115.
+Protocol v126 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v130 and evidence schema v116.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -916,7 +916,11 @@ window invalidates the corresponding claim.
 Client-quota administration is bounded to producer and consumer byte-rate
 overrides for one exact non-default user entity. Rates are whole numbers from
 one through `u32::MAX`; alteration either replaces one rate or removes it, and
-description selects the same exact user and key. Every successful public
+description selects the same exact user and key. Every description command
+carries exact strict or non-strict filter intent; omitted scenario fields retain
+Testlab's backward-compatible strict default, while the wire never defaults.
+The paired fixture returns the same simple named-user entity for both choices
+and does not claim composite-entity result divergence. Every successful public
 terminal is followed immediately by a pinned Kafka CLI query whose raw output
 is retained. The verifier requires the public entity or value and independent
 resulting broker state to agree exactly; unknown keys, fractional values,

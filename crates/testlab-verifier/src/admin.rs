@@ -1,7 +1,7 @@
 use crate::admin_acl::verify_acl_action;
 use crate::admin_batch::verify_batch_action;
 use crate::admin_broker_unregistration::verify as verify_broker_unregistration;
-use crate::admin_client_quota::verify_client_quota_action;
+use crate::admin_client_quota::{contract as quota_contract, verify_client_quota_action};
 use crate::admin_cluster::verify_cluster_action;
 use crate::admin_config::verify_config_action;
 use crate::admin_config_batch::verify_config_batch_action;
@@ -182,7 +182,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::CreateAcls(_) => "ADMIN-030",
         ScenarioAction::DescribeAcls(_) => "ADMIN-031",
         ScenarioAction::DeleteAcls(_) => "ADMIN-032",
-        ScenarioAction::DescribeClientQuota(_) => "ADMIN-033",
+        ScenarioAction::DescribeClientQuota(value) => quota_contract(value.strict),
         ScenarioAction::AlterClientQuota(value) if value.validate_only => "ADMIN-086",
         ScenarioAction::AlterClientQuota(_) => "ADMIN-034",
         ScenarioAction::DescribeUserScramCredential(_) => "ADMIN-035",

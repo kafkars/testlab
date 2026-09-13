@@ -109,13 +109,17 @@ fn verify_describe(
     });
     report(
         public_matches && independent_matches,
-        "ADMIN-033",
+        contract(action.strict),
         &action.operation_id,
         "exact public client-quota value and immediate independent matching state",
         public,
         independent,
         violations,
     );
+}
+
+pub(crate) const fn contract(strict: bool) -> &'static str {
+    if strict { "ADMIN-033" } else { "ADMIN-090" }
 }
 
 #[allow(

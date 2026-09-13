@@ -21,6 +21,7 @@ fn describe_translation_omits_the_verifier_owned_expected_rate() {
     assert_eq!(command.operation_id, operation("quota-describe"));
     assert_eq!(command.user, "testlab-user");
     assert_eq!(command.direction, BrokerQuotaDirection::Producer);
+    assert!(!command.strict);
     assert_eq!(command.timeout_ms, 1_000);
     assert!(matches!(expected, ExpectedEvent::ClientQuotaDescribed(_)));
 }
@@ -156,6 +157,7 @@ fn describe() -> DescribeClientQuotaAction {
         operation_id: operation("quota-describe"),
         user: "testlab-user".to_owned(),
         direction: BrokerQuotaDirection::Producer,
+        strict: false,
         expected_bytes_per_second: 65_536,
         timeout_ms: 1_000,
     }

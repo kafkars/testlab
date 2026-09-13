@@ -1,4 +1,4 @@
-schema_version = 129
+schema_version = 130
 id = "kafka.admin-list-offsets-paired"
 title = "packaged admin preserves paired offset isolation selections"
 description = "After two acknowledged records reach one isolated partition, a read-uncommitted earliest query reports offset 0 and a read-committed latest query reports end offset 2 for that exact partition, grounded in the same independent broker record evidence."
