@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v139 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v143 and evidence schema v129.
+Protocol v140 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v144 and evidence schema v130.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -94,11 +94,14 @@ the expected target and failure remain scenario-only. Its completion preserves
 the public topic-partition fence, positive assignment and position generations,
 optional Fetch revision, terminal category, and exact broker code.
 
-An ordinary `send` names its exact public producer method. `try_send` is the
-default immediate-admission path; `send` selects bounded FIFO waiting admission
-and requires the `producer_waiting_send` capability. The command retains that
-selection so an adapter cannot silently substitute one public method for the
-other. A cancellation command retains the same selection and invokes
+Every ordinary producer command is required exactly once in scenario order. A
+single `send` retains its producer and operation identities, complete record,
+partitioning and UUID-validation choices, and exact public producer method.
+`try_send` is the default immediate-admission path; `send` selects bounded FIFO
+waiting admission and requires the `producer_waiting_send` capability. A
+`send_batch` retains one producer and its complete caller-ordered operation and
+record set, so individual commands cannot substitute for the public batch call.
+A cancellation command retains the same method selection and invokes
 `Delivery::cancel` for `try_send` or `Send::cancel` for `send`.
 
 An ordinary send may reference one prior singleton `topic_id` description.
@@ -1318,6 +1321,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v139 is an exact semantic contract. New capabilities may be declared
+Protocol v140 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

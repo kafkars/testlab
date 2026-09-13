@@ -1087,6 +1087,12 @@ statement = "Each ordinary producer has exactly one issued creation command pres
 category = "producer"
 
 [[contract]]
+id = "PROD-021"
+title = "Ordinary producer calls preserve exact caller input"
+statement = "Every ordinary single or batch producer command appears exactly once in scenario order, preserving its public call kind, producer and operation identities, method, partition selection, topic-identity validation, and complete caller-ordered records before terminal and broker-visible evidence applies."
+category = "producer"
+
+[[contract]]
 id = "CONS-012"
 title = "Consumer records match independent broker coordinates and bytes"
 statement = "Every exact assigned, group, or multi-member group receive reports the same topic, partition, offset, timestamp, key, value, and ordered headers as its independently observed producer record, including ordered cursor advance, reset replay, and independent direct-consumer reads."

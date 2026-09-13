@@ -1,4 +1,4 @@
-schema_version = 143
+schema_version = 144
 id = "kafka.assigned-consumer-null-empty"
 title = "assigned consumer distinguishes tombstones from empty values"
 description = "One directly assigned public consumer returns an exact null-valued tombstone and a distinct empty key and value with independently matched offsets."

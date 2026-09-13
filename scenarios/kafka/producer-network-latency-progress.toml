@@ -1,4 +1,4 @@
-schema_version = 143
+schema_version = 144
 id = "kafka.producer-network-latency-progress"
 title = "packaged producer progresses through one-way network latency"
 description = "The external proxy independently delays client-to-broker and broker-to-client bytes in separate observed windows while the same packaged producer acknowledges exact records during and after both faults."

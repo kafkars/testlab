@@ -116,6 +116,9 @@ Configured producer creation preserves one exact complete policy command and
 qualifies both the aggregate `producer_config` method and its four equivalent
 individual public setters. Ordinary producer contracts retain the independent
 broker-visible delivery proof.
+Every ordinary producer call also preserves one exact ordered `try_send`,
+waiting `send`, or `send_batch` command with its producer, operation identities,
+partition selection, UUID-validation choice, and complete record input.
 Configured assigned-consumer creation likewise preserves one exact immutable
 read-isolation, Fetch, and retained-delivery policy command. Its read-committed
 scenario retains independent aborted-transaction and visible-record truth.

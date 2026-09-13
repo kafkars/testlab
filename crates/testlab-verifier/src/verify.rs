@@ -28,6 +28,8 @@ mod child_handle_registration;
 mod group_consumer_registration;
 #[path = "producer_configuration_method.rs"]
 mod producer_configuration_method;
+#[path = "producer_operation_command.rs"]
+mod producer_operation_command;
 #[path = "share_consumer_registration.rs"]
 mod share_consumer_registration;
 #[path = "transactional_producer_registration.rs"]
@@ -71,6 +73,7 @@ pub fn verify(
     crate::transaction_topic_uuid::verify(scenario, &index, &mut violations);
     crate::producer_cancellation::verify(scenario, &index, &mut violations);
     producer_configuration_method::verify(scenario, &index, &mut violations);
+    producer_operation_command::verify(scenario, &index, &mut violations);
     assigned_consumer_assignment_command::verify(scenario, &index, &mut violations);
     assigned_consumer_configuration_command::verify(scenario, &index, &mut violations);
     child_handle_registration::verify(scenario, &index, &mut violations);

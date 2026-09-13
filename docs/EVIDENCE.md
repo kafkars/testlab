@@ -317,6 +317,10 @@ Protocol v139, scenario schema v143, and evidence schema v129 add exact direct
 assignment commands. CONS-030 requires every single or batch beginning assignment
 exactly once in scenario order, retaining its consumer, topic-partition input,
 public command kind, caller-ordered batch, and batch completion timeout.
+Protocol v140, scenario schema v144, and evidence schema v130 add exact ordinary
+producer calls. PROD-021 requires every single or batch command exactly once in
+scenario order with its public kind, identities, method, partition and topic-ID
+choices, and complete caller-ordered records.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -395,6 +399,12 @@ PROD-016 additionally requires the issued command to preserve a selected
 packaged adapter invokes that exact bounded FIFO waiting method; the normal
 receipt and independent Kafka observation remain governed by PROD-001 through
 PROD-010 and PROD-014.
+PROD-021 applies the exact-command requirement to every ordinary `try_send`,
+waiting `send`, and `send_batch` call in scenario order. It preserves the
+producer and operation identities, complete record input, partition and topic-ID
+choices, and prevents individual sends from substituting for a caller-ordered
+batch. Existing terminal and independent record contracts remain authoritative
+for delivery truth.
 
 Configured-client history retains the complete requested public producer
 policy and selected aggregate or individual-setter path under its stable
