@@ -145,7 +145,7 @@ fn history() -> Vec<HistoryEntry> {
             NetworkProxyControl::AlterFault(fault("blackhole-remove", NetworkFaultState::Absent)),
         ),
         observation(4),
-        command(5, send_command("after-blackhole", "after")),
+        command(5, send_command("after-blackhole", "after-blackhole")),
         terminal(6, "after-blackhole", TerminalStatus::Acknowledged),
         proxy_process(7),
     ]

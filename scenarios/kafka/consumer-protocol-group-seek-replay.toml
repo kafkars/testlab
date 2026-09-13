@@ -1,4 +1,4 @@
-schema_version = 156
+schema_version = 157
 id = "kafka.consumer-protocol-group-seek-replay"
 title = "a runtime-configured KIP-848 group seek replays one committed broker record"
 description = "The packaged KIP-848 member uses non-default public Fetch, retained-capacity, processing, membership, and individual seek/close policy, receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."

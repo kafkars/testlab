@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v152 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v156 and evidence schema v142.
+Protocol v153 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v157 and evidence schema v143.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -1357,6 +1357,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v152 is an exact semantic contract. New capabilities may be declared
+Protocol v153 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

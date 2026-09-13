@@ -8,6 +8,9 @@ use testlab_schema::{
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[path = "network_producer_recovery.rs"]
+mod producer_recovery;
+
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     for (position, step) in scenario.steps.iter().enumerate() {
         match &step.action {
@@ -19,10 +22,22 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
             ScenarioAction::AlterNetworkFault(action)
                 if action.state == NetworkFaultState::Absent =>
             {
-                verify_recovery(scenario, position, &action.operation_id, index, violations);
+                producer_recovery::verify(
+                    scenario,
+                    position,
+                    &action.operation_id,
+                    index,
+                    violations,
+                );
             }
             ScenarioAction::CutNetworkConnections(action) => {
-                verify_recovery(scenario, position, &action.operation_id, index, violations);
+                producer_recovery::verify(
+                    scenario,
+                    position,
+                    &action.operation_id,
+                    index,
+                    violations,
+                );
             }
             _ => {}
         }
@@ -80,40 +95,6 @@ fn verify_window(
         ),
         None,
         window_references(index, &action.operation_id, remove_id),
-    ));
-}
-
-fn verify_recovery(
-    scenario: &Scenario,
-    position: usize,
-    control_id: &testlab_schema::EnvironmentOperationId,
-    index: &HistoryIndex,
-    violations: &mut Vec<Violation>,
-) {
-    let control_sequence = control_sequence(index, control_id);
-    let operation = scenario.steps[position + 1..]
-        .iter()
-        .find_map(|step| send_operation(&step.action));
-    let recovered = operation
-        .and_then(|operation| index.terminals.get(operation))
-        .into_iter()
-        .flatten()
-        .find(|terminal| {
-            terminal.status == TerminalStatus::Acknowledged
-                && control_sequence.is_some_and(|control| control < terminal.history_sequence)
-        });
-    if recovered.is_some() {
-        return;
-    }
-    violations.push(violation(
-        "NET-004",
-        format!(
-            "network control {control_id} expected later acknowledged public producer recovery"
-        ),
-        operation.cloned(),
-        control_sequence
-            .map(|sequence| vec![format!("history:{sequence}")])
-            .unwrap_or_default(),
     ));
 }
 

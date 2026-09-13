@@ -1,4 +1,4 @@
-schema_version = 156
+schema_version = 157
 id = "kafka.classic-group-record-fidelity"
 title = "classic group receive set preserves exact record fidelity"
 description = "One classic member receives and commits a four-record set across two partitions while preserving tombstones, null and empty fields, duplicate nullable binary headers, and independent Kafka coordinates."

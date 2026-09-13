@@ -11,6 +11,9 @@ use testlab_schema::{
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[cfg(test)]
+#[path = "network_proxy_batch_progress_test.rs"]
+mod batch_progress_test;
 #[path = "network_consumer_progress.rs"]
 mod consumer_progress;
 #[cfg(test)]

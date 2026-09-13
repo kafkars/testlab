@@ -1035,7 +1035,7 @@ category = "network"
 [[contract]]
 id = "NET-004"
 title = "Network restoration recovers public producer progress"
-statement = "Every fault removal and connection cut is followed by a later acknowledged producer operation through the public proxy endpoint."
+statement = "Every fault removal and connection cut is followed before the next network control by one exact public single-record or batch producer command whose complete operation set reaches acknowledged terminals through the proxy endpoint."
 category = "network"
 
 [[contract]]

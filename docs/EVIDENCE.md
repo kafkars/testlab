@@ -372,6 +372,11 @@ progress inside independently observed partition-leader replacement windows.
 FAULT-004 preserves each relevant assigned, group, or Share receive command and
 its target-partition completion after replacement election and before original
 owner restoration; group progress must commit.
+Protocol v153, scenario schema v157, and evidence schema v143 tighten producer
+recovery after network controls. NET-004 now preserves one exact subsequent
+single-record or batch command and requires every selected operation to
+acknowledge before another network control; a pre-control command cannot satisfy
+recovery merely because its terminal arrives later.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -1304,8 +1309,10 @@ NET-001 requires an exact declared control set and coherent contiguous effect
 observations. NET-002 requires one successful supervised proxy process with
 the exact terminal artifacts. NET-003 binds each exact active fault window to
 its required public producer outcome: `possibly_sent` for a blackhole and
-`acknowledged` for bounded one-way delay. NET-004 requires a later acknowledged
-send after every removal or connection cut. NET-005 binds every subsequent
+`acknowledged` for bounded one-way delay. NET-004 binds the first subsequent
+single or batch producer action to one exact post-control command and requires
+every included operation to acknowledge before any next network control.
+NET-005 binds every subsequent
 declared assigned, group, or Share receive before the next network control to
 one exact command and a later nonempty public completion; group progress must
 also commit. Proxy facts cannot manufacture a client result, and adapter
