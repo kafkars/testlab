@@ -1,4 +1,4 @@
-schema_version = 131
+schema_version = 132
 id = "kafka.producer-configuration-none"
 title = "configured producer delivers without compression"
 description = "A client built with the complete explicit public producer policy and no record-batch compression delivers one exact independently observed record."

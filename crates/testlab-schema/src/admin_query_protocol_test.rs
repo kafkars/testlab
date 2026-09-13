@@ -16,8 +16,8 @@ mod topic_pagination_tests;
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 127);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 131);
+    assert_eq!(PROTOCOL_VERSION, 128);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 132);
 }
 
 #[test]

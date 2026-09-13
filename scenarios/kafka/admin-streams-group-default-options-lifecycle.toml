@@ -1,0 +1,38 @@
+schema_version = 132
+id = "kafka.admin-streams-group-default-options-lifecycle"
+title = "packaged Streams-group admin preserves default description and offset selections"
+description = "On Kafka 4.3.1, two real bundled WordCount Streams applications establish quiescent modern Streams groups, then the packaged client's public Admin omits authorization and full-topology metadata, selects non-stable offset reads, completes the full lifecycle, and is followed by an independent pinned Streams CLI absence check."
+timeout_ms = 180000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "exercise-streams-group-default-options"
+kind = "exercise_streams_group_admin_lifecycle"
+client_id = "client-1"
+operation_id = "admin-streams-group-default-options"
+primary_group_id = "testlab-streams-default-primary"
+secondary_group_id = "testlab-streams-default-secondary"
+input_topic = "streams-plaintext-input"
+output_topic = "streams-wordcount-output"
+expected_initial_offset = 1
+altered_offset = 0
+include_authorized_operations = false
+include_topology_description = false
+require_stable = false
+timeout_ms = 60000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

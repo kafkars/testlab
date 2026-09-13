@@ -1,4 +1,4 @@
-schema_version = 131
+schema_version = 132
 id = "adversary.producer-stalled-response"
 title = "producer response stall preserves possibly-sent certainty"
 description = "The external Kafka peer receives a Produce request but delays its response beyond the packaged producer delivery bound; the public terminal must preserve possibly-sent uncertainty without a broker-visibility claim."

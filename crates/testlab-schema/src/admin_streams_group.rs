@@ -36,6 +36,15 @@ pub struct ExerciseStreamsGroupAdminLifecycleAction {
     pub expected_initial_offset: i64,
     /// Different valid input position written through the public Admin API.
     pub altered_offset: i64,
+    /// Whether descriptions request Kafka authorization metadata.
+    #[serde(default = "default_streams_option")]
+    pub include_authorized_operations: bool,
+    /// Whether descriptions request Kafka's full topology graph.
+    #[serde(default = "default_streams_option")]
+    pub include_topology_description: bool,
+    /// Whether offset listings require stable committed positions.
+    #[serde(default = "default_streams_option")]
+    pub require_stable: bool,
     /// Complete nine-operation public bound.
     pub timeout_ms: u64,
 }
@@ -56,8 +65,18 @@ pub struct ExerciseStreamsGroupAdminLifecycleCommand {
     pub input_topic: String,
     /// Different valid input position written through the public Admin API.
     pub altered_offset: i64,
+    /// Whether descriptions request Kafka authorization metadata.
+    pub include_authorized_operations: bool,
+    /// Whether descriptions request Kafka's full topology graph.
+    pub include_topology_description: bool,
+    /// Whether offset listings require stable committed positions.
+    pub require_stable: bool,
     /// Complete nine-operation public bound.
     pub timeout_ms: u64,
+}
+
+const fn default_streams_option() -> bool {
+    true
 }
 
 /// Bounded public facts from one successful Streams-group description.

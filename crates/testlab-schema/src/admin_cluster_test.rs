@@ -10,9 +10,9 @@ use crate::{
 
 #[test]
 fn fenced_broker_cut_advances_every_versioned_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 127);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 131);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 117);
+    assert_eq!(PROTOCOL_VERSION, 128);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 132);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 118);
 }
 
 #[test]

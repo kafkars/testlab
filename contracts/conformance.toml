@@ -607,6 +607,12 @@ statement = "One exact singleton public consumer-group description preserves req
 category = "admin"
 
 [[contract]]
+id = "ADMIN-092"
+title = "Streams-group administration preserves caller-selected builder options"
+statement = "One bounded public Streams-group Admin sequence preserves caller-selected authorization metadata, full topology description, and stable offset-read options across singular and plural builders while retaining the exact lifecycle results and immediate independent final absence."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

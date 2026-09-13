@@ -1,4 +1,4 @@
-schema_version = 131
+schema_version = 132
 id = "kafka.admin-list-consumer-groups-offsets"
 title = "packaged admin lists selected offsets from multiple consumer groups"
 description = "Two distinct classic groups commit one selected topic offset each, then one packaged multi-group admin call returns both nested outcomes in caller order while independent group-scoped broker queries confirm the same offsets."

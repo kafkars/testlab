@@ -23,7 +23,7 @@ use crate::admin_records::verify_records_action;
 use crate::admin_records_batch::verify_records_batch_action;
 use crate::admin_replica_log_dirs::verify_replica_log_dirs_action;
 use crate::admin_share_group::verify_share_group_action;
-use crate::admin_streams_group::verify as verify_streams_group;
+use crate::admin_streams_group::{contract as streams_contract, verify as verify_streams_group};
 use crate::admin_topic::verify_topic_action;
 use crate::admin_topics_deletion::verify_topics_deletion_action;
 use crate::admin_topics_description::verify_topics_description_action;
@@ -268,7 +268,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
             "ADMIN-087"
         }
         ScenarioAction::ExerciseDelegationTokenLifecycle(_) => "ADMIN-073",
-        ScenarioAction::ExerciseStreamsGroupAdminLifecycle(_) => "ADMIN-074",
+        ScenarioAction::ExerciseStreamsGroupAdminLifecycle(value) => streams_contract(value),
         ScenarioAction::DescribeProducers(_) => "ADMIN-051",
         ScenarioAction::ListTransactions(value)
             if crate::admin_transactions::filters::selected(value) =>

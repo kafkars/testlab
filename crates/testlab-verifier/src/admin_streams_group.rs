@@ -49,9 +49,9 @@ pub(crate) fn verify(
     });
     if !matches {
         violations.push(violation(
-            "ADMIN-074",
+            contract(action),
             format!(
-                "admin operation {} expected exact caller-ordered Streams-group descriptions, stable offsets, mutation, offset deletion, group deletion, and immediate independent final absence",
+                "admin operation {} expected exact caller-ordered Streams-group descriptions with requested metadata, selected stable-offset behavior, mutation, offset deletion, group deletion, and immediate independent final absence",
                 action.operation_id
             ),
             Some(action.operation_id.clone()),
@@ -139,8 +139,8 @@ fn description_matches(
         && actual.assignment_epoch >= 0
         && actual.topology_epoch.is_some_and(|epoch| epoch >= 0)
         && actual.member_count == 0
-        && actual.authorized_operations.is_some()
-        && valid_topology_description(actual)
+        && actual.authorized_operations.is_some() == expected.include_authorized_operations
+        && topology_description_matches(actual, expected.include_topology_description)
         && actual
             .topology_subtopology_count
             .is_some_and(|count| count > 0)
@@ -149,6 +149,31 @@ fn description_matches(
             .topology_source_topics
             .iter()
             .any(|topic| topic == &expected.input_topic)
+}
+
+fn topology_description_matches(
+    actual: &AdminStreamsGroupDescription,
+    include_topology_description: bool,
+) -> bool {
+    if include_topology_description {
+        valid_topology_description(actual)
+    } else {
+        actual.topology_description_subtopology_count.is_none()
+            && actual
+                .topology_description_status
+                .is_none_or(|status| status == 0)
+    }
+}
+
+pub(crate) const fn contract(action: &ExerciseStreamsGroupAdminLifecycleAction) -> &'static str {
+    if action.include_authorized_operations
+        && action.include_topology_description
+        && action.require_stable
+    {
+        "ADMIN-074"
+    } else {
+        "ADMIN-092"
+    }
 }
 
 fn valid_topology_description(actual: &AdminStreamsGroupDescription) -> bool {

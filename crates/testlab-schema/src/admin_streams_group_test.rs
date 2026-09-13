@@ -4,9 +4,9 @@ use crate::*;
 
 #[test]
 fn lifecycle_payloads_round_trip_with_exact_order() {
-    assert_eq!(PROTOCOL_VERSION, 127);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 131);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 117);
+    assert_eq!(PROTOCOL_VERSION, 128);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 132);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 118);
     let action = action();
     round_trip(&ScenarioAction::ExerciseStreamsGroupAdminLifecycle(
         action.clone(),
@@ -38,6 +38,9 @@ fn command() -> ExerciseStreamsGroupAdminLifecycleCommand {
         secondary_group_id: "streams-secondary".to_owned(),
         input_topic: STREAMS_DEMO_INPUT_TOPIC.to_owned(),
         altered_offset: 0,
+        include_authorized_operations: true,
+        include_topology_description: true,
+        require_stable: true,
         timeout_ms: 60_000,
     }
 }
@@ -52,6 +55,9 @@ fn action() -> ExerciseStreamsGroupAdminLifecycleAction {
         output_topic: STREAMS_DEMO_OUTPUT_TOPIC.to_owned(),
         expected_initial_offset: 1,
         altered_offset: 0,
+        include_authorized_operations: true,
+        include_topology_description: true,
+        require_stable: true,
         timeout_ms: 60_000,
     }
 }

@@ -1009,12 +1009,13 @@ not affect the result.
 
 The Streams-group scenario independently provisions two distinct modern
 WordCount applications and their exact stable input offset. The
-`exercise_streams_group_admin_lifecycle` wire command carries only those two
+`exercise_streams_group_admin_lifecycle` wire command carries those two
 application IDs, the selected input topic, one different valid replacement
-offset, and one complete deadline; the expected initial offset and fixed output
-topic remain in Testlab. Under that single bound the packaged public
-Admin describes the primary group, describes both groups in caller order,
-lists selected stable offsets through the singleton and plural APIs, alters and
+offset, exact authorization, full-topology, and stable-offset selections, and
+one complete deadline; the expected initial offset and fixed output topic remain
+in Testlab. Under that single bound the packaged public Admin describes the
+primary group, describes both groups in caller order, lists selected offsets
+through the singleton and plural APIs, alters and
 then deletes the primary offset with public reads after each transition, and
 deletes both groups in caller order. Descriptions retain Empty state, epochs,
 initialized topology sources, requested authorization bits, and a requested v1
@@ -1023,6 +1024,10 @@ committed offsets, leader epochs, and bounded metadata. One completion owns all
 nine call results and throttles. An immediate pinned
 `kafka-streams-groups.sh --list` projection then independently proves both
 deleted identities absent without retaining unrelated group rows.
+The paired release scenario disables all three selections. Its description
+results must omit authorization data and either omit the v1 topology status or
+retain only Kafka's `NotRequested` status; its returned group offsets remain
+anchored by the same exact lifecycle and final independent absence.
 
 Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared

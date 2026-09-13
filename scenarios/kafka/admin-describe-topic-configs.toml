@@ -1,4 +1,4 @@
-schema_version = 131
+schema_version = 132
 id = "kafka.admin-describe-topic-configs"
 title = "packaged admin describes topic configurations with complete metadata"
 description = "One public plural topic-configuration description requests synonyms and documentation, preserves caller order and complete selected-entry metadata, and is followed by contiguous independent value reads for both topics."

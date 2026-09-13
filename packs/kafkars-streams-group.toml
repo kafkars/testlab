@@ -1,4 +1,7 @@
 schema_version = 1
 id = "kafkars-streams-group"
 title = "packaged Kafkars modern Streams-group Admin qualification"
-scenarios = ["scenarios/kafka/admin-streams-group-lifecycle.toml"]
+scenarios = [
+  "scenarios/kafka/admin-streams-group-lifecycle.toml",
+  "scenarios/kafka/admin-streams-group-default-options-lifecycle.toml",
+]

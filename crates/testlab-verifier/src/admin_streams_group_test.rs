@@ -6,7 +6,7 @@ use testlab_schema::{
     STREAMS_DEMO_INPUT_TOPIC, STREAMS_DEMO_OUTPUT_TOPIC,
 };
 
-use super::public_matches;
+use super::{contract, public_matches};
 
 #[test]
 fn exact_lifecycle_matches_and_reordering_fails() {
@@ -30,6 +30,25 @@ fn full_topology_status_must_match_payload_availability() {
     assert!(public_matches(&completion, &action));
 }
 
+#[test]
+fn default_description_and_offset_options_remain_exact() {
+    let mut action = action();
+    action.include_authorized_operations = false;
+    action.include_topology_description = false;
+    action.require_stable = false;
+    let mut completion = completion();
+    completion.singular_description.authorized_operations = None;
+    completion.singular_description.topology_description_status = Some(0);
+    for description in &mut completion.plural_descriptions {
+        description.authorized_operations = None;
+        description.topology_description_status = Some(0);
+    }
+    assert_eq!(contract(&action), "ADMIN-092");
+    assert!(public_matches(&completion, &action));
+    completion.singular_description.authorized_operations = Some(1);
+    assert!(!public_matches(&completion, &action));
+}
+
 fn action() -> ExerciseStreamsGroupAdminLifecycleAction {
     ExerciseStreamsGroupAdminLifecycleAction {
         client_id: ClientId::new("client-1").unwrap_or_else(|error| panic!("client: {error}")),
@@ -40,6 +59,9 @@ fn action() -> ExerciseStreamsGroupAdminLifecycleAction {
         output_topic: STREAMS_DEMO_OUTPUT_TOPIC.to_owned(),
         expected_initial_offset: 1,
         altered_offset: 0,
+        include_authorized_operations: true,
+        include_topology_description: true,
+        require_stable: true,
         timeout_ms: 60_000,
     }
 }

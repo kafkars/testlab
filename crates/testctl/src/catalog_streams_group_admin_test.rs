@@ -29,7 +29,10 @@ fn release_retains_exact_streams_group_admin_cell() {
         .unwrap_or_else(|error| panic!("load Streams-group pack: {error}"));
     assert_eq!(
         pack.scenarios,
-        ["scenarios/kafka/admin-streams-group-lifecycle.toml"]
+        [
+            "scenarios/kafka/admin-streams-group-lifecycle.toml",
+            "scenarios/kafka/admin-streams-group-default-options-lifecycle.toml",
+        ]
     );
     assert!(
         include_str!("../../../clusters/apache-kafka/compose/three-share.yml")

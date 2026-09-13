@@ -101,6 +101,8 @@ alone never establishes complete release qualification.
 
 Singleton consumer-group description coverage pairs authorization-bitfield
 exclusion and inclusion over unchanged independently observed live membership.
+The dedicated Streams-group cell likewise pairs authorization, full-topology,
+and stable-offset selections across all seven public lifecycle methods.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

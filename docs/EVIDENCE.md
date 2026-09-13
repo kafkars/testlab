@@ -260,6 +260,10 @@ singleton consumer-group authorization selection. ADMIN-091 preserves an
 included bitfield request on the wire and requires its public presence beside
 the exact member count; the paired excluded call and immediate group queries
 prove both selections over unchanged live membership.
+Protocol v128, scenario schema v132, and evidence schema v118 add exact
+Streams-group description and offset option selection. ADMIN-092 preserves
+false authorization, full-topology, and stable-offset flags across five public
+builder calls while the paired ADMIN-074 lifecycle retains all three true.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -963,6 +967,12 @@ successful group deletions in caller order, and nine bounded throttles. The
 public completion is followed immediately by a fail-closed projection of
 Kafka's pinned Streams-group CLI; it retains only the two selected identities'
 presence or absence and must prove both deleted groups absent.
+ADMIN-092 repeats the same seven-method lifecycle with authorization metadata,
+the full topology graph, and stable-offset reads disabled. The public
+descriptions must omit authorization values and retain only an absent or exact
+`NotRequested` full-topology status, command evidence binds all five affected
+builder calls, and the ordinary offset and final CLI contracts retain the same
+state truth without claiming unstable-offset divergence.
 
 ADMIN-075 binds one exact single-record transaction command to public
 `DescribeProducers` state before and after public Admin partition abort. The

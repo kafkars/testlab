@@ -35,8 +35,8 @@ pub(crate) fn exercise<W: Write>(
 
     let described = admin
         .describe_streams_group(primary.clone())
-        .include_authorized_operations(true)
-        .include_topology_description(true)
+        .include_authorized_operations(command.include_authorized_operations)
+        .include_topology_description(command.include_topology_description)
         .deadline_after(remaining(deadline)?)
         .submit()
         .wait()
@@ -47,8 +47,8 @@ pub(crate) fn exercise<W: Write>(
 
     let described = admin
         .describe_streams_groups(group_order.clone())
-        .include_authorized_operations(true)
-        .include_topology_description(true)
+        .include_authorized_operations(command.include_authorized_operations)
+        .include_topology_description(command.include_topology_description)
         .deadline_after(remaining(deadline)?)
         .submit()
         .wait()
@@ -60,7 +60,7 @@ pub(crate) fn exercise<W: Write>(
     let listed = admin
         .list_streams_group_offsets(primary.clone())
         .partitions([partition()])
-        .require_stable(true)
+        .require_stable(command.require_stable)
         .deadline_after(remaining(deadline)?)
         .submit()
         .wait()
@@ -80,7 +80,7 @@ pub(crate) fn exercise<W: Write>(
         .map(|group_id| ListStreamsGroupOffsetsQuery::selected(group_id.clone(), [partition()]));
     let listed = admin
         .list_streams_groups_offsets(queries)
-        .require_stable(true)
+        .require_stable(command.require_stable)
         .deadline_after(remaining(deadline)?)
         .submit()
         .wait()
@@ -212,7 +212,7 @@ fn list_selected(
     admin
         .list_streams_group_offsets(group_id.to_owned())
         .partitions([TopicPartition::new(command.input_topic.clone(), 0)])
-        .require_stable(true)
+        .require_stable(command.require_stable)
         .deadline_after(remaining(deadline)?)
         .submit()
         .wait()

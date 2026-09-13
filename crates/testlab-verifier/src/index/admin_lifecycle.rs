@@ -122,6 +122,9 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.secondary_group_id == command.secondary_group_id
                 && action.input_topic == command.input_topic
                 && action.altered_offset == command.altered_offset
+                && action.include_authorized_operations == command.include_authorized_operations
+                && action.include_topology_description == command.include_topology_description
+                && action.require_stable == command.require_stable
                 && action.timeout_ms == command.timeout_ms
         }
         (ScenarioAction::UnregisterBroker(_), _)
