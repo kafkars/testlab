@@ -95,8 +95,10 @@ fn admin_targets(
             require_topic(topics, subject_created, &action.topic, partitions);
         }
         ScenarioAction::ListTopics(action) => {
-            for topic in &action.required_topics {
-                require_topic(topics, subject_created, topic, 1);
+            for expected in &action.expected_topics {
+                if !expected.internal {
+                    require_topic(topics, subject_created, &expected.topic, 1);
+                }
             }
         }
         ScenarioAction::ListConfigResources(action)

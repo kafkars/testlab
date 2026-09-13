@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.admin-create-topics-batch-partial"
 title = "packaged admin preserves ordered partial topic-creation outcomes"
 description = "One public CreateTopics batch creates a fresh topic first and reports an exact duplicate-topic error for an existing topic second; ordered public outcomes and immediate independent metadata prove both resource results without collapsing the batch into one failure."
@@ -70,9 +70,9 @@ client_id = "client-1"
 operation_id = "admin-batch-list-topics"
 include_internal = false
 include_authorized_operations = false
-required_topics = [
-  "testlab-kafkars-admin-batch-fresh",
-  "testlab-kafkars-admin-batch-existing",
+expected_topics = [
+  { topic = "testlab-kafkars-admin-batch-fresh", internal = false, included = true },
+  { topic = "testlab-kafkars-admin-batch-existing", internal = false, included = true },
 ]
 timeout_ms = 20000
 

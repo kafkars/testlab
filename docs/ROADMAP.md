@@ -19,7 +19,8 @@
   `DescribeTopicPartitions` singleton topic description, caller-ordered
   detailed plural name- and topic-ID descriptions with requested authorization
   bitfields, detailed byte-sorted topic listing with requested authorization
-  metadata, and name-based deletion with mixed resource outcomes, scoped topic,
+  metadata plus paired exclusion and inclusion of independently present
+  canonical `__consumer_offsets`, and name-based deletion with mixed resource outcomes, scoped topic,
   cluster identity with requested authorization metadata,
   consumer-only and generic all-group discovery with exact state and group-type
   filters plus generic protocol-type filtering, singleton earliest-, latest-,

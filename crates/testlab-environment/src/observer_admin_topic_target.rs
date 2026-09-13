@@ -79,7 +79,12 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             missing_partition_target(action)?
         }
         ScenarioAction::ListTopics(action) => {
-            unique(&action.required_topics, &action.operation_id, "topics")?;
+            let names = action
+                .expected_topics
+                .iter()
+                .map(|value| value.topic.clone())
+                .collect::<Vec<_>>();
+            unique(&names, &action.operation_id, "topics")?;
             (
                 AdapterCommand::ListTopics(ListTopicsCommand {
                     client_id: action.client_id.clone(),
@@ -90,7 +95,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 }),
                 AdminTarget::Topics(ListTarget {
                     operation_id: action.operation_id.clone(),
-                    names: action.required_topics.clone(),
+                    names,
                 }),
             )
         }

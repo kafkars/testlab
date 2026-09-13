@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.producer-configuration-gzip"
 title = "configured producer delivers with gzip compression"
 description = "A client built with the complete explicit public producer policy and gzip record-batch compression delivers one exact independently observed record."

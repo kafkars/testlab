@@ -1,0 +1,108 @@
+schema_version = 121
+id = "kafka.admin-list-internal-topics"
+title = "packaged admin excludes then includes an independently present internal topic"
+description = "A classic group commit creates Kafka's canonical internal offsets topic; independent metadata proves that topic exists while paired public all-topic calls exclude it with include_internal disabled, then include it with an exact internal marker when enabled."
+timeout_ms = 150000
+requires = ["producer", "consumer_groups", "admin", "lifecycle", "client_readiness"]
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "create-producer"
+kind = "create_producer"
+client_id = "client-1"
+producer_id = "producer-1"
+
+[[steps]]
+id = "send-offset-marker"
+kind = "send"
+producer_id = "producer-1"
+operation_id = "op-internal-topic-marker"
+
+[steps.record]
+topic = "testlab-kafkars-admin-internal-topic"
+partition = 0
+sequence = 1
+key = { encoding = "utf8", data = "internal-topic" }
+value = { encoding = "utf8", data = "create-offset" }
+headers = [
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-internal-topic-marker" } },
+  { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
+]
+
+[[steps]]
+id = "flush-producer"
+kind = "flush"
+producer_id = "producer-1"
+
+[[steps]]
+id = "close-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-group-consumer"
+kind = "create_group_consumer"
+client_id = "client-1"
+consumer_id = "consumer-1"
+group_id = "testlab-admin-internal-topic-group"
+topics = ["testlab-kafkars-admin-internal-topic"]
+protocol = "classic"
+
+[[steps]]
+id = "receive-and-commit"
+kind = "group_receive"
+consumer_id = "consumer-1"
+receive_id = "receive-internal-topic-marker"
+expected_operation_id = "op-internal-topic-marker"
+timeout_ms = 30000
+
+[[steps]]
+id = "close-group-consumer"
+kind = "close_group_consumer"
+consumer_id = "consumer-1"
+
+[[steps]]
+id = "list-without-internal-topics"
+kind = "list_topics"
+client_id = "client-1"
+operation_id = "admin-list-internal-excluded"
+include_internal = false
+include_authorized_operations = true
+expected_topics = [
+  { topic = "testlab-kafkars-admin-internal-topic", internal = false, included = true },
+  { topic = "__consumer_offsets", internal = true, included = false },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "list-with-internal-topics"
+kind = "list_topics"
+client_id = "client-1"
+operation_id = "admin-list-internal-included"
+include_internal = true
+include_authorized_operations = true
+expected_topics = [
+  { topic = "testlab-kafkars-admin-internal-topic", internal = false, included = true },
+  { topic = "__consumer_offsets", internal = true, included = true },
+]
+timeout_ms = 20000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"
+
+[[assertions]]
+operation_id = "op-internal-topic-marker"
+accepted = true
+terminal = "acknowledged"
+visibility = "exactly_once"

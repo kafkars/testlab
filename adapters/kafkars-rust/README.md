@@ -66,8 +66,9 @@ It:
 10. executes metadata-backed and explicit `DescribeTopicPartitions` singleton
    topic descriptions, detailed caller-ordered plural topic descriptions with
    requested authorization bitfields, detailed byte-sorted all-topic listing
-   outcomes with requested authorization metadata and independently anchored
-   required-topic partitions, and
+   outcomes with requested authorization metadata, independently anchored
+   expected-topic partitions, and paired canonical internal-topic exclusion and
+   inclusion, and
    caller-ordered plural name-based topic deletion with mixed outcomes,
    caller-ordered plural selected topic-configuration descriptions and
    exact synonym/documentation options with complete public entry metadata,

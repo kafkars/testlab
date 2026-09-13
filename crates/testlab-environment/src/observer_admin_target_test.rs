@@ -2,11 +2,14 @@
 
 use testlab_schema::{
     AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreateTopicAction,
-    DeleteRecordsAction, DeleteTopicAction, DescribeTopicAction, ListOffsetsAction,
-    ListTopicsAction, OperationId, ScenarioAction,
+    DeleteRecordsAction, DeleteTopicAction, DescribeTopicAction, ListOffsetsAction, OperationId,
+    ScenarioAction,
 };
 
 use crate::observer_admin_target::AdminTarget;
+
+#[path = "observer_admin_topic_listing_target_test.rs"]
+mod topic_listing_tests;
 
 #[test]
 fn topic_mutations_map_to_exact_expected_topology() {
@@ -69,7 +72,7 @@ fn topic_mutations_map_to_exact_expected_topology() {
 }
 
 #[test]
-fn topic_reads_keep_scenario_only_expectations_out_of_wire_matching() {
+fn topic_description_keeps_scenario_expectations_out_of_wire_matching() {
     let describe = ScenarioAction::DescribeTopic(DescribeTopicAction {
         client_id: client(),
         operation_id: operation("describe-topic"),
@@ -84,19 +87,6 @@ fn topic_reads_keep_scenario_only_expectations_out_of_wire_matching() {
     };
     assert_eq!(target.expected_partitions, Some(vec![0, 1]));
     assert!(!target.poll_expected);
-
-    let list = ScenarioAction::ListTopics(ListTopicsAction {
-        client_id: client(),
-        operation_id: operation("list-topics"),
-        include_internal: false,
-        include_authorized_operations: true,
-        required_topics: vec!["orders".to_owned(), "audit".to_owned()],
-        timeout_ms: 500,
-    });
-    let AdminTarget::Topics(target) = exact(&list) else {
-        panic!("list topics target kind");
-    };
-    assert_eq!(target.names, ["orders", "audit"]);
 }
 #[test]
 fn expected_admin_failures_map_to_immediate_broker_truth() {
@@ -237,27 +227,6 @@ fn timestamp_offset_maps_to_an_exact_command_and_bounding_watermarks() {
     assert_eq!(target.expected_low, None);
     assert_eq!(target.expected_high, None);
     assert!(!target.poll_expected);
-}
-
-#[test]
-fn duplicate_scenario_targets_are_rejected() {
-    let action = ScenarioAction::ListTopics(ListTopicsAction {
-        client_id: client(),
-        operation_id: operation("list-topics"),
-        include_internal: false,
-        include_authorized_operations: false,
-        required_topics: vec!["orders".to_owned(), "orders".to_owned()],
-        timeout_ms: 500,
-    });
-    let command = AdapterCommand::ListTopics(testlab_schema::ListTopicsCommand {
-        client_id: client(),
-        operation_id: operation("list-topics"),
-        include_internal: false,
-        include_authorized_operations: true,
-        timeout_ms: 500,
-    });
-
-    assert!(AdminTarget::from_exact(&action, &command).is_err());
 }
 
 #[test]

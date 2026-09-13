@@ -200,6 +200,12 @@ all-topic listing outcomes and the exact authorization-bitfield option. The
 public result proves option-specific authorization metadata and error-aware
 partition detail, while immediate metadata independently anchors every required
 topic's exact topology; internal-topic filtering remains unclaimed.
+Scenario schema v121 and evidence schema v107 retain protocol v117 while adding
+explicit per-topic inclusion expectations. A classic group commit materializes
+canonical `__consumer_offsets`, and immediate metadata proves it exists around
+paired calls. The public call must omit it when internal topics are disabled,
+then include it with the internal marker when enabled. This is a canonical
+filter control, not exhaustive enumeration of every internal topic class.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

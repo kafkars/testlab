@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.admin-list-topics"
 title = "packaged admin lists detailed topics with authorization metadata"
 description = "The packaged client's public all-topic query requests and retains authorization metadata plus exact partition detail for one required harness-provisioned topic, whose topology is confirmed by an immediate independent metadata query and whose usability is later proven by one exact record observation."
@@ -22,7 +22,9 @@ client_id = "client-1"
 operation_id = "admin-list-topics-1"
 include_internal = false
 include_authorized_operations = true
-required_topics = ["testlab-kafkars-admin-listed"]
+expected_topics = [
+  { topic = "testlab-kafkars-admin-listed", internal = false, included = true },
+]
 timeout_ms = 20000
 
 [[steps]]

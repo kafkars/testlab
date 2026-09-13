@@ -58,6 +58,17 @@ pub struct DescribeTopicAction {
     pub timeout_ms: u64,
 }
 
+/// One independently observed topic expectation for an all-topic listing.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct TopicListingExpectation {
+    /// Exact Kafka topic name.
+    pub topic: String,
+    /// Whether Kafka classifies this topic as internal.
+    pub internal: bool,
+    /// Whether this topic must enter the public result.
+    pub included: bool,
+}
+
 /// Payload for one declarative topic-listing action.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ListTopicsAction {
@@ -69,8 +80,8 @@ pub struct ListTopicsAction {
     pub include_internal: bool,
     /// Whether Kafka must return the authorized-operation bitfield per listed topic.
     pub include_authorized_operations: bool,
-    /// Topics the verifier requires in the public result.
-    pub required_topics: Vec<String>,
+    /// Independently observed topics with exact public inclusion expectations.
+    pub expected_topics: Vec<TopicListingExpectation>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

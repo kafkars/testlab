@@ -14,8 +14,8 @@ use super::{
 #[test]
 fn plural_topic_description_advances_all_versioned_boundaries() {
     assert_eq!(PROTOCOL_VERSION, 117);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 120);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 106);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 121);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 107);
 }
 
 #[test]

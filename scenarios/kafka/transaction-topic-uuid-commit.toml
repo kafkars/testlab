@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.transaction-topic-uuid-commit"
 title = "one transaction validates UUID-bound topics before commit"
 description = "Two records bind independently proven Kafka topic UUIDs during public admission; one fresh public transaction validation seals the exact topic set before commit, and independent read-committed observation proves both records."

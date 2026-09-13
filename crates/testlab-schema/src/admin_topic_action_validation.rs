@@ -5,8 +5,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::admin_action_validation::{validate_identity, validate_resource, validate_timeout};
 use crate::{ClientId, OperationId, ScenarioAction};
 
+#[path = "admin_topic_listing_validation.rs"]
+mod topic_listing;
+
 const MAX_EXPECTED_PARTITIONS: usize = 10_000;
-const MAX_REQUIRED_TOPICS: usize = 32;
 
 pub(crate) fn validate(
     action: &ScenarioAction,
@@ -68,7 +70,7 @@ pub(crate) fn validate(
                 operation_ids,
                 problems,
             );
-            required_topics(&action.operation_id, &action.required_topics, problems);
+            topic_listing::validate(action, problems);
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
         ScenarioAction::ListOffsets(action) => {
@@ -281,19 +283,5 @@ fn expected_partitions(operation_id: &OperationId, values: &[i32], problems: &mu
     }
     if values.iter().any(|value| *value < 0) || values.windows(2).any(|pair| pair[0] >= pair[1]) {
         problems.push(format!("admin operation {operation_id} expected_partitions must be sorted unique nonnegative indices"));
-    }
-}
-
-fn required_topics(operation_id: &OperationId, values: &[String], problems: &mut Vec<String>) {
-    if values.is_empty() || values.len() > MAX_REQUIRED_TOPICS {
-        problems.push(format!("admin operation {operation_id} required_topics must contain 1 to {MAX_REQUIRED_TOPICS} entries"));
-    }
-    let mut unique = BTreeSet::new();
-    for topic in values {
-        if topic.is_empty() || topic.len() > 249 || !unique.insert(topic) {
-            problems.push(format!(
-                "admin operation {operation_id} required_topics must contain unique valid topics"
-            ));
-        }
     }
 }

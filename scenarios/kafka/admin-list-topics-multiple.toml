@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.admin-list-topics-multiple"
 title = "packaged admin lists multiple detailed topics with authorization metadata"
 description = "The packaged client's public admin creates three topics and then lists all three from one expectation-free command; every public result retains authorization and partition detail in byte order while independent metadata confirms each required topology."
@@ -56,10 +56,10 @@ client_id = "client-1"
 operation_id = "admin-multi-topic-list"
 include_internal = false
 include_authorized_operations = true
-required_topics = [
-  "testlab-kafkars-admin-multi-topic-zulu",
-  "testlab-kafkars-admin-multi-topic-alpha",
-  "testlab-kafkars-admin-multi-topic-middle",
+expected_topics = [
+  { topic = "testlab-kafkars-admin-multi-topic-zulu", internal = false, included = true },
+  { topic = "testlab-kafkars-admin-multi-topic-alpha", internal = false, included = true },
+  { topic = "testlab-kafkars-admin-multi-topic-middle", internal = false, included = true },
 ]
 timeout_ms = 20000
 

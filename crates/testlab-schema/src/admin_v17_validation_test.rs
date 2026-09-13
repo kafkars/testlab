@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{
     AlterConsumerGroupOffsetAction, ClientId, DeleteConsumerGroupAction, DescribeClusterAction,
     DescribeConsumerGroupAction, ListConsumerGroupsAction, ListTopicsAction, OperationId,
-    ScenarioAction,
+    ScenarioAction, TopicListingExpectation,
 };
 use crate::admin_action_validation::validate;
 
@@ -35,7 +35,14 @@ fn admin_lists_require_unique_valid_resource_names() {
             operation_id: operation("admin-topics-list"),
             include_internal: false,
             include_authorized_operations: false,
-            required_topics: vec!["records".to_owned(), "records".to_owned()],
+            expected_topics: vec!["records", "records"]
+                .into_iter()
+                .map(|topic| TopicListingExpectation {
+                    topic: topic.to_owned(),
+                    internal: false,
+                    included: true,
+                })
+                .collect(),
             timeout_ms: 1_000,
         }),
         &clients,
@@ -49,7 +56,7 @@ fn admin_lists_require_unique_valid_resource_names() {
     );
     assert_problem(
         &problems,
-        "required_topics must contain unique valid topics",
+        "expected_topics must contain unique valid topics",
     );
 }
 

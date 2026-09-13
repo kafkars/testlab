@@ -3,7 +3,7 @@
 ## Transport
 
 Protocol v117 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v120 and evidence schema v106.
+This cut pairs it with scenario schema v121 and evidence schema v107.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -672,22 +672,26 @@ topic.
 
 Named topic description, all-topic listing, and offset listing also use the
 packaged public admin handle. Their adapter commands omit the scenario's
-expected partitions, required topics, expected offset, and expected errors. A
-named description explicitly selects either the complete metadata-backed public
-operation or one complete `DescribeTopicPartitions` page. Both must report the
-exact declared partition indices, which an immediate independent metadata query
-confirms. The page path fails closed if its 10,000-partition response limit
-returns a continuation cursor; hidden pagination is forbidden. An all-topic
-listing carries the exact `include_internal` and
-`include_authorized_operations` options. Its single completion preserves one
-byte-sorted unique outcome per returned name, including the full successful
-topic ID, internal marker, authorization bitfield, and error-aware partition
-description, or one normalized resource error. Every required topic must be a
-success whose partition topology exactly matches its immediate independent
-metadata observation, and every successful outcome has authorization metadata
-if and only if requested. This check does not claim exhaustive topic listing,
-behavioral internal-topic filtering, independently verified topic IDs or
-internal markers, or replica topology.
+expected partitions, topic inclusion expectations, expected offset, and
+expected errors. A named description explicitly selects either the complete
+metadata-backed public operation or one complete `DescribeTopicPartitions`
+page. Both must report the exact declared partition indices, which an immediate
+independent metadata query confirms. The page path fails closed if its
+10,000-partition response limit returns a continuation cursor; hidden
+pagination is forbidden. An all-topic listing carries the exact
+`include_internal` and `include_authorized_operations` options. Its single
+completion preserves one byte-sorted unique outcome per returned name,
+including the full successful topic ID, internal marker, authorization bitfield,
+and error-aware partition description, or one normalized resource error. Every
+expected topic is observed independently and must follow its declared public
+inclusion; each included topic must be a success whose partition topology
+matches that observation exactly. Every successful outcome has authorization
+metadata if and only if requested. A classic group commit materializes canonical
+`__consumer_offsets` before paired calls prove that disabling internal topics
+omits it and enabling them includes it with the public internal marker. This
+does not claim exhaustive topic listing, independently verified topic IDs,
+replica topology, or internal-marker correctness beyond the canonical offsets
+topic.
 
 `describe_topics` carries two through 32 unique scenario-owned topic names in
 caller order, the exact `include_authorized_operations` selection, and either

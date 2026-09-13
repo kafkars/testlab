@@ -3,7 +3,7 @@
 use super::*;
 use testlab_schema::{
     AdminListedTopicOutcome, AdminTopicDescriptionValue, AdminTopicPartitionDescriptionOutcome,
-    AdminTopicsListing, ListTopicsAction,
+    AdminTopicsListing, ListTopicsAction, TopicListingExpectation,
 };
 
 #[test]
@@ -106,6 +106,66 @@ fn topic_list_without_authorization_rejects_unrequested_metadata() {
     assert_contract(&admin_violations(&scenario, &history, &[]), "ADMIN-004");
 }
 
+#[test]
+fn internal_topic_is_excluded_then_included_with_exact_public_marker() {
+    let excluded_operation = operation("topics-internal-excluded");
+    let excluded = internal_scenario(excluded_operation.clone(), false);
+    let excluded_history = vec![
+        event(
+            1,
+            AdapterEvent::TopicsListed(AdminTopicsListing {
+                operation_id: excluded_operation.clone(),
+                outcomes: vec![outcome("marker", Some(7), vec![0])],
+            }),
+        ),
+        topic_state(2, excluded_operation.clone(), "marker", vec![0]),
+        topic_state(3, excluded_operation, "__consumer_offsets", vec![0, 1]),
+    ];
+    assert!(admin_violations(&excluded, &excluded_history, &[]).is_empty());
+
+    let mut leaked = excluded_history.clone();
+    let mut unexpected_internal = outcome("__consumer_offsets", Some(7), vec![0, 1]);
+    unexpected_internal
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("internal description"))
+        .internal = true;
+    listing(&mut leaked).outcomes.insert(0, unexpected_internal);
+    assert_contract(&admin_violations(&excluded, &leaked, &[]), "ADMIN-004");
+
+    let included_operation = operation("topics-internal-included");
+    let included = internal_scenario(included_operation.clone(), true);
+    let mut internal = outcome("__consumer_offsets", Some(7), vec![0, 1]);
+    internal
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("internal description"))
+        .internal = true;
+    let included_history = vec![
+        event(
+            1,
+            AdapterEvent::TopicsListed(AdminTopicsListing {
+                operation_id: included_operation.clone(),
+                outcomes: vec![internal, outcome("marker", Some(7), vec![0])],
+            }),
+        ),
+        topic_state(2, included_operation.clone(), "marker", vec![0]),
+        topic_state(3, included_operation, "__consumer_offsets", vec![0, 1]),
+    ];
+    assert!(admin_violations(&included, &included_history, &[]).is_empty());
+
+    let mut wrong_marker = included_history;
+    listing(&mut wrong_marker).outcomes[0]
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("internal description"))
+        .internal = false;
+    assert_contract(
+        &admin_violations(&included, &wrong_marker, &[]),
+        "ADMIN-004",
+    );
+}
+
 fn listing_scenario(
     operation_id: OperationId,
     include_authorization: bool,
@@ -115,9 +175,34 @@ fn listing_scenario(
         operation_id,
         include_internal: false,
         include_authorized_operations: include_authorization,
-        required_topics: vec!["marker".to_owned()],
+        expected_topics: vec![expected("marker", false, true)],
         timeout_ms: 1_000,
     }))
+}
+
+fn internal_scenario(
+    operation_id: OperationId,
+    include_internal: bool,
+) -> testlab_schema::Scenario {
+    admin_scenario(ScenarioAction::ListTopics(ListTopicsAction {
+        client_id: client(),
+        operation_id,
+        include_internal,
+        include_authorized_operations: true,
+        expected_topics: vec![
+            expected("marker", false, true),
+            expected("__consumer_offsets", true, include_internal),
+        ],
+        timeout_ms: 1_000,
+    }))
+}
+
+fn expected(topic: &str, internal: bool, included: bool) -> TopicListingExpectation {
+    TopicListingExpectation {
+        topic: topic.to_owned(),
+        internal,
+        included,
+    }
 }
 
 fn good_history(operation_id: OperationId) -> Vec<HistoryEntry> {

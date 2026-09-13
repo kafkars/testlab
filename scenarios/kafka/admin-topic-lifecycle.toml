@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.admin-topic-lifecycle"
 title = "packaged admin composes a complete independently observed topic lifecycle"
 description = "The packaged admin creates one partition, expands the same topic first to two and then four partitions, describes and lists the final topology, and deletes the topic; every public transition is followed by an exact independent metadata observation."
@@ -63,7 +63,9 @@ client_id = "client-1"
 operation_id = "admin-topic-lifecycle-list"
 include_internal = false
 include_authorized_operations = false
-required_topics = ["testlab-kafkars-admin-topic-lifecycle"]
+expected_topics = [
+  { topic = "testlab-kafkars-admin-topic-lifecycle", internal = false, included = true },
+]
 timeout_ms = 20000
 
 [[steps]]

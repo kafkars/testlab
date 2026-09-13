@@ -94,6 +94,7 @@ scenarios = [
   "scenarios/kafka/admin-describe-topic-partitions.toml",
   "scenarios/kafka/admin-describe-topic-unknown-topic.toml",
   "scenarios/kafka/admin-list-topics.toml",
+  "scenarios/kafka/admin-list-internal-topics.toml",
   "scenarios/kafka/admin-list-topics-multiple.toml",
   "scenarios/kafka/admin-list-offsets.toml",
   "scenarios/kafka/admin-list-earliest-offset.toml",

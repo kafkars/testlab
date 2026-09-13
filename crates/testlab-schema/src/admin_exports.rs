@@ -95,7 +95,7 @@ pub use crate::admin_offset_position::{AdminOffsetPosition, AdminOffsetSelector}
 pub use crate::admin_partition_reassignments::*;
 pub use crate::admin_scenario_action::{
     CreatePartitionsAction, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
-    TopicDescriptionApi,
+    TopicDescriptionApi, TopicListingExpectation,
 };
 pub use crate::admin_share_group_description_batch::{
     AdminShareGroupDescriptionOutcome, AdminShareGroupsDescription, DescribeShareGroupsAction,

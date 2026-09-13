@@ -8,10 +8,13 @@ use super::{
     UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 
+#[path = "admin_topic_listing_protocol_test.rs"]
+mod topic_listing_tests;
+
 #[test]
 fn admin_query_versions_are_exact() {
     assert_eq!(PROTOCOL_VERSION, 117);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 120);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 121);
 }
 
 #[test]
@@ -65,35 +68,6 @@ timeout_ms = 1000
             ..
         })
     ));
-}
-
-#[test]
-fn list_topics_command_excludes_required_topics() {
-    let action = ScenarioAction::ListTopics(ListTopicsAction {
-        client_id: client(),
-        operation_id: operation("admin-topics-1"),
-        include_internal: false,
-        include_authorized_operations: true,
-        required_topics: vec!["records".to_owned()],
-        timeout_ms: 1_000,
-    });
-    let command = AdapterCommand::ListTopics(ListTopicsCommand {
-        client_id: client(),
-        operation_id: operation("admin-topics-1"),
-        include_internal: false,
-        include_authorized_operations: true,
-        timeout_ms: 1_000,
-    });
-
-    let action = encode_action(&action);
-    let command = encode(&command);
-
-    assert!(action.contains("kind = \"list_topics\""));
-    assert!(action.contains("required_topics = [\"records\"]"));
-    assert!(command.contains("kind = \"list_topics\""));
-    assert!(command.contains("include_internal = false"));
-    assert!(command.contains("include_authorized_operations = true"));
-    assert!(!command.contains("required_topics"));
 }
 
 #[test]
@@ -154,7 +128,7 @@ fn admin_query_events_report_only_observed_facts() {
     assert!(!described.contains("expected_partitions"));
     assert!(listed.contains("kind = \"topics_listed\""));
     assert!(listed.contains("outcomes = []"));
-    assert!(!listed.contains("required_topics"));
+    assert!(!listed.contains("expected_topics"));
     assert!(offset.contains("kind = \"offset_listed\""));
     assert!(offset.contains("offset = 3"));
     assert!(!offset.contains("expected_offset"));

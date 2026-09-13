@@ -37,7 +37,7 @@ pub(crate) fn verify_discovery_action(
         }
         ScenarioAction::ListTopics(action) => topic_listing::verify(
             &action.operation_id,
-            &action.required_topics,
+            &action.expected_topics,
             action.include_authorized_operations,
             index.topics_listed.get(&action.operation_id),
             index.topics_observed.get(&action.operation_id),

@@ -1,4 +1,4 @@
-schema_version = 120
+schema_version = 121
 id = "kafka.admin-topic-delete-recreate"
 title = "packaged admin deletes and recreates the same topic"
 description = "The packaged admin creates and describes a one-partition topic, deletes it to independently observed absence, then recreates the same name with two partitions and independently confirms the new topology."
@@ -71,7 +71,9 @@ client_id = "client-1"
 operation_id = "admin-delete-recreate-list-second"
 include_internal = false
 include_authorized_operations = false
-required_topics = ["testlab-kafkars-admin-delete-recreate"]
+expected_topics = [
+  { topic = "testlab-kafkars-admin-delete-recreate", internal = false, included = true },
+]
 timeout_ms = 20000
 
 [[steps]]

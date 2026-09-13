@@ -33,6 +33,7 @@ fn kafkars_pack_variants_retain_admin_discovery() {
             "admin-delete-topics.toml",
             "admin-topic-ids.toml",
             "admin-list-topics.toml",
+            "admin-list-internal-topics.toml",
             "admin-list-offsets.toml",
             "admin-list-consumer-group-offsets.toml",
             "admin-create-topic-duplicate.toml",

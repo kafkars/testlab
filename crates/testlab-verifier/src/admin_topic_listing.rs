@@ -1,8 +1,8 @@
-//! Topic listings retain public detail while independent metadata anchors required topics.
+//! Topic listings retain public detail while metadata anchors inclusion expectations.
 
 use std::collections::BTreeSet;
 
-use testlab_schema::{AdminListedTopicOutcome, OperationId, Violation};
+use testlab_schema::{AdminListedTopicOutcome, OperationId, TopicListingExpectation, Violation};
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::index::{IndexedTopicObservation, IndexedTopicsList};
@@ -10,33 +10,41 @@ use crate::support::violation;
 
 pub(super) fn verify(
     operation_id: &OperationId,
-    required_topics: &[String],
+    expected_topics: &[TopicListingExpectation],
     include_authorized_operations: bool,
     completions: Option<&Vec<IndexedTopicsList>>,
     independent: Option<&Vec<IndexedTopicObservation>>,
     command_window: Option<AdminCommandWindow>,
     violations: &mut Vec<Violation>,
 ) {
-    let required: BTreeSet<&str> = required_topics.iter().map(String::as_str).collect();
+    let expected: BTreeSet<&str> = expected_topics
+        .iter()
+        .map(|value| value.topic.as_str())
+        .collect();
     let independently_present: BTreeSet<&str> = independent
         .into_iter()
         .flatten()
-        .filter(|value| value.exists && required.contains(value.topic.as_str()))
+        .filter(|value| value.exists && expected.contains(value.topic.as_str()))
         .map(|value| value.topic.as_str())
         .collect();
     let public = completions
         .filter(|values| values.len() == 1)
         .and_then(|values| values.first());
     let independent_matches = independent.is_some_and(|values| {
-        values.len() == required.len()
-            && independently_present.len() == required.len()
+        values.len() == expected.len()
+            && independently_present.len() == expected.len()
             && public.is_some_and(|public| {
                 values.iter().all(|value| {
                     immediate_after_public(
                         command_window,
                         public.history_sequence,
                         value.history_sequence,
-                    ) && required_outcome_matches(&public.outcomes, value)
+                    ) && expected_topics
+                        .iter()
+                        .find(|expected| expected.topic == value.topic)
+                        .is_some_and(|expected| {
+                            expected_outcome_matches(&public.outcomes, value, expected)
+                        })
                 })
             })
     });
@@ -46,11 +54,12 @@ pub(super) fn verify(
                 .outcomes
                 .iter()
                 .all(|outcome| valid_outcome(outcome, include_authorized_operations))
-            && required_topics.iter().all(|topic| {
+            && expected_topics.iter().all(|expected| {
                 value
                     .outcomes
-                    .binary_search_by(|outcome| outcome.topic.as_str().cmp(topic))
+                    .binary_search_by(|outcome| outcome.topic.as_str().cmp(expected.topic.as_str()))
                     .is_ok()
+                    == expected.included
             })
             && public_after_command(command_window, value.history_sequence)
     });
@@ -60,7 +69,7 @@ pub(super) fn verify(
     violations.push(violation(
         "ADMIN-004",
         format!(
-            "admin operation {operation_id} expected one detailed sorted topic list with authorization option {include_authorized_operations} containing independently matched topics {required_topics:?}; independently present {independently_present:?}"
+            "admin operation {operation_id} expected one detailed sorted topic list with authorization option {include_authorized_operations} and independently matched inclusion expectations {expected_topics:?}; independently present {independently_present:?}"
         ),
         Some(operation_id.clone()),
         super::evidence(
@@ -71,18 +80,24 @@ pub(super) fn verify(
     super::append_state_evidence(violations, independent);
 }
 
-fn required_outcome_matches(
+fn expected_outcome_matches(
     outcomes: &[AdminListedTopicOutcome],
     observed: &IndexedTopicObservation,
+    expected: &TopicListingExpectation,
 ) -> bool {
-    let Ok(position) = outcomes.binary_search_by(|value| value.topic.cmp(&observed.topic)) else {
+    let position = outcomes.binary_search_by(|value| value.topic.cmp(&observed.topic));
+    if !expected.included {
+        return position.is_err();
+    }
+    let Ok(position) = position else {
         return false;
     };
     outcomes[position]
         .description
         .as_ref()
         .is_some_and(|description| {
-            description.partitions.len() == observed.partitions.len()
+            description.internal == expected.internal
+                && description.partitions.len() == observed.partitions.len()
                 && description.partitions.iter().zip(&observed.partitions).all(
                     |(public, observed)| {
                         public.partition == *observed && public.error_code.is_none()

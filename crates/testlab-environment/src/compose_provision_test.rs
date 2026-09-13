@@ -7,6 +7,9 @@ use testlab_schema::Scenario;
 use crate::compose_provision::operation_args;
 use crate::compose_provision_targets::{SeedTarget, seed_targets, share_groups, topics};
 
+#[path = "compose_read_only_provision_test.rs"]
+mod read_only_tests;
+
 #[test]
 fn operation_records_cluster_replication_factor() {
     let topics = BTreeMap::from([("orders".to_owned(), 3)]);
@@ -39,7 +42,7 @@ fn operation_records_cluster_replication_factor() {
 fn share_groups_are_preconfigured_for_deterministic_earliest_start() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 120
+schema_version = 121
 id = "share.provisioning"
 title = "share provisioning"
 description = "share group provisioning fixture"
@@ -138,7 +141,7 @@ fn delete_records_targets_are_seeded_and_recorded_in_provisioning_evidence() {
 fn batch_records_contribute_every_topic_partition() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 120
+schema_version = 121
 id = "producer.batch-topics"
 title = "batch topics"
 description = "batch provisioning fixture"
@@ -210,40 +213,6 @@ fn every_batch_created_topic_is_excluded_from_harness_provisioning() {
 }
 
 #[test]
-fn read_only_admin_topics_are_preprovisioned_from_their_markers() {
-    for (path, expected) in [
-        (
-            "../../scenarios/kafka/admin-describe-topic.toml",
-            BTreeMap::from([("testlab-kafkars-admin-described".to_owned(), 3)]),
-        ),
-        (
-            "../../scenarios/kafka/admin-list-topics.toml",
-            BTreeMap::from([("testlab-kafkars-admin-listed".to_owned(), 1)]),
-        ),
-        (
-            "../../scenarios/kafka/admin-list-offsets.toml",
-            BTreeMap::from([("testlab-kafkars-admin-offsets".to_owned(), 1)]),
-        ),
-        (
-            "../../scenarios/kafka/admin-list-consumer-group-offsets.toml",
-            BTreeMap::from([("testlab-kafkars-admin-group-offsets".to_owned(), 1)]),
-        ),
-        (
-            "../../scenarios/kafka/admin-topic-config-lifecycle.toml",
-            BTreeMap::from([("testlab-kafkars-admin-topic-config".to_owned(), 1)]),
-        ),
-    ] {
-        let manifest =
-            std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(path))
-                .unwrap_or_else(|error| panic!("read {path}: {error}"));
-        let scenario: Scenario =
-            toml::from_str(&manifest).unwrap_or_else(|error| panic!("parse {path}: {error}"));
-
-        assert_eq!(topics(&scenario), expected, "unexpected topics for {path}");
-    }
-}
-
-#[test]
 fn fenced_transaction_record_contributes_its_topic() {
     let scenario: Scenario = toml::from_str(include_str!(
         "../../../scenarios/kafka/transaction-fencing.toml"
@@ -260,7 +229,7 @@ fn fenced_transaction_record_contributes_its_topic() {
 fn describe_then_delete_without_records_is_preprovisioned() {
     let scenario: Scenario = toml::from_str(
         r#"
-schema_version = 120
+schema_version = 121
 id = "kafka.admin-describe-delete"
 title = "describe and delete"
 description = "provisioning fixture"

@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{
     AdminOffsetSelector, Capability, ClientId, CreatePartitionsAction, CreateTopicAction,
     DescribeTopicAction, ListOffsetsAction, ListTopicsAction, OperationId, SCENARIO_SCHEMA_VERSION,
-    Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId,
+    Scenario, ScenarioAction, ScenarioId, ScenarioStep, StepId, TopicListingExpectation,
 };
 use crate::admin_action_validation::validate;
 
@@ -156,14 +156,21 @@ fn describe_topic(client_id: ClientId, operation_id: OperationId) -> ScenarioAct
 fn list_topics(
     client_id: ClientId,
     operation_id: OperationId,
-    required_topics: Vec<String>,
+    expected_topics: Vec<String>,
 ) -> ScenarioAction {
     ScenarioAction::ListTopics(ListTopicsAction {
         client_id,
         operation_id,
         include_internal: false,
         include_authorized_operations: false,
-        required_topics,
+        expected_topics: expected_topics
+            .into_iter()
+            .map(|topic| TopicListingExpectation {
+                topic,
+                internal: false,
+                included: true,
+            })
+            .collect(),
         timeout_ms: 1_000,
     })
 }

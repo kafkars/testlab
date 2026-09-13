@@ -6,6 +6,7 @@ use testlab_schema::{
     DescribeTopicAction, DescribeTopicCommand, ListConsumerGroupOffsetsAction,
     ListConsumerGroupOffsetsCommand, ListOffsetsAction, ListOffsetsCommand, ListTopicsAction,
     ListTopicsCommand, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
+    TopicListingExpectation,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -110,7 +111,7 @@ fn describe_translation_keeps_expectations_inside_the_harness() {
 }
 
 #[test]
-fn topic_listing_translation_keeps_required_membership_private() {
+fn topic_listing_translation_keeps_expected_inclusion_private() {
     let client_id = id(ClientId::new("client-1"));
     let operation_id = id(OperationId::new("admin-list-topics-1"));
     let action = ScenarioAction::ListTopics(ListTopicsAction {
@@ -118,7 +119,11 @@ fn topic_listing_translation_keeps_required_membership_private() {
         operation_id: operation_id.clone(),
         include_internal: false,
         include_authorized_operations: true,
-        required_topics: vec!["orders".to_owned()],
+        expected_topics: vec![TopicListingExpectation {
+            topic: "orders".to_owned(),
+            internal: false,
+            included: true,
+        }],
         timeout_ms: 20_000,
     });
 

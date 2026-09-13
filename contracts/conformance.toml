@@ -80,8 +80,8 @@ category = "admin"
 
 [[contract]]
 id = "ADMIN-004"
-title = "Admin topic listing retains requested detail"
-statement = "Each requested public all-topic listing preserves its exact internal-topic and authorization-bitfield options and emits one byte-sorted unique set of detailed outcomes; every success has authorization metadata exactly when requested, and every required topic's error-free partition topology matches an immediate independent metadata query."
+title = "Admin topic listing retains options and detail"
+statement = "Each requested public all-topic listing preserves its exact internal-topic and authorization-bitfield options and emits one byte-sorted unique set of detailed outcomes; authorization metadata appears exactly when requested, independently observed topic expectations have exact inclusion and error-free topology, and paired calls omit then include canonical __consumer_offsets only as selected while retaining its internal marker."
 category = "admin"
 
 [[contract]]

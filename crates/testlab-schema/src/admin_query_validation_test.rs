@@ -4,12 +4,16 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use super::{
     AdminOffsetSelector, ClientId, DescribeTopicAction, ListOffsetsAction, ListTopicsAction,
-    OperationId, ROUTING_ERROR_CODE, ScenarioAction, UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
+    OperationId, ROUTING_ERROR_CODE, ScenarioAction, TopicListingExpectation,
+    UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE,
 };
 use crate::admin_action_validation::validate;
 
 #[path = "admin_timestamp_selector_validation_test.rs"]
 mod timestamp_tests;
+
+#[path = "admin_topic_listing_expectation_validation_test.rs"]
+mod topic_listing_tests;
 
 #[test]
 fn admin_queries_accept_inclusive_collection_bounds_and_reserve_identities() {
@@ -18,7 +22,7 @@ fn admin_queries_accept_inclusive_collection_bounds_and_reserve_identities() {
     let mut operation_ids = BTreeSet::new();
     let mut problems = Vec::new();
     let expected_partitions = (0..10_000).collect::<Vec<_>>();
-    let required_topics = (0..32).map(|index| format!("topic-{index}")).collect();
+    let expected_topics = (0..32).map(|index| format!("topic-{index}")).collect();
 
     validate(
         &describe_topic(
@@ -34,7 +38,7 @@ fn admin_queries_accept_inclusive_collection_bounds_and_reserve_identities() {
         &list_topics(
             client_id.clone(),
             operation("admin-topics"),
-            required_topics,
+            expected_topics,
         ),
         &clients,
         &mut operation_ids,
@@ -82,43 +86,6 @@ fn describe_topic_rejects_invalid_expected_partitions() {
     assert_problem(
         &problems,
         "expected_partitions must be sorted unique nonnegative indices",
-    );
-}
-
-#[test]
-fn list_topics_rejects_invalid_required_topics() {
-    let client_id = client("client-1");
-    let clients = BTreeMap::from([(client_id.clone(), false)]);
-    let mut operation_ids = BTreeSet::new();
-    let mut problems = Vec::new();
-
-    for (suffix, required_topics) in [
-        ("empty", Vec::new()),
-        (
-            "large",
-            (0..33).map(|index| format!("topic-{index}")).collect(),
-        ),
-        (
-            "invalid",
-            vec![String::new(), "records".to_owned(), "records".to_owned()],
-        ),
-    ] {
-        validate(
-            &list_topics(
-                client_id.clone(),
-                operation(&format!("admin-topics-{suffix}")),
-                required_topics,
-            ),
-            &clients,
-            &mut operation_ids,
-            &mut problems,
-        );
-    }
-
-    assert_problem(&problems, "required_topics must contain 1 to 32 entries");
-    assert_problem(
-        &problems,
-        "required_topics must contain unique valid topics",
     );
 }
 
@@ -241,14 +208,21 @@ fn describe_topic(
 fn list_topics(
     client_id: ClientId,
     operation_id: OperationId,
-    required_topics: Vec<String>,
+    expected_topics: Vec<String>,
 ) -> ScenarioAction {
     ScenarioAction::ListTopics(ListTopicsAction {
         client_id,
         operation_id,
         include_internal: false,
         include_authorized_operations: false,
-        required_topics,
+        expected_topics: expected_topics
+            .into_iter()
+            .map(|topic| TopicListingExpectation {
+                topic,
+                internal: false,
+                included: true,
+            })
+            .collect(),
         timeout_ms: 1_000,
     })
 }
