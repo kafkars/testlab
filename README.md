@@ -158,6 +158,9 @@ failure code remains harness-only.
 Repeated readiness, flush, handle-close, group-abandonment, and client-shutdown
 requests likewise retain their exact command kind, resource identity,
 multiplicity, and scenario order before correlated terminal evidence applies.
+Every client-metrics observation preserves its exact client and operation
+identities, multiplicity, and scenario order while required counter floors and
+producer states remain harness-only.
 
 Owned direct-consumer transfer coverage consumes a borrowed batch into a linear
 record owner, sends its preserved timestamp, nullable bytes, and ordered source

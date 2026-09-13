@@ -1,4 +1,4 @@
-schema_version = 151
+schema_version = 152
 id = "kafka.producer-explicit-timestamp"
 title = "an explicit producer timestamp survives broker and consumer boundaries"
 description = "One packaged producer submits a caller-selected timestamp; its public receipt, an independent broker observation, and a directly assigned public consumer must all retain the exact millisecond value."

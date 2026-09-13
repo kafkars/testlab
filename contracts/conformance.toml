@@ -43,6 +43,12 @@ statement = "A public snapshot after flush reaches the declared produced-record 
 category = "metrics"
 
 [[contract]]
+id = "METRICS-004"
+title = "Client metrics preserve exact observation commands"
+statement = "Every public client-metrics observation command appears exactly once in scenario order, preserving its client and operation identities while record floors and required producer states remain harness-only."
+category = "metrics"
+
+[[contract]]
 id = "ADV-001"
 title = "Protocol faults are controlled exactly once"
 statement = "Each declared protocol fault has one exact stable environment control before any correlated application."

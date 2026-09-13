@@ -1,4 +1,4 @@
-schema_version = 151
+schema_version = 152
 id = "kafka.admin-create-topic-manual-replica-placement"
 title = "packaged admin creates a topic with exact replica placement"
 description = "The packaged public admin creates a three-partition topic from caller-ordered replica assignments, and immediate independent metadata requires each exact replica order, a replica leader, and the full replica set in sync."

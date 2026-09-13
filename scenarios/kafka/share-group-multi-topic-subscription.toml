@@ -1,4 +1,4 @@
-schema_version = 151
+schema_version = 152
 id = "kafka.share-group-multi-topic-subscription"
 title = "Share subscription preserves two caller-ordered topics"
 description = "One Share member subscribes to two topics and publicly acquires and accepts one independently observed exact record from each topic."

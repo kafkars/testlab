@@ -349,6 +349,10 @@ Protocol v147, scenario schema v151, and evidence schema v137 add the exact
 lifecycle request stream. LIFE-017 preserves readiness, flush, handle-close,
 group-abandonment, and client-shutdown command kinds, resource identities,
 multiplicity, and scenario order before terminal correlation applies.
+Protocol v148, scenario schema v152, and evidence schema v138 add exact client
+metrics commands. METRICS-004 preserves every client and operation identity,
+multiplicity, and scenario order while required counter floors and producer
+states remain harness-only.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

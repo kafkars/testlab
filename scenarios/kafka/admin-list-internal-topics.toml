@@ -1,4 +1,4 @@
-schema_version = 151
+schema_version = 152
 id = "kafka.admin-list-internal-topics"
 title = "packaged admin excludes then includes an independently present internal topic"
 description = "A classic group commit creates Kafka's canonical internal offsets topic; independent metadata proves that topic exists while paired public all-topic calls exclude it with include_internal disabled, then include it with an exact internal marker when enabled."

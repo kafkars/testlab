@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v147 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v151 and evidence schema v137.
+Protocol v148 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v152 and evidence schema v138.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -135,11 +135,12 @@ the partition returned by the public producer receipt; failed or uncertain
 terminals report no partition.
 
 Client metrics observation carries only stable client and operation identities
-to the adapter. Scenario-only record floors and required idle, accepting, or
-healthy states remain in testctl and never cross the adapter boundary. The
-completion preserves every public calls, failures, mailbox, latency, and
-producer snapshot getter. Immediate metrics backpressure is retried within a
-bounded admission window; one accepted observer is waited exactly once.
+to the adapter, exactly once in scenario order. Scenario-only record floors and
+required idle, accepting, or healthy states remain in testctl and never cross
+the adapter boundary. The completion preserves every public calls, failures,
+mailbox, latency, and producer snapshot getter. Immediate metrics backpressure
+is retried within a bounded admission window; one accepted observer is waited
+exactly once.
 
 `list_transactions` carries caller-ordered state and signed producer-ID
 filters, an optional nonnegative duration in milliseconds, and an optional
@@ -1344,6 +1345,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v147 is an exact semantic contract. New capabilities may be declared
+Protocol v148 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.
