@@ -189,6 +189,7 @@ fn alter_batch(
         operation_id: operation(operation_id),
         group_id: group_id.to_owned(),
         offsets,
+        retention_time_ms: None,
         timeout_ms: 1_000,
     })
 }

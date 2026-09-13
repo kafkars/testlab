@@ -88,6 +88,7 @@ fn plural_alteration_requires_a_distinct_valid_baseline() {
                 offset: 0,
             },
         ],
+        retention_time_ms: Some(86_400_000),
         timeout_ms: 2_000,
     });
     let mut history = list_history("baseline", [4, 7]);
@@ -102,6 +103,7 @@ fn plural_alteration_requires_a_distinct_valid_baseline() {
                     ScenarioAction::AlterConsumerGroupOffsets(value) => value.offsets.clone(),
                     _ => unreachable!(),
                 },
+                retention_time_ms: Some(86_400_000),
                 timeout_ms: 2_000,
             }),
         ),
@@ -123,8 +125,21 @@ fn plural_alteration_requires_a_distinct_valid_baseline() {
         offset_state(6, "alter", "topic-b", 1, 0),
         offset_state(7, "alter", "topic-a", 0, 0),
     ]);
-    assert!(violations(vec![baseline, mutation.clone()], &history).is_empty());
-    assert_contract(&violations(vec![mutation], &history[4..]), "ADMIN-025");
+    assert!(violations(vec![baseline.clone(), mutation.clone()], &history).is_empty());
+
+    let mut wrong_retention = history.clone();
+    let HistoryPayload::HarnessCommand { command } = &mut wrong_retention[4].payload else {
+        panic!("plural alteration command fixture");
+    };
+    let AdapterCommand::AlterConsumerGroupOffsets(command) = &mut command.command else {
+        panic!("plural alteration command kind");
+    };
+    command.retention_time_ms = None;
+    assert_contract(
+        &violations(vec![baseline, mutation.clone()], &wrong_retention),
+        "ADMIN-095",
+    );
+    assert_contract(&violations(vec![mutation], &history[4..]), "ADMIN-095");
 }
 
 fn list_action(operation_id: &str, offsets: [i64; 2]) -> ScenarioAction {

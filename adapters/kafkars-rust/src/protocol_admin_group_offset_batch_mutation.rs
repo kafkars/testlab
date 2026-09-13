@@ -46,10 +46,15 @@ fn alter<W: Write>(
         .offsets
         .iter()
         .map(|offset| PublicAlteration::new(offset.topic.clone(), offset.partition, offset.offset));
-    let result = state
+    let builder = state
         .client(&command.client_id)?
         .admin()
-        .alter_consumer_group_offsets(command.group_id.clone(), public_offsets)
+        .alter_consumer_group_offsets(command.group_id.clone(), public_offsets);
+    let builder = match command.retention_time_ms {
+        Some(retention_time_ms) => builder.retention_time(Duration::from_millis(retention_time_ms)),
+        None => builder,
+    };
+    let result = builder
         .deadline_after(Duration::from_millis(command.timeout_ms))
         .submit()
         .wait()

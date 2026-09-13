@@ -1,4 +1,4 @@
-schema_version = 134
+schema_version = 135
 id = "kafka.admin-consumer-group-offsets-batch-lifecycle"
 title = "packaged admin lists alters and deletes multiple consumer-group offsets"
 description = "One classic group commits offset 1 on two topics, then ordered public batch listings and independent broker snapshots prove a plural reset to offset 0 and plural deletion of both committed offsets."
@@ -132,6 +132,7 @@ offsets = [
   { topic = "testlab-kafkars-admin-offset-batch-alpha", partition = 0, offset = 0 },
   { topic = "testlab-kafkars-admin-offset-batch-beta", partition = 0, offset = 0 },
 ]
+retention_time_ms = 86400000
 timeout_ms = 20000
 
 [[steps]]

@@ -28,6 +28,9 @@ pub struct AlterConsumerGroupOffsetsAction {
     pub group_id: String,
     /// Caller-ordered committed-offset alterations.
     pub offsets: Vec<ConsumerGroupOffsetAlteration>,
+    /// Explicit Kafka retention duration for these committed offsets.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retention_time_ms: Option<u64>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }
@@ -44,6 +47,9 @@ pub struct AlterConsumerGroupOffsetsCommand {
     pub group_id: String,
     /// Caller-ordered committed-offset alterations.
     pub offsets: Vec<ConsumerGroupOffsetAlteration>,
+    /// Explicit Kafka retention duration for these committed offsets.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retention_time_ms: Option<u64>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

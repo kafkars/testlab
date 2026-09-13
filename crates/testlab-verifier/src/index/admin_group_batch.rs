@@ -195,6 +195,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.operation_id == command.operation_id
                 && action.group_id == command.group_id
                 && action.offsets == command.offsets
+                && action.retention_time_ms == command.retention_time_ms
                 && action.timeout_ms == command.timeout_ms
         }
         (

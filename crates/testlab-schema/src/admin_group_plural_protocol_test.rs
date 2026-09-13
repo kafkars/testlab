@@ -18,9 +18,9 @@ use super::{
 
 #[test]
 fn versions_advance_without_changing_evidence_facts() {
-    assert_eq!(PROTOCOL_VERSION, 130);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 134);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 120);
+    assert_eq!(PROTOCOL_VERSION, 131);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 135);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 121);
 }
 
 #[test]
@@ -101,6 +101,7 @@ fn plural_mutation_payloads_round_trip_ordered_outcomes() {
         operation_id: operation("alter-batch"),
         group_id: "group-1".to_owned(),
         offsets: vec![alteration("topic-z", 1, 7), alteration("topic-a", 0, 9)],
+        retention_time_ms: Some(86_400_000),
         timeout_ms: 1_000,
     });
     let delete = AdapterCommand::DeleteConsumerGroupOffsets(DeleteConsumerGroupOffsetsCommand {

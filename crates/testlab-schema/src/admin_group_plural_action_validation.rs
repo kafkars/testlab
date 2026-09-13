@@ -47,6 +47,15 @@ pub(crate) fn validate(
                 problems,
             );
             alterations(&action.operation_id, &action.offsets, problems);
+            if action
+                .retention_time_ms
+                .is_some_and(|retention| retention > i64::MAX as u64)
+            {
+                problems.push(format!(
+                    "admin operation {} retention_time_ms exceeds Kafka's signed 64-bit range",
+                    action.operation_id
+                ));
+            }
             validate_timeout(&action.operation_id, action.timeout_ms, problems);
         }
         ScenarioAction::DeleteConsumerGroupOffsets(action) => {

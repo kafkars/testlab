@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v126 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v130 and evidence schema v116.
+Protocol v131 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v135 and evidence schema v121.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -871,10 +871,14 @@ group-level and per-resource public errors to be absent.
 ordered set of distinct topic-partitions in one exact group. Their completion
 events retain one ordered per-resource error outcome. Every selected key requires
 a distinct earlier public listing corroborated by an immediate independent read;
-an alteration additionally requires a different baseline value. Polling
-independent reads after the completion must establish every requested offset or
-explicit absence. One successful sibling cannot hide a failed or reordered
-outcome.
+an alteration additionally requires a different baseline value. The alteration
+command can carry an optional nonnegative retention duration within Kafka's
+signed 64-bit millisecond range. The adapter calls the public
+`retention_time` builder method only when that value is present, and the sealed
+command must equal the scenario selection exactly. Polling independent reads
+after the completion establish every requested offset or explicit absence; they
+do not claim eventual expiry. One successful sibling cannot hide a failed or
+reordered outcome.
 
 `describe_classic_groups` carries ordered group IDs and the exact
 `include_authorized_operations` selection but keeps expected member counts

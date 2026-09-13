@@ -64,6 +64,7 @@ pub(super) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
                     operation_id: action.operation_id.clone(),
                     group_id: action.group_id.clone(),
                     offsets: action.offsets.clone(),
+                    retention_time_ms: action.retention_time_ms,
                     timeout_ms: action.timeout_ms,
                 },
             ),

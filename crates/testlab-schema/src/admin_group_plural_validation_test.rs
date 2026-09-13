@@ -60,6 +60,7 @@ fn all_plural_actions_accept_inclusive_item_bounds_and_stable_ownership() {
             operation_id: operation("alter-batch"),
             group_id: "group-1".to_owned(),
             offsets: alterations,
+            retention_time_ms: Some(i64::MAX as u64),
             timeout_ms: 1_000,
         }),
         ScenarioAction::DeleteConsumerGroupOffsets(DeleteConsumerGroupOffsetsAction {
@@ -126,6 +127,7 @@ fn plural_actions_reject_empty_oversized_duplicate_and_invalid_items() {
             operation_id: operation("bad-alter"),
             group_id: "group-1".to_owned(),
             offsets: vec![alteration("records", 0, -1), alteration("records", 0, 1)],
+            retention_time_ms: Some(i64::MAX as u64 + 1),
             timeout_ms: 1_000,
         }),
         ScenarioAction::DeleteConsumerGroupOffsets(DeleteConsumerGroupOffsetsAction {
@@ -163,6 +165,7 @@ fn plural_actions_reject_empty_oversized_duplicate_and_invalid_items() {
         "partition must be nonnegative",
         "expected_offset must be nonnegative",
         "offset must be nonnegative",
+        "retention_time_ms exceeds",
         "contains duplicate topic-partition",
         "partitions must contain 1 to 32 entries",
     ] {

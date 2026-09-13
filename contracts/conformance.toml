@@ -625,6 +625,12 @@ statement = "One automatic public topic creation preserves its caller-ordered co
 category = "admin"
 
 [[contract]]
+id = "ADMIN-095"
+title = "Plural offset alteration preserves explicit retention"
+statement = "One public plural consumer-group offset alteration preserves an explicit non-default committed-offset retention duration on the wire, returns every exact caller-ordered partition outcome, and is followed by contiguous immediate independent offsets with distinct corroborated baselines."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

@@ -96,6 +96,7 @@ fn plural_mutations_poll_the_complete_requested_offsets() {
         operation_id: operation("alter-offsets"),
         group_id: "orders-group".to_owned(),
         offsets: vec![alteration("orders-b", 2, 15), alteration("orders-a", 0, 9)],
+        retention_time_ms: Some(86_400_000),
         timeout_ms: 500,
     });
     let AdminTarget::ConsumerGroupOffsets(alter) = matched(&alter).1 else {

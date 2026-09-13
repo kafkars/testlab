@@ -273,6 +273,11 @@ topic creation. ADMIN-094 preserves caller-ordered configuration entries on the
 wire and retains ADMIN-001's immediate topology proof, then requires ordered
 public descriptions and immediate independent librdkafka values for every
 selected non-sensitive entry.
+Protocol v131, scenario schema v135, and evidence schema v121 add exact plural
+consumer-group offset-retention selection. ADMIN-095 preserves a one-day
+duration on the wire while retaining ADMIN-025's exact caller-ordered public
+outcomes, distinct corroborated baselines, and contiguous immediate independent
+post-state. Long-term expiry behavior remains unclaimed.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -582,11 +587,15 @@ and their ordered nested selections, including no group or per-resource errors
 and the exact flattened independent observation order.
 ADMIN-025 requires one ordered plural alteration completion with no per-resource
 error, one distinct corroborated different baseline per key, and polling
-independent post-state at every requested offset. ADMIN-026 requires the same
-ordered completion and one present corroborated baseline per key, then polling
-independent explicit absence for every deletion. ADMIN-027 joins one ordered
-classic-group public description with its exact authorization-bitfield option
-to immediate independent existence and member counts with no group errors,
+independent post-state at every requested offset. ADMIN-095 additionally
+requires the exact optional `86_400_000` millisecond retention duration in the
+correlated adapter command. The Kafkars adapter selects it through the public
+`AlterConsumerGroupOffsetsBuilder::retention_time` method; this proves selection
+and immediate mutation state, not eventual offset expiry. ADMIN-026 requires the
+same ordered completion and one present corroborated baseline per key, then
+polling independent explicit absence for every deletion. ADMIN-027 joins one
+ordered classic-group public description with its exact authorization-bitfield
+option to immediate independent existence and member counts with no group errors,
 requires the bitfield on every success, and requires every counted live member
 to have a prior committed receive with a positive classic epoch; broker
 membership facts alone do not establish classicness. ADMIN-028 binds one caller-ordered public

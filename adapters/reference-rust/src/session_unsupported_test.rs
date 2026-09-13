@@ -95,6 +95,7 @@ fn plural_admin_commands_require_admin_capability() {
                 partition: 0,
                 offset: 11,
             }],
+            retention_time_ms: None,
             timeout_ms: 1_000,
         }),
         AdapterCommand::DeleteConsumerGroupOffsets(DeleteConsumerGroupOffsetsCommand {

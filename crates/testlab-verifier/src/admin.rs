@@ -12,6 +12,7 @@ use crate::admin_failure::verify_expected_failure;
 use crate::admin_features::verify_features_action;
 use crate::admin_group::{describe_group_contract as group_contract, verify_group_action};
 use crate::admin_group_batch::verify_group_batch_action;
+use crate::admin_group_batch_mutation::alter_contract;
 use crate::admin_leader_election::verify_leader_election_action;
 use crate::admin_log_dirs::verify_log_dirs_action;
 use crate::admin_metadata_quorum::verify_metadata_quorum_action;
@@ -157,7 +158,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterTopicConfig(value) if value.validate_only => "ADMIN-022",
         ScenarioAction::ListConsumerGroupOffsetsBatch(_) => "ADMIN-023",
         ScenarioAction::ListConsumerGroupsOffsets(_) => "ADMIN-024",
-        ScenarioAction::AlterConsumerGroupOffsets(_) => "ADMIN-025",
+        ScenarioAction::AlterConsumerGroupOffsets(value) => alter_contract(value),
         ScenarioAction::DeleteConsumerGroupOffsets(_) => "ADMIN-026",
         ScenarioAction::DescribeClassicGroups(_) => "ADMIN-027",
         ScenarioAction::DescribeConsumerGroups(_) => "ADMIN-069",

@@ -1,6 +1,8 @@
 //! Plural group-offset mutations join ordered public outcomes to proven state changes.
 
-use testlab_schema::{OperationId, Scenario, ScenarioAction, Violation};
+use testlab_schema::{
+    AlterConsumerGroupOffsetsAction, OperationId, Scenario, ScenarioAction, Violation,
+};
 
 use crate::admin::{AdminCommandWindow, immediate_after_public, public_after_command};
 use crate::admin_group_baseline::has_prior_baseline;
@@ -13,6 +15,14 @@ struct ExpectedOffset<'a> {
     topic: &'a str,
     partition: i32,
     offset: Option<i64>,
+}
+
+pub(crate) const fn alter_contract(action: &AlterConsumerGroupOffsetsAction) -> &'static str {
+    if action.retention_time_ms.is_some() {
+        "ADMIN-095"
+    } else {
+        "ADMIN-025"
+    }
 }
 
 pub(crate) fn verify_group_offsets_mutation(
@@ -33,7 +43,7 @@ pub(crate) fn verify_group_offsets_mutation(
                 })
                 .collect::<Vec<_>>();
             verify(
-                "ADMIN-025",
+                alter_contract(expected),
                 scenario,
                 index,
                 action,

@@ -84,6 +84,7 @@ fn plural_mutations_preserve_exact_ordered_targets() {
         operation_id: operation("alter-many"),
         group_id: "group-a".to_owned(),
         offsets: offsets.clone(),
+        retention_time_ms: Some(86_400_000),
         timeout_ms: 2_000,
     });
     let delete = ScenarioAction::DeleteConsumerGroupOffsets(DeleteConsumerGroupOffsetsAction {
@@ -101,6 +102,7 @@ fn plural_mutations_preserve_exact_ordered_targets() {
                 operation_id: operation("alter-many"),
                 group_id: "group-a".to_owned(),
                 offsets,
+                retention_time_ms: Some(86_400_000),
                 timeout_ms: 2_000,
             }
         ))

@@ -1,4 +1,4 @@
-schema_version = 134
+schema_version = 135
 id = "kafka.classic-group-read-committed"
 title = "classic group read committed hides an aborted record"
 description = "A configured classic member starts at the beginning after one aborted transaction and returns only the exact nontransactional sentinel while independent transaction evidence proves the aborted operation remains absent."
