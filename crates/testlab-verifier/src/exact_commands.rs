@@ -16,6 +16,8 @@ mod child_handle_registration;
 mod group_consumer_registration;
 #[path = "group_receive_command.rs"]
 mod group_receive_command;
+#[path = "group_receive_set_command.rs"]
+mod group_receive_set_command;
 #[path = "producer_configuration_method.rs"]
 mod producer_configuration_method;
 #[path = "producer_operation_command.rs"]
@@ -36,6 +38,7 @@ pub(super) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
     child_handle_registration::verify(scenario, index, violations);
     group_consumer_registration::verify(scenario, index, violations);
     group_receive_command::verify(scenario, index, violations);
+    group_receive_set_command::verify(scenario, index, violations);
     share_consumer_registration::verify(scenario, index, violations);
     share_receive_command::verify(scenario, index, violations);
     transactional_producer_registration::verify(scenario, index, violations);

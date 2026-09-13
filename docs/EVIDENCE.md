@@ -332,6 +332,11 @@ exactly once in scenario order.
 Protocol v143, scenario schema v147, and evidence schema v133 add exact Share
 receive commands. SHARE-013 preserves every consumer, retained-batch identity,
 and complete observation timeout exactly once in scenario order.
+Protocol v144, scenario schema v148, and evidence schema v134 add exact
+multi-member receive commands. CONS-033 preserves every receive identity,
+caller-ordered consumer set, structural record count, and complete timeout
+exactly once in scenario order while expected producer identities remain
+harness-only.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

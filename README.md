@@ -140,6 +140,9 @@ complete optional public policy before assignment and record evidence applies.
 Every hosted group receive also preserves its exact consumer, receive identity,
 waiting or immediate observer, checkpoint conversion, processing plan, and
 complete timeout in scenario order.
+Every aggregate group receive-set likewise preserves its receive identity,
+caller-ordered live consumers, structural record count, timeout, multiplicity,
+and scenario order while expected producer identities remain harness-only.
 Every Share member likewise requires one exact registration retaining its
 identities, caller-ordered topics, optional rack, deadlines, and complete
 optional acquisition policy before Share delivery evidence applies.

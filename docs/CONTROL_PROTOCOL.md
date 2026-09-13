@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v143 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v147 and evidence schema v133.
+Protocol v144 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v148 and evidence schema v134.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -561,13 +561,14 @@ builder and commits the result; partial receives reject the full-batch
 the prefix; after the first member closes, a replacement must receive the exact
 unprocessed suffix before the final offset advances.
 
-A group receive set carries only a structural record count and an ordered live
-member set. It round-robins public batches, commits every assignment-fenced
-checkpoint, and attributes exact records to the member that received them. The
-scenario's expected operation identities remain harness-only; the verifier
-requires the exact set once and binds every record to the latest stable public
-owner assignment. Each public record is also joined to its exact independent
-broker topic, partition, offset, key, value, and ordered headers.
+A group receive set carries its receive identity, structural record count,
+ordered live member set, and complete timeout exactly once in scenario order.
+It round-robins public batches, commits every assignment-fenced checkpoint, and
+attributes exact records to the member that received them. The scenario's
+expected operation identities remain harness-only; the verifier requires the
+exact set once and binds every record to the latest stable public owner
+assignment. Each public record is also joined to its exact independent broker
+topic, partition, offset, key, value, and ordered headers.
 
 Group creation may carry one capability-gated public configuration block.
 Every registration requires one exact command preserving the client, member,
@@ -1330,6 +1331,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v143 is an exact semantic contract. New capabilities may be declared
+Protocol v144 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

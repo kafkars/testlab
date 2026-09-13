@@ -1219,6 +1219,12 @@ statement = "Every classic or KIP-848 group receive command appears exactly once
 category = "consumer"
 
 [[contract]]
+id = "CONS-033"
+title = "Multi-member receives preserve exact caller input"
+statement = "Every group receive-set command appears exactly once in scenario order, preserving its receive identity, caller-ordered live consumers, structural record count, and complete timeout while expected record identities remain harness-only."
+category = "consumer"
+
+[[contract]]
 id = "CONCUR-001"
 title = "Concurrent groups have exact external start and join boundaries"
 statement = "Every declared concurrent actor group has one correlated ordered start acknowledgement and one correlated ordered join completion."
