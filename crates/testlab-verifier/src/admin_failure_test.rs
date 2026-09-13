@@ -49,6 +49,7 @@ fn failure_actions() -> Vec<ScenarioAction> {
             operation_id: operation("missing-partitions"),
             topic: "missing-partitions".to_owned(),
             total_count: 2,
+            replica_assignments: None,
             validate_only: false,
             expected_current_count: None,
             expected_error_code: code(),
@@ -113,6 +114,7 @@ fn wire(action: &ScenarioAction) -> AdapterCommand {
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 total_count: action.total_count,
+                replica_assignments: action.replica_assignments.clone(),
                 validate_only: action.validate_only,
                 timeout_ms: action.timeout_ms,
             })

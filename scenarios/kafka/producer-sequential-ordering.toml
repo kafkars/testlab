@@ -1,4 +1,4 @@
-schema_version = 124
+schema_version = 125
 id = "kafka.producer-sequential-ordering"
 title = "sequential producer sends preserve same-partition order"
 description = "Four separately completed public sends to one partition appear at strictly increasing independent broker offsets with matching public metadata."

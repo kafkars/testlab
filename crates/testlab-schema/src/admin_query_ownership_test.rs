@@ -121,6 +121,7 @@ fn every_admin_action_records_the_admin_capability() {
             operation_id: operation("admin-partitions"),
             topic: "records".to_owned(),
             total_count: 2,
+            replica_assignments: None,
             validate_only: false,
             expected_current_count: None,
             expected_error_code: None,

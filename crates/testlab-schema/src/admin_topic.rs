@@ -13,6 +13,9 @@ use crate::{
 #[cfg(test)]
 #[path = "admin_topic_manual_placement_test.rs"]
 mod manual_placement_test;
+#[cfg(test)]
+#[path = "admin_partition_manual_placement_test.rs"]
+mod partition_manual_placement_test;
 
 /// Normalized public error required for a duplicate topic creation.
 pub const TOPIC_ALREADY_EXISTS_ERROR_CODE: &str = "broker:broker_36";
@@ -92,6 +95,9 @@ pub struct CreatePartitionsCommand {
     pub topic: String,
     /// Requested positive total partition count.
     pub total_count: i32,
+    /// Exact caller-ordered broker IDs for each newly added partition.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replica_assignments: Option<Vec<Vec<i32>>>,
     /// Whether the public API validates the request without increasing partitions.
     pub validate_only: bool,
     /// Complete public operation bound.

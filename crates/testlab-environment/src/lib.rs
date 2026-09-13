@@ -206,6 +206,8 @@ mod observer_admin_group_target_test;
 #[cfg(test)]
 mod observer_admin_group_test;
 #[cfg(test)]
+mod observer_admin_manual_partitions_target_test;
+#[cfg(test)]
 mod observer_admin_manual_topic_target_test;
 #[cfg(test)]
 mod observer_admin_max_timestamp_target_test;

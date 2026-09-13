@@ -225,6 +225,11 @@ index and broker list to the public manual-placement constructor, then reuses
 immediate metadata evidence to require the exact complete partition set, each
 replica order, a replica leader, and the complete replica set in sync on
 three-broker release cells.
+Protocol v121, scenario schema v125, and evidence schema v111 add exact manual
+partition-expansion placement. ADMIN-085 binds each caller-ordered new-partition
+broker list to the public assignment builder, keeps the exact prior count out of
+the wire command, and requires the complete expanded partition set plus exact
+replica order, a replica leader, and full ISR on three-broker release cells.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -755,6 +760,15 @@ replication factor must agree with that placement. The observer polls within the
 original action window until metadata exposes exactly the requested topic
 partition set and every partition has the exact replica order, full ISR as a
 canonical broker set, and a live leader inside its replicas.
+
+ADMIN-085 binds one successful manually placed partition expansion to one
+immediate independent metadata observation. The scenario and wire retain one
+caller-ordered broker list for each newly added partition, while the scenario-only
+prior count maps those lists to exact partition indices and must match the modeled
+topic state. The observer polls within the original action window until metadata
+exposes exactly the complete expanded partition set and each new partition has
+the requested replica order, full ISR as a canonical broker set, and a live
+leader inside its replicas.
 
 ADMIN-059 binds selected and all-active public partition-reassignment listings
 to immediate pinned `kafka-reassign-partitions.sh --list` snapshots. Public

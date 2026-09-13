@@ -9,6 +9,8 @@ use crate::support::violation;
 #[cfg(test)]
 #[path = "admin_topic_manual_placement_test.rs"]
 mod manual_placement_test;
+#[path = "admin_partition_manual_placement.rs"]
+mod partition_manual_placement;
 
 pub(crate) fn verify_topic_action(
     action: &ScenarioAction,
@@ -39,17 +41,21 @@ pub(crate) fn verify_topic_action(
         ScenarioAction::CreatePartitions(action)
             if action.expected_error_code.is_none() && !action.validate_only =>
         {
-            verify(
-                "ADMIN-002",
-                "partition creation",
-                &action.operation_id,
-                &action.topic,
-                Some((0..action.total_count).collect()),
-                index.topic_partitions_created.get(&action.operation_id),
-                index.topics_observed.get(&action.operation_id),
-                command_window,
-                violations,
-            );
+            if action.replica_assignments.is_some() {
+                partition_manual_placement::verify(action, index, command_window, violations);
+            } else {
+                verify(
+                    "ADMIN-002",
+                    "partition creation",
+                    &action.operation_id,
+                    &action.topic,
+                    Some((0..action.total_count).collect()),
+                    index.topic_partitions_created.get(&action.operation_id),
+                    index.topics_observed.get(&action.operation_id),
+                    command_window,
+                    violations,
+                );
+            }
         }
         ScenarioAction::DeleteTopic(action) if action.expected_error_code.is_none() => verify(
             "ADMIN-007",

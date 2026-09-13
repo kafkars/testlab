@@ -12,6 +12,7 @@ fn create_partitions_command_carries_requested_total() {
         operation_id: operation("admin-partitions-1"),
         topic: "records".to_owned(),
         total_count: 2,
+        replica_assignments: None,
         validate_only: false,
         timeout_ms: 1_000,
     });
@@ -31,6 +32,7 @@ fn create_partitions_action_retains_the_flat_scenario_shape() {
         operation_id: operation("admin-partitions-1"),
         topic: "records".to_owned(),
         total_count: 2,
+        replica_assignments: None,
         validate_only: false,
         expected_current_count: None,
         expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),

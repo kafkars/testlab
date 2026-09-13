@@ -17,9 +17,10 @@ pub(crate) fn validate_create_partitions(
     action: &CreatePartitionsAction,
     problems: &mut Vec<String>,
 ) {
-    if action.validate_only != action.expected_current_count.is_some() {
+    let requires_current_count = action.validate_only || action.replica_assignments.is_some();
+    if requires_current_count != action.expected_current_count.is_some() {
         problems.push(format!(
-            "admin operation {} must declare expected_current_count exactly when validate_only is true",
+            "admin operation {} must declare expected_current_count exactly when validate_only is true or replica_assignments are present",
             action.operation_id
         ));
     }
@@ -70,14 +71,14 @@ pub(crate) fn validate_partition_transition(
 ) {
     let Some(expected_count) = action.expected_current_count else {
         problems.push(format!(
-            "admin operation {} validate_only requires an expected current partition count",
+            "admin operation {} requires an expected current partition count",
             action.operation_id
         ));
         return;
     };
     if actual_count != Some(expected_count) {
         problems.push(format!(
-            "admin operation {} validate_only requires a prior exact partition count of {expected_count} for {}",
+            "admin operation {} requires a prior exact partition count of {expected_count} for {}",
             action.operation_id, action.topic
         ));
     }

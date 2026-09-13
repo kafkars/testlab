@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v120 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v124 and evidence schema v110.
+Protocol v121 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v125 and evidence schema v111.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -643,7 +643,12 @@ Its declared partition count and replication factor must exactly match those
 assignments, and the adapter calls the packaged manual-placement constructor.
 Immediate independent metadata must then show each exact replica order, a leader
 inside that replica list, and the complete replica set in sync. Automatic
-placement does not claim broker-selected replica topology.
+placement does not claim broker-selected replica topology. A partition expansion
+may likewise carry one caller-ordered broker list per newly added partition plus
+the scenario-only exact current count. The adapter calls the packaged
+manual-assignment builder, while immediate metadata must expose the exact complete
+partition set and each new partition's requested replica order, replica leader,
+and full ISR. The current-count expectation never crosses the adapter boundary.
 
 An expected duplicate creation repeats the exact public create-topic command
 after a successful identical creation. The scenario-only expected error never
@@ -1232,6 +1237,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v120 is an exact semantic contract. New capabilities may be declared
+Protocol v121 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

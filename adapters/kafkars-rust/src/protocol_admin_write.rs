@@ -113,7 +113,7 @@ fn create_partitions<W: Write>(
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
-            let request = NewPartitions::new(command.topic.clone(), command.total_count);
+            let request = new_partitions(&command);
             client
                 .admin()
                 .create_partitions([request])
@@ -137,6 +137,15 @@ fn create_partitions<W: Write>(
             },
         ),
     )
+}
+
+pub(crate) fn new_partitions(command: &CreatePartitionsCommand) -> NewPartitions {
+    let partitions = NewPartitions::new(command.topic.clone(), command.total_count);
+    match command.replica_assignments.as_deref() {
+        Some(assignments) => partitions
+            .with_replica_assignments(assignments.iter().map(|replicas| replicas.iter().copied())),
+        None => partitions,
+    }
 }
 
 fn delete_topic<W: Write>(

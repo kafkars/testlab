@@ -47,6 +47,7 @@ fn only_declared_admin_errors_observe_after_public_failure() {
                 .unwrap_or_else(|error| panic!("operation: {error}")),
             topic: "missing-orders".to_owned(),
             total_count: 2,
+            replica_assignments: None,
             validate_only: false,
             expected_current_count: None,
             expected_error_code: Some(UNKNOWN_TOPIC_OR_PARTITION_ERROR_CODE.to_owned()),

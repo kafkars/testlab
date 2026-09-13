@@ -199,6 +199,8 @@ mod session_command_admin_group_batch_test;
 #[cfg(test)]
 mod session_command_admin_group_listing_test;
 #[cfg(test)]
+mod session_command_admin_manual_partitions_test;
+#[cfg(test)]
 mod session_command_admin_manual_topic_test;
 #[cfg(test)]
 mod session_command_admin_test;

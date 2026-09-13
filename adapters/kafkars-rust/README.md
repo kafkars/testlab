@@ -62,8 +62,10 @@ It:
 8. maps singleton public admin errors to stable normalized `command_failed`
    events without receiving scenario expectations;
 9. forwards validate-only topic creation, partition increase, and incremental
-   configuration changes through the packaged public builders, and selects the
-   public manual topic constructor for exact caller-ordered replica assignments;
+   configuration changes through the packaged public builders, selects the
+   public manual topic constructor for exact caller-ordered topic assignments,
+   and selects `NewPartitions::with_replica_assignments` for exact caller-ordered
+   assignments to newly added partitions;
 10. executes metadata-backed, explicit single-page, and separately submitted
    cursor-followed `DescribeTopicPartitions` topic descriptions with exact
    page/cursor evidence, detailed caller-ordered plural topic descriptions with

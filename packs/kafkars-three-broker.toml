@@ -61,6 +61,7 @@ scenarios = [
   "scenarios/kafka/admin-create-topic-duplicate.toml",
   "scenarios/kafka/admin-create-topics-batch-partial.toml",
   "scenarios/kafka/admin-create-partitions.toml",
+  "scenarios/kafka/admin-create-partitions-manual-replica-placement.toml",
   "scenarios/kafka/admin-create-partitions-validate-only.toml",
   "scenarios/kafka/admin-create-partitions-unknown-topic.toml",
   "scenarios/kafka/admin-topic-lifecycle.toml",

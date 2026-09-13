@@ -1,4 +1,5 @@
 //! Admin scenario actions translate into exact bounded wire commands and completions.
+use crate::runner_protocol::ExpectedEvent;
 use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
     DeleteConsumerGroupCommand, DeleteConsumerGroupOffsetCommand, DeleteTopicCommand,
@@ -7,8 +8,6 @@ use testlab_schema::{
     DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
     ListOffsetsCommand, ListTopicsCommand, ScenarioAction, ValidateFeatureUpdatesCommand,
 };
-
-use crate::runner_protocol::ExpectedEvent;
 
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     crate::session_command_admin_broker_unregistration::translate(action)
@@ -51,6 +50,7 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 total_count: action.total_count,
+                replica_assignments: action.replica_assignments.clone(),
                 validate_only: action.validate_only,
                 timeout_ms: action.timeout_ms,
             }),

@@ -32,16 +32,11 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 total_count: action.total_count,
+                replica_assignments: action.replica_assignments.clone(),
                 validate_only: action.validate_only,
                 timeout_ms: action.timeout_ms,
             }),
-            AdminTarget::Topic(TopicTarget {
-                operation_id: action.operation_id.clone(),
-                topic: action.topic.clone(),
-                expected_partitions: expected_partition_topology(action)?,
-                expected_exists: action.expected_error_code.is_none(),
-                poll_expected: action.expected_error_code.is_none() && !action.validate_only,
-            }),
+            create_partitions_target(action)?,
         ),
         ScenarioAction::DeleteTopic(action) => (
             AdapterCommand::DeleteTopic(DeleteTopicCommand {
@@ -154,6 +149,57 @@ fn create_expected_partitions(
     } else {
         Ok(Some(partitions(action.partitions)?))
     }
+}
+
+fn create_partitions_target(
+    action: &testlab_schema::CreatePartitionsAction,
+) -> Result<AdminTarget, ObserverError> {
+    if let Some(assignments) = action.replica_assignments.as_deref()
+        && action.expected_error_code.is_none()
+        && !action.validate_only
+    {
+        let current = action.expected_current_count.ok_or_else(|| {
+            ObserverError::InvalidTarget(format!(
+                "manual partition operation {} omitted expected current partition count",
+                action.operation_id
+            ))
+        })?;
+        return Ok(AdminTarget::PartitionAssignments(
+            PartitionAssignmentsTarget {
+                operation_id: action.operation_id.clone(),
+                assignments: assignments
+                    .iter()
+                    .enumerate()
+                    .map(|(offset, replicas)| {
+                        let offset = i32::try_from(offset).map_err(|_| {
+                            ObserverError::InvalidTarget(format!(
+                                "manual partition operation {} has too many assignments",
+                                action.operation_id
+                            ))
+                        })?;
+                        let partition = current.checked_add(offset).ok_or_else(|| {
+                            ObserverError::InvalidTarget(format!(
+                                "manual partition operation {} overflows partition indices",
+                                action.operation_id
+                            ))
+                        })?;
+                        Ok(ExpectedPartitionAssignment {
+                            topic: action.topic.clone(),
+                            partition,
+                            replicas: replicas.clone(),
+                        })
+                    })
+                    .collect::<Result<Vec<_>, ObserverError>>()?,
+            },
+        ));
+    }
+    Ok(AdminTarget::Topic(TopicTarget {
+        operation_id: action.operation_id.clone(),
+        topic: action.topic.clone(),
+        expected_partitions: expected_partition_topology(action)?,
+        expected_exists: action.expected_error_code.is_none(),
+        poll_expected: action.expected_error_code.is_none() && !action.validate_only,
+    }))
 }
 
 fn expected_partition_topology(

@@ -1,6 +1,5 @@
 //! Exact admin-command matching prevents scenario expectations from leaking onto the wire.
 use testlab_schema::{AdapterCommand, OperationId, ScenarioAction};
-
 #[path = "admin_group_listing_command_match.rs"]
 mod group_listing;
 
@@ -65,6 +64,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 &c.topic,
                 c.timeout_ms,
             ) && a.total_count == c.total_count
+                && a.replica_assignments == c.replica_assignments
                 && a.validate_only == c.validate_only
         }
         (ScenarioAction::DeleteTopic(a), AdapterCommand::DeleteTopic(c)) => same_topic(

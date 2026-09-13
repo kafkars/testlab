@@ -112,6 +112,7 @@ fn create_partitions() -> AdapterCommand {
         operation_id: id(OperationId::new("admin-partitions-1")),
         topic: "records".to_owned(),
         total_count: 3,
+        replica_assignments: None,
         validate_only: false,
         timeout_ms: 1_000,
     })

@@ -41,6 +41,7 @@ fn partition_increase_targets_current_topology_without_polling() {
         operation_id: operation("validate-partitions"),
         topic: "orders".to_owned(),
         total_count: 4,
+        replica_assignments: None,
         validate_only: true,
         expected_current_count: Some(2),
         expected_error_code: None,

@@ -26,9 +26,12 @@ pub struct CreatePartitionsAction {
     pub topic: String,
     /// Positive requested total partition count.
     pub total_count: i32,
+    /// Exact caller-ordered broker IDs for each newly added partition.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replica_assignments: Option<Vec<Vec<i32>>>,
     /// Whether the public API must validate the request without increasing partitions.
     pub validate_only: bool,
-    /// Exact current partition count required by the verifier for validate-only requests.
+    /// Exact current count required for validate-only or manual-placement requests.
     pub expected_current_count: Option<i32>,
     /// Exact normalized public error expected instead of a completion.
     #[serde(default)]

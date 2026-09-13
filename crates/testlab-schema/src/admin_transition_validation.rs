@@ -1,9 +1,7 @@
 use crate::{Scenario, ScenarioAction};
 use std::collections::{BTreeMap, BTreeSet};
-
 #[path = "admin_create_topics_batch_transition_validation.rs"]
 mod create_topics_batch;
-
 struct TopicDefinition {
     partitions: i32,
     replication_factor: i16,
@@ -171,7 +169,7 @@ impl TransitionState {
                 &self.created_topics,
                 problems,
             );
-        } else if action.validate_only {
+        } else if action.validate_only || action.replica_assignments.is_some() {
             let actual = self
                 .created_topics
                 .get(&action.topic)
@@ -179,6 +177,12 @@ impl TransitionState {
             crate::admin_validate_only_validation::validate_partition_transition(
                 action, actual, problems,
             );
+            if !action.validate_only
+                && let Some(definition) = self.created_topics.get_mut(&action.topic)
+            {
+                definition.partitions = action.total_count;
+                definition.replica_assignments = None;
+            }
         } else if let Some(definition) = self.created_topics.get_mut(&action.topic) {
             definition.partitions = action.total_count;
             definition.replica_assignments = None;

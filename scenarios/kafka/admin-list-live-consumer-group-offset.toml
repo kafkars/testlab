@@ -1,4 +1,4 @@
-schema_version = 124
+schema_version = 125
 id = "kafka.admin-list-live-consumer-group-offset"
 title = "packaged admin lists an independently observed live-group offset without stability fencing"
 description = "A classic group publicly consumes and commits one exact record, then remains open while the packaged admin lists its offset with require_stable disabled and an immediate independent query confirms offset 1."

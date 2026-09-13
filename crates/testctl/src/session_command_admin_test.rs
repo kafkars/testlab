@@ -1,5 +1,7 @@
 //! Admin command translation tests preserve requested intent and event identity.
 
+use crate::runner_protocol::ExpectedEvent;
+use crate::session_command_admin::translate;
 use testlab_schema::{
     AdapterCommand, AdminOffsetSelector, ClientId, CreatePartitionsAction, CreatePartitionsCommand,
     CreateTopicAction, CreateTopicCommand, DeleteRecordsAction, DeleteRecordsCommand,
@@ -8,10 +10,6 @@ use testlab_schema::{
     ListTopicsCommand, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
     TopicDescriptionPagination, TopicListingExpectation,
 };
-
-use crate::runner_protocol::ExpectedEvent;
-use crate::session_command_admin::translate;
-
 #[path = "session_command_admin_timestamp_test.rs"]
 mod timestamp_tests;
 
@@ -24,6 +22,7 @@ fn partition_creation_translation_preserves_requested_total() {
         operation_id: operation_id.clone(),
         topic: "orders".to_owned(),
         total_count: 3,
+        replica_assignments: None,
         validate_only: false,
         expected_current_count: None,
         expected_error_code: None,
@@ -41,6 +40,7 @@ fn partition_creation_translation_preserves_requested_total() {
             operation_id,
             topic: "orders".to_owned(),
             total_count: 3,
+            replica_assignments: None,
             validate_only: false,
             timeout_ms: 20_000,
         })

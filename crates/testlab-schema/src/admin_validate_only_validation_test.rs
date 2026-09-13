@@ -19,6 +19,7 @@ fn validation_flags_cross_the_wire_but_current_state_expectations_do_not() {
         operation_id: operation("partitions"),
         topic: "orders".to_owned(),
         total_count: 3,
+        replica_assignments: None,
         validate_only: true,
         timeout_ms: 1_000,
     });
@@ -186,6 +187,7 @@ fn create_topic(operation_id: &str, validate_only: bool) -> CreateTopicAction {
 fn partitions(
     operation_id: &str,
     total_count: i32,
+    replica_assignments: None,
     validate_only: bool,
     expected_current_count: Option<i32>,
 ) -> CreatePartitionsAction {

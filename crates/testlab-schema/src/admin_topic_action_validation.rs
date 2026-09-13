@@ -5,6 +5,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::admin_action_validation::{validate_identity, validate_resource, validate_timeout};
 use crate::{ClientId, OperationId, ScenarioAction};
 
+#[path = "admin_partition_replica_assignment_validation.rs"]
+mod partition_replica_assignment;
 #[path = "admin_topic_replica_assignment_validation.rs"]
 mod replica_assignment;
 #[path = "admin_topic_listing_validation.rs"]
@@ -39,6 +41,7 @@ pub(crate) fn validate(
                     action.operation_id
                 ));
             }
+            partition_replica_assignment::validate(action, problems);
             crate::admin_validate_only_validation::validate_create_partitions(action, problems);
             validate_missing_topic_error(
                 &action.operation_id,

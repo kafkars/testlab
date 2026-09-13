@@ -224,6 +224,7 @@ fn create_partitions(
         operation_id,
         topic,
         total_count,
+        replica_assignments: None,
         validate_only: false,
         expected_current_count: None,
         expected_error_code: None,

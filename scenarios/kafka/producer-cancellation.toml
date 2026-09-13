@@ -1,4 +1,4 @@
-schema_version = 124
+schema_version = 125
 id = "kafka.producer-cancellation"
 title = "both packaged producer operations preserve stage-aware cancellation truth"
 description = "The packaged producer accepts exact records through immediate try_send and bounded waiting send, exposes two public cancellation outcomes on each retained observer, and reports authoritative terminals without strengthening a too-late result into a not-sent promise."
