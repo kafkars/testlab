@@ -264,6 +264,10 @@ Protocol v128, scenario schema v132, and evidence schema v118 add exact
 Streams-group description and offset option selection. ADMIN-092 preserves
 false authorization, full-topology, and stable-offset flags across five public
 builder calls while the paired ADMIN-074 lifecycle retains all three true.
+Protocol v129, scenario schema v133, and evidence schema v119 add exact
+active-producer broker routing. ADMIN-093 preserves broker ID 1 on the wire in
+declared single-broker cells and retains ADMIN-051's immediate exact Kafka CLI
+producer-state comparison; automatic leader routing remains separately covered.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -720,6 +724,10 @@ and every producer ID, epoch, last sequence, last timestamp, coordinator epoch,
 and optional current-transaction start offset must match exactly. The fixture
 closes its producer after an acknowledged send so the compared broker state is
 not changing between snapshots.
+ADMIN-093 applies the same producer-state equality to a distinct request whose
+command preserves broker ID 1 and whose public builder selects that exact
+broker. The scenario is admitted only to fixed broker-one single-broker packs;
+multi-broker packs retain automatic leader routing without guessing ownership.
 
 ADMIN-052 binds one unfiltered public transaction listing to one immediate
 pinned Kafka CLI snapshot. The fixture initializes and closes every modeled

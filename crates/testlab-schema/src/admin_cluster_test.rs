@@ -10,9 +10,9 @@ use crate::{
 
 #[test]
 fn fenced_broker_cut_advances_every_versioned_boundary() {
-    assert_eq!(PROTOCOL_VERSION, 128);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 132);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 118);
+    assert_eq!(PROTOCOL_VERSION, 129);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 133);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 119);
 }
 
 #[test]
@@ -135,6 +135,7 @@ fn producer_count_expectation_stays_off_wire_and_results_round_trip() {
         operation_id: producer_operation(),
         topic: "orders".to_owned(),
         partition: 2,
+        broker_id: Some(7),
         expected_producer_count: 1,
         timeout_ms: 1_000,
     });
@@ -143,6 +144,7 @@ fn producer_count_expectation_stays_off_wire_and_results_round_trip() {
         operation_id: producer_operation(),
         topic: "orders".to_owned(),
         partition: 2,
+        broker_id: Some(7),
         timeout_ms: 1_000,
     });
     round_trip(&action);
@@ -183,6 +185,7 @@ fn admin_discovery_actions_require_live_clients_and_bounded_unique_operations() 
             operation_id: producer_operation(),
             topic: "orders".to_owned(),
             partition: 0,
+            broker_id: None,
             expected_producer_count: 1,
             timeout_ms: 1_000,
         }),
@@ -206,6 +209,7 @@ fn producer_state_intent_rejects_negative_partitions_and_empty_expectations() {
         operation_id: producer_operation(),
         topic: "orders".to_owned(),
         partition: -1,
+        broker_id: Some(-1),
         expected_producer_count: 0,
         timeout_ms: 1_000,
     });
@@ -224,6 +228,10 @@ fn producer_state_intent_rejects_negative_partitions_and_empty_expectations() {
         problems
             .iter()
             .any(|problem| problem.contains("expected_producer_count")),
+        "{problems:?}"
+    );
+    assert!(
+        problems.iter().any(|problem| problem.contains("broker_id")),
         "{problems:?}"
     );
 }

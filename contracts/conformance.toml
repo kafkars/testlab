@@ -613,6 +613,12 @@ statement = "One bounded public Streams-group Admin sequence preserves caller-se
 category = "admin"
 
 [[contract]]
+id = "ADMIN-093"
+title = "Active-producer description preserves exact broker routing"
+statement = "One public active-producer description in a declared broker-one single-broker cell preserves the exact broker route on the wire and returns canonical producer state exactly matching an immediate pinned Kafka CLI snapshot."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

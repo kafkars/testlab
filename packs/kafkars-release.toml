@@ -106,6 +106,7 @@ scenarios = [
   "scenarios/kafka/admin-describe-cluster.toml",
   "scenarios/kafka/admin-describe-features.toml",
   "scenarios/kafka/admin-describe-producers.toml",
+  "scenarios/kafka/admin-describe-producers-explicit-broker.toml",
   "scenarios/kafka/admin-describe-log-dirs.toml",
   "scenarios/kafka/admin-describe-replica-log-dirs.toml",
   "scenarios/kafka/admin-describe-metadata-quorum.toml",

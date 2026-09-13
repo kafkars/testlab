@@ -3,9 +3,9 @@ use testlab_schema::{
     AdapterCommand, AlterConsumerGroupOffsetCommand, CreatePartitionsCommand, CreateTopicCommand,
     DeleteConsumerGroupCommand, DeleteConsumerGroupOffsetCommand, DeleteTopicCommand,
     DescribeClusterCommand, DescribeConsumerGroupCommand, DescribeFeaturesCommand,
-    DescribeLogDirsCommand, DescribeMetadataQuorumCommand, DescribeProducersCommand,
-    DescribeTopicCommand, ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand,
-    ListOffsetsCommand, ListTopicsCommand, ScenarioAction, ValidateFeatureUpdatesCommand,
+    DescribeLogDirsCommand, DescribeMetadataQuorumCommand, DescribeTopicCommand,
+    ListConsumerGroupOffsetsCommand, ListConsumerGroupsCommand, ListOffsetsCommand,
+    ListTopicsCommand, ScenarioAction, ValidateFeatureUpdatesCommand,
 };
 pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedEvent)> {
     crate::session_command_admin_broker_unregistration::translate(action)
@@ -15,6 +15,7 @@ pub(crate) fn translate(action: &ScenarioAction) -> Option<(AdapterCommand, Expe
         .or_else(|| crate::session_command_admin_replica_log_dirs::translate(action))
         .or_else(|| crate::session_command_admin_leader_election::translate(action))
         .or_else(|| crate::session_command_admin_partition_reassignments::translate(action))
+        .or_else(|| crate::session_command_admin_producers::translate(action))
         .or_else(|| crate::session_command_admin_transactions::translate(action))
         .or_else(|| crate::session_command_admin_share_group::translate(action))
         .or_else(|| crate::session_command_admin_client_quota::translate(action))
@@ -143,20 +144,6 @@ fn translate_topic(action: &ScenarioAction) -> Option<(AdapterCommand, ExpectedE
                 timeout_ms: action.timeout_ms,
             }),
             ExpectedEvent::MetadataQuorumDescribed(action.operation_id.clone()),
-        ),
-        ScenarioAction::DescribeProducers(action) => (
-            AdapterCommand::DescribeProducers(DescribeProducersCommand {
-                client_id: action.client_id.clone(),
-                operation_id: action.operation_id.clone(),
-                topic: action.topic.clone(),
-                partition: action.partition,
-                timeout_ms: action.timeout_ms,
-            }),
-            ExpectedEvent::ProducerStatesDescribed {
-                operation_id: action.operation_id.clone(),
-                topic: action.topic.clone(),
-                partition: action.partition,
-            },
         ),
         ScenarioAction::DescribeLogDirs(action) => (
             AdapterCommand::DescribeLogDirs(DescribeLogDirsCommand {

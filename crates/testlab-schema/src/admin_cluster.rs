@@ -184,6 +184,9 @@ pub struct DescribeProducersAction {
     pub topic: String,
     /// Exact nonnegative partition whose producer state is queried.
     pub partition: i32,
+    /// Optional exact nonnegative broker route; absence uses partition leadership.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub broker_id: Option<i32>,
     /// Expected number of active producers in the controlled fixture.
     pub expected_producer_count: usize,
     /// Complete public operation bound.
@@ -202,6 +205,9 @@ pub struct DescribeProducersCommand {
     pub topic: String,
     /// Exact nonnegative partition whose producer state is queried.
     pub partition: i32,
+    /// Optional exact nonnegative broker route; absence uses partition leadership.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub broker_id: Option<i32>,
     /// Complete public operation bound.
     pub timeout_ms: u64,
 }

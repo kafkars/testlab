@@ -18,7 +18,7 @@ use crate::admin_metadata_quorum::verify_metadata_quorum_action;
 use crate::admin_offset_batch::verify_offset_batch_action;
 use crate::admin_operation::operation_id;
 use crate::admin_partition_reassignments::verify_partition_reassignments_action;
-use crate::admin_producers::verify_producers_action;
+use crate::admin_producers::{contract as producer_contract, verify_producers_action};
 use crate::admin_records::verify_records_action;
 use crate::admin_records_batch::verify_records_batch_action;
 use crate::admin_replica_log_dirs::verify_replica_log_dirs_action;
@@ -269,7 +269,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         }
         ScenarioAction::ExerciseDelegationTokenLifecycle(_) => "ADMIN-073",
         ScenarioAction::ExerciseStreamsGroupAdminLifecycle(value) => streams_contract(value),
-        ScenarioAction::DescribeProducers(_) => "ADMIN-051",
+        ScenarioAction::DescribeProducers(value) => producer_contract(value),
         ScenarioAction::ListTransactions(value)
             if crate::admin_transactions::filters::selected(value) =>
         {

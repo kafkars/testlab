@@ -1,4 +1,4 @@
-schema_version = 132
+schema_version = 133
 id = "kafka.admin-create-partitions-manual-replica-placement"
 title = "packaged admin expands a topic with exact replica placement"
 description = "The packaged public admin expands a one-partition topic with caller-ordered assignments for two new partitions, and immediate independent metadata requires the exact complete partition set, replica order, replica leader, and full ISR."

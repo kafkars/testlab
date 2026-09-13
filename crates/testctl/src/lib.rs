@@ -55,6 +55,7 @@ mod session_command_admin_delegation_token;
 mod session_command_admin_group_batch;
 mod session_command_admin_leader_election;
 mod session_command_admin_partition_reassignments;
+mod session_command_admin_producers;
 mod session_command_admin_records;
 mod session_command_admin_replica_log_dirs;
 mod session_command_admin_share_group;

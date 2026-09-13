@@ -36,7 +36,7 @@ pub(crate) fn verify_producers_action(
         return true;
     }
     violations.push(violation(
-        "ADMIN-051",
+        contract(action),
         format!(
             "admin operation {} expected {} canonical active producer(s) exactly matching one immediate Kafka CLI snapshot",
             action.operation_id, action.expected_producer_count
@@ -45,6 +45,14 @@ pub(crate) fn verify_producers_action(
         evidence(public, independent),
     ));
     true
+}
+
+pub(crate) const fn contract(action: &testlab_schema::DescribeProducersAction) -> &'static str {
+    if action.broker_id.is_some() {
+        "ADMIN-093"
+    } else {
+        "ADMIN-051"
+    }
 }
 
 fn exact_match(

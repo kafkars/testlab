@@ -1081,8 +1081,11 @@ scenario sets it to zero, requiring the adapter to call the public
 immediate-expiry sentinel. The sanitized independent observer still requires
 zero live owner tokens immediately after completion.
 
-Active-producer description carries one exact topic-partition and complete
-deadline. The scenario-owned expected count stays outside the wire command.
+Active-producer description carries one exact topic-partition, an optional
+nonnegative broker route, and a complete deadline. Absence retains automatic
+partition-leader routing. Exact broker routing is exercised only on declared
+single-broker cells whose fixed broker identity is one. The scenario-owned
+expected count stays outside the wire command.
 Its public completion retains producer ID, producer epoch, last sequence, last
 timestamp, coordinator epoch, and optional current-transaction start offset in
 canonical producer-ID order. An immediate independent

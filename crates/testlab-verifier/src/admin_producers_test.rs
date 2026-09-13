@@ -17,6 +17,20 @@ fn exact_nontransactional_and_transactional_producer_states_pass() {
 }
 
 #[test]
+fn exact_broker_route_uses_the_dedicated_contract() {
+    let mut routed = history();
+    let HistoryPayload::HarnessCommand { command } = &mut routed[0].payload else {
+        panic!("producer description command");
+    };
+    let AdapterCommand::DescribeProducers(command) = &mut command.command else {
+        panic!("producer description command kind");
+    };
+    command.broker_id = Some(1);
+    assert!(violations_with_broker(routed, 2, Some(1)).is_empty());
+    assert_contract_id(&violations_with_broker(history(), 2, Some(1)), "ADMIN-093");
+}
+
+#[test]
 fn count_target_and_field_mismatches_fail() {
     assert_contract(&violations(history(), 1));
 
@@ -72,6 +86,7 @@ fn history() -> Vec<HistoryEntry> {
                 operation_id: operation_id.clone(),
                 topic: "orders".to_owned(),
                 partition: 0,
+                broker_id: None,
                 timeout_ms: 1_000,
             }),
         ),
@@ -98,6 +113,14 @@ fn history() -> Vec<HistoryEntry> {
 }
 
 fn violations(history: Vec<HistoryEntry>, expected_count: usize) -> Vec<testlab_schema::Violation> {
+    violations_with_broker(history, expected_count, None)
+}
+
+fn violations_with_broker(
+    history: Vec<HistoryEntry>,
+    expected_count: usize,
+    broker_id: Option<i32>,
+) -> Vec<testlab_schema::Violation> {
     let mut scenario = scenario(
         TerminalStatus::Acknowledged,
         VisibilityExpectation::ExactlyOnce,
@@ -111,6 +134,7 @@ fn violations(history: Vec<HistoryEntry>, expected_count: usize) -> Vec<testlab_
                 operation_id: operation(),
                 topic: "orders".to_owned(),
                 partition: 0,
+                broker_id,
                 expected_producer_count: expected_count,
                 timeout_ms: 1_000,
             }),
@@ -151,10 +175,14 @@ fn operation() -> OperationId {
 }
 
 fn assert_contract(violations: &[testlab_schema::Violation]) {
+    assert_contract_id(violations, "ADMIN-051");
+}
+
+fn assert_contract_id(violations: &[testlab_schema::Violation], contract_id: &str) {
     assert!(
         violations
             .iter()
-            .any(|violation| violation.contract_id.as_str() == "ADMIN-051"),
+            .any(|violation| violation.contract_id.as_str() == contract_id),
         "{violations:?}"
     );
 }

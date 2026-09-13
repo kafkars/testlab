@@ -67,6 +67,12 @@ fn validate_singleton(
                     action.operation_id
                 ));
             }
+            if action.broker_id.is_some_and(|broker_id| broker_id < 0) {
+                problems.push(format!(
+                    "admin operation {} broker_id must be nonnegative when present",
+                    action.operation_id
+                ));
+            }
             if !(1..=32 * 1024).contains(&action.expected_producer_count) {
                 problems.push(format!(
                     "admin operation {} expected_producer_count must be between 1 and 32768",

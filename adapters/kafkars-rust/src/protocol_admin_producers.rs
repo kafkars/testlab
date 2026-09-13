@@ -23,7 +23,13 @@ pub(crate) fn describe<W: Write>(
 ) -> Result<(), AdapterError> {
     let deadline = deadline_after(command.timeout_ms);
     let client = state.client(&command.client_id)?;
-    let producers = query(client, &command.topic, command.partition, deadline)?;
+    let producers = query_with_broker(
+        client,
+        &command.topic,
+        command.partition,
+        command.broker_id,
+        deadline,
+    )?;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -44,16 +50,26 @@ pub(crate) fn query(
     partition: i32,
     deadline: Instant,
 ) -> Result<Vec<ProducerStateSnapshot>, AdapterError> {
+    query_with_broker(client, topic, partition, None, deadline)
+}
+
+fn query_with_broker(
+    client: &Client,
+    topic: &str,
+    partition: i32,
+    broker_id: Option<i32>,
+    deadline: Instant,
+) -> Result<Vec<ProducerStateSnapshot>, AdapterError> {
     let target = TopicPartition::new(topic.to_owned(), partition);
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
-            client
-                .admin()
-                .describe_producers([target.clone()])
-                .deadline_after(remaining)
-                .submit()
-                .wait()
+            let request = client.admin().describe_producers([target.clone()]);
+            let request = match broker_id {
+                Some(broker_id) => request.broker_id(broker_id),
+                None => request,
+            };
+            request.deadline_after(remaining).submit().wait()
         },
         retry_safe,
     )

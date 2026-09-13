@@ -137,3 +137,39 @@ fn fenced_broker_description_stays_on_disposable_three_broker_packs() {
         );
     }
 }
+
+#[test]
+fn exact_producer_broker_route_stays_on_single_broker_packs() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let repository = Repository::open(&root)
+        .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
+    for path in [
+        "packs/kafkars-pr.toml",
+        "packs/kafkars-classic.toml",
+        "packs/kafkars-release.toml",
+        "packs/kafkars-share-release.toml",
+    ] {
+        let (_, pack) = repository
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        assert!(
+            pack.scenarios.iter().any(|scenario| scenario
+                .ends_with("admin-describe-producers-explicit-broker.toml")),
+            "{path} omitted exact active-producer broker routing"
+        );
+    }
+    for path in [
+        "packs/kafkars-three-broker.toml",
+        "packs/kafkars-three-broker-share.toml",
+        "packs/kafkars-three-broker-security.toml",
+    ] {
+        let (_, pack) = repository
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        assert!(
+            !pack.scenarios.iter().any(|scenario| scenario
+                .ends_with("admin-describe-producers-explicit-broker.toml")),
+            "{path} must retain leader-routed active-producer description"
+        );
+    }
+}

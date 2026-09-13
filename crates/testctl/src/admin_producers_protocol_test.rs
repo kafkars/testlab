@@ -19,6 +19,7 @@ fn translation_keeps_expected_count_off_wire() {
     assert_eq!(command.operation_id, operation());
     assert_eq!(command.topic, "orders");
     assert_eq!(command.partition, 2);
+    assert_eq!(command.broker_id, Some(7));
     assert_eq!(command.timeout_ms, 1_000);
     let encoded = serde_json::to_string(&command)
         .unwrap_or_else(|error| panic!("encode active-producer command: {error}"));
@@ -59,6 +60,7 @@ fn action() -> DescribeProducersAction {
         operation_id: operation(),
         topic: "orders".to_owned(),
         partition: 2,
+        broker_id: Some(7),
         expected_producer_count: 1,
         timeout_ms: 1_000,
     }

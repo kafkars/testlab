@@ -1,7 +1,7 @@
 schema_version = 133
-id = "kafka.admin-describe-producers"
-title = "packaged admin describes independently observed active producer state"
-description = "After one acknowledged idempotent send and producer close, the packaged client's public partition producer-state result must preserve every exact field from the pinned Kafka administration CLI."
+id = "kafka.admin-describe-producers-explicit-broker"
+title = "packaged admin routes active producer description to broker one"
+description = "On declared single-broker cells, the packaged client's public partition producer-state request must preserve the exact broker-one route and every field from the pinned Kafka administration CLI."
 timeout_ms = 90000
 requires = ["producer", "admin", "lifecycle", "client_readiness"]
 
@@ -22,19 +22,19 @@ client_id = "client-1"
 producer_id = "producer-1"
 
 [[steps]]
-id = "send-producer-state-marker"
+id = "send-explicit-broker-producer-state-marker"
 kind = "send"
 producer_id = "producer-1"
-operation_id = "op-producer-state-marker"
+operation_id = "op-explicit-broker-producer-state-marker"
 
 [steps.record]
-topic = "testlab-kafkars-admin-producer-state"
+topic = "testlab-kafkars-admin-producer-state-explicit-broker"
 partition = 0
 sequence = 1
-key = { encoding = "utf8", data = "producer-state" }
+key = { encoding = "utf8", data = "producer-state-explicit-broker" }
 value = { encoding = "hex", data = "006163746976652d70726f6475636572ff" }
 headers = [
-  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-producer-state-marker" } },
+  { name = "testlab-operation-id", value = { encoding = "utf8", data = "op-explicit-broker-producer-state-marker" } },
   { name = "testlab-sequence", value = { encoding = "utf8", data = "1" } },
 ]
 
@@ -49,12 +49,13 @@ kind = "close_producer"
 producer_id = "producer-1"
 
 [[steps]]
-id = "describe-producers"
+id = "describe-producers-on-broker-one"
 kind = "describe_producers"
 client_id = "client-1"
-operation_id = "admin-describe-producers-1"
-topic = "testlab-kafkars-admin-producer-state"
+operation_id = "admin-describe-producers-explicit-broker-1"
+topic = "testlab-kafkars-admin-producer-state-explicit-broker"
 partition = 0
+broker_id = 1
 expected_producer_count = 1
 timeout_ms = 20000
 
@@ -64,7 +65,7 @@ kind = "shutdown_client"
 client_id = "client-1"
 
 [[assertions]]
-operation_id = "op-producer-state-marker"
+operation_id = "op-explicit-broker-producer-state-marker"
 accepted = true
 terminal = "acknowledged"
 visibility = "exactly_once"

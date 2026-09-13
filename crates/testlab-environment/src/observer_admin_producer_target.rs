@@ -22,6 +22,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
                 operation_id: action.operation_id.clone(),
                 topic: action.topic.clone(),
                 partition: action.partition,
+                broker_id: action.broker_id,
                 timeout_ms: action.timeout_ms,
             }),
             AdminTarget::Producers(ProducerTarget {

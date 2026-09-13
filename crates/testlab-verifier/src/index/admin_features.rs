@@ -51,6 +51,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                 && action.operation_id == command.operation_id
                 && action.topic == command.topic
                 && action.partition == command.partition
+                && action.broker_id == command.broker_id
                 && action.timeout_ms == command.timeout_ms
         }
         (ScenarioAction::DescribeLogDirs(action), AdapterCommand::DescribeLogDirs(command)) => {
