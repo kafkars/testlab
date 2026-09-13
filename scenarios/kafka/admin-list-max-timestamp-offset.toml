@@ -1,4 +1,4 @@
-schema_version = 139
+schema_version = 140
 id = "kafka.admin-list-max-timestamp-offset"
 title = "packaged admin selects the independently evidenced greatest timestamp"
 description = "After two records reach one partition in descending timestamp order, the packaged client's public max-timestamp ListOffsets query selects offset 0 and returns its exact independently observed timestamp; neither earliest nor latest selection can satisfy the same evidence."

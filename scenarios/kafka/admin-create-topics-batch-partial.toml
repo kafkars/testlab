@@ -1,7 +1,7 @@
-schema_version = 139
+schema_version = 140
 id = "kafka.admin-create-topics-batch-partial"
-title = "packaged admin preserves ordered partial topic-creation outcomes"
-description = "One public CreateTopics batch creates a fresh topic first and reports an exact duplicate-topic error for an existing topic second; ordered public outcomes and immediate independent metadata prove both resource results without collapsing the batch into one failure."
+title = "packaged admin preserves configured partial topic-creation outcomes"
+description = "One public CreateTopics batch applies a selected configuration while creating a fresh topic first and reports an exact duplicate-topic error for an existing topic second; ordered public outcomes, immediate metadata, and later public plus independent configuration reads prove the successful configured item without collapsing the batch into one failure."
 timeout_ms = 120000
 requires = ["admin", "lifecycle", "client_readiness"]
 assertions = []
@@ -39,6 +39,10 @@ topic = "testlab-kafkars-admin-batch-fresh"
 partitions = 3
 replication_factor = 1
 
+[[steps.topics.configs]]
+name = "cleanup.policy"
+value = "compact"
+
 [[steps.topics]]
 topic = "testlab-kafkars-admin-batch-existing"
 partitions = 2
@@ -52,6 +56,16 @@ client_id = "client-1"
 operation_id = "admin-batch-describe-fresh"
 topic = "testlab-kafkars-admin-batch-fresh"
 expected_partitions = [0, 1, 2]
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-fresh-topic-config"
+kind = "describe_topic_config"
+client_id = "client-1"
+operation_id = "admin-batch-describe-fresh-config"
+topic = "testlab-kafkars-admin-batch-fresh"
+config_name = "cleanup.policy"
+expected_value = "compact"
 timeout_ms = 20000
 
 [[steps]]

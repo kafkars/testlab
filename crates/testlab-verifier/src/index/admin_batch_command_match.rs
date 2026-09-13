@@ -40,6 +40,7 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> Opti
                             expected.topic == actual.topic
                                 && expected.partitions == actual.partitions
                                 && expected.replication_factor == actual.replication_factor
+                                && expected.configs == actual.configs
                         }),
             )
         }

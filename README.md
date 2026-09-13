@@ -107,6 +107,8 @@ Active-producer description covers both automatic leader routing and an exact
 broker-one route on every declared single-broker release cell. Configured topic
 creation preserves its ordered public builder inputs and proves the selected
 value through both public description and immediate independent librdkafka output.
+Configured batch creation retains each successful item's ordered builder inputs,
+partial outcomes, exact topology, and the same public plus independent value proof.
 Plural consumer-group offset alteration selects an explicit one-day retention
 through the public builder while retaining exact ordered results and immediate
 independent offset proof; eventual expiry is not claimed.

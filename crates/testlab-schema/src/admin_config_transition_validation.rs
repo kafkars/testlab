@@ -69,34 +69,67 @@ pub(crate) fn validate(scenario: &Scenario, problems: &mut Vec<String>) {
 
 fn validate_creation_descriptions(scenario: &Scenario, problems: &mut Vec<String>) {
     for (step_index, step) in scenario.steps.iter().enumerate() {
-        let ScenarioAction::CreateTopic(creation) = &step.action else {
-            continue;
-        };
-        if creation.expected_error_code.is_some()
-            || creation.validate_only
-            || creation.replica_assignments.is_some()
-            || creation.configs.is_empty()
-        {
-            continue;
-        }
-        let mut following = scenario.steps.iter().skip(step_index.saturating_add(1));
-        for config in &creation.configs {
-            let described = following.by_ref().any(|step| {
-                matches!(
-                    &step.action,
-                    ScenarioAction::DescribeTopicConfig(action)
-                        if action.topic == creation.topic
-                            && action.config_name == config.name
-                            && action.expected_value == config.value
-                )
-            });
-            if !described {
-                problems.push(format!(
-                    "admin operation {} configured topic creation requires a later ordered description of {}:{}",
-                    creation.operation_id, creation.topic, config.name
-                ));
-                break;
+        match &step.action {
+            ScenarioAction::CreateTopic(creation)
+                if creation.expected_error_code.is_none()
+                    && !creation.validate_only
+                    && creation.replica_assignments.is_none() =>
+            {
+                validate_creation_description_chain(
+                    scenario,
+                    step_index,
+                    &creation.operation_id,
+                    &creation.topic,
+                    &creation.configs,
+                    problems,
+                );
             }
+            ScenarioAction::CreateTopicsBatch(creation) => {
+                for item in creation
+                    .topics
+                    .iter()
+                    .filter(|item| item.expected_error_code.is_none())
+                {
+                    validate_creation_description_chain(
+                        scenario,
+                        step_index,
+                        &creation.operation_id,
+                        &item.topic,
+                        &item.configs,
+                        problems,
+                    );
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn validate_creation_description_chain(
+    scenario: &Scenario,
+    step_index: usize,
+    operation_id: &OperationId,
+    topic: &str,
+    configs: &[crate::TopicCreationConfig],
+    problems: &mut Vec<String>,
+) {
+    let mut following = scenario.steps.iter().skip(step_index.saturating_add(1));
+    for config in configs {
+        let described = following.by_ref().any(|step| {
+            matches!(
+                &step.action,
+                ScenarioAction::DescribeTopicConfig(action)
+                    if action.topic == topic
+                        && action.config_name == config.name
+                        && action.expected_value == config.value
+            )
+        });
+        if !described {
+            problems.push(format!(
+                "admin operation {operation_id} configured topic creation requires a later ordered description of {topic}:{}",
+                config.name
+            ));
+            break;
         }
     }
 }

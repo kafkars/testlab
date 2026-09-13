@@ -61,6 +61,14 @@ fn validate_items(action: &crate::CreateTopicsBatchAction, problems: &mut Vec<St
                 action.operation_id, item.topic
             ));
         }
+        crate::admin_topic_action_validation::topic_creation_config::validate_configs(
+            &format!(
+                "admin operation {} batch topic {}",
+                action.operation_id, item.topic
+            ),
+            &item.configs,
+            problems,
+        );
         if item
             .expected_error_code
             .as_deref()

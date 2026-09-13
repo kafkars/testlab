@@ -2,18 +2,20 @@
 
 use testlab_schema::{
     AdapterCommand, ClientId, CreateTopicBatchActionItem, CreateTopicsBatchAction, OperationId,
-    ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
+    ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE, TopicCreationConfig,
 };
 
 use crate::observer_admin_target::AdminTarget;
 
 #[test]
 fn batch_maps_to_one_exact_command_and_ordered_topic_observations() {
+    let mut fresh = item("fresh", 2, None);
+    fresh.configs = configs();
     let action = ScenarioAction::CreateTopicsBatch(CreateTopicsBatchAction {
         client_id: ClientId::new("client-1").unwrap_or_else(|error| panic!("client: {error}")),
         operation_id: operation(),
         topics: vec![
-            item("fresh", 2, None),
+            fresh,
             item(
                 "existing",
                 3,
@@ -30,6 +32,7 @@ fn batch_maps_to_one_exact_command_and_ordered_topic_observations() {
         panic!("batch command kind");
     };
     assert_eq!(command_value.topics[0].topic, "fresh");
+    assert_eq!(command_value.topics[0].configs, configs());
     assert_eq!(command_value.topics[1].topic, "existing");
     let AdminTarget::Topics(target_value) = &target else {
         panic!("batch target kind");
@@ -70,10 +73,18 @@ fn item(
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+        configs: Vec::new(),
         expected_error_code,
     }
 }
 
 fn operation() -> OperationId {
     OperationId::new("batch-create").unwrap_or_else(|error| panic!("operation: {error}"))
+}
+
+fn configs() -> Vec<TopicCreationConfig> {
+    vec![TopicCreationConfig {
+        name: "cleanup.policy".to_owned(),
+        value: "compact".to_owned(),
+    }]
 }

@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{ClientId, OperationId};
+use crate::{ClientId, OperationId, TopicCreationConfig};
 
 #[path = "admin_create_topics_batch_validation.rs"]
 pub(crate) mod validation;
@@ -31,6 +31,9 @@ pub struct CreateTopicBatchActionItem {
     pub partitions: i32,
     /// Initial positive replication factor.
     pub replication_factor: i16,
+    /// Caller-ordered topic configurations supplied with this request.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub configs: Vec<TopicCreationConfig>,
     /// Exact normalized public error expected for this resource.
     #[serde(default)]
     pub expected_error_code: Option<String>,
@@ -60,6 +63,9 @@ pub struct CreateTopicBatchCommandItem {
     pub partitions: i32,
     /// Initial positive replication factor.
     pub replication_factor: i16,
+    /// Caller-ordered topic configurations supplied with this request.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub configs: Vec<TopicCreationConfig>,
 }
 
 /// Public completion for one ordered batch topic-creation call.

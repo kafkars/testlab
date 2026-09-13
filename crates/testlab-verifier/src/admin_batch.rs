@@ -1,12 +1,31 @@
 //! Batch topic verification joins ordered public outcomes to per-topic broker topology.
 
-use testlab_schema::{AdminTopicCreationOutcome, ScenarioAction, Violation};
+use testlab_schema::{AdminTopicCreationOutcome, Scenario, ScenarioAction, Violation};
 
 use crate::admin::{immediate_after_public, public_after_command};
 use crate::index::{HistoryIndex, IndexedAdminTopicsCreationBatch, IndexedTopicObservation};
 use crate::support::violation;
 
+#[path = "admin_batch_topic_creation_config.rs"]
+mod topic_creation_config;
+#[cfg(test)]
+#[path = "admin_batch_topic_creation_config_test.rs"]
+mod topic_creation_config_test;
+
+pub(crate) fn contract(action: &testlab_schema::CreateTopicsBatchAction) -> &'static str {
+    if action
+        .topics
+        .iter()
+        .any(|item| item.expected_error_code.is_none() && !item.configs.is_empty())
+    {
+        "ADMIN-096"
+    } else {
+        "ADMIN-018"
+    }
+}
+
 pub(crate) fn verify_batch_action(
+    scenario: &Scenario,
     action: &ScenarioAction,
     index: &HistoryIndex,
     violations: &mut Vec<Violation>,
@@ -45,6 +64,7 @@ pub(crate) fn verify_batch_action(
             evidence(public, independent),
         ));
     }
+    topic_creation_config::verify(scenario, action, index, violations);
     true
 }
 

@@ -1,4 +1,4 @@
-schema_version = 139
+schema_version = 140
 id = "kafka.admin-describe-fenced-brokers"
 title = "packaged Admin excludes then includes one fenced broker"
 description = "Testlab proves the complete three-broker baseline, stops broker 3, independently observes brokers 1 and 2 while paired public descriptions exclude then include broker 3 with its fenced marker, restarts it, and proves the complete cluster is restored."

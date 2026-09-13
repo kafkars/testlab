@@ -631,6 +631,12 @@ statement = "One public plural consumer-group offset alteration preserves an exp
 category = "admin"
 
 [[contract]]
+id = "ADMIN-096"
+title = "Configured batch topic creation preserves each selected value"
+statement = "Each successful configured item in one caller-ordered public topic-creation batch preserves every ordered NewTopic configuration on the wire, creates the exact topology, and is followed in configuration order by an exact public description plus an immediate independent librdkafka value."
+category = "admin"
+
+[[contract]]
 id = "TXN-001"
 title = "Transaction disposition settles exactly once"
 statement = "Each requested transaction emits one exact public commit or abort completion."

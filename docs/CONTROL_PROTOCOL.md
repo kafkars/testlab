@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v135 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v139 and evidence schema v125.
+Protocol v136 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v140 and evidence schema v126.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -653,13 +653,14 @@ Singleton topic creation, ordered batch topic creation, and partition expansion
 use the packaged client's public admin handle. Admin-created scenario topics are
 deliberately excluded from independent environment provisioning, and broker
 auto-creation is disabled. Immediately after each public completion, independent
-metadata queries require the requested partition sets. A singleton creation may
-also carry up to 32 unique caller-ordered non-sensitive configuration entries.
-The adapter applies each entry through the packaged topic builder and retains
-the complete ordered list on the wire. After topology proof, a later public
-description and immediate independent librdkafka query must prove every selected
-value in the same order; scenario validation rejects a missing or reordered
-description chain before execution. A singleton creation may instead carry one
+metadata queries require the requested partition sets. A singleton creation or
+each item in a batch may carry up to 32 unique caller-ordered non-sensitive
+configuration entries. The adapter applies each entry through the packaged
+topic builder and retains every complete ordered list on the wire. After a
+successful item's topology proof, a later public description and immediate
+independent librdkafka query must prove every selected value in the same order;
+scenario validation rejects a missing or reordered description chain before
+execution. A singleton creation may instead carry one
 contiguous caller-ordered partition assignment per partition.
 Its declared partition count and replication factor must exactly match those
 assignments, and the adapter calls the packaged manual-placement constructor.
@@ -700,7 +701,9 @@ Per-resource failures remain outcomes in that completion instead of collapsing
 a partial batch into `command_failed`. Scenario-only expected error codes never
 cross the adapter boundary; the verifier compares them with the corresponding
 ordered outcomes and independently checks broker metadata for every requested
-topic.
+topic. Each item retains its caller-ordered configuration entries in that same
+wire command. A successful configured item then requires the ordered public and
+independent value chain described above; failed siblings do not erase its proof.
 
 Named topic description, all-topic listing, and offset listing also use the
 packaged public admin handle. Their adapter commands omit the scenario's
@@ -1302,6 +1305,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v135 is an exact semantic contract. New capabilities may be declared
+Protocol v136 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

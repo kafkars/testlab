@@ -297,6 +297,12 @@ Protocol v135, scenario schema v139, and evidence schema v125 add exact Share
 registration retention. SHARE-012 requires one command preserving client,
 member, and group identities, caller-ordered topics, optional rack, membership
 and close deadlines, and the complete optional acquisition policy.
+Protocol v136, scenario schema v140, and evidence schema v126 add configured
+batch topic creation. ADMIN-096 preserves every caller-ordered `NewTopic`
+configuration on each successful configured item while retaining ADMIN-018's
+ordered mixed outcomes and exact topology, then requires ordered public
+descriptions and immediate independent librdkafka values for every selected
+non-sensitive entry.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -596,7 +602,10 @@ ADMIN-017 additionally
 requires a distinct pre-deletion watermark baseline and an unchanged high
 watermark. ADMIN-018 binds each caller-ordered batch result to its independently
 observed topic state, including an exact expected duplicate-topic code without
-turning the successful sibling result into a failure. ADMIN-014 binds an exact
+turning the successful sibling result into a failure. ADMIN-096 additionally
+binds every successful configured batch item to its exact ordered wire entries,
+then to a later exact public description and immediate independent non-sensitive
+value for each entry in configuration order. ADMIN-014 binds an exact
 correlated topic-already-exists public failure to an unchanged topic snapshot;
 an unrelated or differently coded failure cannot satisfy it. ADMIN-019 applies
 the same correlation and no-success rules to exact unknown-topic broker failures
@@ -860,6 +869,12 @@ metadata snapshot must first prove the complete topic topology. Each selected
 entry then requires a later matching public topic-configuration description and
 an immediate independent librdkafka query with the exact non-sensitive value, in
 caller order; an unrelated configuration read cannot satisfy creation evidence.
+
+ADMIN-096 applies the same ordered builder-input and value-proof chain to every
+successful configured item in one public batch. The batch completion retains all
+caller positions and per-resource outcomes, and each item's exact topology must
+precede its later description command; a duplicate sibling or unrelated config
+read cannot substitute for the configured item's independent value.
 
 ADMIN-085 binds one successful manually placed partition expansion to one
 immediate independent metadata observation. The scenario and wire retain one

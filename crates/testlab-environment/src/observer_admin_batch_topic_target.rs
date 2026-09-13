@@ -24,6 +24,7 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             topic: item.topic.clone(),
             partitions: item.partitions,
             replication_factor: item.replication_factor,
+            configs: item.configs.clone(),
         })
         .collect();
     Ok(Some((

@@ -163,6 +163,7 @@ fn action_item(
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+        configs: Vec::new(),
         expected_error_code,
     }
 }
@@ -172,6 +173,7 @@ fn command_item(topic: &str, partitions: i32) -> CreateTopicBatchCommandItem {
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+        configs: Vec::new(),
     }
 }
 

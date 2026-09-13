@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use crate::kafkars_api::{KafkaError, NewTopic, RetryAdvice};
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminTopicCreationOutcome, AdminTopicsCreationBatch,
-    CommandId, CreateTopicsBatchCommand, OperationId,
+    CommandId, CreateTopicBatchCommandItem, CreateTopicsBatchCommand, OperationId,
 };
 
 use crate::AdapterError;
@@ -31,10 +31,7 @@ pub(crate) fn create<W: Write>(
     let result = retry_until_with_remaining(
         deadline,
         |remaining| {
-            let requests = command.topics.iter().map(|topic| {
-                NewTopic::new(topic.topic.clone(), topic.partitions)
-                    .replication_factor(topic.replication_factor)
-            });
+            let requests = command.topics.iter().map(new_topic);
             client
                 .admin()
                 .create_topics(requests)
@@ -59,6 +56,14 @@ pub(crate) fn create<W: Write>(
                 outcomes,
             }),
         ),
+    )
+}
+
+fn new_topic(topic: &CreateTopicBatchCommandItem) -> NewTopic {
+    topic.configs.iter().fold(
+        NewTopic::new(topic.topic.clone(), topic.partitions)
+            .replication_factor(topic.replication_factor),
+        |request, config| request.config(config.name.clone(), config.value.clone()),
     )
 }
 

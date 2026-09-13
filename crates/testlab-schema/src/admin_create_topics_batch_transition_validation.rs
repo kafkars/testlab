@@ -15,7 +15,7 @@ pub(super) fn validate(
             partitions: item.partitions,
             replication_factor: item.replication_factor,
             replica_assignments: None,
-            configs: Vec::new(),
+            configs: item.configs.clone(),
         };
         if item.expected_error_code.is_some() {
             let has_singleton = singleton_topics.contains(&item.topic)

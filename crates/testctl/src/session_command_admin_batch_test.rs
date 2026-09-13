@@ -5,6 +5,7 @@ use testlab_schema::{
     CreateTopicBatchCommandItem, CreateTopicsBatchAction, CreateTopicsBatchCommand,
     ListOffsetsBatchAction, ListOffsetsBatchCommand, OffsetListingExpectation,
     OffsetListingSelection, OperationId, ScenarioAction, TOPIC_ALREADY_EXISTS_ERROR_CODE,
+    TopicCreationConfig,
 };
 
 use crate::runner_protocol::ExpectedEvent;
@@ -14,11 +15,13 @@ fn batch_translation_is_one_ordered_command_without_expectations() {
     let client_id = ClientId::new("client-1").unwrap_or_else(|error| panic!("client: {error}"));
     let operation_id =
         OperationId::new("batch-create").unwrap_or_else(|error| panic!("operation: {error}"));
+    let mut fresh = item("fresh", 2, None);
+    fresh.configs = configs();
     let action = ScenarioAction::CreateTopicsBatch(CreateTopicsBatchAction {
         client_id: client_id.clone(),
         operation_id: operation_id.clone(),
         topics: vec![
-            item("fresh", 2, None),
+            fresh,
             item(
                 "existing",
                 3,
@@ -31,12 +34,14 @@ fn batch_translation_is_one_ordered_command_without_expectations() {
     let (command, expected) = super::session_command_admin::translate(&action)
         .unwrap_or_else(|| panic!("missing batch translation"));
 
+    let mut fresh = command_item("fresh", 2);
+    fresh.configs = configs();
     assert_eq!(
         command,
         AdapterCommand::CreateTopicsBatch(CreateTopicsBatchCommand {
             client_id,
             operation_id: operation_id.clone(),
-            topics: vec![command_item("fresh", 2), command_item("existing", 3)],
+            topics: vec![fresh, command_item("existing", 3)],
             timeout_ms: 500,
         })
     );
@@ -94,6 +99,7 @@ fn item(
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+        configs: Vec::new(),
         expected_error_code,
     }
 }
@@ -103,7 +109,15 @@ fn command_item(topic: &str, partitions: i32) -> CreateTopicBatchCommandItem {
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+        configs: Vec::new(),
     }
+}
+
+fn configs() -> Vec<TopicCreationConfig> {
+    vec![TopicCreationConfig {
+        name: "cleanup.policy".to_owned(),
+        value: "compact".to_owned(),
+    }]
 }
 
 fn offset_expectation(

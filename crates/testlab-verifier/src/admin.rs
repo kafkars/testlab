@@ -96,7 +96,7 @@ pub(crate) fn verify_admin(
             || verify_delegation_token(&step.action, index, violations)
             || verify_streams_group(&step.action, index, violations)
             || verify_share_group_action(scenario, &step.action, index, violations)
-            || verify_batch_action(&step.action, index, violations)
+            || verify_batch_action(scenario, &step.action, index, violations)
             || verify_offset_batch_action(&step.action, index, violations)
             || verify_leader_election_action(&step.action, index, violations)
             || verify_partition_reassignments_action(&step.action, index, violations)
@@ -193,7 +193,7 @@ fn contract(action: &ScenarioAction) -> Option<&'static str> {
         ScenarioAction::AlterShareGroupOffsets(_) => "ADMIN-039",
         ScenarioAction::DeleteShareGroupOffsets(_) => "ADMIN-040",
         ScenarioAction::DeleteShareGroups(_) => "ADMIN-041",
-        ScenarioAction::CreateTopicsBatch(_) => "ADMIN-018",
+        ScenarioAction::CreateTopicsBatch(value) => crate::admin_batch::contract(value),
         ScenarioAction::CreatePartitions(_) => "ADMIN-002",
         ScenarioAction::DescribeTopic(_) => "ADMIN-003",
         ScenarioAction::DescribeTopics(value)

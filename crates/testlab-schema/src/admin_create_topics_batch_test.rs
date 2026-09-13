@@ -12,9 +12,9 @@ use super::{
 
 #[test]
 fn batch_versions_and_ordered_wire_facts_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 135);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 139);
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 125);
+    assert_eq!(PROTOCOL_VERSION, 136);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 140);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 126);
 
     let action = ScenarioAction::CreateTopicsBatch(batch_action());
     let command = AdapterCommand::CreateTopicsBatch(batch_command());
@@ -237,6 +237,7 @@ fn item(
         topic: topic.to_owned(),
         partitions,
         replication_factor,
+        configs: Vec::new(),
         expected_error_code: expected_error_code.map(str::to_owned),
     }
 }
@@ -246,6 +247,7 @@ fn command_item(topic: &str, partitions: i32) -> CreateTopicBatchCommandItem {
         topic: topic.to_owned(),
         partitions,
         replication_factor: 1,
+        configs: Vec::new(),
     }
 }
 

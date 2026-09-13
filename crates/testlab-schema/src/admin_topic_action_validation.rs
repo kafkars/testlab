@@ -10,7 +10,7 @@ mod partition_replica_assignment;
 #[path = "admin_topic_replica_assignment_validation.rs"]
 mod replica_assignment;
 #[path = "admin_topic_creation_config_validation.rs"]
-mod topic_creation_config;
+pub(crate) mod topic_creation_config;
 #[path = "admin_topic_listing_validation.rs"]
 mod topic_listing;
 #[path = "admin_topic_pagination_validation.rs"]

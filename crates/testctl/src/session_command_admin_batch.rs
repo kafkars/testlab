@@ -72,6 +72,7 @@ fn create_topics(
             topic: item.topic.clone(),
             partitions: item.partitions,
             replication_factor: item.replication_factor,
+            configs: item.configs.clone(),
         })
         .collect();
     (
