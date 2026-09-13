@@ -65,6 +65,10 @@ enum ReceiveKind {
     Share,
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(kind: ReceiveKind, history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violation> {
     let scenario = scenario(kind);
     let index = HistoryIndex::build(&history);
@@ -88,8 +92,8 @@ fn scenario(kind: ReceiveKind) -> Scenario {
                 ScenarioAction::Send {
                     producer_id: producer(),
                     operation_id: operation("send-after-election"),
-                    method: Default::default(),
-                    partitioning: Default::default(),
+                    method: testlab_schema::ProducerSendMethod::default(),
+                    partitioning: testlab_schema::ProducerPartitioning::default(),
                     topic_identity_operation_id: None,
                     record: record("after-election"),
                 },
@@ -118,7 +122,7 @@ fn receive_action(kind: ReceiveKind) -> ScenarioAction {
     match kind {
         ReceiveKind::Assigned => ScenarioAction::Receive {
             consumer_id: consumer(),
-            method: Default::default(),
+            method: testlab_schema::AssignedConsumerReceiveMethod::default(),
             observe_fetch_evidence: false,
             receive_id: operation("receive-after-election"),
             expected_operation_id: operation("send-after-election"),
@@ -126,8 +130,8 @@ fn receive_action(kind: ReceiveKind) -> ScenarioAction {
         },
         ReceiveKind::Group => ScenarioAction::GroupReceive {
             consumer_id: consumer(),
-            method: Default::default(),
-            checkpoint_method: Default::default(),
+            method: testlab_schema::GroupConsumerReceiveMethod::default(),
+            checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
             receive_id: operation("receive-after-election"),
             expected_operation_id: operation("send-after-election"),
             additional_expected_operation_ids: Vec::new(),
@@ -158,7 +162,7 @@ fn history(
     if duplicate {
         history.push(command(command_sequence + 1, receive_command(kind)));
     }
-    let duplicate_offset = if duplicate { 1 } else { 0 };
+    let duplicate_offset = u64::from(duplicate);
     history.push(event(
         command_sequence + duplicate_offset + 1,
         receive_event(kind, committed, partition),
@@ -170,14 +174,14 @@ fn receive_command(kind: ReceiveKind) -> AdapterCommand {
     match kind {
         ReceiveKind::Assigned => AdapterCommand::Receive {
             consumer_id: consumer(),
-            method: Default::default(),
+            method: testlab_schema::AssignedConsumerReceiveMethod::default(),
             receive_id: operation("receive-after-election"),
             timeout_ms: 1_000,
         },
         ReceiveKind::Group => AdapterCommand::GroupReceive {
             consumer_id: consumer(),
-            method: Default::default(),
-            checkpoint_method: Default::default(),
+            method: testlab_schema::GroupConsumerReceiveMethod::default(),
+            checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
             receive_id: operation("receive-after-election"),
             processing_acknowledgement_delay_ms: 0,
             processed_record_count: None,

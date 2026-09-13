@@ -158,6 +158,10 @@ fn list_violations(
     )
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed action and history fixture"
+)]
 fn violations(
     history: Vec<HistoryEntry>,
     action: ScenarioAction,

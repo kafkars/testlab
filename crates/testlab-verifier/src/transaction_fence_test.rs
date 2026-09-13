@@ -123,7 +123,7 @@ fn fence_scenario(ids: &FenceIds) -> testlab_schema::Scenario {
         step(
             "fence-transaction",
             ScenarioAction::FenceTransaction {
-                fence_method: Default::default(),
+                fence_method: testlab_schema::TransactionFenceMethod::default(),
                 producer_id: ids.original.clone(),
                 transaction_id: ids.transaction.clone(),
                 operation: BatchRecord {

@@ -177,7 +177,7 @@ fn transaction_step(
             producer_id: producer_id.clone(),
             transaction_id: operation_id(transaction_id),
             operations: operations.to_vec(),
-            method: Default::default(),
+            method: testlab_schema::TransactionSendMethod::default(),
             disposition,
             topic_identity_operation_id: None,
             timeout_ms: 1_000,

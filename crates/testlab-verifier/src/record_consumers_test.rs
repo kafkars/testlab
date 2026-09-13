@@ -16,8 +16,8 @@ fn ordinary_group_bytes_must_match_independent_observation() {
         "receive-group",
         ScenarioAction::GroupReceive {
             consumer_id: consumer("group-1"),
-            method: Default::default(),
-            checkpoint_method: Default::default(),
+            method: testlab_schema::GroupConsumerReceiveMethod::default(),
+            checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: operation("op-1"),
             additional_expected_operation_ids: Vec::new(),
@@ -113,8 +113,8 @@ fn public_consumer_timestamp_must_match_independent_record() {
         "receive-timestamp",
         ScenarioAction::GroupReceive {
             consumer_id: consumer("group-1"),
-            method: Default::default(),
-            checkpoint_method: Default::default(),
+            method: testlab_schema::GroupConsumerReceiveMethod::default(),
+            checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
             receive_id: receive_id.clone(),
             expected_operation_id: operation("op-1"),
             additional_expected_operation_ids: Vec::new(),
@@ -186,7 +186,7 @@ fn receive_set_scenario() -> (testlab_schema::Scenario, OperationId) {
                 producer_id: testlab_schema::ProducerId::new("producer-1")
                     .unwrap_or_else(|error| panic!("producer id: {error}")),
                 operation_id: operation("op-2"),
-                method: Default::default(),
+                method: testlab_schema::ProducerSendMethod::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 topic_identity_operation_id: None,
                 record: record("second"),

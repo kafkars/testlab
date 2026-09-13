@@ -146,7 +146,7 @@ fn fixture() -> (Scenario, Vec<testlab_schema::HistoryEntry>) {
                     producer_id: testlab_schema::ProducerId::new("producer-1")
                         .unwrap_or_else(|error| panic!("producer id: {error}")),
                     operation_id: send_one.clone(),
-                    method: Default::default(),
+                    method: testlab_schema::ProducerSendMethod::default(),
                     partitioning: testlab_schema::ProducerPartitioning::Explicit,
                     topic_identity_operation_id: None,
                     record: record(0, "one"),
@@ -158,7 +158,7 @@ fn fixture() -> (Scenario, Vec<testlab_schema::HistoryEntry>) {
                     producer_id: testlab_schema::ProducerId::new("producer-1")
                         .unwrap_or_else(|error| panic!("producer id: {error}")),
                     operation_id: send_two.clone(),
-                    method: Default::default(),
+                    method: testlab_schema::ProducerSendMethod::default(),
                     partitioning: testlab_schema::ProducerPartitioning::Explicit,
                     topic_identity_operation_id: None,
                     record: record(1, "two"),

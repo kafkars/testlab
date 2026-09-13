@@ -100,7 +100,7 @@ fn fixture() -> (
             AdapterCommand::Send {
                 producer_id,
                 operation_id: operation_id.clone(),
-                method: Default::default(),
+                method: testlab_schema::ProducerSendMethod::default(),
                 partitioning,
                 validate_topic_uuid: false,
                 record,

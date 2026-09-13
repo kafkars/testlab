@@ -27,7 +27,7 @@ fn policy_is_exact_bounded_correlated_unique_and_later() {
         .selected_builder
         .fetch
         .as_mut()
-        .expect("configured Fetch")
+        .unwrap_or_else(|| panic!("configured Fetch"))
         .max_records += 1;
     assert_policy(&super::violations(
         &scenario,

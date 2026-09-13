@@ -71,7 +71,7 @@ fn assigned_consumer_exact_round_trip_passes() {
             ScenarioAction::CreateAssignedConsumer {
                 client_id: id(testlab_schema::ClientId::new("client-1")),
                 consumer_id: consumer.clone(),
-                ownership: Default::default(),
+                ownership: testlab_schema::ChildHandleOwnership::default(),
             },
         ),
         step(
@@ -86,7 +86,7 @@ fn assigned_consumer_exact_round_trip_passes() {
             "receive",
             ScenarioAction::Receive {
                 consumer_id: consumer.clone(),
-                method: Default::default(),
+                method: testlab_schema::AssignedConsumerReceiveMethod::default(),
                 observe_fetch_evidence: false,
                 receive_id: receive.clone(),
                 expected_operation_id: id(OperationId::new("op-1")),
@@ -178,8 +178,8 @@ fn classic_group_exact_round_trip_requires_commit() {
             "group-receive",
             ScenarioAction::GroupReceive {
                 consumer_id: consumer.clone(),
-                method: Default::default(),
-                checkpoint_method: Default::default(),
+                method: testlab_schema::GroupConsumerReceiveMethod::default(),
+                checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
                 receive_id: receive.clone(),
                 expected_operation_id: id(OperationId::new("op-1")),
                 additional_expected_operation_ids: Vec::new(),

@@ -122,7 +122,7 @@ mod tests {
         };
         configuration
             .as_mut()
-            .expect("configured fixture")
+            .unwrap_or_else(|| panic!("configured fixture"))
             .processing_timeout_ms = Some(90_001);
         assert_contract(&violations(&scenario, &[history_command(0, wrong_policy)]));
 
@@ -184,7 +184,7 @@ mod tests {
             .iter()
             .map(|step| &step.action)
             .find(|action| matches!(action, ScenarioAction::CreateGroupConsumer { .. }))
-            .expect("group registration fixture")
+            .unwrap_or_else(|| panic!("group registration fixture"))
     }
 
     fn violations(

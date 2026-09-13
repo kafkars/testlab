@@ -114,7 +114,8 @@ mod tests {
         else {
             panic!("client readiness command");
         };
-        *client_id = ClientId::new("substituted-client").expect("client ID");
+        *client_id = ClientId::new("substituted-client")
+            .unwrap_or_else(|error| panic!("client ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_identity));
 
         let mut reordered = exact.clone();

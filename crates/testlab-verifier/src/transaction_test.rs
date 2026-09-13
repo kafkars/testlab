@@ -140,7 +140,7 @@ fn transaction_scenario(
                     operation_id: operation_id.clone(),
                     record: record("transaction"),
                 }],
-                method: Default::default(),
+                method: testlab_schema::TransactionSendMethod::default(),
                 disposition,
                 topic_identity_operation_id: None,
                 timeout_ms: 1_000,

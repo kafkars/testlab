@@ -89,7 +89,7 @@ mod tests {
             .configuration
             .fetch
             .as_mut()
-            .expect("fixture Fetch policy")
+            .unwrap_or_else(|| panic!("fixture Fetch policy"))
             .max_wait_ms += 1;
         assert_contract(&violations(
             &scenario,
@@ -104,7 +104,7 @@ mod tests {
             .configuration
             .limits
             .as_mut()
-            .expect("fixture limits policy")
+            .unwrap_or_else(|| panic!("fixture limits policy"))
             .buffered_batches += 1;
         assert_contract(&violations(
             &scenario,

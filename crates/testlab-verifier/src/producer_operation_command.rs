@@ -106,8 +106,10 @@ mod tests {
         else {
             panic!("single send command");
         };
-        *producer_id = ProducerId::new("substituted-producer").expect("producer ID");
-        *operation_id = OperationId::new("substituted-operation").expect("operation ID");
+        *producer_id = ProducerId::new("substituted-producer")
+            .unwrap_or_else(|error| panic!("producer ID: {error}"));
+        *operation_id = OperationId::new("substituted-operation")
+            .unwrap_or_else(|error| panic!("operation ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_identity));
 
         let mut wrong_method = exact.clone();
@@ -153,7 +155,8 @@ mod tests {
         else {
             panic!("batch send command");
         };
-        *producer_id = ProducerId::new("substituted-producer").expect("producer ID");
+        *producer_id = ProducerId::new("substituted-producer")
+            .unwrap_or_else(|error| panic!("producer ID: {error}"));
         operations.reverse();
         assert_contract(&violations(&scenario, &reordered));
 
@@ -165,7 +168,10 @@ mod tests {
         else {
             panic!("batch send command");
         };
-        let first = operations.into_iter().next().expect("batch record");
+        let first = operations
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| panic!("batch record"));
         *command_mut(&mut substituted[0]) = AdapterCommand::Send {
             producer_id,
             operation_id: first.operation_id,

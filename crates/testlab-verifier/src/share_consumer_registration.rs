@@ -137,7 +137,7 @@ mod tests {
         };
         configuration
             .as_mut()
-            .expect("configured fixture")
+            .unwrap_or_else(|| panic!("configured fixture"))
             .max_records += 1;
         assert_contract(&violations(&scenario, &[history_command(0, wrong_policy)]));
 
@@ -191,7 +191,7 @@ mod tests {
             .iter()
             .map(|step| &step.action)
             .find(|action| matches!(action, ScenarioAction::CreateShareConsumer { .. }))
-            .expect("Share registration fixture")
+            .unwrap_or_else(|| panic!("Share registration fixture"))
     }
 
     fn violations(

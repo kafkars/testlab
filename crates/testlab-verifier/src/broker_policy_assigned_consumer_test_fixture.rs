@@ -57,8 +57,7 @@ pub(super) fn history(scenario: &Scenario) -> Vec<HistoryEntry> {
         .steps
         .iter()
         .find(|step| matches!(&step.action, ScenarioAction::Receive { .. }))
-        .map(|step| &step.action)
-        .unwrap_or_else(|| panic!("recovery receive missing"))
+        .map_or_else(|| panic!("recovery receive missing"), |step| &step.action)
     else {
         panic!("recovery receive missing");
     };

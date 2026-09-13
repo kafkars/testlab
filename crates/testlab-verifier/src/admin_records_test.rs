@@ -96,7 +96,7 @@ fn list_action(id: &str, position: AdminOffsetSelector, expected_offset: i64) ->
         topic: "records".to_owned(),
         partition: 0,
         position,
-        read_isolation: Default::default(),
+        read_isolation: testlab_schema::AdminReadIsolation::default(),
         timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,

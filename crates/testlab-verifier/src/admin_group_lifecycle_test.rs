@@ -197,7 +197,7 @@ fn list_action() -> ScenarioAction {
     ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("admin-list-groups-1"),
-        api: Default::default(),
+        api: testlab_schema::GroupListingApi::default(),
         state_filters: Vec::new(),
         group_type_filters: Vec::new(),
         protocol_type_filters: Vec::new(),

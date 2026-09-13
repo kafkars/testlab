@@ -152,8 +152,9 @@ mod tests {
             command(
                 0,
                 AdapterCommand::Hello {
-                    run_id: RunId::new("run-1").expect("run ID"),
-                    scenario_id: ScenarioId::new("configured-client").expect("scenario ID"),
+                    run_id: RunId::new("run-1").unwrap_or_else(|error| panic!("run ID: {error}")),
+                    scenario_id: ScenarioId::new("configured-client")
+                        .unwrap_or_else(|error| panic!("scenario ID: {error}")),
                     broker_endpoints: vec!["127.0.0.1:9092".to_owned()],
                     security: AdapterSecurity::Plaintext,
                 },

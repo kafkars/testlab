@@ -98,6 +98,10 @@ fn state(sequence: u64, operation_id: OperationId) -> HistoryEntry {
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violation> {
     let action = ScenarioAction::ValidateFeatureUpdates(ValidateFeatureUpdatesAction {
         client_id: client(),

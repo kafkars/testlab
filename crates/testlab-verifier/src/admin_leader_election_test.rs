@@ -134,6 +134,10 @@ fn all_transition_violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::
     violations(scenario, history)
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed scenario and history fixture"
+)]
 fn violations(
     scenario: testlab_schema::Scenario,
     history: Vec<HistoryEntry>,
@@ -196,7 +200,7 @@ fn role_after_restore(sequence: u64, node: i32) -> HistoryEntry {
                     .unwrap_or_else(|error| panic!("environment id: {error}")),
                 kind: EnvironmentOperationKind::BrokerRoleObserve,
                 program: "testlab-kafka-role-observer/1".to_owned(),
-                args: args.into(),
+                args,
                 started_unix_ms: sequence,
                 completed_unix_ms: sequence,
                 status: EnvironmentOperationStatus::Succeeded,

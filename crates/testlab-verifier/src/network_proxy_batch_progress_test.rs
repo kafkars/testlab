@@ -73,6 +73,10 @@ fn exact_post_cut_single_command_still_passes() {
     assert!(!has(&violations(single_action(), history), "NET-004"));
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed recovery and history fixture"
+)]
 fn violations(
     recovery: ScenarioAction,
     history: Vec<HistoryEntry>,
@@ -115,8 +119,8 @@ fn single_action() -> ScenarioAction {
     ScenarioAction::Send {
         producer_id: producer(),
         operation_id: operation("single-after-cut"),
-        method: Default::default(),
-        partitioning: Default::default(),
+        method: testlab_schema::ProducerSendMethod::default(),
+        partitioning: testlab_schema::ProducerPartitioning::default(),
         topic_identity_operation_id: None,
         record: record("single-after-cut", 1),
     }
@@ -126,8 +130,8 @@ fn single_command() -> AdapterCommand {
     AdapterCommand::Send {
         producer_id: producer(),
         operation_id: operation("single-after-cut"),
-        method: Default::default(),
-        partitioning: Default::default(),
+        method: testlab_schema::ProducerSendMethod::default(),
+        partitioning: testlab_schema::ProducerPartitioning::default(),
         validate_topic_uuid: false,
         record: record("single-after-cut", 1),
     }

@@ -159,7 +159,8 @@ mod tests {
             TerminalStatus::Acknowledged,
             VisibilityExpectation::ExactlyOnce,
         );
-        let client_id = ClientId::new("client-1").expect("client ID");
+        let client_id =
+            ClientId::new("client-1").unwrap_or_else(|error| panic!("client ID: {error}"));
         let exact = observation(client_id.clone());
         assert!(violations(&scenario, exact.clone()).is_empty());
 
@@ -182,14 +183,17 @@ mod tests {
             TerminalStatus::Acknowledged,
             VisibilityExpectation::ExactlyOnce,
         );
-        let client_id = ClientId::new("client-1").expect("client ID");
+        let client_id =
+            ClientId::new("client-1").unwrap_or_else(|error| panic!("client ID: {error}"));
         let exact = observation(client_id);
         let mut entries = history(exact.clone(), 2);
         entries.push(event(3, "create", exact));
         assert_contract(&verify_history(&scenario, &entries));
 
         let early = history(
-            observation(ClientId::new("client-1").expect("client ID")),
+            observation(
+                ClientId::new("client-1").unwrap_or_else(|error| panic!("client ID: {error}")),
+            ),
             0,
         );
         assert_contract(&verify_history(&scenario, &early));
@@ -220,8 +224,9 @@ mod tests {
                 0,
                 "hello",
                 AdapterCommand::Hello {
-                    run_id: RunId::new("run-1").expect("run ID"),
-                    scenario_id: ScenarioId::new("producer.verifier").expect("scenario ID"),
+                    run_id: RunId::new("run-1").unwrap_or_else(|error| panic!("run ID: {error}")),
+                    scenario_id: ScenarioId::new("producer.verifier")
+                        .unwrap_or_else(|error| panic!("scenario ID: {error}")),
                     broker_endpoints: vec!["127.0.0.1:9092".to_owned()],
                     security: AdapterSecurity::Plaintext,
                 },
@@ -253,7 +258,10 @@ mod tests {
             sequence,
             observed_unix_ms: sequence,
             payload: HistoryPayload::HarnessCommand {
-                command: CommandEnvelope::new(CommandId::new(id).expect("command ID"), command),
+                command: CommandEnvelope::new(
+                    CommandId::new(id).unwrap_or_else(|error| panic!("command ID: {error}")),
+                    command,
+                ),
             },
         }
     }
@@ -264,7 +272,7 @@ mod tests {
             observed_unix_ms: sequence,
             payload: HistoryPayload::AdapterEvent {
                 event: AdapterEventEnvelope::new(
-                    CommandId::new(id).expect("command ID"),
+                    CommandId::new(id).unwrap_or_else(|error| panic!("command ID: {error}")),
                     AdapterEvent::ClientCreated(observation),
                 ),
             },

@@ -78,8 +78,10 @@ mod tests {
 
         let mut wrong_identity = exact.clone();
         let command = command_mut(&mut wrong_identity[0]);
-        command.client_id = ClientId::new("substituted-client").expect("client ID");
-        command.operation_id = OperationId::new("substituted-operation").expect("operation ID");
+        command.client_id = ClientId::new("substituted-client")
+            .unwrap_or_else(|error| panic!("client ID: {error}"));
+        command.operation_id = OperationId::new("substituted-operation")
+            .unwrap_or_else(|error| panic!("operation ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_identity));
 
         let mut reordered = exact.clone();
@@ -102,13 +104,15 @@ mod tests {
             .steps
             .iter()
             .position(|step| matches!(&step.action, ScenarioAction::ObserveClientMetrics(_)))
-            .expect("metrics action");
+            .unwrap_or_else(|| panic!("metrics action"));
         let mut repeated = scenario.steps[index].clone();
-        repeated.id = StepId::new("observe-metrics-again").expect("step ID");
+        repeated.id =
+            StepId::new("observe-metrics-again").unwrap_or_else(|error| panic!("step ID: {error}"));
         let ScenarioAction::ObserveClientMetrics(action) = &mut repeated.action else {
             panic!("metrics action");
         };
-        action.operation_id = OperationId::new("metrics-snapshot-again").expect("operation ID");
+        action.operation_id = OperationId::new("metrics-snapshot-again")
+            .unwrap_or_else(|error| panic!("operation ID: {error}"));
         scenario.steps.insert(index + 1, repeated);
         scenario
     }

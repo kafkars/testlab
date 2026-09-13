@@ -116,6 +116,10 @@ fn violations(history: Vec<HistoryEntry>, expected_count: usize) -> Vec<testlab_
     violations_with_broker(history, expected_count, None)
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations_with_broker(
     history: Vec<HistoryEntry>,
     expected_count: usize,

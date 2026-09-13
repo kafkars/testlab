@@ -121,7 +121,7 @@ fn action() -> ScenarioAction {
             operation_id: id("admin-abort-record-1"),
             record: record("aborted"),
         }],
-        method: Default::default(),
+        method: testlab_schema::TransactionSendMethod::default(),
         disposition: TransactionDisposition::AdminPartitionAbort,
         topic_identity_operation_id: None,
         timeout_ms: 1_000,
@@ -183,6 +183,10 @@ fn state(sequence: u64, observation: BrokerStateObservation) -> HistoryEntry {
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violation> {
     let index = HistoryIndex::build(&history);
     let mut violations = Vec::new();

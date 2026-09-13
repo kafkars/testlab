@@ -90,8 +90,10 @@ mod tests {
         else {
             panic!("assigned receive command");
         };
-        *consumer_id = ConsumerId::new("substituted-consumer").expect("consumer ID");
-        *receive_id = OperationId::new("substituted-receive").expect("receive ID");
+        *consumer_id = ConsumerId::new("substituted-consumer")
+            .unwrap_or_else(|error| panic!("consumer ID: {error}"));
+        *receive_id = OperationId::new("substituted-receive")
+            .unwrap_or_else(|error| panic!("receive ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_identity));
 
         let mut wrong_observer = exact.clone();

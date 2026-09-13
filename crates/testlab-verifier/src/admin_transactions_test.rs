@@ -145,6 +145,10 @@ fn description_violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Vio
     violations(history, action)
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed action and history fixture"
+)]
 fn violations(
     history: Vec<HistoryEntry>,
     action: ScenarioAction,

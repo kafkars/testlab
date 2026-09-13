@@ -69,7 +69,7 @@ fn public_client_failure_is_valid_semantic_evidence() {
             AdapterCommand::CreateProducer {
                 client_id: client,
                 producer_id: producer.clone(),
-                ownership: Default::default(),
+                ownership: testlab_schema::ChildHandleOwnership::default(),
                 delivery_timeout_ms: None,
             },
         ),
@@ -78,7 +78,7 @@ fn public_client_failure_is_valid_semantic_evidence() {
             AdapterCommand::Send {
                 producer_id: producer.clone(),
                 operation_id: operation_id("op-1"),
-                method: Default::default(),
+                method: testlab_schema::ProducerSendMethod::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 validate_topic_uuid: false,
                 record: record("value"),

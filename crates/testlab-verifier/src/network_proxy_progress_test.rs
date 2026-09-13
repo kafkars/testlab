@@ -54,8 +54,8 @@ fn violations(index: &HistoryIndex) -> Vec<testlab_schema::Violation> {
 fn scenario() -> Scenario {
     recovery_scenario(ScenarioAction::GroupReceive {
         consumer_id: consumer(),
-        method: Default::default(),
-        checkpoint_method: Default::default(),
+        method: testlab_schema::GroupConsumerReceiveMethod::default(),
+        checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
         receive_id: operation("receive-after-cut"),
         expected_operation_id: operation("send-after-cut"),
         additional_expected_operation_ids: Vec::new(),
@@ -69,7 +69,7 @@ fn scenario() -> Scenario {
 fn assigned_scenario() -> Scenario {
     recovery_scenario(ScenarioAction::Receive {
         consumer_id: consumer(),
-        method: Default::default(),
+        method: testlab_schema::AssignedConsumerReceiveMethod::default(),
         observe_fetch_evidence: false,
         receive_id: operation("assigned-after-cut"),
         expected_operation_id: operation("send-after-cut"),
@@ -115,8 +115,8 @@ fn recovery_scenario(action: ScenarioAction) -> Scenario {
 fn history(include_completion: bool, committed: bool) -> Vec<HistoryEntry> {
     let mut history = recovery_history(AdapterCommand::GroupReceive {
         consumer_id: consumer(),
-        method: Default::default(),
-        checkpoint_method: Default::default(),
+        method: testlab_schema::GroupConsumerReceiveMethod::default(),
+        checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
         receive_id: operation("receive-after-cut"),
         processing_acknowledgement_delay_ms: 0,
         processed_record_count: None,
@@ -147,7 +147,7 @@ fn history(include_completion: bool, committed: bool) -> Vec<HistoryEntry> {
 fn assigned_history() -> Vec<HistoryEntry> {
     let mut history = recovery_history(AdapterCommand::Receive {
         consumer_id: consumer(),
-        method: Default::default(),
+        method: testlab_schema::AssignedConsumerReceiveMethod::default(),
         receive_id: operation("assigned-after-cut"),
         timeout_ms: 1_000,
     });

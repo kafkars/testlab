@@ -79,6 +79,10 @@ fn transform_with_wrong_disposition_fails() {
     assert!(has(&violations, "NET-006"), "{violations:?}");
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violation> {
     let index = HistoryIndex::build(&history);
     let mut violations = Vec::new();

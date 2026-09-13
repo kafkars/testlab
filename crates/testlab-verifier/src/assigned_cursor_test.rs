@@ -35,7 +35,7 @@ fn successive_direct_receives_cannot_swap_broker_records() {
                 producer_id: testlab_schema::ProducerId::new("producer-1")
                     .unwrap_or_else(|error| panic!("producer id: {error}")),
                 operation_id: operation("op-2"),
-                method: Default::default(),
+                method: testlab_schema::ProducerSendMethod::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 topic_identity_operation_id: None,
                 record: record("second"),
@@ -65,7 +65,7 @@ fn receive_step(id: &str, expected: &str) -> testlab_schema::ScenarioStep {
         id,
         ScenarioAction::Receive {
             consumer_id: consumer("assigned-1"),
-            method: Default::default(),
+            method: testlab_schema::AssignedConsumerReceiveMethod::default(),
             observe_fetch_evidence: false,
             receive_id: operation(id),
             expected_operation_id: operation(expected),

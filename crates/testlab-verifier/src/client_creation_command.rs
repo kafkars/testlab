@@ -72,8 +72,8 @@ mod tests {
         assert!(violations(&scenario, &exact).is_empty());
 
         let mut wrong_identity = exact.clone();
-        command_mut(&mut wrong_identity[1]).client_id =
-            ClientId::new("substituted-client").expect("client ID");
+        command_mut(&mut wrong_identity[1]).client_id = ClientId::new("substituted-client")
+            .unwrap_or_else(|error| panic!("client ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_identity));
 
         let mut omitted_guard = exact.clone();

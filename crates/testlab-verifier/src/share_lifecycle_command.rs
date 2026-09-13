@@ -94,8 +94,10 @@ mod tests {
         else {
             panic!("Share batch-drop command");
         };
-        *consumer_id = ConsumerId::new("substituted-consumer").expect("consumer ID");
-        *receive_id = OperationId::new("substituted-receive").expect("receive ID");
+        *consumer_id = ConsumerId::new("substituted-consumer")
+            .unwrap_or_else(|error| panic!("consumer ID: {error}"));
+        *receive_id = OperationId::new("substituted-receive")
+            .unwrap_or_else(|error| panic!("receive ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_drop));
 
         let mut wrong_close = exact.clone();
@@ -103,7 +105,8 @@ mod tests {
         else {
             panic!("Share consumer-close command");
         };
-        *consumer_id = ConsumerId::new("substituted-consumer").expect("consumer ID");
+        *consumer_id = ConsumerId::new("substituted-consumer")
+            .unwrap_or_else(|error| panic!("consumer ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_close));
 
         let mut reordered = exact.clone();

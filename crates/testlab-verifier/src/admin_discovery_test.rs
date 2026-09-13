@@ -140,7 +140,7 @@ fn offset_scenario(operation_id: OperationId, expected_offset: i64) -> testlab_s
         topic: "offsets".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Latest,
-        read_isolation: Default::default(),
+        read_isolation: testlab_schema::AdminReadIsolation::default(),
         timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,

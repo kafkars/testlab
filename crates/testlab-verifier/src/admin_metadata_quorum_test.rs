@@ -110,6 +110,10 @@ fn history() -> Vec<HistoryEntry> {
     ]
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violation> {
     let mut scenario = scenario(
         TerminalStatus::Acknowledged,

@@ -118,7 +118,7 @@ fn reversed_same_partition_offsets_fail_declared_order() {
             ScenarioAction::Send {
                 producer_id: id(testlab_schema::ProducerId::new("producer-1")),
                 operation_id: id(OperationId::new("op-2")),
-                method: Default::default(),
+                method: testlab_schema::ProducerSendMethod::default(),
                 partitioning: testlab_schema::ProducerPartitioning::Explicit,
                 topic_identity_operation_id: None,
                 record: record("second"),
@@ -178,7 +178,7 @@ fn mismatched_consumer_offset_fails_public_receive_contract() {
         "receive",
         ScenarioAction::Receive {
             consumer_id: id(ConsumerId::new("consumer-1")),
-            method: Default::default(),
+            method: testlab_schema::AssignedConsumerReceiveMethod::default(),
             observe_fetch_evidence: false,
             receive_id: receive_id.clone(),
             expected_operation_id: id(OperationId::new("op-1")),

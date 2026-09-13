@@ -76,7 +76,8 @@ mod tests {
 
         let mut wrong_identity = exact.clone();
         let command = command_mut(&mut wrong_identity[0]);
-        command.receive_id = OperationId::new("substituted-receive").expect("receive ID");
+        command.receive_id = OperationId::new("substituted-receive")
+            .unwrap_or_else(|error| panic!("receive ID: {error}"));
         assert_contract(&violations(&scenario, &wrong_identity));
 
         let mut wrong_consumers = exact.clone();
@@ -86,7 +87,8 @@ mod tests {
 
         let mut substituted_consumer = exact.clone();
         let command = command_mut(&mut substituted_consumer[1]);
-        command.consumer_ids[0] = ConsumerId::new("substituted-consumer").expect("consumer ID");
+        command.consumer_ids[0] = ConsumerId::new("substituted-consumer")
+            .unwrap_or_else(|error| panic!("consumer ID: {error}"));
         assert_contract(&violations(&scenario, &substituted_consumer));
 
         let mut wrong_bounds = exact.clone();

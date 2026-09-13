@@ -79,7 +79,7 @@ fn failure_actions() -> Vec<ScenarioAction> {
             topic: "missing-partition".to_owned(),
             partition: 1,
             position: AdminOffsetSelector::Latest,
-            read_isolation: Default::default(),
+            read_isolation: testlab_schema::AdminReadIsolation::default(),
             timestamp_millis: None,
             expected_offset: None,
             expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),

@@ -25,8 +25,10 @@ fn successive_transactions_preserve_exact_order_and_fields() {
     else {
         panic!("execute transaction command");
     };
-    *producer_id = ProducerId::new("substituted-producer").expect("producer ID");
-    *transaction_id = OperationId::new("substituted-transaction").expect("transaction ID");
+    *producer_id = ProducerId::new("substituted-producer")
+        .unwrap_or_else(|error| panic!("producer ID: {error}"));
+    *transaction_id = OperationId::new("substituted-transaction")
+        .unwrap_or_else(|error| panic!("transaction ID: {error}"));
     assert_contract(&violations(&scenario, &wrong_identity));
 
     let mut wrong_request = exact.clone();
@@ -69,9 +71,12 @@ fn transactional_transforms_preserve_exact_public_input() {
     let AdapterCommand::ExecuteTransactionalTransform(command) = command_mut(&mut wrong[0]) else {
         panic!("transactional transform command");
     };
-    command.producer_id = ProducerId::new("substituted-producer").expect("producer ID");
-    command.consumer_id = ConsumerId::new("substituted-consumer").expect("consumer ID");
-    command.transaction_id = OperationId::new("substituted-transaction").expect("transaction ID");
+    command.producer_id = ProducerId::new("substituted-producer")
+        .unwrap_or_else(|error| panic!("producer ID: {error}"));
+    command.consumer_id = ConsumerId::new("substituted-consumer")
+        .unwrap_or_else(|error| panic!("consumer ID: {error}"));
+    command.transaction_id = OperationId::new("substituted-transaction")
+        .unwrap_or_else(|error| panic!("transaction ID: {error}"));
     command.operations.clear();
     command.disposition = TransactionDisposition::Abort;
     command.timeout_ms += 1;
@@ -98,7 +103,8 @@ fn fence_requests_preserve_exact_method_and_replacement_policy() {
         panic!("fence transaction command");
     };
     *fence_method = TransactionFenceMethod::AdminForceTermination;
-    *replacement_producer_id = ProducerId::new("substituted-replacement").expect("producer ID");
+    *replacement_producer_id = ProducerId::new("substituted-replacement")
+        .unwrap_or_else(|error| panic!("producer ID: {error}"));
     *transaction_timeout_ms += 1;
     *initialization_timeout_ms += 1;
     *timeout_ms += 1;

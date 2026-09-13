@@ -47,7 +47,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
                 ScenarioAction::CreateProducer {
                     client_id: client.clone(),
                     producer_id: producer.clone(),
-                    ownership: Default::default(),
+                    ownership: testlab_schema::ChildHandleOwnership::default(),
                     delivery_timeout_ms: None,
                 },
             ),
@@ -56,7 +56,7 @@ pub(crate) fn scenario(terminal: TerminalStatus, visibility: VisibilityExpectati
                 ScenarioAction::Send {
                     producer_id: producer.clone(),
                     operation_id: operation.clone(),
-                    method: Default::default(),
+                    method: testlab_schema::ProducerSendMethod::default(),
                     partitioning: testlab_schema::ProducerPartitioning::Explicit,
                     topic_identity_operation_id: None,
                     record: record("value"),

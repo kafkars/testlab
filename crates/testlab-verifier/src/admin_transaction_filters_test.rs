@@ -164,6 +164,10 @@ fn observed(
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(
     action: &ListTransactionsAction,
     history: Vec<HistoryEntry>,

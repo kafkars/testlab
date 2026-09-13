@@ -146,6 +146,10 @@ fn command_id(value: &str) -> CommandId {
     CommandId::new(value).unwrap_or_else(|error| panic!("command ID: {error}"))
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed history fixture"
+)]
 fn violations(scenario: &Scenario, history: Vec<HistoryEntry>) -> Vec<testlab_schema::Violation> {
     let mut violations = Vec::new();
     verify(scenario, &HistoryIndex::build(&history), &mut violations);

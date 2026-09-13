@@ -93,7 +93,7 @@ fn scenario_steps(record: &RecordSpec) -> Vec<ScenarioStep> {
             ScenarioAction::CreateProducer {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
-                ownership: Default::default(),
+                ownership: testlab_schema::ChildHandleOwnership::default(),
                 delivery_timeout_ms: None,
             },
         ),
@@ -102,7 +102,7 @@ fn scenario_steps(record: &RecordSpec) -> Vec<ScenarioStep> {
             ScenarioAction::CreateAssignedConsumer {
                 client_id: client.clone(),
                 consumer_id: consumer.clone(),
-                ownership: Default::default(),
+                ownership: testlab_schema::ChildHandleOwnership::default(),
             },
         ),
         step(

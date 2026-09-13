@@ -152,8 +152,8 @@ fn create_group(consumer_id: &str, group_id: &str) -> ScenarioAction {
 fn group_receive(consumer_id: &str, receive_id: &str) -> ScenarioAction {
     ScenarioAction::GroupReceive {
         consumer_id: consumer(consumer_id),
-        method: Default::default(),
-        checkpoint_method: Default::default(),
+        method: testlab_schema::GroupConsumerReceiveMethod::default(),
+        checkpoint_method: testlab_schema::GroupCheckpointMethod::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("producer-op"),
         additional_expected_operation_ids: Vec::new(),
