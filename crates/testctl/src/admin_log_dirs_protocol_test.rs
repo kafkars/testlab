@@ -46,7 +46,8 @@ fn completion_requires_exact_operation_topic_and_partition() {
     actual.partition = 3;
     let error = expected
         .classify(&event)
-        .expect_err("foreign partition must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("foreign partition must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 

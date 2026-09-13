@@ -46,7 +46,8 @@ fn completion_requires_exact_topic_identity() {
     actual.topic = "foreign-topic".to_owned();
     let error = expected
         .classify(&event)
-        .expect_err("foreign topic must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("foreign topic must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 

@@ -32,7 +32,8 @@ fn altered_wire_order_is_rejected_before_observation() {
     let mut command = command();
     command.topics.swap(0, 1);
     let error = AdminTarget::from_exact(&action, &AdapterCommand::DeleteTopics(command))
-        .expect_err("mismatched plural topic-deletion order");
+        .err()
+        .unwrap_or_else(|| panic!("mismatched plural topic-deletion order"));
     assert!(error.to_string().contains("does not exactly match"));
 }
 

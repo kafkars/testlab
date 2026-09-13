@@ -41,7 +41,8 @@ fn completion_rejects_a_foreign_operation() {
     actual.operation_id = OperationId::new("foreign").unwrap_or_else(|error| panic!("id: {error}"));
     let error = expected
         .classify(&event)
-        .expect_err("foreign operation must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("foreign operation must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 

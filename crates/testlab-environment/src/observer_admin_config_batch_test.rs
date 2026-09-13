@@ -31,7 +31,8 @@ fn altered_wire_order_is_rejected_before_observation() {
         &scenario_action,
         &AdapterCommand::DescribeTopicConfigs(command),
     )
-    .expect_err("mismatched plural topic-configuration order");
+    .err()
+    .unwrap_or_else(|| panic!("mismatched plural topic-configuration order"));
     assert!(error.to_string().contains("does not exactly match"));
 }
 

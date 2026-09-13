@@ -34,7 +34,8 @@ fn altered_wire_intent_is_rejected_before_observation() {
     let mut command = command();
     command.start_offset = 1;
     let error = AdminTarget::from_exact(&action, &AdapterCommand::AlterShareGroupOffsets(command))
-        .expect_err("mismatched mutation intent");
+        .err()
+        .unwrap_or_else(|| panic!("mismatched mutation intent"));
     assert!(error.to_string().contains("does not exactly match"));
 }
 

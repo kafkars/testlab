@@ -44,7 +44,8 @@ fn completion_requires_every_instance_identity_in_caller_order() {
     actual.outcomes.swap(0, 1);
     let error = expected
         .classify(&event)
-        .expect_err("reordered static members must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("reordered static members must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 

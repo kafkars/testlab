@@ -45,14 +45,16 @@ fn completion_requires_exact_operation_and_group_identities() {
     value.group_id = "other-group".to_owned();
     let error = expected
         .classify(&event)
-        .expect_err("foreign group must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("foreign group must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
     value.group_id = "share-group-1".to_owned();
     value.operation_id = OperationId::new("other-operation")
         .unwrap_or_else(|error| panic!("other operation: {error}"));
     let error = expected
         .classify(&event)
-        .expect_err("foreign operation must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("foreign operation must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 
@@ -84,7 +86,8 @@ fn offset_translation_omits_expectations_and_requires_exact_partition_identity()
     value.partition = 1;
     let error = expected
         .classify(&event)
-        .expect_err("foreign partition must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("foreign partition must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 

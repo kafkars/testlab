@@ -36,7 +36,8 @@ fn altered_wire_topic_is_rejected_before_observation() {
     let mut command = command();
     command.topic = "foreign-topic".to_owned();
     let error = AdminTarget::from_exact(&action, &AdapterCommand::DeleteShareGroupOffsets(command))
-        .expect_err("mismatched deletion intent");
+        .err()
+        .unwrap_or_else(|| panic!("mismatched deletion intent"));
     assert!(error.to_string().contains("does not exactly match"));
 }
 

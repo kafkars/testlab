@@ -60,7 +60,8 @@ fn completion_requires_every_selected_identity_in_order() {
     actual.outcomes.swap(0, 1);
     let error = expected
         .classify(&event)
-        .expect_err("reordered topic configurations must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("reordered topic configurations must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 
@@ -107,7 +108,8 @@ fn mutation_completion_requires_every_selected_identity_in_order() {
     actual.outcomes.swap(0, 1);
     let error = expected
         .classify(&event)
-        .expect_err("reordered mutation outcomes must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("reordered mutation outcomes must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 }
 

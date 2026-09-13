@@ -31,7 +31,8 @@ fn altered_wire_order_is_rejected_before_observation() {
     let mut command = command();
     command.group_ids.swap(0, 1);
     let error = AdminTarget::from_exact(&action, &AdapterCommand::DeleteConsumerGroups(command))
-        .expect_err("mismatched consumer-group deletion order");
+        .err()
+        .unwrap_or_else(|| panic!("mismatched consumer-group deletion order"));
     assert!(error.to_string().contains("does not exactly match"));
 }
 

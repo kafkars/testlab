@@ -24,7 +24,8 @@ fn altered_wire_order_is_rejected_before_observation() {
     let mut command = command();
     command.group_ids.swap(0, 1);
     let error = AdminTarget::from_exact(&action, &AdapterCommand::DeleteShareGroups(command))
-        .expect_err("mismatched Share-group deletion order");
+        .err()
+        .unwrap_or_else(|| panic!("mismatched Share-group deletion order"));
     assert!(error.to_string().contains("does not exactly match"));
 }
 
@@ -67,7 +68,8 @@ fn list_snapshot_rejects_ambiguous_or_duplicate_rows() {
         b"share-group-z\nshare-group-z\n".as_slice(),
     ] {
         let error = crate::share_group_cli_observation::normalize_list(7, &target, output)
-            .expect_err("ambiguous Share-group list must fail");
+            .err()
+            .unwrap_or_else(|| panic!("ambiguous Share-group list must fail"));
         assert!(error.to_string().contains("list"));
     }
 }

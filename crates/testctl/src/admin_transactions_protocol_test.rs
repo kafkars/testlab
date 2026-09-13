@@ -96,7 +96,8 @@ fn completions_require_exact_operation_and_caller_order() {
     actual.transactions.swap(0, 1);
     let error = described
         .classify(&event)
-        .expect_err("reordered descriptions must not complete");
+        .err()
+        .unwrap_or_else(|| panic!("reordered descriptions must not complete"));
     assert_eq!(error.harness_error().code, "event_identity_mismatch");
 
     let fenced = ExpectedEvent::ProducersFenced(
