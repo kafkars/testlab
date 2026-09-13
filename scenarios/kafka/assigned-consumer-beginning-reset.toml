@@ -1,4 +1,4 @@
-schema_version = 140
+schema_version = 141
 id = "kafka.assigned-consumer-beginning-reset"
 title = "reassigning from the beginning replays the first exact record"
 description = "A packaged direct consumer reads partition zero, moves to partition one, then explicitly reassigns partition zero from the beginning and returns its first record again."

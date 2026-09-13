@@ -1,4 +1,4 @@
-schema_version = 140
+schema_version = 141
 id = "kafka.admin-list-consumer-groups-multiple"
 title = "packaged admin lists multiple independently observed live consumer groups"
 description = "Two distinct classic groups publicly consume and commit the same exact record while both members remain open; one expectation-free public listing must be byte-sorted and contain both independently observed group identities."

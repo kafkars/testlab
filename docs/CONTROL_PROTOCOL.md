@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v136 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v140 and evidence schema v126.
+Protocol v137 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v141 and evidence schema v127.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -31,7 +31,9 @@ may omit the field only to select the backward-compatible `shared` default;
 adapter commands never default it across the process boundary. Parent metrics
 or shutdown do not establish private-owner behavior: sibling, replacement, and
 dual-cursor scenarios require later public operations on the independent
-handles.
+handles. Every ordinary producer and assigned-consumer creation must have one
+exact command preserving its client, child identity, and ownership selection;
+another child kind or a duplicate command cannot satisfy that registration.
 
 Configured client creation carries the complete client-wide producer policy:
 delivery timeout, one of the five public compression selections, bounded retry
@@ -1305,6 +1307,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v136 is an exact semantic contract. New capabilities may be declared
+Protocol v137 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

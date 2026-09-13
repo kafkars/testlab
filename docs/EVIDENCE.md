@@ -303,6 +303,11 @@ configuration on each successful configured item while retaining ADMIN-018's
 ordered mixed outcomes and exact topology, then requires ordered public
 descriptions and immediate independent librdkafka values for every selected
 non-sensitive entry.
+Protocol v137, scenario schema v141, and evidence schema v127 add exact ordinary
+child-handle registration. PROD-020 and CONS-029 require one creation command
+preserving the complete client, child identity, and shared or independent owner
+selection before existing lifecycle and broker-visible behavior can qualify the
+handle.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate
@@ -493,6 +498,10 @@ Two independently owned assigned consumers must each expose the same declared
 broker records in order through their own public receive stream. Shared
 operation IDs, aggregate counts, or one consumer's observations cannot
 substitute for the other consumer's exact coordinates and bytes.
+PROD-020 and CONS-029 first require exactly one corresponding creation command
+with the requested client, child ID, and shared or independent ownership. A
+transactional producer, hosted consumer, Share consumer, altered owner, or
+duplicate command cannot substitute for the requested ordinary child handle.
 
 Transaction evidence keeps public staging, public disposition, and independent
 visibility separate. TXN-004 requires every declared member to have one exact
