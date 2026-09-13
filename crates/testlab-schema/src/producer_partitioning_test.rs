@@ -63,9 +63,7 @@ fn scenario_validation_rejects_a_wrong_automatic_observation_target() {
     };
     record.partition = 1;
 
-    let error = scenario
-        .validate()
-        .expect_err("wrong automatic partition target must fail");
+    let error = scenario.validation_error("wrong automatic partition target must fail");
 
     assert!(
         error

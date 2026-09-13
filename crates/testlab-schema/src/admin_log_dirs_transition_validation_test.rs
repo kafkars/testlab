@@ -14,9 +14,7 @@ fn log_directory_target_matches_a_prior_created_replica_fixture() {
         panic!("log-directory action");
     };
     action.expected_replica_count = 2;
-    let error = scenario
-        .validate()
-        .expect_err("mismatched replica count must fail");
+    let error = scenario.validation_error("mismatched replica count must fail");
     assert!(
         error
             .problems

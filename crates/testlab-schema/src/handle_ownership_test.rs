@@ -36,9 +36,7 @@ fn independent_actions_require_the_matching_capability() {
     scenario.schema_version = SCENARIO_SCHEMA_VERSION;
     scenario.requires.remove(&Capability::IndependentHandles);
 
-    let error = scenario
-        .validate()
-        .expect_err("independent ownership without its capability must fail");
+    let error = scenario.validation_error("independent ownership without its capability must fail");
 
     assert!(error.problems.iter().any(|problem| {
         problem.contains("independent child handles require the independent_handles capability")
@@ -55,9 +53,8 @@ fn producer_handle_timeouts_are_bounded_and_capability_gated() {
     assert!(scenario.validate().is_ok());
 
     scenario.requires.remove(&Capability::ProducerConfiguration);
-    let error = scenario
-        .validate()
-        .expect_err("producer handle configuration must require its capability");
+    let error =
+        scenario.validation_error("producer handle configuration must require its capability");
     assert!(error.problems.iter().any(|problem| {
         problem.contains("producer configuration requires the producer_configuration capability")
     }));
@@ -72,9 +69,7 @@ fn producer_handle_timeouts_are_bounded_and_capability_gated() {
             panic!("producer creation fixture");
         };
         *delivery_timeout_ms = Some(invalid);
-        let error = scenario
-            .validate()
-            .expect_err("invalid producer handle timeout must fail");
+        let error = scenario.validation_error("invalid producer handle timeout must fail");
         assert!(error.problems.iter().any(|problem| {
             problem.contains("producer handle delivery_timeout_ms must be 100..=60000")
         }));

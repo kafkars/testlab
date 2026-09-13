@@ -71,9 +71,7 @@ fn transition_requires_complete_baselines_for_every_target() {
     value
         .steps
         .retain(|step| step.id.as_str() != "list-batch-baseline-latest");
-    let error = value
-        .validate()
-        .expect_err("batch deletion without latest baselines");
+    let error = value.validation_error("batch deletion without latest baselines");
     assert!(
         error
             .to_string()

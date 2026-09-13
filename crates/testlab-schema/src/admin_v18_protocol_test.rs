@@ -98,7 +98,7 @@ fn admin_commands_have_exact_v18_kinds() {
             AdapterCommand::ListConsumerGroups(ListConsumerGroupsCommand {
                 client_id: client(),
                 operation_id: operation("admin-groups-list"),
-                api: Default::default(),
+                api: crate::GroupListingApi::default(),
                 state_filters: Vec::new(),
                 group_type_filters: Vec::new(),
                 protocol_type_filters: Vec::new(),

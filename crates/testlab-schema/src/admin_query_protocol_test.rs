@@ -87,7 +87,7 @@ fn list_offsets_accepts_an_earliest_position() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Latest,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis: None,
         timeout_ms: 1_000,
     }));
@@ -136,7 +136,7 @@ fn list_offsets_preserves_a_timestamp_selector_and_result() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::Timestamp,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis: Some(1_700_000_000_123),
         timeout_ms: 1_000,
     });
@@ -165,7 +165,7 @@ fn list_offsets_preserves_a_max_timestamp_selector() {
         topic: "records".to_owned(),
         partition: 0,
         position: AdminOffsetSelector::MaxTimestamp,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis: None,
         timeout_ms: 1_000,
     });
@@ -198,7 +198,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         topic: "records".to_owned(),
         partition: 1,
         position: AdminOffsetSelector::Latest,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis: None,
         expected_offset: None,
         expected_error_code: Some(ROUTING_ERROR_CODE.to_owned()),
@@ -218,7 +218,7 @@ fn query_error_expectations_do_not_cross_the_wire_boundary() {
         topic: "records".to_owned(),
         partition: 1,
         position: AdminOffsetSelector::Latest,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis: None,
         timeout_ms: 1_000,
     });

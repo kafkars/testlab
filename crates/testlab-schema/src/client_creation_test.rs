@@ -81,9 +81,7 @@ fn expected_cluster_identity_is_bounded_and_capability_gated() {
         ),
     ] {
         let scenario = identity_scenario(cluster_id, error_code);
-        let error = scenario
-            .validate()
-            .expect_err("invalid cluster identity intent must be rejected");
+        let error = scenario.validation_error("invalid cluster identity intent must be rejected");
         assert!(
             error
                 .problems
@@ -97,9 +95,7 @@ fn expected_cluster_identity_is_bounded_and_capability_gated() {
     scenario
         .requires
         .remove(&Capability::ExpectedClusterIdentity);
-    let error = scenario
-        .validate()
-        .expect_err("cluster identity must require its exact capability");
+    let error = scenario.validation_error("cluster identity must require its exact capability");
     assert!(
         error
             .problems

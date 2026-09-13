@@ -63,9 +63,7 @@ fn transition_requires_matching_prior_empty_group_description() {
     scenario
         .steps
         .retain(|step| !matches!(&step.action, ScenarioAction::DescribeClassicGroups(_)));
-    let error = scenario
-        .validate()
-        .expect_err("batch deletion without prior empty-group description");
+    let error = scenario.validation_error("batch deletion without prior empty-group description");
     assert!(
         error
             .to_string()

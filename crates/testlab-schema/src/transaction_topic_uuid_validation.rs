@@ -148,8 +148,7 @@ mod tests {
         );
         assert!(
             scenario
-                .validate()
-                .expect_err("UUID-bound capability must be explicit")
+                .validation_error("UUID-bound capability must be explicit")
                 .to_string()
                 .contains("transaction_topic_uuid_validation")
         );
@@ -173,8 +172,7 @@ mod tests {
         *transaction.0 = TransactionDisposition::Abort;
         transaction.1[0].record.topic = "different-topic".to_owned();
         let error = scenario
-            .validate()
-            .expect_err("abort and mismatched topics must fail")
+            .validation_error("abort and mismatched topics must fail")
             .to_string();
         assert!(error.contains("must commit after validation"));
         assert!(error.contains("exactly order its distinct record topics"));

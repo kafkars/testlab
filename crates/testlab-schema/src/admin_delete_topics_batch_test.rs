@@ -95,9 +95,7 @@ fn transition_requires_matching_prior_topic_descriptions() {
     scenario
         .steps
         .retain(|step| !matches!(&step.action, ScenarioAction::DescribeTopics(_)));
-    let error = scenario
-        .validate()
-        .expect_err("plural deletion without prior descriptions");
+    let error = scenario.validation_error("plural deletion without prior descriptions");
     assert!(
         error
             .to_string()

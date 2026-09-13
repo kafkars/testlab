@@ -209,13 +209,17 @@ mod tests {
                 "rack": "rack-a",
                 "selected_builder": {
                     "rack": "rack-a",
-                    "membership_start_timeout_ns": 29500000000u64,
+                    "membership_start_timeout_ns": 29_500_000_000_u64,
                     "close_timeout_ms": 10000,
                 },
             }),
         );
     }
 
+    #[allow(
+        clippy::needless_pass_by_value,
+        reason = "the fixture helper owns both constructed comparison values"
+    )]
     fn assert_round_trip(event: AdapterEvent, expected: serde_json::Value) {
         let value = serde_json::to_value(&event)
             .unwrap_or_else(|error| panic!("serialize registration event: {error}"));

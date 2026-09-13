@@ -106,9 +106,7 @@ fn direct_scenario() -> Scenario {
 }
 
 fn assert_problem(scenario: &Scenario, expected: &str) {
-    let error = scenario
-        .validate()
-        .expect_err("owned transfer fixture must be invalid");
+    let error = scenario.validation_error("owned transfer fixture must be invalid");
     assert!(
         error
             .problems

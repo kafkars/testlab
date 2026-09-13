@@ -212,9 +212,7 @@ mod tests {
     fn missing_stop_breaks_the_reversible_window() {
         let mut scenario = scenario();
         scenario.steps.remove(3);
-        let error = scenario
-            .validate()
-            .expect_err("scenario without the matching stop must fail");
+        let error = scenario.validation_error("scenario without the matching stop must fail");
         assert!(
             error
                 .problems

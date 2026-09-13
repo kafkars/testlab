@@ -44,9 +44,7 @@ fn transaction_fence_methods_are_explicit_and_admin_is_declared() {
         .validate()
         .unwrap_or_else(|error| panic!("validate Admin termination: {error}"));
     admin.requires.remove(&Capability::Admin);
-    let error = admin
-        .validate()
-        .expect_err("Admin force termination must require Admin capability");
+    let error = admin.validation_error("Admin force termination must require Admin capability");
     assert!(
         error
             .problems

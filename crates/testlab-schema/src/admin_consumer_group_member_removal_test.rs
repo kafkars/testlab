@@ -34,9 +34,7 @@ fn scenario_requires_the_named_post_shutdown_static_baseline() {
         })
         .unwrap_or_else(|| panic!("static-member removal action"));
     action.baseline_operation_id = operation("missing-baseline");
-    let error = missing
-        .validate()
-        .expect_err("missing static-member baseline must fail");
+    let error = missing.validation_error("missing static-member baseline must fail");
     assert!(error.to_string().contains("named prior group baseline"));
 }
 
@@ -54,9 +52,7 @@ fn scenario_rejects_a_member_that_was_not_abandoned_before_client_shutdown() {
         .position(|step| step.id.as_str() == "shutdown-client-alpha")
         .unwrap_or_else(|| panic!("alpha shutdown"));
     invalid.steps.swap(abandon, shutdown);
-    let error = invalid
-        .validate()
-        .expect_err("open static member at baseline must fail");
+    let error = invalid.validation_error("open static member at baseline must fail");
     assert!(
         error
             .to_string()
@@ -82,9 +78,7 @@ fn scenario_requires_static_sessions_to_cover_the_scenario_deadline() {
         });
     let configuration = configuration.unwrap_or_else(|| panic!("alpha static configuration"));
     configuration.classic_session_timeout_ms = Some(scenario_timeout_ms - 1);
-    let error = invalid
-        .validate()
-        .expect_err("short static session must not qualify member removal");
+    let error = invalid.validation_error("short static session must not qualify member removal");
     assert!(
         error
             .to_string()

@@ -156,8 +156,7 @@ mod tests {
         );
         assert!(
             scenario
-                .validate()
-                .expect_err("partial checkpoint capability must be explicit")
+                .validation_error("partial checkpoint capability must be explicit")
                 .to_string()
                 .contains("group_consumer_partial_checkpoint")
         );
@@ -180,8 +179,7 @@ mod tests {
         *count = 2;
         assert!(
             scenario
-                .validate()
-                .expect_err("full processed count must fail")
+                .validation_error("full processed count must fail")
                 .to_string()
                 .contains("nonempty proper prefix")
         );
@@ -205,8 +203,7 @@ mod tests {
         *method = GroupCheckpointMethod::IntoCheckpoint;
         assert!(
             scenario
-                .validate()
-                .expect_err("full conversion must fail for a partial checkpoint")
+                .validation_error("full conversion must fail for a partial checkpoint")
                 .to_string()
                 .contains("requires checkpoint_builder")
         );

@@ -25,8 +25,7 @@ fn operation_config_requires_seek_and_close_durations() {
     );
     configuration.close_timeout_ms = None;
     let message = scenario
-        .validate()
-        .expect_err("aggregate operation config without close duration must fail")
+        .validation_error("aggregate operation config without close duration must fail")
         .to_string();
     assert!(
         message.contains("operation_config requires both"),

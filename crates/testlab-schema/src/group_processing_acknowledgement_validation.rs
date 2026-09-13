@@ -85,8 +85,7 @@ mod tests {
         );
         assert!(
             scenario
-                .validate()
-                .expect_err("acknowledgement capability must be explicit")
+                .validation_error("acknowledgement capability must be explicit")
                 .to_string()
                 .contains("group_consumer_acknowledge")
         );
@@ -109,8 +108,7 @@ mod tests {
         *delay = 2_000;
         assert!(
             scenario
-                .validate()
-                .expect_err("short acknowledgement window must fail")
+                .validation_error("short acknowledgement window must fail")
                 .to_string()
                 .contains("must exceed processing_timeout_ms")
         );

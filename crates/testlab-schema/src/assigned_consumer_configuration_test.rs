@@ -47,9 +47,8 @@ fn assigned_consumer_configuration_requires_its_capability() {
     scenario
         .requires
         .remove(&Capability::AssignedConsumerConfiguration);
-    let error = scenario
-        .validate()
-        .expect_err("assigned-consumer configuration capability must be required");
+    let error =
+        scenario.validation_error("assigned-consumer configuration capability must be required");
     assert!(
         error
             .problems
@@ -82,8 +81,7 @@ fn assigned_consumer_fetch_and_limits_must_be_coherent() {
         max_batch_bytes: 2_048,
     });
     let message = scenario
-        .validate()
-        .expect_err("incoherent assigned-consumer policy must fail")
+        .validation_error("incoherent assigned-consumer policy must fail")
         .to_string();
     for problem in [
         "fetch.max_wait_ms",
@@ -118,9 +116,7 @@ fn immediate_batch_receive_requires_its_exact_capability() {
     scenario
         .requires
         .remove(&Capability::AssignedConsumerImmediateBatch);
-    let error = scenario
-        .validate()
-        .expect_err("immediate batch capability must be required");
+    let error = scenario.validation_error("immediate batch capability must be required");
     assert!(
         error
             .problems

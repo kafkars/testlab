@@ -108,8 +108,7 @@ mod tests {
         );
         assert!(
             scenario
-                .validate()
-                .expect_err("receipt capability must be explicit")
+                .validation_error("receipt capability must be explicit")
                 .to_string()
                 .contains("producer_receipt_metadata")
         );
@@ -128,8 +127,7 @@ mod tests {
             .unwrap_or_else(|| panic!("topic-ID description missing"));
         description.topics[0].expected_partitions = Some(vec![1]);
         let error = scenario
-            .validate()
-            .expect_err("mismatched topology must fail")
+            .validation_error("mismatched topology must fail")
             .to_string();
         assert!(error.contains("requires successful exact topic-ID topology"));
     }

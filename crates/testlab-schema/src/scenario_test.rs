@@ -8,6 +8,15 @@ use super::{
     TerminalStatus, VisibilityExpectation,
 };
 
+impl Scenario {
+    pub(crate) fn validation_error(&self, context: &str) -> super::ScenarioError {
+        match self.validate() {
+            Ok(()) => panic!("{context}"),
+            Err(error) => error,
+        }
+    }
+}
+
 fn id<T, E>(result: Result<T, E>) -> T
 where
     E: std::fmt::Display,
@@ -79,7 +88,7 @@ fn empty_batch_is_rejected() {
                 ScenarioAction::CreateProducer {
                     client_id: client.clone(),
                     producer_id: producer.clone(),
-                    ownership: Default::default(),
+                    ownership: crate::ChildHandleOwnership::default(),
                     delivery_timeout_ms: None,
                 },
             ),
@@ -243,7 +252,7 @@ fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
             ScenarioAction::CreateProducer {
                 client_id: client.clone(),
                 producer_id: producer.clone(),
-                ownership: Default::default(),
+                ownership: crate::ChildHandleOwnership::default(),
                 delivery_timeout_ms: None,
             },
         ),
@@ -252,7 +261,7 @@ fn lifecycle_steps(operation_id: OperationId) -> Vec<ScenarioStep> {
             ScenarioAction::Send {
                 producer_id: producer.clone(),
                 operation_id,
-                method: Default::default(),
+                method: crate::ProducerSendMethod::default(),
                 partitioning: super::ProducerPartitioning::Explicit,
                 topic_identity_operation_id: None,
                 record: super::RecordSpec {

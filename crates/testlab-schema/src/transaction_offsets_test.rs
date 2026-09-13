@@ -55,9 +55,7 @@ fn checked_in_transaction_batch_scenarios_are_valid() {
 fn transactional_batch_requires_its_capability_and_homogeneous_records() {
     let mut scenario = batch();
     assert!(scenario.requires.remove(&Capability::TransactionBatchSend));
-    let error = scenario
-        .validate()
-        .expect_err("batch capability must be explicit");
+    let error = scenario.validation_error("batch capability must be explicit");
     assert!(
         error
             .problems
@@ -79,9 +77,7 @@ fn transactional_batch_requires_its_capability_and_homogeneous_records() {
         })
         .unwrap_or_else(|| panic!("transactional batch action missing"));
     action[1].record.partition = 1;
-    let error = scenario
-        .validate()
-        .expect_err("heterogeneous batch must fail");
+    let error = scenario.validation_error("heterogeneous batch must fail");
     assert!(
         error
             .problems

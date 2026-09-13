@@ -60,7 +60,7 @@ fn action(
         topic: "records".to_owned(),
         partition: 0,
         position,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis,
         expected_offset: Some(1),
         expected_error_code: None,

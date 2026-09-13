@@ -74,9 +74,7 @@ fn checked_in_scenario() -> Scenario {
 }
 
 fn assert_problem(scenario: &Scenario, expected: &str) {
-    let error = scenario
-        .validate()
-        .expect_err("malformed manual partition expansion must fail");
+    let error = scenario.validation_error("malformed manual partition expansion must fail");
     assert!(
         error
             .problems

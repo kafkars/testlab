@@ -134,6 +134,10 @@ fn description(id: &str) -> TransactionDescriptionExpectation {
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed action fixture"
+)]
 fn problems(action: ScenarioAction) -> Vec<String> {
     let mut problems = Vec::new();
     super::validate(

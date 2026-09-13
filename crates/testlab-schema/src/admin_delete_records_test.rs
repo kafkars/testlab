@@ -210,7 +210,7 @@ fn list_offsets(
         topic: "records".to_owned(),
         partition: 0,
         position,
-        read_isolation: Default::default(),
+        read_isolation: crate::AdminReadIsolation::default(),
         timestamp_millis: None,
         expected_offset: Some(expected_offset),
         expected_error_code: None,

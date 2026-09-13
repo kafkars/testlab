@@ -93,9 +93,7 @@ fn checked_in_scenario() -> Scenario {
 }
 
 fn assert_problem(scenario: &Scenario, expected: &str) {
-    let error = scenario
-        .validate()
-        .expect_err("malformed manual placement must fail");
+    let error = scenario.validation_error("malformed manual placement must fail");
     assert!(
         error
             .problems

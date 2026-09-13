@@ -95,6 +95,10 @@ fn fence_fixture() -> Scenario {
     .unwrap_or_else(|error| panic!("producer fencing fixture: {error}"))
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "the test helper owns each constructed scenario fixture"
+)]
 fn problems(scenario: Scenario) -> Vec<String> {
     let mut problems = Vec::new();
     super::validate(&scenario, &mut problems);

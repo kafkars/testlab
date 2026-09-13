@@ -75,9 +75,8 @@ fn missing_topic_expectation_rejects_a_prior_successful_creation() {
             }),
         },
     );
-    let error = scenario
-        .validate()
-        .expect_err("created topic cannot satisfy a missing-topic expectation");
+    let error =
+        scenario.validation_error("created topic cannot satisfy a missing-topic expectation");
     assert!(
         error.to_string().contains("expects missing topic")
             && error.to_string().contains("prior action created it"),

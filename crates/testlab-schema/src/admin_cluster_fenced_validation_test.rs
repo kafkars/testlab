@@ -14,9 +14,7 @@ fn detached_fenced_broker_expectation_is_rejected() {
     let mut scenario = scenario();
     scenario.steps.remove(3);
 
-    let error = scenario
-        .validate()
-        .expect_err("scenario without its broker stop must fail");
+    let error = scenario.validation_error("scenario without its broker stop must fail");
     assert!(
         error
             .problems
@@ -42,9 +40,7 @@ fn duplicate_fenced_broker_expectations_are_rejected() {
         .unwrap_or_else(|| panic!("included fenced-broker description"));
     action.expected_fenced_broker_ids = vec![3, 3];
 
-    let error = scenario
-        .validate()
-        .expect_err("duplicate fenced broker must fail");
+    let error = scenario.validation_error("duplicate fenced broker must fail");
     assert!(
         error
             .problems

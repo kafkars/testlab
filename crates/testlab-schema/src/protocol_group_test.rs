@@ -71,9 +71,8 @@ fn missing_offset_failure_requires_fail_closed_policy() {
         .as_mut()
         .unwrap_or_else(|| panic!("missing fail-closed policy"))
         .offset_reset = GroupOffsetReset::Earliest;
-    let error = scenario
-        .validate()
-        .expect_err("missing-offset failure without fail-closed reset must fail");
+    let error =
+        scenario.validation_error("missing-offset failure without fail-closed reset must fail");
     assert!(error.to_string().contains("offset_reset=error"));
 }
 
@@ -96,9 +95,7 @@ fn immediate_group_receive_requires_its_exact_capability() {
     scenario
         .requires
         .remove(&Capability::GroupConsumerImmediateBatch);
-    let error = scenario
-        .validate()
-        .expect_err("immediate group capability must be required");
+    let error = scenario.validation_error("immediate group capability must be required");
     assert!(error.to_string().contains("group_consumer_immediate_batch"));
 }
 
@@ -173,9 +170,7 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
         classic_rejoin_backoff_ms: Some(1_000),
         classic_rejoin_attempt_timeout_ms: Some(30_000),
     });
-    let error = modern
-        .validate()
-        .expect_err("KIP-848 group must reject classic timing");
+    let error = modern.validation_error("KIP-848 group must reject classic timing");
     let message = error.to_string();
     assert!(message.contains("classic_assignor for a non-classic group"));
     assert!(message.contains("classic_session_timeout_ms for a non-classic group"));
@@ -208,9 +203,7 @@ fn classic_configuration_is_protocol_specific_and_timing_is_positive() {
         classic_rejoin_backoff_ms: Some(0),
         classic_rejoin_attempt_timeout_ms: Some(0),
     });
-    let error = classic
-        .validate()
-        .expect_err("zero classic timing must fail");
+    let error = classic.validation_error("zero classic timing must fail");
     let message = error.to_string();
     for field in [
         "classic_session_timeout_ms",
@@ -250,8 +243,7 @@ fn group_runtime_timing_is_positive() {
         classic_rejoin_attempt_timeout_ms: None,
     });
     let message = scenario
-        .validate()
-        .expect_err("zero group runtime timing must fail")
+        .validation_error("zero group runtime timing must fail")
         .to_string();
     for field in [
         "processing_timeout_ms",

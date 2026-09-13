@@ -222,8 +222,8 @@ fn create_group(id: &str, group_id: &str, protocol: GroupProtocol) -> ScenarioAc
 fn receive(id: &str, receive_id: &str) -> ScenarioAction {
     ScenarioAction::GroupReceive {
         consumer_id: consumer(id),
-        method: Default::default(),
-        checkpoint_method: Default::default(),
+        method: crate::GroupConsumerReceiveMethod::default(),
+        checkpoint_method: crate::GroupCheckpointMethod::default(),
         receive_id: operation(receive_id),
         expected_operation_id: operation("record"),
         additional_expected_operation_ids: Vec::new(),

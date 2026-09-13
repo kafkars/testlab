@@ -18,7 +18,7 @@ fn admin_lists_require_unique_valid_resource_names() {
         &ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
             client_id: client(),
             operation_id: operation("admin-groups-list"),
-            api: Default::default(),
+            api: crate::GroupListingApi::default(),
             state_filters: Vec::new(),
             group_type_filters: Vec::new(),
             protocol_type_filters: Vec::new(),
@@ -65,7 +65,7 @@ fn group_listing_filters_are_bounded_and_api_specific() {
     let mut action = ListConsumerGroupsAction {
         client_id: client(),
         operation_id: operation("admin-filtered-groups"),
-        api: Default::default(),
+        api: crate::GroupListingApi::default(),
         state_filters: vec!["Stable".to_owned(), "Stable".to_owned()],
         group_type_filters: vec![String::new()],
         protocol_type_filters: vec!["consumer".to_owned()],
