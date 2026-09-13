@@ -9,7 +9,9 @@ use testlab_schema::{BrokerClusterState, BrokerStateObservation, BrokerTopicStat
 
 use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
-use crate::observer_admin_target::{BrokerUnregistrationTarget, ListTarget, TopicTarget, ordinal};
+use crate::observer_admin_target::{
+    BrokerUnregistrationTarget, ClusterTarget, ListTarget, TopicTarget, ordinal,
+};
 use crate::observer_error::ObserverError;
 
 const POLL_SLICE: Duration = Duration::from_millis(50);
@@ -100,11 +102,29 @@ fn normalize_topics(
 
 pub(super) fn capture_cluster(
     request: AdminObserverRequest<'_>,
-    operation_id: &OperationId,
+    target: &ClusterTarget,
 ) -> Result<BrokerStateObservation, ObserverError> {
-    capture_cluster_when(request, operation_id, "cluster", |broker_ids| {
-        broker_ids.len() == usize::from(request.cluster_size)
+    let expected_active_count = usize::from(request.cluster_size)
+        .checked_sub(target.expected_fenced_broker_ids.len())
+        .ok_or_else(|| invalid("fenced-broker expectation exceeds the declared cluster size"))?;
+    capture_cluster_when(request, &target.operation_id, "cluster", |broker_ids| {
+        active_cluster_matches(
+            broker_ids,
+            expected_active_count,
+            &target.expected_fenced_broker_ids,
+        )
     })
+}
+
+fn active_cluster_matches(
+    broker_ids: &[i32],
+    expected_active_count: usize,
+    expected_fenced_broker_ids: &[i32],
+) -> bool {
+    broker_ids.len() == expected_active_count
+        && expected_fenced_broker_ids
+            .iter()
+            .all(|broker| broker_ids.binary_search(broker).is_err())
 }
 
 pub(super) fn capture_broker_unregistration(
@@ -266,3 +286,7 @@ fn topic_absent(observation: &BrokerStateObservation) -> bool {
 fn invalid(detail: impl std::fmt::Display) -> ObserverError {
     ObserverError::InvalidBrokerState(detail.to_string())
 }
+
+#[cfg(test)]
+#[path = "observer_admin_metadata_test.rs"]
+mod tests;

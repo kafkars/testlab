@@ -14,10 +14,15 @@ fn cluster_and_group_discovery_targets_are_exact() {
     let cluster = ScenarioAction::DescribeCluster(DescribeClusterAction {
         client_id: client(),
         operation_id: operation("describe-cluster"),
+        include_fenced_brokers: true,
         include_authorized_operations: true,
+        expected_fenced_broker_ids: vec![3],
         timeout_ms: 500,
     });
-    assert!(matches!(exact(&cluster), AdminTarget::Cluster(_)));
+    let AdminTarget::Cluster(target) = exact(&cluster) else {
+        panic!("cluster target kind");
+    };
+    assert_eq!(target.expected_fenced_broker_ids, [3]);
 
     let list = ScenarioAction::ListConsumerGroups(ListConsumerGroupsAction {
         client_id: client(),
@@ -136,7 +141,9 @@ fn duplicate_group_listing_targets_are_rejected() {
         &ScenarioAction::DescribeCluster(DescribeClusterAction {
             client_id: client(),
             operation_id: operation("describe-cluster"),
+            include_fenced_brokers: false,
             include_authorized_operations: true,
+            expected_fenced_broker_ids: Vec::new(),
             timeout_ms: 500,
         }),
     )

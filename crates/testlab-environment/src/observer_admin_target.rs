@@ -47,7 +47,7 @@ pub(super) enum AdminTarget {
     ClientMetricsResources(ListTarget),
     TopicIdentities(ListTarget),
     TopicDeletions(ListTarget),
-    Cluster(OperationId),
+    Cluster(ClusterTarget),
     BrokerUnregistration(BrokerUnregistrationTarget),
     Features(OperationId),
     MetadataQuorum(OperationId),
@@ -108,6 +108,11 @@ pub(super) struct TopicTarget {
 pub(super) struct ListTarget {
     pub(super) operation_id: OperationId,
     pub(super) names: Vec<String>,
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) struct ClusterTarget {
+    pub(super) operation_id: OperationId,
+    pub(super) expected_fenced_broker_ids: Vec<i32>,
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct GroupTarget {
@@ -208,7 +213,7 @@ impl AdminTarget {
             | Self::ShareGroupDescriptions(target)
             | Self::ShareGroups(target)
             | Self::ClassicGroups(target) => &target.operation_id,
-            Self::Cluster(operation_id) => operation_id,
+            Self::Cluster(target) => &target.operation_id,
             Self::BrokerUnregistration(target) => &target.operation_id,
             Self::Features(operation_id) => operation_id,
             Self::MetadataQuorum(operation_id) => operation_id,

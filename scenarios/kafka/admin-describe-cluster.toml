@@ -1,4 +1,4 @@
-schema_version = 121
+schema_version = 122
 id = "kafka.admin-describe-cluster"
 title = "packaged client enforces and describes the authorized Kafka cluster"
 description = "The packaged client rejects a mismatched expected cluster ID, accepts the environment's exact ID during construction and readiness, and publicly retains requested authorization metadata beside the cluster identity and broker IDs that an independent librdkafka query observes."
@@ -29,7 +29,9 @@ id = "describe-cluster"
 kind = "describe_cluster"
 client_id = "client-1"
 operation_id = "admin-describe-cluster-1"
+include_fenced_brokers = false
 include_authorized_operations = true
+expected_fenced_broker_ids = []
 timeout_ms = 20000
 
 [[steps]]

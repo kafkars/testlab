@@ -98,3 +98,42 @@ fn transaction_pattern_filter_stays_on_kafka_4_3_packs() {
         );
     }
 }
+
+#[test]
+fn fenced_broker_description_stays_on_disposable_three_broker_packs() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let repository = Repository::open(&root)
+        .unwrap_or_else(|error| panic!("failed to open test repository: {error}"));
+    for path in [
+        "packs/kafkars-three-broker.toml",
+        "packs/kafkars-three-broker-share.toml",
+    ] {
+        let (_, pack) = repository
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        assert!(
+            pack.scenarios
+                .iter()
+                .any(|scenario| scenario.ends_with("admin-describe-fenced-brokers.toml")),
+            "{path} omitted fenced-broker description"
+        );
+    }
+    for path in [
+        "packs/kafkars-pr.toml",
+        "packs/kafkars-classic.toml",
+        "packs/kafkars-release.toml",
+        "packs/kafkars-share-release.toml",
+        "packs/kafkars-three-broker-security.toml",
+    ] {
+        let (_, pack) = repository
+            .load_pack(Path::new(path))
+            .unwrap_or_else(|error| panic!("load {path}: {error}"));
+        assert!(
+            !pack
+                .scenarios
+                .iter()
+                .any(|scenario| scenario.ends_with("admin-describe-fenced-brokers.toml")),
+            "{path} must not mutate a shared or security cluster"
+        );
+    }
+}

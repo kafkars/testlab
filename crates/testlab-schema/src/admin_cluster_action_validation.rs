@@ -25,6 +25,7 @@ pub(crate) fn validate(
     }
     let (client_id, operation_id, timeout_ms) = match action {
         ScenarioAction::DescribeCluster(action) => {
+            validate_fenced_brokers(action, problems);
             (&action.client_id, &action.operation_id, action.timeout_ms)
         }
         ScenarioAction::DescribeFeatures(action) => {
@@ -38,6 +39,24 @@ pub(crate) fn validate(
     validate_identity(client_id, operation_id, clients, operation_ids, problems);
     validate_timeout(operation_id, timeout_ms, problems);
     true
+}
+
+fn validate_fenced_brokers(action: &crate::DescribeClusterAction, problems: &mut Vec<String>) {
+    if action.expected_fenced_broker_ids.len() > 100
+        || action
+            .expected_fenced_broker_ids
+            .iter()
+            .any(|broker| *broker < 0)
+        || action
+            .expected_fenced_broker_ids
+            .windows(2)
+            .any(|pair| pair[0] >= pair[1])
+    {
+        problems.push(format!(
+            "admin operation {} expected_fenced_broker_ids must contain at most 100 strictly increasing nonnegative brokers",
+            action.operation_id
+        ));
+    }
 }
 
 fn validate_feature_updates(

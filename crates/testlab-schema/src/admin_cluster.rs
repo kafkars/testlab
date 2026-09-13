@@ -7,47 +7,10 @@ use crate::{ClientId, OperationId};
 #[path = "admin_metadata_quorum.rs"]
 pub(crate) mod metadata_quorum;
 
-/// Scenario intent for one bounded cluster description.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct DescribeClusterAction {
-    /// Existing client whose admin handle is used.
-    pub client_id: ClientId,
-    /// Stable admin operation identity.
-    pub operation_id: OperationId,
-    /// Whether Kafka must return the cluster authorization bitfield.
-    pub include_authorized_operations: bool,
-    /// Complete public operation bound.
-    pub timeout_ms: u64,
-}
+#[path = "admin_cluster_description.rs"]
+mod description;
 
-/// Wire payload for one bounded cluster description.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct DescribeClusterCommand {
-    /// Existing client whose admin handle is used.
-    pub client_id: ClientId,
-    /// Stable admin operation identity.
-    pub operation_id: OperationId,
-    /// Whether Kafka must return the cluster authorization bitfield.
-    pub include_authorized_operations: bool,
-    /// Complete public operation bound.
-    pub timeout_ms: u64,
-}
-
-/// Public cluster identity and broker set exposed by the packaged client.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct AdminClusterDescription {
-    /// Stable admin operation identity.
-    pub operation_id: OperationId,
-    /// Cluster identity reported by the adapter, when available.
-    pub cluster_id: Option<String>,
-    /// Sorted broker identifiers reported by the adapter.
-    pub broker_ids: Vec<i32>,
-    /// Raw Kafka authorization bitfield, when requested.
-    pub authorized_operations: Option<i32>,
-}
+pub use description::{AdminClusterDescription, DescribeClusterAction, DescribeClusterCommand};
 
 /// Scenario intent for one bounded cluster feature description.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

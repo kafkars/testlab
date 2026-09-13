@@ -1,0 +1,74 @@
+schema_version = 122
+id = "kafka.admin-describe-fenced-brokers"
+title = "packaged Admin excludes then includes one fenced broker"
+description = "Testlab proves the complete three-broker baseline, stops broker 3, independently observes brokers 1 and 2 while paired public descriptions exclude then include broker 3 with its fenced marker, restarts it, and proves the complete cluster is restored."
+timeout_ms = 210000
+requires = ["admin", "lifecycle", "client_readiness"]
+assertions = []
+
+[[steps]]
+id = "create-client"
+kind = "create_client"
+client_id = "client-1"
+
+[[steps]]
+id = "await-client-ready"
+kind = "await_client_ready"
+client_id = "client-1"
+
+[[steps]]
+id = "describe-baseline-cluster"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-fenced-brokers-baseline"
+include_fenced_brokers = false
+include_authorized_operations = true
+expected_fenced_broker_ids = []
+timeout_ms = 20000
+
+[[steps]]
+id = "stop-broker-3"
+kind = "stop_broker"
+broker_ordinal = 3
+timeout_ms = 20000
+
+[[steps]]
+id = "describe-without-fenced-brokers"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-fenced-brokers-excluded"
+include_fenced_brokers = false
+include_authorized_operations = true
+expected_fenced_broker_ids = [3]
+timeout_ms = 30000
+
+[[steps]]
+id = "describe-with-fenced-brokers"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-fenced-brokers-included"
+include_fenced_brokers = true
+include_authorized_operations = true
+expected_fenced_broker_ids = [3]
+timeout_ms = 30000
+
+[[steps]]
+id = "start-broker-3"
+kind = "start_broker"
+broker_ordinal = 3
+timeout_ms = 60000
+
+[[steps]]
+id = "describe-restored-cluster"
+kind = "describe_cluster"
+client_id = "client-1"
+operation_id = "admin-fenced-brokers-restored"
+include_fenced_brokers = false
+include_authorized_operations = true
+expected_fenced_broker_ids = []
+timeout_ms = 30000
+
+[[steps]]
+id = "shutdown-client"
+kind = "shutdown_client"
+client_id = "client-1"

@@ -104,8 +104,8 @@ category = "admin"
 
 [[contract]]
 id = "ADMIN-008"
-title = "Admin cluster description matches broker state"
-statement = "Each requested public cluster description preserves its exact authorization-bitfield option and emits exactly one completion whose requested metadata, cluster identity, and broker IDs match the applicable public and independent evidence."
+title = "Admin cluster description preserves options and broker state"
+statement = "Each requested public cluster description preserves its exact fenced-broker and authorization-bitfield options and emits exactly one completion whose requested metadata, cluster identity, active broker IDs, and fenced broker markers match the applicable public and independent evidence."
 category = "admin"
 
 [[contract]]

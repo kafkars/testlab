@@ -206,6 +206,13 @@ canonical `__consumer_offsets`, and immediate metadata proves it exists around
 paired calls. The public call must omit it when internal topics are disabled,
 then include it with the internal marker when enabled. This is a canonical
 filter control, not exhaustive enumeration of every internal topic class.
+Protocol v118, scenario schema v122, and evidence schema v108 retain the exact
+fenced-broker request option and public broker markers. A reversible
+three-broker control independently observes only brokers 1 and 2 after broker 3
+stops, requires the disabled public result to exclude broker 3, requires the
+enabled public result to include broker 3 with its fenced marker, and restores
+the complete active cluster before shutdown. This proves one graceful-stop
+fencing path; it does not claim every broker-registration transition.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
 Docker environments pull and then inspect the declared digest as separate

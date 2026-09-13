@@ -31,7 +31,7 @@ pub(crate) fn describe<W: Write>(
             client
                 .admin()
                 .describe_cluster()
-                .include_fenced_brokers(false)
+                .include_fenced_brokers(command.include_fenced_brokers)
                 .include_authorized_operations(command.include_authorized_operations)
                 .deadline_after(remaining)
                 .submit()
@@ -45,8 +45,19 @@ pub(crate) fn describe<W: Write>(
         .iter()
         .map(ClusterBroker::id)
         .collect();
+    let fenced_broker_ids = description
+        .brokers()
+        .iter()
+        .filter(|broker| broker.is_fenced())
+        .map(ClusterBroker::id)
+        .collect();
     let broker_ids =
         sorted_unique_nonnegative(broker_ids, &command.operation_id, "cluster broker")?;
+    let fenced_broker_ids = sorted_unique_nonnegative(
+        fenced_broker_ids,
+        &command.operation_id,
+        "fenced cluster broker",
+    )?;
     emit(
         writer,
         &AdapterEventEnvelope::new(
@@ -55,6 +66,7 @@ pub(crate) fn describe<W: Write>(
                 operation_id: command.operation_id,
                 cluster_id: Some(description.cluster_id().to_owned()),
                 broker_ids,
+                fenced_broker_ids,
                 authorized_operations: description.authorized_operations(),
             }),
         ),

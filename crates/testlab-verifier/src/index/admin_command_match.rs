@@ -123,7 +123,8 @@ pub(super) fn matches(action: &ScenarioAction, command: &AdapterCommand) -> bool
                 &c.client_id,
                 &c.operation_id,
                 c.timeout_ms,
-            ) && a.include_authorized_operations == c.include_authorized_operations
+            ) && a.include_fenced_brokers == c.include_fenced_brokers
+                && a.include_authorized_operations == c.include_authorized_operations
         }
         (ScenarioAction::ListConsumerGroups(a), AdapterCommand::ListConsumerGroups(c)) => {
             group_listing::matches(a, c)

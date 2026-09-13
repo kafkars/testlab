@@ -21,7 +21,8 @@
   bitfields, detailed byte-sorted topic listing with requested authorization
   metadata plus paired exclusion and inclusion of independently present
   canonical `__consumer_offsets`, and name-based deletion with mixed resource outcomes, scoped topic,
-  cluster identity with requested authorization metadata,
+  cluster identity with requested authorization metadata and paired
+  fenced-broker exclusion/inclusion across one reversible graceful stop,
   consumer-only and generic all-group discovery with exact state and group-type
   filters plus generic protocol-type filtering, singleton earliest-, latest-,
   maximum-timestamp-, and caller-timestamp-offset administration plus

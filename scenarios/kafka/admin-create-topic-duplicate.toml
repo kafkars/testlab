@@ -1,4 +1,4 @@
-schema_version = 121
+schema_version = 122
 id = "kafka.admin-create-topic-duplicate"
 title = "packaged admin rejects duplicate Kafka topic creation"
 description = "The packaged client's public admin creates one topic, then an identical repeated creation reports the exact normalized topic-already-exists error while an immediate independent metadata query confirms the original partition set is unchanged."

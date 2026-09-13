@@ -1,10 +1,9 @@
 //! Topic-deletion and cluster-description tests join public results to metadata snapshots.
 
 use testlab_schema::{
-    AdapterCommand, AdapterEvent, AdminClusterDescription, AdminTopicCompletion,
-    BrokerClusterState, BrokerStateObservation, BrokerTopicState, DeleteTopicAction,
-    DeleteTopicCommand, DescribeClusterAction, DescribeClusterCommand, HistoryEntry,
-    HistoryPayload, OperationId, ScenarioAction, TerminalStatus, VisibilityExpectation,
+    AdapterCommand, AdapterEvent, AdminTopicCompletion, BrokerStateObservation, BrokerTopicState,
+    DeleteTopicAction, DeleteTopicCommand, HistoryEntry, HistoryPayload, OperationId,
+    ScenarioAction, TerminalStatus, VisibilityExpectation,
 };
 
 use crate::admin::verify_admin;
@@ -12,7 +11,9 @@ use crate::index::HistoryIndex;
 use crate::verify_fixture::{command, event, scenario, step};
 
 const TOPIC_OPERATION: &str = "admin-delete-topic-1";
-const CLUSTER_OPERATION: &str = "admin-describe-cluster-1";
+
+#[path = "admin_cluster_description_test.rs"]
+mod cluster_tests;
 
 #[test]
 fn deleted_topic_with_independent_absence_passes() {
@@ -31,42 +32,6 @@ fn topic_deletion_rejects_duplicate_public_results_or_present_state() {
 }
 
 #[test]
-fn matching_cluster_identity_and_sorted_brokers_pass() {
-    let history = authorization_history(true, Some(1));
-    assert!(violations(describe_cluster_action(), &history).is_empty());
-}
-
-#[test]
-fn cluster_description_rejects_identity_mismatch() {
-    let history = cluster_history(
-        Some("public-cluster"),
-        vec![1, 2],
-        Some("broker-cluster"),
-        vec![1, 2],
-        true,
-        Some(1),
-    );
-    assert_contract(
-        &violations(describe_cluster_action(), &history),
-        "ADMIN-008",
-    );
-}
-
-#[test]
-fn cluster_description_rejects_missing_authorization_or_changed_option() {
-    let missing = authorization_history(true, None);
-    assert_contract(
-        &violations(describe_cluster_action(), &missing),
-        "ADMIN-008",
-    );
-    let changed = authorization_history(false, Some(1));
-    assert_contract(
-        &violations(describe_cluster_action(), &changed),
-        "ADMIN-008",
-    );
-}
-
-#[test]
 fn immediate_state_must_precede_the_next_harness_command() {
     let mut history = topic_history(1, false, Vec::new());
     history.insert(2, command(2, AdapterCommand::Finish));
@@ -76,83 +41,6 @@ fn immediate_state_must_precede_the_next_harness_command() {
     state.sequence = 3;
     state.observed_unix_ms = 3;
     assert_contract(&violations(delete_topic_action(), &history), "ADMIN-007");
-}
-
-#[test]
-fn admin_commands_must_follow_declared_scenario_order() {
-    let topic_operation = operation(TOPIC_OPERATION);
-    let cluster_operation = operation(CLUSTER_OPERATION);
-    let history = vec![
-        command(
-            0,
-            AdapterCommand::DescribeCluster(DescribeClusterCommand {
-                client_id: client(),
-                operation_id: cluster_operation.clone(),
-                include_authorized_operations: true,
-                timeout_ms: 1_000,
-            }),
-        ),
-        event(
-            1,
-            AdapterEvent::ClusterDescribed(AdminClusterDescription {
-                operation_id: cluster_operation.clone(),
-                cluster_id: Some("cluster-a".to_owned()),
-                broker_ids: vec![1, 2],
-                authorized_operations: Some(1),
-            }),
-        ),
-        state(
-            2,
-            BrokerStateObservation::Cluster(BrokerClusterState {
-                observation: 0,
-                operation_id: cluster_operation,
-                cluster_id: Some("cluster-a".to_owned()),
-                broker_ids: vec![1, 2],
-            }),
-        ),
-        command(
-            3,
-            AdapterCommand::DeleteTopic(DeleteTopicCommand {
-                client_id: client(),
-                operation_id: topic_operation.clone(),
-                topic: "records".to_owned(),
-                timeout_ms: 1_000,
-            }),
-        ),
-        event(
-            4,
-            AdapterEvent::TopicDeleted(AdminTopicCompletion {
-                operation_id: topic_operation.clone(),
-                topic: "records".to_owned(),
-            }),
-        ),
-        state(
-            5,
-            BrokerStateObservation::Topic(BrokerTopicState {
-                observation: 1,
-                operation_id: topic_operation,
-                topic: "records".to_owned(),
-                exists: false,
-                partitions: Vec::new(),
-            }),
-        ),
-    ];
-    let mut scenario = scenario(
-        TerminalStatus::Acknowledged,
-        VisibilityExpectation::ExactlyOnce,
-    );
-    scenario
-        .steps
-        .insert(2, step("delete-topic", delete_topic_action()));
-    scenario
-        .steps
-        .insert(3, step("describe-cluster", describe_cluster_action()));
-    let index = HistoryIndex::build(&history);
-    let mut actual = Vec::new();
-
-    verify_admin(&scenario, &index, &[], &mut actual);
-
-    assert_contract(&actual, "ADMIN-008");
 }
 
 fn topic_history(public_count: usize, exists: bool, partitions: Vec<i32>) -> Vec<HistoryEntry> {
@@ -189,75 +77,12 @@ fn topic_history(public_count: usize, exists: bool, partitions: Vec<i32>) -> Vec
     history
 }
 
-fn authorization_history(
-    include_authorized_operations: bool,
-    authorized_operations: Option<i32>,
-) -> Vec<HistoryEntry> {
-    cluster_history(
-        Some("cluster-a"),
-        vec![1, 2],
-        Some("cluster-a"),
-        vec![1, 2],
-        include_authorized_operations,
-        authorized_operations,
-    )
-}
-
-fn cluster_history(
-    public_cluster: Option<&str>,
-    public_brokers: Vec<i32>,
-    observed_cluster: Option<&str>,
-    observed_brokers: Vec<i32>,
-    include_authorized_operations: bool,
-    authorized_operations: Option<i32>,
-) -> Vec<HistoryEntry> {
-    let operation_id = operation(CLUSTER_OPERATION);
-    vec![
-        command(
-            0,
-            AdapterCommand::DescribeCluster(DescribeClusterCommand {
-                client_id: client(),
-                operation_id: operation_id.clone(),
-                include_authorized_operations,
-                timeout_ms: 1_000,
-            }),
-        ),
-        event(
-            1,
-            AdapterEvent::ClusterDescribed(AdminClusterDescription {
-                operation_id: operation_id.clone(),
-                cluster_id: public_cluster.map(str::to_owned),
-                broker_ids: public_brokers,
-                authorized_operations,
-            }),
-        ),
-        state(
-            2,
-            BrokerStateObservation::Cluster(BrokerClusterState {
-                observation: 2,
-                operation_id,
-                cluster_id: observed_cluster.map(str::to_owned),
-                broker_ids: observed_brokers,
-            }),
-        ),
-    ]
-}
-
 fn delete_topic_action() -> ScenarioAction {
     ScenarioAction::DeleteTopic(DeleteTopicAction {
         client_id: client(),
         operation_id: operation(TOPIC_OPERATION),
         topic: "records".to_owned(),
         expected_error_code: None,
-        timeout_ms: 1_000,
-    })
-}
-
-fn describe_cluster_action() -> ScenarioAction {
-    ScenarioAction::DescribeCluster(DescribeClusterAction {
-        client_id: client(),
-        operation_id: operation(CLUSTER_OPERATION),
-        include_authorized_operations: true,
         timeout_ms: 1_000,
     })
 }

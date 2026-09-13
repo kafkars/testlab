@@ -2,8 +2,8 @@
 
 ## Transport
 
-Protocol v117 is UTF-8 JSON Lines over stdin and stdout.
-This cut pairs it with scenario schema v121 and evidence schema v107.
+Protocol v118 is UTF-8 JSON Lines over stdin and stdout.
+This cut pairs it with scenario schema v122 and evidence schema v108.
 
 - One line is one complete JSON object.
 - Adapter stdout is protocol-only; diagnostics use stderr.
@@ -990,11 +990,19 @@ Topic deletion is preceded by a public description of the exact
 harness-provisioned topic. Independent metadata queries confirm the declared
 partitions after description and boundedly poll for explicit absence after the
 delete completion. Cluster description carries the exact
-`include_authorized_operations` option and reports the public cluster identity,
-broker IDs, and requested authorization bitfield. The environment independently
-queries the identity and broker IDs and owns the expected broker count through
-its declared topology; that coarse snapshot does not substitute for the public
-option-specific metadata.
+`include_fenced_brokers` and `include_authorized_operations` options and reports
+the public cluster identity, all returned broker IDs, fenced-broker markers,
+and the requested authorization bitfield. The environment independently
+queries the identity and active broker IDs and owns the expected broker count
+through its declared topology; that snapshot does not substitute for the public
+option-specific metadata. A reversible three-broker control describes the full
+baseline, gracefully stops broker 3, and invokes paired public descriptions
+with `include_fenced_brokers` disabled and enabled. Both calls must agree with
+an immediate independent two-active-broker snapshot; the disabled result must
+exclude broker 3, while the enabled result must include broker 3 with its public
+fenced marker. The broker is then restarted and the complete three-broker state
+is described again. This control is limited to disposable plaintext
+three-broker cells.
 
 Broker unregistration carries only the exact client, operation, broker ID, and
 deadline. Scenario validation confines it to a contiguous public cluster
@@ -1216,6 +1224,6 @@ assignment-fenced checkpoint commits. The verifier requires that epoch to be
 positive and from the requested protocol family, preventing silent fallback to
 classic membership.
 
-Protocol v117 is an exact semantic contract. New capabilities may be declared
+Protocol v118 is an exact semantic contract. New capabilities may be declared
 from the existing vocabulary, but adding or removing fields, changing meaning,
 or narrowing accepted values requires a new protocol version.

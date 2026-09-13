@@ -1,4 +1,4 @@
-schema_version = 121
+schema_version = 122
 id = "kafka.classic-group-seek-replay"
 title = "a runtime-configured classic group seek replays one committed broker record"
 description = "The packaged classic member uses non-default public Fetch, retained-capacity, processing, membership, and aggregate seek/close policy, receives and commits one record, seeks its current assignment to the beginning, and receives the same broker coordinate again."

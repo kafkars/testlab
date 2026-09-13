@@ -9,7 +9,7 @@ use testlab_schema::{
 };
 
 use crate::observer_admin_target::{
-    AdminTarget, GroupTarget, ListTarget, OffsetTarget, TargetMatch, unique,
+    AdminTarget, ClusterTarget, GroupTarget, ListTarget, OffsetTarget, TargetMatch, unique,
 };
 use crate::observer_error::ObserverError;
 
@@ -23,10 +23,14 @@ pub(super) fn match_action(action: &ScenarioAction) -> Result<Option<TargetMatch
             AdapterCommand::DescribeCluster(DescribeClusterCommand {
                 client_id: action.client_id.clone(),
                 operation_id: action.operation_id.clone(),
+                include_fenced_brokers: action.include_fenced_brokers,
                 include_authorized_operations: action.include_authorized_operations,
                 timeout_ms: action.timeout_ms,
             }),
-            AdminTarget::Cluster(action.operation_id.clone()),
+            AdminTarget::Cluster(ClusterTarget {
+                operation_id: action.operation_id.clone(),
+                expected_fenced_broker_ids: action.expected_fenced_broker_ids.clone(),
+            }),
         ),
         ScenarioAction::DescribeFeatures(action) => (
             AdapterCommand::DescribeFeatures(DescribeFeaturesCommand {

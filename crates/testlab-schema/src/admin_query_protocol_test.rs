@@ -13,8 +13,8 @@ mod topic_listing_tests;
 
 #[test]
 fn admin_query_versions_are_exact() {
-    assert_eq!(PROTOCOL_VERSION, 117);
-    assert_eq!(SCENARIO_SCHEMA_VERSION, 121);
+    assert_eq!(PROTOCOL_VERSION, 118);
+    assert_eq!(SCENARIO_SCHEMA_VERSION, 122);
 }
 
 #[test]
