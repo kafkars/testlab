@@ -12,12 +12,26 @@ pub(super) struct CommandSpec {
     pub(super) stderr_artifact: String,
 }
 
-pub(super) fn image_pull(image: &str) -> CommandSpec {
+pub(super) fn image_pull(image: &str, attempt: u8) -> CommandSpec {
+    let suffix = if attempt == 1 {
+        String::new()
+    } else {
+        format!("-{attempt:03}")
+    };
     CommandSpec {
         kind: EnvironmentOperationKind::ImagePull,
         args: vec!["pull".to_owned(), image.to_owned()],
-        stdout_artifact: "image-pull.txt".to_owned(),
-        stderr_artifact: "image-pull.stderr.txt".to_owned(),
+        stdout_artifact: format!("image-pull{suffix}.txt"),
+        stderr_artifact: format!("image-pull{suffix}.stderr.txt"),
+    }
+}
+
+pub(super) fn image_inspect_after_pull(image: &str) -> CommandSpec {
+    CommandSpec {
+        kind: EnvironmentOperationKind::ImageInspect,
+        args: vec!["image".to_owned(), "inspect".to_owned(), image.to_owned()],
+        stdout_artifact: "image-inspect-after-pull.json".to_owned(),
+        stderr_artifact: "image-inspect-after-pull.stderr.txt".to_owned(),
     }
 }
 

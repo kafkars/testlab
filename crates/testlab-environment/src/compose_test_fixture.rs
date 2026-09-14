@@ -23,15 +23,15 @@ pub(super) struct Fixture {
 
 impl Fixture {
     pub(super) fn new(fail_up: bool) -> Self {
-        Self::with_behavior(fail_up, false, false, 0, Authentication::None)
+        Self::with_behavior(fail_up, false, false, 0, 0, Authentication::None)
     }
 
     pub(super) fn with_authentication(fail_up: bool, authentication: Authentication) -> Self {
-        Self::with_behavior(fail_up, false, false, 0, authentication)
+        Self::with_behavior(fail_up, false, false, 0, 0, authentication)
     }
 
     pub(super) fn with_startup_exit(persistent: bool) -> Self {
-        Self::with_behavior(false, true, persistent, 0, Authentication::None)
+        Self::with_behavior(false, true, persistent, 0, 0, Authentication::None)
     }
 
     pub(super) fn with_port_collision(persistent: bool) -> Self {
@@ -40,8 +40,13 @@ impl Fixture {
             false,
             false,
             if persistent { 2 } else { 1 },
+            0,
             Authentication::None,
         )
+    }
+
+    pub(super) fn with_image_pull_failures(failures: u8) -> Self {
+        Self::with_behavior(false, false, false, 0, failures, Authentication::None)
     }
 
     fn with_behavior(
@@ -49,6 +54,7 @@ impl Fixture {
         startup_exit: bool,
         persistent_startup_exit: bool,
         port_collisions: u8,
+        image_pull_failures: u8,
         authentication: Authentication,
     ) -> Self {
         Self::with_security_behavior(
@@ -56,6 +62,7 @@ impl Fixture {
             startup_exit,
             persistent_startup_exit,
             port_collisions,
+            image_pull_failures,
             SecurityProfile {
                 transport: TransportSecurity::Plaintext,
                 authentication,
@@ -64,7 +71,7 @@ impl Fixture {
     }
 
     pub(super) fn with_security(fail_up: bool, security: SecurityProfile) -> Self {
-        Self::with_security_behavior(fail_up, false, false, 0, security)
+        Self::with_security_behavior(fail_up, false, false, 0, 0, security)
     }
 
     fn with_security_behavior(
@@ -72,6 +79,7 @@ impl Fixture {
         startup_exit: bool,
         persistent_startup_exit: bool,
         port_collisions: u8,
+        image_pull_failures: u8,
         security: SecurityProfile,
     ) -> Self {
         let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
@@ -87,6 +95,7 @@ impl Fixture {
                 startup_exit,
                 persistent_startup_exit,
                 port_collisions,
+                image_pull_failures,
             ),
         )
         .unwrap_or_else(|error| panic!("write fake Docker program: {error}"));
@@ -174,11 +183,56 @@ fn fake_docker(
     startup_exit: bool,
     persistent_startup_exit: bool,
     port_collisions: u8,
+    image_pull_failures: u8,
 ) -> String {
     let collision_once = port_collisions == 1;
     let collision_always = port_collisions == 2;
     format!(
-        "#!/bin/sh\nlog=\"$0.log\"\nprintf '%s\\n' \"$*\" >> \"$log\"\necho \"stderr:$*\" >&2\ncase \" $* \" in\n  *\" up \"*)\n    if {fail_up}; then exit 9; fi\n    collision=\"$0.port-collision\"\n    if {collision_always} || ( {collision_once} && [ ! -e \"$collision\" ] ); then\n      : > \"$collision\"\n      echo \"failed to bind port 127.0.0.1:39092: address already in use\" >&2\n      exit 9\n    fi ;;\n  *\"kafka-broker-api-versions.sh\"*)\n    ready=\"$0.ready\"\n    if {persistent_startup_exit} || [ ! -e \"$ready\" ]; then\n      : > \"$ready\"\n      if {startup_exit}; then : > \"$0.exited\"; fi\n      exit 1\n    fi ;;\n  *\" ps \"*\" --status exited \"*)\n    if [ -e \"$0.exited\" ]; then echo broker; fi\n    exit 0 ;;\n  *\" logs \"*) echo \"error while preparing configs: fixture startup exit\" ;;\n  *\" restart --no-deps broker \"*) rm -f \"$0.exited\" ;;\n  *) echo \"stdout:$*\" ;;\nesac\nexit 0\n"
+        concat!(
+            "#!/bin/sh\n",
+            "log=\"$0.log\"\n",
+            "printf '%s\\n' \"$*\" >> \"$log\"\n",
+            "echo \"stderr:$*\" >&2\n",
+            "case \" $* \" in\n",
+            "  *\" image inspect \"*)\n",
+            "    if [ ! -e \"$0.image\" ]; then exit 1; fi ;;\n",
+            "  *\" pull \"*)\n",
+            "    count=0\n",
+            "    if [ -e \"$0.pull-count\" ]; then count=$(cat \"$0.pull-count\"); fi\n",
+            "    count=$((count + 1))\n",
+            "    printf '%s' \"$count\" > \"$0.pull-count\"\n",
+            "    if [ \"$count\" -le {image_pull_failures} ]; then exit 10; fi\n",
+            "    : > \"$0.image\" ;;\n",
+            "  *\" up \"*)\n",
+            "    if {fail_up}; then exit 9; fi\n",
+            "    collision=\"$0.port-collision\"\n",
+            "    if {collision_always} || ( {collision_once} && [ ! -e \"$collision\" ] ); then\n",
+            "      : > \"$collision\"\n",
+            "      echo \"failed to bind port 127.0.0.1:39092: address already in use\" >&2\n",
+            "      exit 9\n",
+            "    fi ;;\n",
+            "  *\"kafka-broker-api-versions.sh\"*)\n",
+            "    ready=\"$0.ready\"\n",
+            "    if {persistent_startup_exit} || [ ! -e \"$ready\" ]; then\n",
+            "      : > \"$ready\"\n",
+            "      if {startup_exit}; then : > \"$0.exited\"; fi\n",
+            "      exit 1\n",
+            "    fi ;;\n",
+            "  *\" ps \"*\" --status exited \"*)\n",
+            "    if [ -e \"$0.exited\" ]; then echo broker; fi\n",
+            "    exit 0 ;;\n",
+            "  *\" logs \"*) echo \"error while preparing configs: fixture startup exit\" ;;\n",
+            "  *\" restart --no-deps broker \"*) rm -f \"$0.exited\" ;;\n",
+            "  *) echo \"stdout:$*\" ;;\n",
+            "esac\n",
+            "exit 0\n",
+        ),
+        image_pull_failures = image_pull_failures,
+        fail_up = fail_up,
+        collision_always = collision_always,
+        collision_once = collision_once,
+        persistent_startup_exit = persistent_startup_exit,
+        startup_exit = startup_exit,
     )
 }
 

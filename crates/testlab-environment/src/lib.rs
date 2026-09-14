@@ -150,6 +150,8 @@ mod compose_concurrent_provision_test;
 #[cfg(test)]
 mod compose_disruption_test;
 #[cfg(test)]
+mod compose_image_test;
+#[cfg(test)]
 mod compose_observe_admin_test;
 #[cfg(test)]
 mod compose_owned_transfer_provision_test;

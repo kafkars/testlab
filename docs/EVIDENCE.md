@@ -439,8 +439,11 @@ declared partition set; retained public details do not become independent broker
 truth.
 Every effectful environment terminal operation carries a stable identity in
 `history.jsonl`; retained stdout and stderr are named by that operation.
-Docker environments pull and then inspect the declared digest as separate
-operations before Compose receives the image reference. Scenario-owned broker
+Docker environments first inspect the declared digest in the local cache. A
+cache miss permits at most three pull attempts under the original setup
+deadline, followed by a separate successful digest inspection before Compose
+receives the image reference. Exhausted pulls remain an environment-invalid
+setup result, not a packaged-client failure. Scenario-owned broker
 restarts and their Kafka readiness probes are recorded as distinct operations
 without stopping the packaged adapter process.
 If a broker process exits before initial readiness, Testlab retains its failed
