@@ -1,10 +1,10 @@
 //! Group-offset normalization tests enforce one exact public batch identity.
 
-use crate::kafkars_api::{ErrorKind, KafkaError, StartPosition, TopicPartition};
+use crate::kafkars_api::{ErrorKind, KafkaError, RetryAdvice, StartPosition, TopicPartition};
 use testlab_schema::OperationId;
 
 use crate::AdapterError;
-use crate::protocol_admin_read::stable_offset_broker_retryable;
+use crate::protocol_admin_read::stable_offset_retryable_parts;
 use crate::protocol_admin_result::listed_consumer_group_offset;
 
 #[test]
@@ -89,24 +89,34 @@ fn group_offset_preserves_per_partition_client_failure() {
 }
 
 #[test]
-fn only_stable_offset_code_88_is_polled_under_the_original_deadline() {
-    assert!(stable_offset_broker_retryable(
+fn safe_admission_and_stable_code_88_are_polled_under_the_original_deadline() {
+    assert!(stable_offset_retryable_parts(
         true,
+        RetryAdvice::RetrySafe,
+        ErrorKind::Backpressure,
+        None,
+    ));
+    assert!(stable_offset_retryable_parts(
+        true,
+        RetryAdvice::DoNotRetry,
         ErrorKind::Broker,
         Some(88)
     ));
-    assert!(!stable_offset_broker_retryable(
+    assert!(!stable_offset_retryable_parts(
         false,
+        RetryAdvice::DoNotRetry,
         ErrorKind::Broker,
         Some(88)
     ));
-    assert!(!stable_offset_broker_retryable(
+    assert!(!stable_offset_retryable_parts(
         true,
+        RetryAdvice::DoNotRetry,
         ErrorKind::Broker,
         Some(14)
     ));
-    assert!(!stable_offset_broker_retryable(
+    assert!(!stable_offset_retryable_parts(
         true,
+        RetryAdvice::DoNotRetry,
         ErrorKind::Timeout,
         Some(88)
     ));

@@ -12,11 +12,15 @@ use testlab_schema::{
 use crate::AdapterError;
 use crate::kafkars_api::{
     DelegationToken, DelegationTokenHmac, DelegationTokenPrincipal, ErrorKind, KafkaError,
+    RetryAdvice,
 };
 use crate::protocol::emit;
 use crate::state::AdapterState;
 
 const DESCRIPTION_POLL_INTERVAL: Duration = Duration::from_millis(10);
+const RENEW_POLL_INTERVAL: Duration = Duration::from_millis(10);
+const TOKEN_NOT_FOUND_RETRY_WINDOW: Duration = Duration::from_secs(1);
+const TOKEN_NOT_FOUND: i16 = 62;
 
 #[derive(Debug, Eq, PartialEq)]
 struct TokenSnapshot {
@@ -80,15 +84,9 @@ pub(crate) fn exercise<W: Write>(
     let description_matched = snapshot(&described) == created_snapshot
         && described.hmac().as_bytes() == created.hmac().as_bytes();
 
-    let renewed_result = admin
-        .renew_delegation_token(secret_copy(&created, &command)?)
-        .renew_for(Duration::from_millis(command.renew_period_ms))
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
-    let renew_throttle_time_ms = throttle(renewed_result.throttle_time(), &command, "renew")?;
-    let renewed_expiry_timestamp_ms = renewed_result.expiry_timestamp_ms();
+    let (renew_throttle_time, renewed_expiry_timestamp_ms) =
+        renew_fresh_token(&admin, &created, &command, deadline)?;
+    let renew_throttle_time_ms = throttle(renew_throttle_time, &command, "renew")?;
 
     let expiration = admin.expire_delegation_token(secret_copy(&created, &command)?);
     let expiration = match command.expire_after_ms {
@@ -144,6 +142,59 @@ pub(crate) const fn description_decision(
         (1, false) => Ok(DescriptionDecision::Accept),
         (_, true) => Err("owner-filtered description exceeded the lifecycle deadline"),
         _ => Err("owner-filtered description did not return exactly one token"),
+    }
+}
+
+pub(crate) fn renew_retryable(
+    error: &KafkaError,
+    now: Instant,
+    token_not_found_deadline: Instant,
+    lifecycle_deadline: Instant,
+) -> bool {
+    renew_retryable_parts(
+        error.retry_advice(),
+        error.broker_code(),
+        now < token_not_found_deadline,
+        now >= lifecycle_deadline,
+    )
+}
+
+pub(crate) fn renew_retryable_parts(
+    advice: RetryAdvice,
+    broker_code: Option<i16>,
+    token_not_found_window_open: bool,
+    deadline_elapsed: bool,
+) -> bool {
+    !deadline_elapsed
+        && (advice == RetryAdvice::RetrySafe
+            || (broker_code == Some(TOKEN_NOT_FOUND) && token_not_found_window_open))
+}
+
+fn renew_fresh_token(
+    admin: &crate::kafkars_api::Admin,
+    created: &DelegationToken,
+    command: &ExerciseDelegationTokenLifecycleCommand,
+    deadline: Instant,
+) -> Result<(Duration, i64), AdapterError> {
+    let token_not_found_deadline = Instant::now()
+        .checked_add(TOKEN_NOT_FOUND_RETRY_WINDOW)
+        .unwrap_or(deadline)
+        .min(deadline);
+    loop {
+        let result = admin
+            .renew_delegation_token(secret_copy(created, command)?)
+            .renew_for(Duration::from_millis(command.renew_period_ms))
+            .deadline_after(remaining(deadline)?)
+            .submit()
+            .wait();
+        let now = Instant::now();
+        match result {
+            Ok(result) => return Ok((result.throttle_time(), result.expiry_timestamp_ms())),
+            Err(error) if renew_retryable(&error, now, token_not_found_deadline, deadline) => {
+                thread::sleep(RENEW_POLL_INTERVAL.min(remaining(deadline)?));
+            }
+            Err(error) => return Err(AdapterError::Client(error)),
+        }
     }
 }
 

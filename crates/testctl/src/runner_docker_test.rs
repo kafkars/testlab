@@ -73,7 +73,6 @@ fn subject_failure_after_kafka_start_seals_cleanup_evidence() {
 
 fn assert_environment_artifacts(run: &Path) {
     for name in [
-        "image-pull.txt",
         "image-inspect.json",
         "compose-config.yml",
         "compose-up.txt",
@@ -111,7 +110,6 @@ fn assert_lifecycle_history(run: &Path) {
         })
         .collect::<Vec<_>>();
     for required in [
-        EnvironmentOperationKind::ImagePull,
         EnvironmentOperationKind::ImageInspect,
         EnvironmentOperationKind::ComposeConfig,
         EnvironmentOperationKind::ComposeUp,

@@ -54,17 +54,17 @@ fn lifecycle_retries_readiness_and_retains_cleanup_evidence() {
     let setup = environment.start(Duration::from_secs(2));
 
     assert!(setup.succeeded(), "setup failure: {:?}", setup.failure);
-    assert_eq!(setup.operations.len(), 7);
+    assert_eq!(setup.operations.len(), 8);
     assert_eq!(
-        setup.operations[4].status,
+        setup.operations[5].status,
         EnvironmentOperationStatus::Failed
     );
     assert_eq!(
-        setup.operations[6].status,
+        setup.operations[7].status,
         EnvironmentOperationStatus::Succeeded
     );
     assert_eq!(
-        setup.operations[5].kind,
+        setup.operations[6].kind,
         EnvironmentOperationKind::ComposePs
     );
     assert_unique_operation_ids(&setup.operations);
@@ -121,6 +121,7 @@ fn exited_broker_startup_is_recovered_once_with_retained_evidence() {
             .map(|operation| operation.kind)
             .collect::<Vec<_>>(),
         vec![
+            EnvironmentOperationKind::ImageInspect,
             EnvironmentOperationKind::ImagePull,
             EnvironmentOperationKind::ImageInspect,
             EnvironmentOperationKind::ComposeConfig,

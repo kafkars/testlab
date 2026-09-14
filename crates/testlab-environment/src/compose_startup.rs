@@ -10,6 +10,7 @@ use crate::compose_support::remaining;
 use crate::compose_types::ComposePhase;
 
 const PORT_COLLISION_RECOVERY_LIMIT: u8 = 1;
+const IMAGE_PULL_ATTEMPT_LIMIT: u8 = 3;
 
 impl DockerComposeEnvironment {
     /// Starts the pinned image and waits for every declared broker service.
@@ -20,8 +21,7 @@ impl DockerComposeEnvironment {
             return phase;
         };
         let image = self.environment[0].1.clone();
-        if !self.required(&mut phase, compose_command::image_pull(&image), deadline)
-            || !self.required(&mut phase, compose_command::image_inspect(&image), deadline)
+        if !self.ensure_image(&mut phase, &image, deadline)
             || !self.required(&mut phase, compose_command::config(&self.prefix), deadline)
         {
             return phase;
@@ -43,6 +43,46 @@ impl DockerComposeEnvironment {
             return phase;
         }
         phase
+    }
+
+    fn ensure_image(&mut self, phase: &mut ComposePhase, image: &str, deadline: Instant) -> bool {
+        let probe = match self.execute(compose_command::image_inspect(image), remaining(deadline)) {
+            Ok(output) => output,
+            Err(error) => {
+                phase.fail(error.code, error.diagnostic);
+                return false;
+            }
+        };
+        if phase.retain(probe) {
+            return true;
+        }
+
+        let mut last_diagnostic = None;
+        for attempt in 1..=IMAGE_PULL_ATTEMPT_LIMIT {
+            let pull = match self.execute(
+                compose_command::image_pull(image, attempt),
+                remaining(deadline),
+            ) {
+                Ok(output) => output,
+                Err(error) => {
+                    phase.fail(error.code, error.diagnostic);
+                    return false;
+                }
+            };
+            last_diagnostic.clone_from(&pull.operation.diagnostic);
+            if phase.retain(pull) {
+                return self.required(
+                    phase,
+                    compose_command::image_inspect_after_pull(image),
+                    deadline,
+                );
+            }
+        }
+        phase.fail(
+            "environment_image_pull_failed",
+            last_diagnostic.unwrap_or_else(|| "environment image pull failed".to_owned()),
+        );
+        false
     }
 
     fn start_project(&mut self, phase: &mut ComposePhase, deadline: Instant) -> bool {

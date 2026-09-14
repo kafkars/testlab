@@ -213,17 +213,24 @@ fn stable_offset_retryable(require_stable: bool, error: &AdapterError) -> bool {
     let AdapterError::Client(error) = error else {
         return false;
     };
-    stable_offset_broker_retryable(require_stable, error.kind(), error.broker_code())
+    stable_offset_retryable_parts(
+        require_stable,
+        error.retry_advice(),
+        error.kind(),
+        error.broker_code(),
+    )
 }
 
-pub(crate) fn stable_offset_broker_retryable(
+pub(crate) fn stable_offset_retryable_parts(
     require_stable: bool,
+    advice: RetryAdvice,
     kind: crate::kafkars_api::ErrorKind,
     broker_code: Option<i16>,
 ) -> bool {
-    require_stable
-        && matches!(kind, crate::kafkars_api::ErrorKind::Broker)
-        && broker_code == Some(88)
+    advice == RetryAdvice::RetrySafe
+        || (require_stable
+            && matches!(kind, crate::kafkars_api::ErrorKind::Broker)
+            && broker_code == Some(88))
 }
 
 pub(crate) fn deadline_after(timeout_ms: u64) -> Instant {
