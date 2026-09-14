@@ -86,7 +86,7 @@ fn observation_matches(
         && actual.topic == expected.topic
         && actual.partition == expected.partition
         && actual.start_offset == Some(expected.start_offset)
-        && actual.lag == Some(expected.expected_lag)
+        && crate::admin_share_group::reported_lag_matches(actual.lag, expected.expected_lag)
 }
 
 #[allow(

@@ -8,7 +8,7 @@ image = "apache/kafka@sha256:9916d60eca5d599550e2c320230808fda342124ba550bb4ac4e
 cluster_size = 1
 compose_files = ["clusters/apache-kafka/compose/single-plaintext.yml", "clusters/apache-kafka/compose/single-share.yml"]
 broker_services = ["broker"]
-client_port = 9092
+client_port = 19092
 
 [driver.broker]
 implementation = "apache-kafka"

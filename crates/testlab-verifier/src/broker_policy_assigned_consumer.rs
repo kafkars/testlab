@@ -2,7 +2,7 @@
 
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AssignedConsumerEventExpectation,
-    AssignedConsumerEventObservationKind, AssignedConsumerPositionFailure, BrokerObservation,
+    AssignedConsumerEventObservationKind, AssignedConsumerFetchFailure, BrokerObservation,
     ObserveAssignedConsumerEventAction, Scenario, ScenarioAction,
 };
 
@@ -19,10 +19,10 @@ pub(crate) fn denial(
         let ScenarioAction::ObserveAssignedConsumerEvent(action) = &step.action else {
             return None;
         };
-        let AssignedConsumerEventExpectation::PositionResolutionFailed {
+        let AssignedConsumerEventExpectation::FetchFailed {
             topic: expected_topic,
             partition,
-            failure: AssignedConsumerPositionFailure::Broker { code: 29 },
+            failure: AssignedConsumerFetchFailure::Broker { code: 29 },
         } = &action.expected
         else {
             return None;
@@ -153,12 +153,13 @@ fn event_matches(
     partition: i32,
 ) -> bool {
     matches!(event,
-        AssignedConsumerEventObservationKind::PositionResolutionFailed { fence, failure }
-            if fence.topic == topic
-                && fence.partition == partition
-                && fence.assignment_epoch > 0
-                && fence.position_epoch > 0
-                && *failure == AssignedConsumerPositionFailure::Broker { code: 29 })
+        AssignedConsumerEventObservationKind::FetchFailed { fence, failure }
+            if fence.position.topic == topic
+                && fence.position.partition == partition
+                && fence.position.assignment_epoch > 0
+                && fence.position.position_epoch > 0
+                && fence.fetch_revision > 0
+                && *failure == AssignedConsumerFetchFailure::Broker { code: 29 })
 }
 
 fn send_topic<'a>(

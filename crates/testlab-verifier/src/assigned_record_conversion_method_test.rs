@@ -1,8 +1,8 @@
 //! Owned-record conversion contracts preserve exact public method selection.
 
 use testlab_schema::{
-    AssignedRecordConversionMethod, AssignedRecordTransferAction, ConsumerId, OperationId,
-    ProducerId,
+    AssignedRecordConversionMethod, AssignedRecordTransferAction, ByteString, ConsumerId,
+    HeaderSpec, OperationId, ProducerId, RecordSpec,
 };
 
 #[test]
@@ -34,6 +34,28 @@ fn direct_conversion_survives_the_exact_adapter_command() {
         super::command(&action).method,
         AssignedRecordConversionMethod::IntoOwnedRecords
     );
+}
+
+#[test]
+fn destination_record_bytes_compare_by_decoded_value() {
+    let expected = RecordSpec {
+        topic: "destination".to_owned(),
+        partition: 1,
+        sequence: 2,
+        timestamp_millis: None,
+        key: Some(ByteString::utf8("key")),
+        value: Some(ByteString::utf8("value")),
+        headers: vec![HeaderSpec {
+            name: "header".to_owned(),
+            value: Some(ByteString::utf8("value")),
+        }],
+    };
+    let mut actual = expected.clone();
+    actual.key = Some(ByteString::hex(b"key"));
+    actual.value = Some(ByteString::hex(b"value"));
+    actual.headers[0].value = Some(ByteString::hex(b"value"));
+
+    assert!(super::exact_record_data(&actual, &expected));
 }
 
 fn id<T>(result: Result<T, impl std::fmt::Display>) -> T {

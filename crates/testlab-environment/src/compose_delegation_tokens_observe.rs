@@ -1,4 +1,4 @@
-//! Delegation-token absence is polled through a secret-free pinned CLI projection.
+//! Delegation-token liveness is polled through a secret-free pinned CLI projection.
 
 use std::thread;
 use std::time::{Duration, Instant};
@@ -25,7 +25,23 @@ printf '%s\n' \
   --describe \
   --command-config "$properties" \
   --owner-principal "$1" 2>&1 |
-awk '$1 == "Total" && $2 == "number" && $3 == "of" && $4 == "tokens" && $5 == ":" { print "token-count:" $6; found = 1 } END { if (!found) exit 42 }'
+awk -v current_minute="$(date '+%Y-%m-%dT%H:%M')" '
+function minute(value) {
+  return value ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]$/
+}
+$1 == "Total" && $2 == "number" && $3 == "of" && $4 == "tokens" && $5 == ":" {
+  declared = $6
+  found = 1
+  next
+}
+NF >= 3 && minute($(NF - 2)) && minute($(NF - 1)) && minute($NF) {
+  parsed += 1
+  if ($(NF - 1) > current_minute) live += 1
+}
+END {
+  if (!found || parsed != declared) exit 42
+  print "token-count:" (live + 0)
+}'
 "#;
 
 impl DockerComposeEnvironment {
@@ -125,7 +141,7 @@ impl DockerComposeEnvironment {
             if wait.is_zero() {
                 observed.phase.fail(
                     "environment_observation_failed",
-                    "delegation token remained visible past its expiration deadline",
+                    "delegation token remained live past its expiration deadline",
                 );
                 return observed;
             }

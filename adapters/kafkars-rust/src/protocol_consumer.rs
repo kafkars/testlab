@@ -6,7 +6,7 @@ use std::pin::pin;
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
-use crate::kafkars_api::{AssignedConsumer, ConsumerRecord, RecordBatch};
+use crate::kafkars_api::{AssignedConsumer, ConsumerRecord, RecordBatch, RetryAdvice};
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AdapterEventEnvelope, AssignedConsumerFetchEvidence,
     AssignedConsumerReceiveMethod, ByteString, CommandId, ConsumedRecord, ConsumerId, HeaderSpec,
@@ -199,6 +199,7 @@ fn receive_immediate(
         match consumer.try_take_batch() {
             Ok(Some(batch)) => return normalize_batch(&batch),
             Ok(None) => {}
+            Err(error) if error.retry_advice() == RetryAdvice::RetrySafe => {}
             Err(error) => return Err(AdapterError::Client(error)),
         }
         if Instant::now() >= deadline {

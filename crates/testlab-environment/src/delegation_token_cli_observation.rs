@@ -1,4 +1,4 @@
-//! Secret-free Kafka CLI projections retain only owner-filtered token counts.
+//! Secret-free Kafka CLI projections retain only owner-filtered live-token counts.
 
 use std::str;
 

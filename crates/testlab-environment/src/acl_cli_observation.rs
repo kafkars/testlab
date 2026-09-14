@@ -37,6 +37,9 @@ fn parse(
     selected: &LiteralAclBinding,
     output: &str,
 ) -> Result<Vec<LiteralAclBinding>, ObserverError> {
+    if output.trim().is_empty() {
+        return Ok(Vec::new());
+    }
     let header = format!(
         "resourceType={}, name={}, patternType=LITERAL",
         resource_type(&selected.resource),

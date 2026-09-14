@@ -15,6 +15,29 @@ fn exact_open_to_cleared_transition_passes() {
 }
 
 #[test]
+fn absent_public_coordinator_epoch_accepts_independent_value() {
+    let mut history = history();
+    for entry in &mut history[1..=2] {
+        let HistoryPayload::AdapterEvent { event } = &mut entry.payload else {
+            panic!("public producer state");
+        };
+        let AdapterEvent::ProducersDescribed(state) = &mut event.event else {
+            panic!("producer state event");
+        };
+        state.producers[0].coordinator_epoch = -1;
+    }
+    let HistoryPayload::BrokerStateObservation { observation } = &mut history[4].payload else {
+        panic!("independent producer state");
+    };
+    let BrokerStateObservation::Producers(state) = observation else {
+        panic!("producer state observation");
+    };
+    state.producers[0].coordinator_epoch = 0;
+
+    assert!(violations(history).is_empty());
+}
+
+#[test]
 fn changed_public_state_or_inexact_command_fails() {
     let mut changed = history();
     let HistoryPayload::AdapterEvent { event } = &mut changed[2].payload else {

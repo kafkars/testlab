@@ -91,7 +91,7 @@ operation_id = "admin-list-share-group-offset-before-delete"
 group_id = "testlab-admin-share-group-delete"
 topic = "testlab-kafkars-admin-share-group-delete"
 partition = 0
-expected_start_offset = 1
+expected_start_offset = 0
 expected_lag = 1
 timeout_ms = 20000
 

@@ -17,6 +17,19 @@ fn exact_mixed_group_descriptions_pass() {
 }
 
 #[test]
+fn empty_modern_subscription_regex_is_semantic_absence() {
+    let mut entries = history();
+    description(&mut entries).outcomes[0]
+        .description
+        .as_mut()
+        .unwrap_or_else(|| panic!("description"))
+        .members[0]
+        .subscribed_topic_regex = Some(String::new());
+
+    assert!(violations(&entries).is_empty());
+}
+
+#[test]
 fn mixed_descriptions_reject_reordering_or_wrong_broker_count() {
     let mut reordered = history();
     description(&mut reordered).outcomes.swap(0, 1);

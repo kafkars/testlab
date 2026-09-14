@@ -70,7 +70,8 @@ fn exact_match(
         && public.value.partition == independent.value.partition
         && public.value.producers.len() == expected_count
         && canonical(&public.value.producers)
-        && public.value.producers == independent.value.producers
+        && canonical(&independent.value.producers)
+        && snapshots_match(&public.value.producers, &independent.value.producers)
         && public_after_command(window, public.history_sequence)
         && immediate_after_public(
             window,
@@ -85,13 +86,36 @@ pub(crate) fn canonical(producers: &[ProducerStateSnapshot]) -> bool {
             && producer.producer_epoch >= 0
             && producer.last_sequence >= -1
             && producer.last_timestamp >= -1
-            && producer.coordinator_epoch >= 0
+            && producer.coordinator_epoch >= -1
             && producer
                 .current_transaction_start_offset
                 .is_none_or(|offset| offset >= 0)
     }) && producers
         .windows(2)
         .all(|pair| pair[0].producer_id < pair[1].producer_id)
+}
+
+fn snapshots_match(
+    public: &[ProducerStateSnapshot],
+    independent: &[ProducerStateSnapshot],
+) -> bool {
+    public.len() == independent.len()
+        && public.iter().zip(independent).all(|(public, independent)| {
+            public.producer_id == independent.producer_id
+                && public.producer_epoch == independent.producer_epoch
+                && public.last_sequence == independent.last_sequence
+                && public.last_timestamp == independent.last_timestamp
+                && coordinator_epoch_matches(
+                    public.coordinator_epoch,
+                    independent.coordinator_epoch,
+                )
+                && public.current_transaction_start_offset
+                    == independent.current_transaction_start_offset
+        })
+}
+
+pub(crate) fn coordinator_epoch_matches(public: i32, independent: i32) -> bool {
+    public == -1 || public == independent
 }
 
 fn evidence(

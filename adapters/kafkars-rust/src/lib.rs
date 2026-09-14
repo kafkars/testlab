@@ -52,6 +52,8 @@ mod protocol_admin_consumer_group_description_batch;
 mod protocol_admin_consumer_group_member_removal;
 mod protocol_admin_create_topics_batch;
 mod protocol_admin_delegation_token;
+#[cfg(test)]
+mod protocol_admin_delegation_token_test;
 mod protocol_admin_delete_records_batch;
 mod protocol_admin_feature_updates;
 mod protocol_admin_features;

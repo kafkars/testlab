@@ -1,4 +1,4 @@
-//! Delegation-token verification requires four public results and final CLI absence.
+//! Delegation-token verification requires four public results and no final live CLI token.
 
 use testlab_schema::{AdminDelegationTokenLifecycle, ScenarioAction, Violation};
 
@@ -49,7 +49,7 @@ pub(crate) fn verify(
         violations.push(violation(
             contract,
             format!(
-                "admin operation {} expected exact non-secret create, describe, renew, and expire results followed by immediate independent owner-filtered token absence",
+                "admin operation {} expected exact non-secret create, describe, renew, and expire results followed by an immediate independent owner-filtered live-token count of zero",
                 action.operation_id
             ),
             Some(action.operation_id.clone()),

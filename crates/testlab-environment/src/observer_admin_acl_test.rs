@@ -44,9 +44,12 @@ fn cli_normalization_distinguishes_exact_presence_from_absence() {
         format!("{header}\n").as_bytes(),
     )
     .unwrap_or_else(|error| panic!("absent ACL: {error}"));
+    let empty = crate::acl_cli_observation::normalize(6, &operation(), &binding, b"")
+        .unwrap_or_else(|error| panic!("empty absent ACL: {error}"));
 
     assert_acl(present, 4, true, &binding);
     assert_acl(absent, 5, false, &binding);
+    assert_acl(empty, 6, false, &binding);
 }
 
 #[test]
@@ -54,7 +57,6 @@ fn cli_normalization_rejects_unknown_partial_and_unsupported_output() {
     let binding = bindings()[0].clone();
     let header = header(&binding);
     for output in [
-        String::new(),
         "Current ACLs for resource wrong".to_owned(),
         format!("{header}\n(principal=User:reader, operation=READ, permissionType=ALLOW)\n"),
         format!(

@@ -23,10 +23,11 @@ fn symbolic_metadata_levels_are_mapped_and_numeric_rows_remain_exact() {
 
 #[test]
 fn pinned_metadata_map_is_contiguous_across_the_supported_matrix() {
-    for (level, label) in (7_i16..).zip([
-        "3.3-IV3", "3.4-IV0", "3.5-IV0", "3.5-IV1", "3.5-IV2", "3.6-IV0", "3.6-IV1", "3.6-IV2",
-        "3.7-IV0", "3.7-IV1", "3.7-IV2", "3.7-IV3", "3.7-IV4", "3.8-IV0", "3.9-IV0", "4.0-IV0",
-        "4.0-IV1", "4.0-IV2", "4.0-IV3", "4.1-IV0", "4.1-IV1", "4.2-IV0", "4.2-IV1", "4.3-IV0",
+    for (level, label) in (1_i16..).zip([
+        "3.0-IV1", "3.1-IV0", "3.2-IV0", "3.3-IV0", "3.3-IV1", "3.3-IV2", "3.3-IV3", "3.4-IV0",
+        "3.5-IV0", "3.5-IV1", "3.5-IV2", "3.6-IV0", "3.6-IV1", "3.6-IV2", "3.7-IV0", "3.7-IV1",
+        "3.7-IV2", "3.7-IV3", "3.7-IV4", "3.8-IV0", "3.9-IV0", "4.0-IV0", "4.0-IV1", "4.0-IV2",
+        "4.0-IV3", "4.1-IV0", "4.1-IV1", "4.2-IV0", "4.2-IV1", "4.3-IV0",
     ]) {
         assert_eq!(metadata_level(label), Some(level));
     }

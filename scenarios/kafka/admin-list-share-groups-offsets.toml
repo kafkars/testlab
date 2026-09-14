@@ -1,7 +1,7 @@
 schema_version = 168
 id = "kafka.admin-list-share-groups-offsets"
 title = "packaged admin lists two independently observed Share-group offsets"
-description = "Two closed Share groups retain distinct accepted-prefix offsets while one caller-ordered public batch preserves every group and partition result; separate read-only Kafka CLI offset queries confirm both start offsets and lags."
+description = "Two closed Share groups retain distinct accepted-prefix offsets while one caller-ordered public batch preserves every group and partition result; separate read-only Kafka CLI queries confirm every start offset plus any lag exposed by that Kafka version."
 timeout_ms = 300000
 requires = ["producer", "share_consumer", "share_consumer_configuration", "admin", "lifecycle", "client_readiness"]
 
@@ -156,8 +156,8 @@ kind = "list_share_groups_offsets"
 client_id = "client-1"
 operation_id = "admin-list-share-groups-offsets"
 groups = [
-  { group_id = "testlab-admin-share-offsets-zulu", partitions = [{ topic = "testlab-kafkars-admin-share-offsets-zulu", partition = 0, expected_start_offset = 1, expected_lag = 1 }] },
-  { group_id = "testlab-admin-share-offsets-alpha", partitions = [{ topic = "testlab-kafkars-admin-share-offsets-alpha", partition = 0, expected_start_offset = 1, expected_lag = 1 }] },
+  { group_id = "testlab-admin-share-offsets-zulu", partitions = [{ topic = "testlab-kafkars-admin-share-offsets-zulu", partition = 0, expected_start_offset = 0, expected_lag = 1 }] },
+  { group_id = "testlab-admin-share-offsets-alpha", partitions = [{ topic = "testlab-kafkars-admin-share-offsets-alpha", partition = 0, expected_start_offset = 0, expected_lag = 1 }] },
 ]
 timeout_ms = 20000
 

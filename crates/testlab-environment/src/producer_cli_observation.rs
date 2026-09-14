@@ -63,7 +63,7 @@ fn parse_row(line: &str) -> Result<ProducerStateSnapshot, ObserverError> {
     Ok(ProducerStateSnapshot {
         producer_id: nonnegative_i64(producer_id, "producer ID")?,
         producer_epoch: nonnegative_i32(producer_epoch, "producer epoch")?,
-        coordinator_epoch: nonnegative_i32(coordinator_epoch, "coordinator epoch")?,
+        coordinator_epoch: sentinel_i32(coordinator_epoch, "coordinator epoch")?,
         last_sequence: sentinel_i32(last_sequence, "last sequence")?,
         last_timestamp: sentinel_i64(last_timestamp, "last timestamp")?,
         current_transaction_start_offset: if *start == "None" {

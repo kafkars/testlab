@@ -1,6 +1,9 @@
 //! Compose broker-policy controls retain raw terminals and normalized query facts.
 
-use std::time::{Duration, Instant};
+use std::{
+    thread,
+    time::{Duration, Instant},
+};
 
 use testlab_schema::{
     BrokerPolicy, BrokerPolicyAction, BrokerPolicyState, EnvironmentOperation,
@@ -44,57 +47,53 @@ impl DockerComposeEnvironment {
             );
             return phase;
         };
-        let alter_sequence = self.next_operation;
-        let alter = broker_policy_command::alter(
-            &self.prefix,
-            &service,
-            self.client_port,
+        if action.state == BrokerPolicyState::Absent {
+            let minimum = match &action.policy {
+                BrokerPolicy::Quota {
+                    minimum_active_ms, ..
+                } => Duration::from_millis(*minimum_active_ms),
+                BrokerPolicy::Acl { .. } => Duration::ZERO,
+            };
+            if minimum >= remaining(deadline) {
+                phase.fail(
+                    "environment_broker_policy_deadline_elapsed",
+                    "broker policy minimum active window exceeded the action deadline",
+                );
+                return phase;
+            }
+            thread::sleep(minimum);
+        }
+        if action.state == BrokerPolicyState::Present
+            && !self.alter_broker_policy_support(
+                &mut phase,
+                &action.policy,
+                action.state,
+                &service,
+                deadline,
+            )
+        {
+            return phase;
+        }
+        if !self.apply_and_confirm_broker_policy(
+            &mut phase,
             &action.policy,
             action.state,
-            alter_sequence,
-        );
-        if !self.required(&mut phase, alter, deadline) {
-            return phase;
-        }
-        let query_sequence = self.next_operation;
-        let query = broker_policy_command::query(
-            &self.prefix,
             &service,
-            self.client_port,
-            &action.policy,
-            query_sequence,
-        );
-        let output = match self.execute(query, remaining(deadline)) {
-            Ok(output) => output,
-            Err(error) => {
-                phase.fail(error.code, error.diagnostic);
-                return phase;
-            }
-        };
-        let observed = crate::broker_policy_observation::parse(&action.policy, &output.stdout);
-        let query_succeeded = phase.retain(output);
-        if !query_succeeded {
-            phase.fail(
-                "environment_broker_policy_query_failed",
-                "broker policy query terminal failed",
-            );
+            deadline,
+        ) {
             return phase;
         }
-        let observed = match observed {
-            Ok(observed) => observed,
-            Err(error) => {
-                phase.fail("environment_broker_policy_query_invalid", error);
-                return phase;
-            }
-        };
-        if observed != (action.state == BrokerPolicyState::Present) {
-            phase.fail(
-                "environment_broker_policy_state_mismatch",
-                format!("broker policy query did not confirm {:?}", action.state),
-            );
+        if action.state == BrokerPolicyState::Absent
+            && !self.alter_broker_policy_support(
+                &mut phase,
+                &action.policy,
+                action.state,
+                &service,
+                deadline,
+            )
+        {
             return phase;
         }
-        self.record_policy_observation(&mut phase, &action.policy, action.state);
         if phase.succeeded() {
             match action.state {
                 BrokerPolicyState::Present => {
@@ -106,6 +105,96 @@ impl DockerComposeEnvironment {
             }
         }
         phase
+    }
+
+    fn apply_and_confirm_broker_policy(
+        &mut self,
+        phase: &mut ComposePhase,
+        policy: &BrokerPolicy,
+        state: BrokerPolicyState,
+        service: &str,
+        deadline: Instant,
+    ) -> bool {
+        let alter = broker_policy_command::alter(
+            &self.prefix,
+            service,
+            self.client_port,
+            policy,
+            state,
+            self.next_operation,
+        );
+        if !self.required(phase, alter, deadline) {
+            return false;
+        }
+        let query = broker_policy_command::query(
+            &self.prefix,
+            service,
+            self.client_port,
+            policy,
+            self.next_operation,
+        );
+        let output = match self.execute(query, remaining(deadline)) {
+            Ok(output) => output,
+            Err(error) => {
+                phase.fail(error.code, error.diagnostic);
+                return false;
+            }
+        };
+        let observed = crate::broker_policy_observation::parse(policy, &output.stdout);
+        if !phase.retain(output) {
+            phase.fail(
+                "environment_broker_policy_query_failed",
+                "broker policy query terminal failed",
+            );
+            return false;
+        }
+        let observed = match observed {
+            Ok(observed) => observed,
+            Err(error) => {
+                phase.fail("environment_broker_policy_query_invalid", error);
+                return false;
+            }
+        };
+        if observed != (state == BrokerPolicyState::Present) {
+            phase.fail(
+                "environment_broker_policy_state_mismatch",
+                format!("broker policy query did not confirm {state:?}"),
+            );
+            return false;
+        }
+        self.record_policy_observation(phase, policy, state);
+        true
+    }
+
+    fn alter_broker_policy_support(
+        &mut self,
+        phase: &mut ComposePhase,
+        policy: &BrokerPolicy,
+        state: BrokerPolicyState,
+        service: &str,
+        deadline: Instant,
+    ) -> bool {
+        for index in 0..broker_policy_command::supporting_access_count(policy) {
+            let Some(command) = broker_policy_command::supporting_access(
+                &self.prefix,
+                service,
+                self.client_port,
+                policy,
+                state,
+                index,
+                self.next_operation,
+            ) else {
+                phase.fail(
+                    "environment_broker_policy_support_invalid",
+                    "broker policy support command was missing",
+                );
+                return false;
+            };
+            if !self.required(phase, command, deadline) {
+                return false;
+            }
+        }
+        true
     }
 
     fn valid_policy_transition(&self, policy: &BrokerPolicy, state: BrokerPolicyState) -> bool {

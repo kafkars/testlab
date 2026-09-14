@@ -4,6 +4,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use testlab_schema::{BrokerConsumerGroupState, BrokerStateObservation};
 
+use crate::kafka_role_wire;
+use crate::observer::remaining;
 use crate::observer_admin::{AdminObserverRequest, client};
 use crate::observer_admin_group::{OwnedGroup, fetch, validate_group};
 use crate::observer_admin_target::{GroupIdsTarget, ordinal};
@@ -20,6 +22,7 @@ pub(super) fn capture(
         &target.operation_id,
         &target.group_ids,
         groups,
+        &BTreeMap::new(),
     )
 }
 
@@ -29,12 +32,36 @@ pub(super) fn capture_consumer_groups(
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     let admin = client(request, "consumer-group-descriptions")?;
     let groups = fetch(&admin, None, request.deadline)?;
+    let modern_counts = modern_member_counts(request, &target.group_ids)?;
     normalize(
         request.first_observation,
         &target.operation_id,
         &target.group_ids,
         groups,
+        &modern_counts,
     )
+}
+
+fn modern_member_counts(
+    request: AdminObserverRequest<'_>,
+    group_ids: &[String],
+) -> Result<BTreeMap<String, u32>, ObserverError> {
+    if request.cluster_size != 1 || !request.security.supports_plaintext_wire() {
+        return Ok(BTreeMap::new());
+    }
+    let mut counts = BTreeMap::new();
+    for group_id in group_ids {
+        if let Some(count) = kafka_role_wire::consumer_group_member_count(
+            request.endpoint,
+            group_id,
+            remaining(request.deadline)?,
+        )
+        .map_err(ObserverError::InvalidBrokerState)?
+        {
+            counts.insert(group_id.clone(), count);
+        }
+    }
+    Ok(counts)
 }
 
 fn normalize(
@@ -42,6 +69,7 @@ fn normalize(
     operation_id: &testlab_schema::OperationId,
     group_ids: &[String],
     groups: Vec<OwnedGroup>,
+    modern_counts: &BTreeMap<String, u32>,
 ) -> Result<Vec<BrokerStateObservation>, ObserverError> {
     let requested = group_ids
         .iter()
@@ -71,7 +99,12 @@ fn normalize(
                     operation_id: operation_id.clone(),
                     group_id: group.name,
                     exists: true,
-                    member_count: Some(group.member_count),
+                    member_count: Some(
+                        modern_counts
+                            .get(group_id)
+                            .copied()
+                            .unwrap_or(group.member_count),
+                    ),
                 },
             ))
         })
@@ -102,5 +135,31 @@ pub(super) fn normalize_fixture(
         &target.operation_id,
         &target.group_ids,
         groups,
+        &BTreeMap::new(),
+    )
+}
+
+#[cfg(test)]
+pub(super) fn normalize_consumer_fixture(
+    first_observation: u64,
+    target: &GroupIdsTarget,
+    groups: Vec<(String, u32, &str, &str)>,
+    modern_counts: &BTreeMap<String, u32>,
+) -> Result<Vec<BrokerStateObservation>, ObserverError> {
+    let groups = groups
+        .into_iter()
+        .map(|(name, member_count, state, protocol_type)| OwnedGroup {
+            name,
+            member_count,
+            state: state.to_owned(),
+            protocol_type: protocol_type.to_owned(),
+        })
+        .collect();
+    normalize(
+        first_observation,
+        &target.operation_id,
+        &target.group_ids,
+        groups,
+        modern_counts,
     )
 }

@@ -64,15 +64,23 @@ fn cli_normalization_distinguishes_integral_presence_from_absence() {
         b"Quota configs for user-principal 'testlab-user' are\n",
     )
     .unwrap_or_else(|error| panic!("absent client quota: {error}"));
+    let empty = crate::client_quota_cli_observation::normalize(
+        9,
+        &operation("quota-remove-empty"),
+        "testlab-user",
+        BrokerQuotaDirection::Producer,
+        b"",
+    )
+    .unwrap_or_else(|error| panic!("empty absent client quota: {error}"));
 
     assert_quota(present, 7, "quota-set", Some(65_536));
     assert_quota(absent, 8, "quota-remove", None);
+    assert_quota(empty, 9, "quota-remove-empty", None);
 }
 
 #[test]
 fn cli_normalization_rejects_wrong_ambiguous_or_lossy_output() {
     for output in [
-        "",
         "Quota configs for user-principal 'other' are producer_byte_rate=65536",
         "Quota configs for user-principal 'testlab-user' are consumer_byte_rate=65536",
         "Quota configs for user-principal 'testlab-user' are producer_byte_rate=65536, consumer_byte_rate=65536",

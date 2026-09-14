@@ -20,6 +20,37 @@ fn complete_fetch_evidence_matches_independent_broker_facts() {
 }
 
 #[test]
+fn unrelated_facts_from_the_same_batches_are_ignored() {
+    let scenario = scenario();
+    let (mut history, observations) = evidence(&scenario);
+    history.push(state(
+        0,
+        BrokerStateObservation::TopicIdentity(BrokerTopicIdentityState {
+            observation: 11,
+            operation_id: operation("admin-fetch-topic-id"),
+            topic: "testlab-fetch-control".to_owned(),
+            topic_id: [8; 16],
+            partitions: vec![0],
+        }),
+    ));
+    history.push(state(
+        1,
+        BrokerStateObservation::PartitionOffsets(BrokerPartitionOffsets {
+            observation: 21,
+            operation_id: operation("admin-fetch-watermarks"),
+            topic: "testlab-fetch-control".to_owned(),
+            partition: 0,
+            low_watermark: 0,
+            high_watermark: 1,
+        }),
+    ));
+
+    let violations = verify(&scenario, &history, &observations);
+
+    assert!(!violates(&violations));
+}
+
+#[test]
 fn changed_fetch_topic_uuid_fails_consumer_contract() {
     let scenario = scenario();
     let (mut history, observations) = evidence(&scenario);

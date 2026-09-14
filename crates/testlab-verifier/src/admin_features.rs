@@ -56,7 +56,10 @@ fn exact_match(
         return false;
     };
     public.value.zk_migration_ready == expected_zk_migration_ready
-        && public.value.finalized_features_epoch == independent.value.finalized_features_epoch
+        && epoch_is_not_older(
+            public.value.finalized_features_epoch,
+            independent.value.finalized_features_epoch,
+        )
         && supported_match(
             &public.value.supported_features,
             public.value.supported_features_complete,
@@ -72,6 +75,14 @@ fn exact_match(
             public.history_sequence,
             independent.history_sequence,
         )
+}
+
+fn epoch_is_not_older(public: Option<i64>, independent: Option<i64>) -> bool {
+    match (public, independent) {
+        (Some(public), Some(independent)) => public >= 0 && independent >= public,
+        (None, None) => true,
+        _ => false,
+    }
 }
 
 fn supported_match(

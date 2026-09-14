@@ -109,7 +109,7 @@ fn validate_producers(producers: &[ProducerStateSnapshot]) -> Result<(), Adapter
             || producer.producer_epoch < 0
             || producer.last_sequence < -1
             || producer.last_timestamp < -1
-            || producer.coordinator_epoch < 0
+            || producer.coordinator_epoch < -1
             || producer
                 .current_transaction_start_offset
                 .is_some_and(|offset| offset < 0)

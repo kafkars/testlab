@@ -3,7 +3,7 @@
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AssignedConsumerEventExpectation, AssignedConsumerEventMethod,
     AssignedConsumerEventObservation, AssignedConsumerEventObservationKind,
-    AssignedConsumerFetchFenceObservation, AssignedConsumerPositionFailure,
+    AssignedConsumerFetchFailure, AssignedConsumerFetchFenceObservation,
     AssignedConsumerPositionFenceObservation, HistoryEntry, HistoryPayload,
     ObserveAssignedConsumerEventCommand, Scenario, ScenarioAction,
 };
@@ -41,12 +41,11 @@ fn broker_code_or_duplicate_event_fails() {
     let AdapterEvent::AssignedConsumerEventObserved(observation) = &mut event.event else {
         panic!("assigned event observation missing");
     };
-    let AssignedConsumerEventObservationKind::PositionResolutionFailed { failure, .. } =
-        &mut observation.event
+    let AssignedConsumerEventObservationKind::FetchFailed { failure, .. } = &mut observation.event
     else {
-        panic!("position failure missing");
+        panic!("fetch failure missing");
     };
-    *failure = AssignedConsumerPositionFailure::Broker { code: 30 };
+    *failure = AssignedConsumerFetchFailure::Broker { code: 30 };
     assert!(has_contract(
         &violations(&scenario, &wrong_event),
         "CONS-016"

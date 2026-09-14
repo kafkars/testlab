@@ -136,6 +136,12 @@ fn level(feature: &str, value: &str) -> Result<i16, ObserverError> {
 
 fn metadata_level(value: &str) -> Option<i16> {
     Some(match value {
+        "3.0-IV1" => 1,
+        "3.1-IV0" => 2,
+        "3.2-IV0" => 3,
+        "3.3-IV0" => 4,
+        "3.3-IV1" => 5,
+        "3.3-IV2" => 6,
         "3.3-IV3" => 7,
         "3.4-IV0" => 8,
         "3.5-IV0" => 9,

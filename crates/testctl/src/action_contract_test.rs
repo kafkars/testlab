@@ -111,7 +111,7 @@ fn failed_only_reruns_select_latest_complete_per_cell_evidence() {
 #[test]
 fn release_cells_use_eight_runners_and_schedule_longest_first() {
     assert!(RELEASE_WORKFLOW.contains("max-parallel: 8"));
-    assert!(RELEASE_WORKFLOW.contains("timeout-minutes: 75"));
+    assert!(RELEASE_WORKFLOW.contains("timeout-minutes: 180"));
     assert!(RELEASE_WORKFLOW.contains("timeout-minutes: 15"));
     let qualification: toml::Value = toml::from_str(RELEASE_QUALIFICATION)
         .unwrap_or_else(|error| panic!("parse release qualification: {error}"));

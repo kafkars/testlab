@@ -126,12 +126,7 @@ fn receipt(record: &RecordSpec) -> ProducerReceipt {
 }
 
 fn decoded_len(value: Option<&testlab_schema::ByteString>) -> Option<usize> {
-    value.map(|value| {
-        value
-            .decode()
-            .unwrap_or_else(|error| panic!("fixture bytes: {error}"))
-            .len()
-    })
+    value.map(|value| id(value.decode()).len())
 }
 
 fn consumed(record: &RecordSpec, offset: i64) -> ConsumedRecord {
@@ -257,9 +252,7 @@ fn entry(sequence: u64, payload: HistoryPayload) -> HistoryEntry {
 }
 
 fn digest(record: &RecordSpec) -> String {
-    record
-        .digest()
-        .unwrap_or_else(|error| panic!("fixture digest: {error}"))
+    id(record.digest())
 }
 
 fn assert_contract(
@@ -267,10 +260,11 @@ fn assert_contract(
     history: &[HistoryEntry],
     observations: &[BrokerObservation],
 ) {
-    let violated = violations(scenario, history, observations)
-        .iter()
-        .any(|violation| violation.contract_id.as_str() == "CONS-021");
-    assert!(violated);
+    assert!(
+        violations(scenario, history, observations)
+            .iter()
+            .any(|violation| violation.contract_id.as_str() == "CONS-021")
+    );
 }
 
 fn violations(

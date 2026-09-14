@@ -40,8 +40,10 @@ pub(crate) fn verify(
                         after.history_sequence,
                     )
                     && baseline.value.features == after.value.features
-                    && baseline.value.finalized_features_epoch
-                        == after.value.finalized_features_epoch
+                    && epoch_did_not_go_backwards(
+                        baseline.value.finalized_features_epoch,
+                        after.value.finalized_features_epoch,
+                    )
             })
         })
     });
@@ -67,6 +69,14 @@ pub(crate) fn verify(
             .collect(),
     ));
     true
+}
+
+fn epoch_did_not_go_backwards(baseline: Option<i64>, after: Option<i64>) -> bool {
+    match (baseline, after) {
+        (Some(baseline), Some(after)) => baseline >= 0 && after >= baseline,
+        (None, None) => true,
+        _ => false,
+    }
 }
 
 fn one<T>(values: Option<&Vec<T>>) -> Option<&T> {

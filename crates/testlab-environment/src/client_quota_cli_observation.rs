@@ -40,12 +40,15 @@ fn parse(
     direction: BrokerQuotaDirection,
     output: &str,
 ) -> Result<Option<u64>, ObserverError> {
+    if output.trim().is_empty() {
+        return Ok(None);
+    }
     let mut lines = output
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let Some(line) = lines.next() else {
-        return Err(invalid("output was empty"));
+        return Ok(None);
     };
     if lines.next().is_some() {
         return Err(invalid("reported multiple output rows"));

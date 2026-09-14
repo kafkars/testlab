@@ -20,6 +20,16 @@ fn exact_nested_plural_share_offset_listing_passes() {
 }
 
 #[test]
+fn unreported_cli_lags_still_corroborate_exact_start_offsets() {
+    let action = list_action();
+    let mut history = list_history(&action);
+    for entry in &mut history[2..] {
+        offset_observation(entry).lag = None;
+    }
+    assert!(violations(action, &history).is_empty());
+}
+
+#[test]
 fn public_or_independent_reordering_fails_the_contract() {
     let action = list_action();
     let mut public = list_history(&action);

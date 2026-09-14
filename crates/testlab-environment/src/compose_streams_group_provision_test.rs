@@ -19,5 +19,8 @@ fn checked_in_scenario_selects_two_real_streams_groups() {
     );
     assert!(SCRIPT.contains("group.protocol=streams"));
     assert!(SCRIPT.contains("WordCountDemo"));
+    assert!(SCRIPT.contains("BuiltInDslStoreSuppliers$InMemoryDslStoreSuppliers"));
     assert!(SCRIPT.contains("kafka-streams-groups.sh"));
+    assert!(SCRIPT.contains("jobs -pr"));
+    assert!(SCRIPT.contains("exited with status $status"));
 }

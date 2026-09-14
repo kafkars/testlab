@@ -16,6 +16,26 @@ fn exact_uuid_bound_receipts_pass() {
 }
 
 #[test]
+fn unrelated_identity_from_the_same_batch_is_ignored() {
+    let (mut history, observations) = evidence();
+    history.push(HistoryEntry {
+        sequence: 3,
+        observed_unix_ms: 3,
+        payload: HistoryPayload::BrokerStateObservation {
+            observation: BrokerStateObservation::TopicIdentity(BrokerTopicIdentityState {
+                observation: 41,
+                operation_id: identity_operation(),
+                topic: "testlab-producer-receipt-control".to_owned(),
+                topic_id: [8; 16],
+                partitions: vec![0],
+            }),
+        },
+    });
+
+    assert!(violations(&history, &observations).is_empty());
+}
+
+#[test]
 fn disabled_validation_or_wrong_receipt_id_fails() {
     let (mut disabled, observations) = evidence();
     *validation(&mut disabled, 0) = false;

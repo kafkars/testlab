@@ -201,7 +201,7 @@ pub(crate) fn exact_record(actual: &ConsumedRecord, expected: &RecordSpec) -> bo
             })
 }
 
-fn exact_bytes(left: Option<&ByteString>, right: Option<&ByteString>) -> bool {
+pub(crate) fn exact_bytes(left: Option<&ByteString>, right: Option<&ByteString>) -> bool {
     match (left, right) {
         (None, None) => true,
         (Some(left), Some(right)) => match (left.decode(), right.decode()) {

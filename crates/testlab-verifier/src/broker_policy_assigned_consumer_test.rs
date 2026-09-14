@@ -4,7 +4,7 @@
 mod fixture;
 
 use testlab_schema::{
-    AdapterEvent, AssignedConsumerEventObservationKind, AssignedConsumerPositionFailure,
+    AdapterEvent, AssignedConsumerEventObservationKind, AssignedConsumerFetchFailure,
     HistoryPayload,
 };
 
@@ -27,12 +27,11 @@ fn wrong_public_code_or_missing_broker_record_fails() {
     let AdapterEvent::AssignedConsumerEventObserved(observation) = &mut event.event else {
         panic!("assigned event observation missing");
     };
-    let AssignedConsumerEventObservationKind::PositionResolutionFailed { failure, .. } =
-        &mut observation.event
+    let AssignedConsumerEventObservationKind::FetchFailed { failure, .. } = &mut observation.event
     else {
-        panic!("position failure missing");
+        panic!("fetch failure missing");
     };
-    *failure = AssignedConsumerPositionFailure::Broker { code: 30 };
+    *failure = AssignedConsumerFetchFailure::Broker { code: 30 };
     assert!(has(
         &violations(&scenario, &wrong_history, &observations(&scenario)),
         "POLICY-002"

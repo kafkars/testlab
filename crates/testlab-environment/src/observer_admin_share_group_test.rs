@@ -91,6 +91,32 @@ fn offset_action_command_and_cli_row_preserve_exact_partition_state() {
 }
 
 #[test]
+fn offset_cli_normalization_accepts_exact_rows_without_reported_lag() {
+    let output = "GROUP TOPIC PARTITION START-OFFSET\nshare-group-1 share-topic 0 1\n";
+    let observation =
+        crate::share_group_cli_observation::normalize(8, &offset_target(), output.as_bytes())
+            .unwrap_or_else(|error| panic!("Share-group offset observation: {error}"));
+    let BrokerStateObservation::ShareGroupOffset(value) = observation else {
+        panic!("Share-group offset observation kind");
+    };
+    assert_eq!(value.start_offset, Some(1));
+    assert_eq!(value.lag, None);
+}
+
+#[test]
+fn offset_cli_normalization_accepts_exact_absence_message() {
+    let output = "Share group 'share-group-1' has no offset information.\n";
+    let observation =
+        crate::share_group_cli_observation::normalize(8, &offset_target(), output.as_bytes())
+            .unwrap_or_else(|error| panic!("Share-group offset observation: {error}"));
+    let BrokerStateObservation::ShareGroupOffset(value) = observation else {
+        panic!("Share-group offset observation kind");
+    };
+    assert_eq!(value.start_offset, None);
+    assert_eq!(value.lag, None);
+}
+
+#[test]
 fn offset_cli_normalization_rejects_wrong_or_ambiguous_output() {
     for output in [
         "",
@@ -98,6 +124,10 @@ fn offset_cli_normalization_rejects_wrong_or_ambiguous_output() {
         "GROUP TOPIC PARTITION START-OFFSET LAG\nother-group share-topic 0 1 1\n",
         "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 -1 1\n",
         "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 1 1\nshare-group-1 share-topic 0 1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET\nshare-group-1 share-topic 0 1 1\n",
+        "GROUP TOPIC PARTITION START-OFFSET LAG\nshare-group-1 share-topic 0 1\n",
+        "Share group 'other-group' has no offset information.\n",
+        "Share group 'share-group-1' has no offset information.\nunexpected\n",
     ] {
         assert!(
             crate::share_group_cli_observation::normalize(8, &offset_target(), output.as_bytes())

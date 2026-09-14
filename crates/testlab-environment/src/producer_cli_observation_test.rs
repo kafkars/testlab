@@ -34,6 +34,20 @@ fn empty_tables_are_valid_but_bad_headers_rows_and_duplicates_fail_closed() {
     assert!(normalize(1, &target(), duplicate.as_bytes()).is_err());
 }
 
+#[test]
+fn legacy_unknown_coordinator_epoch_retains_kafkas_sentinel() {
+    let output = format!("{}\n1 0 -1 0 1700000000000 None\n", HEADERS.join(" "));
+    let observed = normalize(1, &target(), output.as_bytes())
+        .unwrap_or_else(|error| panic!("normalize legacy producer state: {error}"));
+    let BrokerStateObservation::Producers(observed) = observed else {
+        panic!("producer observation kind");
+    };
+    assert_eq!(observed.producers[0].coordinator_epoch, -1);
+
+    let below_sentinel = output.replace(" -1 ", " -2 ");
+    assert!(normalize(1, &target(), below_sentinel.as_bytes()).is_err());
+}
+
 fn target() -> ProducerTarget {
     ProducerTarget {
         operation_id: OperationId::new("admin-producers")

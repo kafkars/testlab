@@ -381,7 +381,7 @@ category = "admin"
 [[contract]]
 id = "ADMIN-051"
 title = "Active-producer descriptions match Kafka CLI state"
-statement = "Each public partition producer-state description returns the scenario-declared nonzero count in canonical producer-ID order, and every producer ID, epoch, sequence, timestamp, coordinator epoch, and current transaction start offset matches one immediate snapshot from Kafka's pinned administration CLI."
+statement = "Each public partition producer-state description returns the scenario-declared nonzero count in canonical producer-ID order, and every producer ID, epoch, sequence, timestamp, coordinator epoch or unavailable sentinel, and current transaction start offset is corroborated by one immediate snapshot from Kafka's pinned administration CLI."
 category = "admin"
 
 [[contract]]

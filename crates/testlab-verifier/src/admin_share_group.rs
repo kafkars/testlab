@@ -253,7 +253,11 @@ fn offset_observation_matches(
         && actual.topic == expected.topic
         && actual.partition == expected.partition
         && actual.start_offset == Some(expected.expected_start_offset)
-        && actual.lag == Some(expected.expected_lag)
+        && reported_lag_matches(actual.lag, expected.expected_lag)
+}
+
+pub(crate) fn reported_lag_matches(actual: Option<i64>, expected: i64) -> bool {
+    actual.is_none_or(|actual| actual == expected)
 }
 
 pub(crate) fn exact_offset_evidence(

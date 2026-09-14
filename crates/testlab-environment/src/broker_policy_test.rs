@@ -64,6 +64,56 @@ fn quota_removal_deletes_only_the_selected_direction() {
 }
 
 #[test]
+fn acl_support_keeps_route_discovery_authorized_while_exact_work_is_denied() {
+    let policy = topic_policy();
+    let command = super::broker_policy_command::supporting_access(
+        &["compose".to_owned()],
+        "broker",
+        19092,
+        &policy,
+        BrokerPolicyState::Present,
+        0,
+        10,
+    )
+    .unwrap_or_else(|| panic!("topic write support command"));
+
+    assert_eq!(
+        super::broker_policy_command::supporting_access_count(&policy),
+        1
+    );
+    assert!(pair(&command.args, "--allow-principal", "User:kafkars"));
+    assert!(pair(&command.args, "--operation", "Describe"));
+    assert!(pair(&command.args, "--topic", "orders"));
+}
+
+#[test]
+fn topic_create_support_also_closes_the_cluster_authorization_bypass() {
+    let policy = BrokerPolicy::Acl {
+        resource: BrokerAclResource::Topic {
+            name: "orders".to_owned(),
+        },
+        operation: BrokerAclOperation::Create,
+    };
+    let cluster = super::broker_policy_command::supporting_access(
+        &["compose".to_owned()],
+        "broker",
+        19092,
+        &policy,
+        BrokerPolicyState::Present,
+        1,
+        11,
+    )
+    .unwrap_or_else(|| panic!("cluster support command"));
+
+    assert_eq!(
+        super::broker_policy_command::supporting_access_count(&policy),
+        2
+    );
+    assert!(cluster.args.iter().any(|value| value == "--cluster"));
+    assert!(pair(&cluster.args, "--operation", "Describe"));
+}
+
+#[test]
 fn acl_parser_requires_the_exact_literal_resource_and_deny_entry() {
     let output = b"Current ACLs for resource `ResourcePattern(resourceType=TOPIC, name=orders, patternType=LITERAL)`:\n\t(principal=User:kafkars, host=*, operation=WRITE, permissionType=DENY)\n";
 
@@ -83,7 +133,10 @@ fn acl_parser_requires_the_exact_literal_resource_and_deny_entry() {
         ),
         Ok(false)
     );
-    assert!(super::broker_policy_observation::parse(&topic_policy(), b"").is_err());
+    assert_eq!(
+        super::broker_policy_observation::parse(&topic_policy(), b""),
+        Ok(false)
+    );
 }
 
 #[test]
@@ -100,6 +153,10 @@ fn quota_parser_rejects_a_different_numeric_rate() {
             b"Quota configs for user-principal 'kafkars' are producer_byte_rate=128.0\n"
         ),
         Ok(true)
+    );
+    assert_eq!(
+        super::broker_policy_observation::parse(&policy, b""),
+        Ok(false)
     );
     assert!(
         super::broker_policy_observation::parse(

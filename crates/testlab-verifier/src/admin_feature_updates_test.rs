@@ -17,7 +17,7 @@ fn exact_validation_only_update_and_unchanged_state_pass() {
 }
 
 #[test]
-fn per_feature_failure_or_state_change_fails() {
+fn per_feature_failure_or_feature_level_change_fails() {
     let mut failed = history();
     let HistoryPayload::AdapterEvent { event } = &mut failed[2].payload else {
         panic!("public update event");
@@ -35,8 +35,22 @@ fn per_feature_failure_or_state_change_fails() {
     let BrokerStateObservation::Features(after) = observation else {
         panic!("post-update features");
     };
-    after.finalized_features_epoch = Some(8);
+    after.features[0].finalized_version_level = 29;
     assert_contract(&violations(changed));
+}
+
+#[test]
+fn unrelated_metadata_epoch_advance_does_not_invent_a_feature_change() {
+    let mut advanced = history();
+    let HistoryPayload::BrokerStateObservation { observation } = &mut advanced[3].payload else {
+        panic!("post-update state");
+    };
+    let BrokerStateObservation::Features(after) = observation else {
+        panic!("post-update features");
+    };
+    after.finalized_features_epoch = Some(8);
+
+    assert!(violations(advanced).is_empty());
 }
 
 #[test]

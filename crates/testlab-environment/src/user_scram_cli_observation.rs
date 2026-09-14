@@ -39,12 +39,15 @@ fn parse(
     mechanism: ScramCredentialMechanism,
     output: &str,
 ) -> Result<Option<u32>, ObserverError> {
+    if output.trim().is_empty() {
+        return Ok(None);
+    }
     let mut lines = output
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let Some(mut line) = lines.next() else {
-        return Err(invalid("output was empty"));
+        return Ok(None);
     };
     let quota_header = format!("Quota configs for user-principal '{user}' are");
     if let Some(values) = line.strip_prefix(&quota_header) {

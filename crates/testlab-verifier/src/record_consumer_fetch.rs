@@ -112,7 +112,10 @@ fn topic_identity<'a>(
         }
         _ => None,
     });
-    one_source(operation_ids, &index.topic_identities_observed)
+    let operation_id = one_operation(operation_ids)?;
+    unique_matching(index.topic_identities_observed.get(operation_id), |value| {
+        value.topic == record.record.topic && value.partitions.contains(&record.record.partition)
+    })
 }
 
 fn partition_offsets<'a>(
@@ -132,18 +135,27 @@ fn partition_offsets<'a>(
         }
         _ => None,
     });
-    one_source(operation_ids, &index.partition_offsets_observed)
+    let operation_id = one_operation(operation_ids)?;
+    unique_matching(
+        index.partition_offsets_observed.get(operation_id),
+        |value| value.topic == record.record.topic && value.partition == record.record.partition,
+    )
 }
 
-fn one_source<'a, T>(
+fn one_operation<'a>(
     mut operation_ids: impl Iterator<Item = &'a OperationId>,
-    values: &'a BTreeMap<OperationId, Vec<T>>,
-) -> Option<&'a T> {
+) -> Option<&'a OperationId> {
     let operation_id = operation_ids.next()?;
     if operation_ids.next().is_some() {
         return None;
     }
-    one(values.get(operation_id))
+    Some(operation_id)
+}
+
+fn unique_matching<T>(values: Option<&Vec<T>>, predicate: impl Fn(&T) -> bool) -> Option<&T> {
+    let mut matching = values?.iter().filter(|value| predicate(value));
+    let value = matching.next()?;
+    matching.next().is_none().then_some(value)
 }
 
 fn one<T>(values: Option<&Vec<T>>) -> Option<&T> {

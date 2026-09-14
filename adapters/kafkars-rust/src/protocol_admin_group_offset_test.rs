@@ -4,6 +4,7 @@ use crate::kafkars_api::{ErrorKind, KafkaError, StartPosition, TopicPartition};
 use testlab_schema::OperationId;
 
 use crate::AdapterError;
+use crate::protocol_admin_read::stable_offset_broker_retryable;
 use crate::protocol_admin_result::listed_consumer_group_offset;
 
 #[test]
@@ -85,6 +86,30 @@ fn group_offset_preserves_per_partition_client_failure() {
     );
 
     assert!(matches!(result, Err(AdapterError::Client(_))));
+}
+
+#[test]
+fn only_stable_offset_code_88_is_polled_under_the_original_deadline() {
+    assert!(stable_offset_broker_retryable(
+        true,
+        ErrorKind::Broker,
+        Some(88)
+    ));
+    assert!(!stable_offset_broker_retryable(
+        false,
+        ErrorKind::Broker,
+        Some(88)
+    ));
+    assert!(!stable_offset_broker_retryable(
+        true,
+        ErrorKind::Broker,
+        Some(14)
+    ));
+    assert!(!stable_offset_broker_retryable(
+        true,
+        ErrorKind::Timeout,
+        Some(88)
+    ));
 }
 
 fn entry(

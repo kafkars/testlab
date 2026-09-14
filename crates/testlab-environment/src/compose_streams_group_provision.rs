@@ -44,6 +44,7 @@ for group in "$@"; do
     'group.protocol=streams' \
     'auto.offset.reset=earliest' \
     'commit.interval.ms=100' \
+    'dsl.store.suppliers.class=org.apache.kafka.streams.state.BuiltInDslStoreSuppliers$InMemoryDslStoreSuppliers' \
     "state.dir=$state" \
     "replication.factor=$TESTLAB_STREAMS_REPLICATION_FACTOR" \
     > "$properties"
@@ -51,8 +52,12 @@ for group in "$@"; do
   pid=$!
   ready=false
   for ((attempt = 0; attempt < 1200; attempt++)); do
-    if ! kill -0 "$pid" 2>/dev/null; then
-      echo "Streams fixture exited before committing for $group" >&2
+    running=$(jobs -pr)
+    if ! grep -qx "$pid" <<<"$running"; then
+      status=0
+      wait "$pid" || status=$?
+      pid=""
+      echo "Streams fixture exited with status $status before committing for $group" >&2
       tail -n 80 "$log" >&2 || true
       exit 41
     fi

@@ -20,6 +20,20 @@ fn exact_closed_group_baseline_and_post_state_pass() {
 }
 
 #[test]
+fn unreported_cli_lag_still_corroborates_the_exact_transition() {
+    let mut entries = history();
+    for entry in &mut entries {
+        if let HistoryPayload::BrokerStateObservation {
+            observation: BrokerStateObservation::ShareGroupOffset(value),
+        } = &mut entry.payload
+        {
+            value.lag = None;
+        }
+    }
+    assert!(violations(&entries).is_empty());
+}
+
+#[test]
 fn missing_successful_member_close_fails_mutation_contract() {
     let entries = history()
         .into_iter()

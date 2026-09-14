@@ -18,7 +18,7 @@ fn complete_and_legacy_incomplete_feature_snapshots_pass() {
 }
 
 #[test]
-fn completeness_epoch_and_migration_mismatches_fail() {
+fn completeness_stale_epoch_and_migration_mismatches_fail() {
     for (history, expected_migration) in [
         (history(false, true, 7, false), false),
         (history(true, true, 8, false), false),
@@ -26,6 +26,11 @@ fn completeness_epoch_and_migration_mismatches_fail() {
     ] {
         assert_contract(&violations(history, expected_migration));
     }
+}
+
+#[test]
+fn later_independent_metadata_epoch_with_identical_features_passes() {
+    assert!(violations(history(true, true, 6, false), false).is_empty());
 }
 
 #[test]

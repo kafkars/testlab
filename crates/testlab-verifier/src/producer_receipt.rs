@@ -82,7 +82,10 @@ fn verify_one(
         })
         .collect::<Vec<_>>();
     let public = one(index.topics_batch_described.get(identity_operation_id));
-    let independent = one(index.topic_identities_observed.get(identity_operation_id));
+    let independent = unique_identity(
+        index.topic_identities_observed.get(identity_operation_id),
+        record,
+    );
     let terminal = one(index.terminals.get(operation_id));
     let observed = observations
         .iter()
@@ -189,6 +192,17 @@ fn independent_topic_id(
         && value.topic_id != [0; 16]
         && value.partitions.contains(&record.partition))
     .then_some(value.topic_id)
+}
+
+fn unique_identity<'a>(
+    values: Option<&'a Vec<IndexedTopicIdentityObservation>>,
+    record: &RecordSpec,
+) -> Option<&'a IndexedTopicIdentityObservation> {
+    let mut matching = values?
+        .iter()
+        .filter(|value| independent_topic_id(value, record).is_some());
+    let value = matching.next()?;
+    matching.next().is_none().then_some(value)
 }
 
 fn receipt_matches(

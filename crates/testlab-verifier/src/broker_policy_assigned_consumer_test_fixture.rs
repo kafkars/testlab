@@ -3,10 +3,10 @@
 use testlab_schema::{
     AdapterCommand, AdapterEvent, AssignedConsumerEventExpectation,
     AssignedConsumerEventObservation, AssignedConsumerEventObservationKind,
-    AssignedConsumerPositionFenceObservation, BrokerObservation, BrokerPolicy, BrokerPolicyState,
-    ConsumedRecord, EnvironmentOperation, EnvironmentOperationId, EnvironmentOperationKind,
-    EnvironmentOperationStatus, HistoryEntry, HistoryPayload, ObserveAssignedConsumerEventCommand,
-    Scenario, ScenarioAction,
+    AssignedConsumerFetchFenceObservation, AssignedConsumerPositionFenceObservation,
+    BrokerObservation, BrokerPolicy, BrokerPolicyState, ConsumedRecord, EnvironmentOperation,
+    EnvironmentOperationId, EnvironmentOperationKind, EnvironmentOperationStatus, HistoryEntry,
+    HistoryPayload, ObserveAssignedConsumerEventCommand, Scenario, ScenarioAction,
 };
 
 use crate::index::HistoryIndex;
@@ -112,20 +112,23 @@ fn policy_entries(
 fn denied_event(
     expected: &AssignedConsumerEventExpectation,
 ) -> AssignedConsumerEventObservationKind {
-    let AssignedConsumerEventExpectation::PositionResolutionFailed {
+    let AssignedConsumerEventExpectation::FetchFailed {
         topic,
         partition,
         failure,
     } = expected
     else {
-        panic!("position expectation missing");
+        panic!("fetch expectation missing");
     };
-    AssignedConsumerEventObservationKind::PositionResolutionFailed {
-        fence: AssignedConsumerPositionFenceObservation {
-            topic: topic.clone(),
-            partition: *partition,
-            assignment_epoch: 1,
-            position_epoch: 1,
+    AssignedConsumerEventObservationKind::FetchFailed {
+        fence: AssignedConsumerFetchFenceObservation {
+            position: AssignedConsumerPositionFenceObservation {
+                topic: topic.clone(),
+                partition: *partition,
+                assignment_epoch: 1,
+                position_epoch: 1,
+            },
+            fetch_revision: 1,
         },
         failure: *failure,
     }

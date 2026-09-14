@@ -19,6 +19,19 @@ fn exact_public_and_immediate_cli_offsets_pass() {
 }
 
 #[test]
+fn unreported_cli_lag_still_corroborates_the_exact_start_offset() {
+    let mut entries = history();
+    let HistoryPayload::BrokerStateObservation { observation } = &mut entries[2].payload else {
+        panic!("Share-group offset observation history kind");
+    };
+    let BrokerStateObservation::ShareGroupOffset(value) = observation else {
+        panic!("Share-group offset observation kind");
+    };
+    value.lag = None;
+    assert!(violations(&entries).is_empty());
+}
+
+#[test]
 fn missing_public_topic_identity_fails_share_group_offset_contract() {
     let mut entries = history();
     let HistoryPayload::AdapterEvent { event } = &mut entries[1].payload else {

@@ -17,6 +17,22 @@ fn exact_nontransactional_and_transactional_producer_states_pass() {
 }
 
 #[test]
+fn absent_public_coordinator_epochs_accept_independent_values() {
+    let mut entries = history();
+    let HistoryPayload::AdapterEvent { event } = &mut entries[1].payload else {
+        panic!("public producer event");
+    };
+    let AdapterEvent::ProducersDescribed(public) = &mut event.event else {
+        panic!("public producer description");
+    };
+    for producer in &mut public.producers {
+        producer.coordinator_epoch = -1;
+    }
+
+    assert!(violations(entries, 2).is_empty());
+}
+
+#[test]
 fn exact_broker_route_uses_the_dedicated_contract() {
     let mut routed = history();
     let HistoryPayload::HarnessCommand { command } = &mut routed[0].payload else {

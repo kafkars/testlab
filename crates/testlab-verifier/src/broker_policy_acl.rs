@@ -168,15 +168,21 @@ fn command_failure(
     window: &PolicyWindow<'_>,
     index: &HistoryIndex,
 ) -> Option<u64> {
-    let (command_sequence, command_id) = exact_command(action, index)?;
+    let commands = matching_commands(action, index)
+        .into_iter()
+        .filter(|(sequence, _)| active(window, *sequence))
+        .collect::<Vec<_>>();
+    let [(command_sequence, command_id)] = commands.as_slice() else {
+        return None;
+    };
     let mut failures = index
         .command_failures
         .iter()
-        .filter(|failure| failure.command_id == *command_id);
+        .filter(|failure| failure.command_id == **command_id);
     let failure = failures.next()?;
     (failures.next().is_none()
         && failure.code == expected
-        && active(window, command_sequence)
+        && active(window, *command_sequence)
         && active(window, failure.history_sequence))
     .then_some(failure.history_sequence)
 }
@@ -185,15 +191,23 @@ pub(crate) fn exact_command<'a>(
     action: &ScenarioAction,
     index: &'a HistoryIndex,
 ) -> Option<(u64, &'a testlab_schema::CommandId)> {
-    let commands = index
-        .commands
-        .iter()
-        .filter(|(_, _, command)| command_match::matches(action, command))
-        .collect::<Vec<_>>();
-    let [(sequence, command_id, _)] = commands.as_slice() else {
+    let commands = matching_commands(action, index);
+    let [(sequence, command_id)] = commands.as_slice() else {
         return None;
     };
     Some((*sequence, command_id))
+}
+
+pub(crate) fn matching_commands<'a>(
+    action: &ScenarioAction,
+    index: &'a HistoryIndex,
+) -> Vec<(u64, &'a testlab_schema::CommandId)> {
+    index
+        .commands
+        .iter()
+        .filter(|(_, _, command)| command_match::matches(action, command))
+        .map(|(sequence, command_id, _)| (*sequence, command_id))
+        .collect()
 }
 
 pub(crate) fn consumer_group<'a>(

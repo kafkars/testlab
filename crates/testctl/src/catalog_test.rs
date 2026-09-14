@@ -15,8 +15,8 @@ fn checked_in_catalog_is_complete() {
         Ok(summary) => summary,
         Err(error) => panic!("catalog validation failed: {error}"),
     };
-    assert_eq!(summary.scenarios, 222);
-    assert_eq!(summary.packs, 28);
+    assert_eq!(summary.scenarios, 223);
+    assert_eq!(summary.packs, 30);
     assert_eq!(summary.subjects, 2);
     assert_eq!(summary.environments, 23);
     assert_eq!(summary.qualifications, 3);
@@ -119,10 +119,14 @@ fn expected_release_pack<'a>(environment: &str, assigned_pack: &'a str) -> &'a s
             | "packs/kafkars-streams-group.toml"
     ) {
         assigned_pack
+    } else if environment.contains("apache-kafka/3.7.") {
+        "packs/kafkars-classic-3-7.toml"
     } else if environment.contains("apache-kafka/3.") {
         "packs/kafkars-classic.toml"
     } else if environment.contains("apache-kafka/4.0.") {
         "packs/kafkars-release.toml"
+    } else if environment.contains("apache-kafka/4.1.") {
+        "packs/kafkars-share-4-1.toml"
     } else if three_plaintext {
         "packs/kafkars-three-broker-share.toml"
     } else if environment.contains("/three-") {

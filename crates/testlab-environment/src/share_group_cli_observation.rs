@@ -117,28 +117,56 @@ fn normalize_offset(
     let header = lines
         .next()
         .ok_or_else(|| invalid("offset output omitted its header"))?;
-    if header.split_whitespace().collect::<Vec<_>>()
-        != ["GROUP", "TOPIC", "PARTITION", "START-OFFSET", "LAG"]
-    {
-        return Err(invalid("unexpected offset header"));
+    let absent = format!(
+        "Share group '{}' has no offset information.",
+        target.group_id
+    );
+    if header == absent {
+        if lines.next().is_some() {
+            return Err(invalid("offset absence output contained extra rows"));
+        }
+        return Ok(BrokerStateObservation::ShareGroupOffset(
+            BrokerShareGroupOffset {
+                observation,
+                operation_id: target.operation_id.clone(),
+                group_id: target.group_id.clone(),
+                topic: target.topic.clone(),
+                partition: target.partition,
+                start_offset: None,
+                lag: None,
+            },
+        ));
     }
+    let reports_lag = match header.split_whitespace().collect::<Vec<_>>().as_slice() {
+        ["GROUP", "TOPIC", "PARTITION", "START-OFFSET", "LAG"] => true,
+        ["GROUP", "TOPIC", "PARTITION", "START-OFFSET"] => false,
+        _ => return Err(invalid("unexpected offset header")),
+    };
     let mut matched = None;
     for row in lines {
         let fields = row.split_whitespace().collect::<Vec<_>>();
-        let [group_id, topic, partition, start_offset, lag] = fields.as_slice() else {
-            return Err(invalid("unexpected offset row shape"));
+        let (group_id, topic, partition, start_offset, lag) = match fields.as_slice() {
+            [group_id, topic, partition, start_offset, lag] if reports_lag => {
+                (*group_id, *topic, *partition, *start_offset, Some(*lag))
+            }
+            [group_id, topic, partition, start_offset] if !reports_lag => {
+                (*group_id, *topic, *partition, *start_offset, None)
+            }
+            _ => return Err(invalid("unexpected offset row shape")),
         };
         let partition = partition
             .parse::<i32>()
             .map_err(|_| invalid("invalid offset partition"))?;
-        if *group_id != target.group_id {
+        if group_id != target.group_id {
             return Err(invalid("non-authoritative offset group"));
         }
         let state = (
             optional_nonnegative(start_offset, "start offset")?,
-            optional_nonnegative(lag, "lag")?,
+            lag.map(|value| optional_nonnegative(value, "lag"))
+                .transpose()?
+                .flatten(),
         );
-        if *topic == target.topic
+        if topic == target.topic
             && partition == target.partition
             && matched.replace(state).is_some()
         {

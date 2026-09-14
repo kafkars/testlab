@@ -8,7 +8,6 @@ use crate::admin::{immediate_after_public, public_after_command};
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
-#[derive(Clone)]
 struct LiveConsumer {
     group_id: String,
     protocol: GroupProtocol,
@@ -138,7 +137,7 @@ fn classic_member(member: &testlab_schema::AdminConsumerGroupMemberDescription) 
         && member.rack_id.is_none()
         && member.member_epoch.is_none()
         && member.subscribed_topic_names.is_empty()
-        && member.subscribed_topic_regex.is_none()
+        && regex_is_absent(member.subscribed_topic_regex.as_deref())
         && member.assignment.is_empty()
         && member.target_assignment.is_empty()
         && member.member_type.is_none()
@@ -154,11 +153,15 @@ fn consumer_member(
         && member.member_epoch.is_some_and(|epoch| epoch > 0)
         && member.subscribed_topic_names.len() == 1
         && member.subscribed_topic_names.first() == Some(&expected.expected_topic)
-        && member.subscribed_topic_regex.is_none()
+        && regex_is_absent(member.subscribed_topic_regex.as_deref())
         && member.classic_metadata.is_empty()
         && member.classic_assignment.is_empty()
         && exact_assignment(&member.assignment, expected)
         && canonical_assignment(&member.target_assignment)
+}
+
+fn regex_is_absent(regex: Option<&str>) -> bool {
+    regex.is_none_or(str::is_empty)
 }
 
 fn common_member(member: &testlab_schema::AdminConsumerGroupMemberDescription) -> bool {

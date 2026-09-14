@@ -117,7 +117,7 @@ gating = true
 [[cells]]
 id = "apache-kafka-4-1-2-plaintext"
 environment = "clusters/apache-kafka/4.1.2/single-plaintext.toml"
-pack = "packs/kafkars-share-release.toml"
+pack = "packs/kafkars-share-4-1.toml"
 attempts = 1
 gating = true
 
@@ -138,7 +138,7 @@ gating = true
 [[cells]]
 id = "apache-kafka-3-7-2-plaintext"
 environment = "clusters/apache-kafka/3.7.2/single-plaintext.toml"
-pack = "packs/kafkars-classic.toml"
+pack = "packs/kafkars-classic-3-7.toml"
 attempts = 1
 gating = true
 

@@ -1,7 +1,7 @@
 schema_version = 168
 id = "kafka.producer-network-blackhole-recovery"
 title = "packaged producer preserves uncertainty through a network blackhole"
-description = "The external proxy stops all forwarding on a live broker route until the packaged producer reaches its public delivery bound, then observed restoration permits exact acknowledged progress without strengthening the timed-out send beyond possibly-sent."
+description = "The external proxy stops all forwarding on a live broker route until the packaged producer reaches its public delivery bound; the uncertain producer remains fenced, while a fresh producer permits exact acknowledged progress after observed restoration."
 timeout_ms = 120000
 requires = ["producer", "lifecycle", "client_readiness"]
 
@@ -78,9 +78,30 @@ timeout_ms = 5000
 fault_kind = "blackhole"
 
 [[steps]]
+id = "close-uncertain-producer"
+kind = "close_producer"
+producer_id = "producer-1"
+
+[[steps]]
+id = "create-recovery-client"
+kind = "create_client"
+client_id = "client-2"
+
+[[steps]]
+id = "await-recovery-client-ready"
+kind = "await_client_ready"
+client_id = "client-2"
+
+[[steps]]
+id = "create-recovery-producer"
+kind = "create_producer"
+client_id = "client-2"
+producer_id = "producer-2"
+
+[[steps]]
 id = "send-after-blackhole"
 kind = "send"
-producer_id = "producer-1"
+producer_id = "producer-2"
 operation_id = "blackhole-recovered"
 
 [steps.record]
@@ -97,12 +118,17 @@ headers = [
 [[steps]]
 id = "close-producer"
 kind = "close_producer"
-producer_id = "producer-1"
+producer_id = "producer-2"
 
 [[steps]]
-id = "shutdown-client"
+id = "shutdown-original-client"
 kind = "shutdown_client"
 client_id = "client-1"
+
+[[steps]]
+id = "shutdown-recovery-client"
+kind = "shutdown_client"
+client_id = "client-2"
 
 [[assertions]]
 operation_id = "blackhole-baseline"

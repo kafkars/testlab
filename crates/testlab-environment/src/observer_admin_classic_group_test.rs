@@ -1,8 +1,10 @@
-//! Classic-group batch normalization selects complete authoritative requested snapshots.
+//! Group batch normalization selects complete snapshots and modern member counts.
+
+use std::collections::BTreeMap;
 
 use testlab_schema::{BrokerStateObservation, OperationId};
 
-use crate::observer_admin_classic_group::normalize_fixture;
+use crate::observer_admin_classic_group::{normalize_consumer_fixture, normalize_fixture};
 use crate::observer_admin_target::GroupIdsTarget;
 
 #[test]
@@ -16,6 +18,22 @@ fn exact_batch_retains_caller_order_and_consecutive_observations() {
         ],
     )
     .unwrap_or_else(|error| panic!("normalize classic groups: {error}"));
+
+    assert_eq!(facts(&observed), [(11, "group-b", 2), (12, "group-a", 0)]);
+}
+
+#[test]
+fn modern_consumer_description_replaces_lossy_legacy_member_count() {
+    let observed = normalize_consumer_fixture(
+        11,
+        &target(),
+        vec![
+            ("group-a".to_owned(), 0, "Empty", "consumer"),
+            ("group-b".to_owned(), 0, "Empty", "consumer"),
+        ],
+        &BTreeMap::from([("group-b".to_owned(), 2)]),
+    )
+    .unwrap_or_else(|error| panic!("normalize mixed consumer groups: {error}"));
 
     assert_eq!(facts(&observed), [(11, "group-b", 2), (12, "group-a", 0)]);
 }

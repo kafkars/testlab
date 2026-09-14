@@ -1177,8 +1177,9 @@ feature rows and finalized epoch. The checked-in scenario is limited to Kafka
 `expire_after_ms` selection without any token secret. The checked-in Kafka 4.3.1
 scenario sets it to zero, requiring the adapter to call the public
 `expire_after(Duration::ZERO)` builder instead of sending Kafka's omitted
-immediate-expiry sentinel. The sanitized independent observer still requires
-zero live owner tokens immediately after completion.
+immediate-expiry sentinel. The sanitized independent observer parses Kafka's
+minute-resolution expiry column and still requires zero live owner tokens
+immediately after completion.
 
 Active-producer description carries one exact topic-partition, an optional
 nonnegative broker route, and a complete deadline. Absence retains automatic
@@ -1186,8 +1187,8 @@ partition-leader routing. Exact broker routing is exercised only on declared
 single-broker cells whose fixed broker identity is one. The scenario-owned
 expected count stays outside the wire command.
 Its public completion retains producer ID, producer epoch, last sequence, last
-timestamp, coordinator epoch, and optional current-transaction start offset in
-canonical producer-ID order. An immediate independent
+timestamp, coordinator epoch or Kafka's `-1` unavailable sentinel, and optional
+current-transaction start offset in canonical producer-ID order. An immediate independent
 `kafka-transactions.sh describe-producers` snapshot retains the same fields.
 
 Log-directory description carries one exact topic-partition and complete

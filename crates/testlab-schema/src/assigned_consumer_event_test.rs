@@ -1,7 +1,7 @@
 //! Assigned-consumer event scenarios pin both observer methods and exact failure identity.
 
 use crate::{
-    AssignedConsumerEventExpectation, AssignedConsumerEventMethod, AssignedConsumerPositionFailure,
+    AssignedConsumerEventExpectation, AssignedConsumerEventMethod, AssignedConsumerFetchFailure,
     Scenario, ScenarioAction,
 };
 
@@ -35,8 +35,8 @@ fn authorization_recovery_scenario_is_valid_and_uses_both_observers() {
     for observation in observations {
         assert!(matches!(
             &observation.expected,
-            AssignedConsumerEventExpectation::PositionResolutionFailed {
-                failure: AssignedConsumerPositionFailure::Broker { code: 29 },
+            AssignedConsumerEventExpectation::FetchFailed {
+                failure: AssignedConsumerFetchFailure::Broker { code: 29 },
                 ..
             }
         ));

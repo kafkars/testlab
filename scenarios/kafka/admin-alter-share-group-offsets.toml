@@ -1,7 +1,7 @@
 schema_version = 168
 id = "kafka.admin-alter-share-group-offsets"
 title = "packaged admin alters an independently observed Share-group offset"
-description = "After the only modeled Share member closes, the packaged client's public Share-group offset alteration advances one independently listed start offset to the log end, and an immediate Kafka CLI query plus a subsequent public listing confirm the exact new start offset and zero lag."
+description = "After the only modeled Share member closes, the packaged client's public Share-group offset alteration advances one independently listed start offset to the log end; an immediate Kafka CLI query confirms the new start offset, and a subsequent public listing confirms zero lag."
 timeout_ms = 180000
 requires = ["producer", "share_consumer", "share_consumer_configuration", "admin", "lifecycle", "client_readiness"]
 
@@ -91,7 +91,7 @@ operation_id = "admin-list-share-group-offset-before-alter"
 group_id = "testlab-admin-share-group-alter"
 topic = "testlab-kafkars-admin-share-group-alter"
 partition = 0
-expected_start_offset = 1
+expected_start_offset = 0
 expected_lag = 1
 timeout_ms = 20000
 

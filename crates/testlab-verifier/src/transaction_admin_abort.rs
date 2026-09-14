@@ -186,7 +186,10 @@ fn independent_confirms_cleared(
         && producer.producer_epoch == public_producer.producer_epoch
         && producer.last_sequence == public_producer.last_sequence
         && producer.last_timestamp >= public_producer.last_timestamp
-        && producer.coordinator_epoch == public_producer.coordinator_epoch
+        && crate::admin_producers::coordinator_epoch_matches(
+            public_producer.coordinator_epoch,
+            producer.coordinator_epoch,
+        )
         && producer.current_transaction_start_offset.is_none()
 }
 

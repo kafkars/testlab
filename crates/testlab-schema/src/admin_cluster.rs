@@ -224,7 +224,7 @@ pub struct ProducerStateSnapshot {
     pub last_sequence: i32,
     /// Last timestamp, retaining Kafka's `-1` sentinel.
     pub last_timestamp: i64,
-    /// Exact nonnegative coordinator epoch.
+    /// Coordinator epoch, retaining Kafka's `-1` unavailable sentinel.
     pub coordinator_epoch: i32,
     /// Current transaction's first offset, when active.
     pub current_transaction_start_offset: Option<i64>,

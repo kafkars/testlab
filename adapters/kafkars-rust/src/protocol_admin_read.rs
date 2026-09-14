@@ -164,30 +164,37 @@ fn list_consumer_group_offset<W: Write>(
     command_id: CommandId,
     command: ListConsumerGroupOffsetsCommand,
 ) -> Result<(), AdapterError> {
-    let result = state
-        .client(&command.client_id)?
-        .admin()
-        .list_consumer_group_offsets(command.group_id.clone())
-        .partitions([TopicPartition::new(
-            command.topic.clone(),
-            command.partition,
-        )])
-        .require_stable(command.require_stable)
-        .deadline_after(Duration::from_millis(command.timeout_ms))
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
-    let entries = result
-        .into_offsets()
-        .into_entries()
-        .into_iter()
-        .map(|(key, result)| (key, result.map(|value| value.committed_offset())))
-        .collect();
-    let offset = listed_consumer_group_offset(
-        entries,
-        &command.operation_id,
-        &command.topic,
-        command.partition,
+    let deadline = deadline_after(command.timeout_ms);
+    let client = state.client(&command.client_id)?;
+    let offset = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            let result = client
+                .admin()
+                .list_consumer_group_offsets(command.group_id.clone())
+                .partitions([TopicPartition::new(
+                    command.topic.clone(),
+                    command.partition,
+                )])
+                .require_stable(command.require_stable)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+                .map_err(AdapterError::Client)?;
+            let entries = result
+                .into_offsets()
+                .into_entries()
+                .into_iter()
+                .map(|(key, result)| (key, result.map(|value| value.committed_offset())))
+                .collect();
+            listed_consumer_group_offset(
+                entries,
+                &command.operation_id,
+                &command.topic,
+                command.partition,
+            )
+        },
+        |error| stable_offset_retryable(command.require_stable, error),
     )?;
     emit_event(
         writer,
@@ -200,6 +207,23 @@ fn list_consumer_group_offset<W: Write>(
             offset,
         }),
     )
+}
+
+fn stable_offset_retryable(require_stable: bool, error: &AdapterError) -> bool {
+    let AdapterError::Client(error) = error else {
+        return false;
+    };
+    stable_offset_broker_retryable(require_stable, error.kind(), error.broker_code())
+}
+
+pub(crate) fn stable_offset_broker_retryable(
+    require_stable: bool,
+    kind: crate::kafkars_api::ErrorKind,
+    broker_code: Option<i16>,
+) -> bool {
+    require_stable
+        && matches!(kind, crate::kafkars_api::ErrorKind::Broker)
+        && broker_code == Some(88)
 }
 
 pub(crate) fn deadline_after(timeout_ms: u64) -> Instant {

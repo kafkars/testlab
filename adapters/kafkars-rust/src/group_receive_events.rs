@@ -24,7 +24,11 @@ pub(crate) fn receive_batch(
         return Err(AdapterError::Client(error));
     }
     loop {
-        if drive(state, consumer_id, deadline)? {
+        let progressed = drive(state, consumer_id, deadline)?;
+        if let Some(error) = state.group_consumer_mut(consumer_id)?.startup_error() {
+            return Err(AdapterError::Client(error));
+        }
+        if progressed {
             if method == GroupConsumerReceiveMethod::TryTakeBatch {
                 match state.group_consumer_mut(consumer_id)?.try_take_batch() {
                     Ok(Some(batch)) => return Ok(Some(batch)),

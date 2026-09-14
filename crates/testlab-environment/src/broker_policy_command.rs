@@ -74,6 +74,70 @@ pub(super) fn alter(
     )
 }
 
+pub(super) const fn supporting_access_count(policy: &BrokerPolicy) -> usize {
+    match policy {
+        BrokerPolicy::Acl {
+            resource: BrokerAclResource::Topic { .. },
+            operation: testlab_schema::BrokerAclOperation::Create,
+        } => 2,
+        BrokerPolicy::Acl { .. } => 1,
+        BrokerPolicy::Quota { .. } => 0,
+    }
+}
+
+pub(super) fn supporting_access(
+    prefix: &[String],
+    service: &str,
+    port: u16,
+    policy: &BrokerPolicy,
+    state: BrokerPolicyState,
+    index: usize,
+    operation: u32,
+) -> Option<CommandSpec> {
+    let BrokerPolicy::Acl {
+        resource,
+        operation: denied_operation,
+    } = policy
+    else {
+        return None;
+    };
+    let mut args = cli(prefix_args(service, "kafka-acls.sh"), port);
+    args.push(match state {
+        BrokerPolicyState::Present => "--add".to_owned(),
+        BrokerPolicyState::Absent => "--remove".to_owned(),
+    });
+    if state == BrokerPolicyState::Absent {
+        args.push("--force".to_owned());
+    }
+    args.extend([
+        "--allow-principal".to_owned(),
+        PRINCIPAL.to_owned(),
+        "--operation".to_owned(),
+        "Describe".to_owned(),
+    ]);
+    match index {
+        0 => resource_args(&mut args, resource),
+        1 if matches!(
+            (resource, denied_operation),
+            (
+                BrokerAclResource::Topic { .. },
+                testlab_schema::BrokerAclOperation::Create
+            )
+        ) =>
+        {
+            args.push("--cluster".to_owned());
+        }
+        _ => return None,
+    }
+    Some(compose_owned(
+        EnvironmentOperationKind::BrokerPolicyAlter,
+        prefix,
+        args,
+        format!("broker-policy-support-{operation:05}.txt"),
+        format!("broker-policy-support-{operation:05}.stderr.txt"),
+    ))
+}
+
 pub(super) fn query(
     prefix: &[String],
     service: &str,

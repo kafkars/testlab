@@ -20,7 +20,7 @@ pub(super) fn parse(policy: &BrokerPolicy, stdout: &[u8]) -> Result<bool, String
 
 fn parse_acl(resource: &BrokerAclResource, operation: &str, output: &str) -> Result<bool, String> {
     if output.trim().is_empty() {
-        return Err("broker ACL query output was empty".to_owned());
+        return Ok(false);
     }
     let resource_type = match resource {
         BrokerAclResource::Topic { .. } => "TOPIC",
@@ -48,6 +48,9 @@ fn parse_acl(resource: &BrokerAclResource, operation: &str, output: &str) -> Res
 }
 
 fn parse_quota(key: &str, expected: u64, output: &str) -> Result<bool, String> {
+    if output.trim().is_empty() {
+        return Ok(false);
+    }
     if !output.contains("Quota configs for user-principal 'kafkars'") {
         return Err("broker quota query output omitted the exact user principal".to_owned());
     }

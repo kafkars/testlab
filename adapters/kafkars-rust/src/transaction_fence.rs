@@ -11,6 +11,7 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_until_with_remaining;
 use crate::normalize;
 use crate::protocol::emit;
 use crate::state::AdapterState;
@@ -153,14 +154,20 @@ fn execute_started<W: Write>(
             commit_result(transaction, deadline)?
         }
         TransactionFenceMethod::AdminForceTermination => {
-            state
-                .client(replacement_client_id)?
-                .admin()
-                .force_terminate_transaction(transactional_id)
-                .deadline_after(remaining(deadline)?)
-                .submit()
-                .wait()
-                .map_err(AdapterError::Client)?;
+            let client = state.client(replacement_client_id)?;
+            retry_until_with_remaining(
+                deadline,
+                |remaining| {
+                    client
+                        .admin()
+                        .force_terminate_transaction(transactional_id)
+                        .deadline_after(remaining)
+                        .submit()
+                        .wait()
+                },
+                retry_force_termination,
+            )
+            .map_err(AdapterError::Client)?;
             let result = commit_result(transaction, deadline)?;
             create_replacement(
                 state,
@@ -187,6 +194,18 @@ fn execute_started<W: Write>(
         ),
     )
 }
+
+fn retry_force_termination(error: &KafkaError) -> bool {
+    retry_force_termination_parts(error.retry_advice(), error.broker_code())
+}
+
+const fn retry_force_termination_parts(advice: RetryAdvice, broker_code: Option<i16>) -> bool {
+    matches!(advice, RetryAdvice::RetrySafe) || matches!(broker_code, Some(51))
+}
+
+#[cfg(test)]
+#[path = "transaction_fence_test.rs"]
+mod tests;
 
 #[allow(
     clippy::too_many_arguments,

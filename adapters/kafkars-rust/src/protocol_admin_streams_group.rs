@@ -9,8 +9,9 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_until_with_remaining;
 use crate::kafkars_api::{
-    ConsumerGroupOffsetAlteration, ErrorKind, KafkaError, ListStreamsGroupOffsetsQuery,
+    ConsumerGroupOffsetAlteration, KafkaError, ListStreamsGroupOffsetsQuery, RetryAdvice,
     TopicPartition,
 };
 use crate::protocol::emit;
@@ -37,38 +38,57 @@ pub(crate) fn exercise<W: Write>(
     let partition = || TopicPartition::new(command.input_topic.clone(), 0);
     let mut throttles = [0; 9];
 
-    let described = admin
-        .describe_streams_group(primary.clone())
-        .include_authorized_operations(command.include_authorized_operations)
-        .include_topology_description(command.include_topology_description)
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let described = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .describe_streams_group(primary.clone())
+                .include_authorized_operations(command.include_authorized_operations)
+                .include_topology_description(command.include_topology_description)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     let (throttle, singular_description) =
         result::singular_description(&described, &command.operation_id)?;
+    drop(described);
     throttles[0] = throttle;
 
-    let described = admin
-        .describe_streams_groups(group_order.clone())
-        .include_authorized_operations(command.include_authorized_operations)
-        .include_topology_description(command.include_topology_description)
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let described = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .describe_streams_groups(group_order.clone())
+                .include_authorized_operations(command.include_authorized_operations)
+                .include_topology_description(command.include_topology_description)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     let (throttle, plural_descriptions) =
         result::plural_descriptions(described, &group_order, &command.operation_id)?;
     throttles[1] = throttle;
 
-    let listed = admin
-        .list_streams_group_offsets(primary.clone())
-        .partitions([partition()])
-        .require_stable(command.require_stable)
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let listed = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .list_streams_group_offsets(primary.clone())
+                .partitions([partition()])
+                .require_stable(command.require_stable)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     let (throttle, singular_initial_offset) = result::singular_offset(
         listed,
         &primary,
@@ -82,13 +102,19 @@ pub(crate) fn exercise<W: Write>(
     let queries = group_order
         .iter()
         .map(|group_id| ListStreamsGroupOffsetsQuery::selected(group_id.clone(), [partition()]));
-    let listed = admin
-        .list_streams_groups_offsets(queries)
-        .require_stable(command.require_stable)
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let listed = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .list_streams_groups_offsets(queries.clone())
+                .require_stable(command.require_stable)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     let (throttle, plural_initial_offsets) = result::plural_offsets(
         listed,
         &group_order,
@@ -98,19 +124,25 @@ pub(crate) fn exercise<W: Write>(
     )?;
     throttles[3] = throttle;
 
-    let altered = admin
-        .alter_streams_group_offsets(
-            primary.clone(),
-            [ConsumerGroupOffsetAlteration::new(
-                command.input_topic.clone(),
-                0,
-                command.altered_offset,
-            )],
-        )
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let altered = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .alter_streams_group_offsets(
+                    primary.clone(),
+                    [ConsumerGroupOffsetAlteration::new(
+                        command.input_topic.clone(),
+                        0,
+                        command.altered_offset,
+                    )],
+                )
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     throttles[4] = result::throttle_ms(
         altered.throttle_time(),
         &command.operation_id,
@@ -135,12 +167,18 @@ pub(crate) fn exercise<W: Write>(
     )?;
     throttles[5] = throttle;
 
-    let deleted = admin
-        .delete_streams_group_offsets(primary.clone(), [partition()])
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let deleted = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .delete_streams_group_offsets(primary.clone(), [partition()])
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     throttles[6] = result::throttle_ms(
         deleted.throttle_time(),
         &command.operation_id,
@@ -170,12 +208,18 @@ pub(crate) fn exercise<W: Write>(
     )?;
     throttles[7] = throttle;
 
-    let deleted = admin
-        .delete_streams_groups(group_order.clone())
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let deleted = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .delete_streams_groups(group_order.clone())
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     throttles[8] = result::throttle_ms(
         deleted.throttle_time(),
         &command.operation_id,
@@ -213,26 +257,24 @@ fn list_selected(
     group_id: &str,
     deadline: Instant,
 ) -> Result<crate::kafkars_api::ListStreamsGroupOffsetsResult, AdapterError> {
-    admin
-        .list_streams_group_offsets(group_id.to_owned())
-        .partitions([TopicPartition::new(command.input_topic.clone(), 0)])
-        .require_stable(command.require_stable)
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)
+    retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            admin
+                .list_streams_group_offsets(group_id.to_owned())
+                .partitions([TopicPartition::new(command.input_topic.clone(), 0)])
+                .require_stable(command.require_stable)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)
 }
 
-fn remaining(deadline: Instant) -> Result<Duration, AdapterError> {
-    let remaining = deadline.saturating_duration_since(Instant::now());
-    if remaining.is_zero() {
-        Err(AdapterError::Client(KafkaError::new(
-            ErrorKind::Timeout,
-            "Streams-group Admin lifecycle deadline elapsed",
-        )))
-    } else {
-        Ok(remaining)
-    }
+fn retry_safe(error: &KafkaError) -> bool {
+    error.retry_advice() == RetryAdvice::RetrySafe
 }
 
 fn invalid(command: &ExerciseStreamsGroupAdminLifecycleCommand, detail: &str) -> AdapterError {

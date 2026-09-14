@@ -106,7 +106,10 @@ fn exact_independent_offsets(
                         && actual.value.topic == expected.topic
                         && actual.value.partition == expected.partition
                         && actual.value.start_offset == Some(expected.expected_start_offset)
-                        && actual.value.lag == Some(expected.expected_lag)
+                        && crate::admin_share_group::reported_lag_matches(
+                            actual.value.lag,
+                            expected.expected_lag,
+                        )
                         && immediate_after_public(window, public_sequence, actual.history_sequence)
                 })
     })

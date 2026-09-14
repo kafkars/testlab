@@ -13,7 +13,7 @@ use testlab_schema::{
     TerminalStatus, Violation,
 };
 
-use crate::consumer::exact_record;
+use crate::consumer::{exact_bytes, exact_record};
 use crate::index::{HistoryIndex, IndexedAssignedRecordTransfer, IndexedTerminal};
 use crate::support::violation;
 use crate::verify_index::observations_by_operation;
@@ -234,11 +234,22 @@ fn exact_record_data(
     actual: &testlab_schema::RecordSpec,
     expected: &testlab_schema::RecordSpec,
 ) -> bool {
-    let mut expected = expected.clone();
-    if expected.timestamp_millis.is_none() {
-        expected.timestamp_millis = actual.timestamp_millis;
-    }
-    actual == &expected
+    actual.topic == expected.topic
+        && actual.partition == expected.partition
+        && actual.sequence == expected.sequence
+        && (expected.timestamp_millis.is_none()
+            || actual.timestamp_millis == expected.timestamp_millis)
+        && exact_bytes(actual.key.as_ref(), expected.key.as_ref())
+        && exact_bytes(actual.value.as_ref(), expected.value.as_ref())
+        && actual.headers.len() == expected.headers.len()
+        && actual
+            .headers
+            .iter()
+            .zip(&expected.headers)
+            .all(|(actual, expected)| {
+                actual.name == expected.name
+                    && exact_bytes(actual.value.as_ref(), expected.value.as_ref())
+            })
 }
 
 fn event_uses_command(index: &HistoryIndex, sequence: u64, command_id: &CommandId) -> bool {

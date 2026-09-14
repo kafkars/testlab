@@ -63,14 +63,15 @@ fn cli_normalization_distinguishes_exact_presence_from_absence() {
         "scram-delete",
         "Quota configs for user-principal 'testlab-user' are\nError retrieving SCRAM credential configs for user-principal 'testlab-user': ExecutionException: org.apache.kafka.common.errors.ResourceNotFoundException: No SCRAM credentials\n",
     );
+    let empty = normalize(9, "scram-delete-empty", "");
     assert_scram(present, 7, "scram-upsert", Some(8_192));
     assert_scram(absent, 8, "scram-delete", None);
+    assert_scram(empty, 9, "scram-delete-empty", None);
 }
 
 #[test]
 fn cli_normalization_rejects_wrong_ambiguous_or_lossy_output() {
     for output in [
-        "",
         "SCRAM credential configs for user-principal 'other' are SCRAM-SHA-256=iterations=8192",
         "SCRAM credential configs for user-principal 'testlab-user' are SCRAM-SHA-512=iterations=8192",
         "SCRAM credential configs for user-principal 'testlab-user' are SCRAM-SHA-256=iterations=8192,SCRAM-SHA-512=iterations=8192",

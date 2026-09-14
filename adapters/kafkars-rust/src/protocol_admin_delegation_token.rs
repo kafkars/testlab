@@ -1,6 +1,7 @@
 //! Delegation-token qualification retains public facts while secrets stay process-local.
 
 use std::io::Write;
+use std::thread;
 use std::time::{Duration, Instant};
 
 use testlab_schema::{
@@ -14,6 +15,8 @@ use crate::kafkars_api::{
 };
 use crate::protocol::emit;
 use crate::state::AdapterState;
+
+const DESCRIPTION_POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 #[derive(Debug, Eq, PartialEq)]
 struct TokenSnapshot {
@@ -53,22 +56,24 @@ pub(crate) fn exercise<W: Write>(
     let created_snapshot = snapshot(&created);
     let hmac_size = created.hmac().len();
 
-    let described_result = admin
-        .describe_delegation_tokens()
-        .owners([owner])
-        .deadline_after(remaining(deadline)?)
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
-    let describe_throttle_time_ms =
-        throttle(described_result.throttle_time(), &command, "describe")?;
-    let mut described = described_result.into_tokens();
-    if described.len() != 1 {
-        return Err(invalid(
-            &command,
-            "owner-filtered description did not return exactly one token",
-        ));
-    }
+    let (describe_throttle_time, mut described) = loop {
+        let described_result = admin
+            .describe_delegation_tokens()
+            .owners([owner.clone()])
+            .deadline_after(remaining(deadline)?)
+            .submit()
+            .wait()
+            .map_err(AdapterError::Client)?;
+        let (throttle_time, tokens) = described_result.into_parts();
+        match description_decision(tokens.len(), Instant::now() >= deadline) {
+            Ok(DescriptionDecision::Accept) => break (throttle_time, tokens),
+            Ok(DescriptionDecision::Retry) => {
+                thread::sleep(DESCRIPTION_POLL_INTERVAL.min(remaining(deadline)?));
+            }
+            Err(detail) => return Err(invalid(&command, detail)),
+        }
+    };
+    let describe_throttle_time_ms = throttle(describe_throttle_time, &command, "describe")?;
     let described = described
         .pop()
         .ok_or_else(|| invalid(&command, "owner-filtered token disappeared"))?;
@@ -122,6 +127,24 @@ pub(crate) fn exercise<W: Write>(
             }),
         ),
     )
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum DescriptionDecision {
+    Retry,
+    Accept,
+}
+
+pub(crate) const fn description_decision(
+    token_count: usize,
+    deadline_elapsed: bool,
+) -> Result<DescriptionDecision, &'static str> {
+    match (token_count, deadline_elapsed) {
+        (0, false) => Ok(DescriptionDecision::Retry),
+        (1, false) => Ok(DescriptionDecision::Accept),
+        (_, true) => Err("owner-filtered description exceeded the lifecycle deadline"),
+        _ => Err("owner-filtered description did not return exactly one token"),
+    }
 }
 
 fn snapshot(token: &DelegationToken) -> TokenSnapshot {

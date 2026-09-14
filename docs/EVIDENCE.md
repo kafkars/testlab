@@ -238,7 +238,7 @@ that unchanged prior rate.
 Protocol v123, scenario schema v127, and evidence schema v113 add an explicit
 delegation-token expiration delay. ADMIN-087 preserves a selected zero-millisecond
 delay on the wire and joins the public immediate expiration result to the same
-sanitized independent owner-filtered absence required by ADMIN-073.
+sanitized independent owner-filtered live-token absence required by ADMIN-073.
 Protocol v124, scenario schema v128, and evidence schema v114 add explicit
 singleton Admin offset read isolation. ADMIN-088 preserves a selected
 read-uncommitted value on the wire and joins its exact earliest result to an
@@ -913,6 +913,13 @@ Separate immediate read-only Kafka CLI offset queries run once per group; their
 normalized facts retain consecutive history and observation order and must
 agree on every selected start offset and lag.
 
+Kafka 4.1's preview Share-offset surface cannot furnish these complete facts:
+its CLI omits lag and its successful offset alteration may omit requested
+partition outcomes. The Kafka 4.1 release pack therefore excludes ADMIN-038,
+ADMIN-039, ADMIN-040, and ADMIN-043. Kafka 4.2 and later release packs retain
+all four contracts; the verifier does not manufacture the unavailable 4.1
+facts or weaken their common meaning.
+
 ADMIN-044 binds one caller-ordered public topic-description batch and its exact
 authorization-bitfield option to each full successful description or exact
 missing-topic error. Successful descriptions retain a nonzero topic identity,
@@ -965,7 +972,9 @@ ADMIN-051 binds one public active-producer description to an immediate pinned
 Kafka CLI snapshot for the exact topic-partition. The public result must contain
 the scenario-declared nonzero producer count in canonical producer-ID order,
 and every producer ID, epoch, last sequence, last timestamp, coordinator epoch,
-and optional current-transaction start offset must match exactly. The fixture
+and optional current-transaction start offset must match exactly. A public
+coordinator epoch of `-1` is Kafka's unavailable sentinel and is corroborated by,
+rather than required to equal, the independent CLI's nonnegative epoch. The fixture
 closes its producer after an acknowledged send so the compared broker state is
 not changing between snapshots.
 ADMIN-093 applies the same producer-state equality to a distinct request whose
@@ -1212,9 +1221,10 @@ inside its process and retains only the secret length and equality result;
 neither command nor completion can serialize HMAC bytes. After the public
 completion, Testlab invokes Kafka's pinned delegation-token CLI through a
 separate SASL-authenticated observer listener. A fail-closed shell projection
-emits only the owner-filtered token count, so even unexpected live-token rows
-cannot put CLI HMACs into terminal artifacts. The polled final count must be
-zero and contiguous with the public completion.
+parses Kafka's minute-resolution expiry column and emits only the owner-filtered
+live-token count, so even retained expired rows cannot put CLI HMACs into
+terminal artifacts. The polled final count must be zero and contiguous with the
+public completion.
 
 ADMIN-087 narrows that lifecycle to an explicit
 `ExpireDelegationTokenBuilder::expire_after(Duration::ZERO)` selection. The
@@ -1229,11 +1239,13 @@ The completion must retain the singleton and caller-ordered plural Empty-group
 descriptions with authorization and initialized topology detail, singleton and
 plural stable offsets, the exact altered and deleted-offset post-reads, both
 successful group deletions in caller order, and nine bounded throttles. The
+Kafka 4.3.1 broker advertises API 89 v0, so this contract does not request the
+post-4.3 full-topology-description extension. The
 public completion is followed immediately by a fail-closed projection of
 Kafka's pinned Streams-group CLI; it retains only the two selected identities'
 presence or absence and must prove both deleted groups absent.
 ADMIN-092 repeats the same seven-method lifecycle with authorization metadata,
-the full topology graph, and stable-offset reads disabled. The public
+the full-topology-description request, and stable-offset reads all disabled. The public
 descriptions must omit authorization values and retain only an absent or exact
 `NotRequested` full-topology status, command evidence binds all five affected
 builder calls, and the ordinary offset and final CLI contracts retain the same
@@ -1242,11 +1254,13 @@ state truth without claiming unstable-offset divergence.
 ADMIN-075 binds one exact single-record transaction command to public
 `DescribeProducers` state before and after public Admin partition abort. The
 first state must contain one open transaction. The second must preserve the
-producer ID, epoch, last sequence, and coordinator epoch, advance the timestamp
+producer ID, epoch, last sequence, and coordinator epoch or its retained `-1`
+unavailable sentinel, advance the timestamp
 monotonically, and clear `current_transaction_start_offset`. It must precede the
 transaction completion so ordinary token-drop cleanup cannot establish the
 transition. One immediate pinned Kafka CLI snapshot before any later command
-must preserve that cleared producer identity, sequence, coordinator epoch, and
+must preserve that cleared producer identity, sequence, and coordinator epoch
+(corroborating a public `-1` sentinel with the CLI's nonnegative value), and
 monotonic timestamp; token-drop cleanup may append a later abort marker.
 
 ADMIN-076 binds one exact public broker-unregistration command to a broker that

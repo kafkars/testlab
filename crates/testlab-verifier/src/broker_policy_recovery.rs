@@ -6,7 +6,7 @@ use testlab_schema::{
 };
 
 use crate::broker_policy::PolicyWindow;
-use crate::broker_policy_acl::{consumer_group, exact_command};
+use crate::broker_policy_acl::{consumer_group, exact_command, matching_commands};
 use crate::index::HistoryIndex;
 
 pub(crate) fn verify(
@@ -147,7 +147,13 @@ fn transaction(
         else {
             return None;
         };
-        let (command, _) = exact_command(&step.action, index)?;
+        let commands = matching_commands(&step.action, index)
+            .into_iter()
+            .filter(|(sequence, _)| *sequence > window.absent.observation_sequence)
+            .collect::<Vec<_>>();
+        let [(command, _)] = commands.as_slice() else {
+            return None;
+        };
         let [created] = index
             .transactional_producers_created
             .get(producer_id)?
@@ -155,7 +161,7 @@ fn transaction(
         else {
             return None;
         };
-        if actual != transactional_id || command <= window.absent.observation_sequence {
+        if actual != transactional_id || *command <= window.absent.observation_sequence {
             return None;
         }
         committed_transaction(scenario, producer_id, *created, index, observations)
