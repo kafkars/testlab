@@ -30,3 +30,23 @@ fn selected_and_cluster_wide_elections_translate_exactly() {
     };
     assert!(all.targets.is_none());
 }
+
+#[test]
+fn each_election_topic_is_created_after_the_previous_broker_disruption() {
+    let scenario: Scenario = toml::from_str(include_str!(
+        "../../../scenarios/kafka/admin-elect-leaders.toml"
+    ))
+    .unwrap_or_else(|error| panic!("parse leader-election scenario: {error}"));
+    let position = |id: &str| {
+        scenario
+            .steps
+            .iter()
+            .position(|step| step.id.as_str() == id)
+            .unwrap_or_else(|| panic!("missing scenario step {id}"))
+    };
+    assert!(
+        position("elect-selected-preferred-leader") < position("create-all-election-topic"),
+        "the selected-election broker stop must not move the later topic off its preferred leader"
+    );
+    assert!(position("create-all-election-topic") < position("stop-all-election-topic-leader"));
+}
