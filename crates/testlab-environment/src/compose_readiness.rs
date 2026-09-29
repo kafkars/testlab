@@ -158,7 +158,11 @@ fn startup_recovery(prefix: &[String], service: &str, attempt: u8) -> CommandSpe
     compose_command::compose_owned(
         EnvironmentOperationKind::BrokerStart,
         prefix,
-        vec!["start".to_owned(), service.to_owned()],
+        vec![
+            "restart".to_owned(),
+            "--no-deps".to_owned(),
+            service.to_owned(),
+        ],
         format!("startup-recovery-{service}-{attempt:03}.txt"),
         format!("startup-recovery-{service}-{attempt:03}.stderr.txt"),
     )

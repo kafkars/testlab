@@ -6,8 +6,30 @@ use rdkafka::error::KafkaError;
 use rdkafka::types::RDKafkaErrorCode;
 use testlab_schema::{ByteEncoding, OperationId, Scenario};
 
-use crate::observer::{is_transient, targets};
+use crate::observer::{Cursor, is_transient, targets};
 use crate::observer_record::{CapturedRecord, normalize};
+
+#[test]
+fn a_record_past_an_empty_snapshot_requires_a_fresh_boundary() {
+    let mut empty = Cursor::new(0, 0);
+    assert!(empty.complete());
+    assert_eq!(empty.observe(0).ok(), Some(false));
+    let mut refreshed = Cursor::new(0, 2);
+    assert_eq!(refreshed.observe(0).ok(), Some(true));
+    assert!(!refreshed.complete());
+    assert_eq!(refreshed.observe(1).ok(), Some(true));
+    assert!(refreshed.complete());
+}
+
+#[test]
+fn crossing_a_snapshot_boundary_cannot_publish_partial_progress() {
+    let mut cursor = Cursor::new(7, 10);
+    assert_eq!(cursor.observe(8).ok(), Some(true));
+    assert_eq!(cursor.observe(10).ok(), Some(false));
+    assert!(!cursor.complete());
+    assert_eq!(cursor.observe(9).ok(), Some(true));
+    assert!(cursor.complete());
+}
 
 #[test]
 fn unissued_partition_send_is_excluded_from_observation_targets() {

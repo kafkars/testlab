@@ -1,7 +1,6 @@
 //! Mixed consumer-group descriptions retain exact public protocol and member facts.
 
 use std::io::Write;
-use std::time::Duration;
 
 use testlab_schema::{
     AdapterEvent, AdapterEventEnvelope, AdminConsumerGroupDescriptionOutcome,
@@ -11,12 +10,14 @@ use testlab_schema::{
 };
 
 use crate::AdapterError;
+use crate::admission_retry::retry_until_with_remaining;
 use crate::kafkars_api::{
     ConsumerGroupDescription, ConsumerGroupDescriptionDetails, ConsumerGroupMember,
     ConsumerGroupMemberDetails,
 };
 use crate::protocol::emit;
 use crate::protocol_admin_plural_result::{ResourceResult, ordered_group_results};
+use crate::protocol_admin_read::{deadline_after, retry_safe};
 use crate::state::AdapterState;
 
 pub(crate) fn describe<W: Write>(
@@ -25,15 +26,22 @@ pub(crate) fn describe<W: Write>(
     command_id: CommandId,
     command: DescribeConsumerGroupsCommand,
 ) -> Result<(), AdapterError> {
-    let result = state
-        .client(&command.client_id)?
-        .admin()
-        .describe_consumer_groups(command.group_ids.clone())
-        .include_authorized_operations(command.include_authorized_operations)
-        .deadline_after(Duration::from_millis(command.timeout_ms))
-        .submit()
-        .wait()
-        .map_err(AdapterError::Client)?;
+    let deadline = deadline_after(command.timeout_ms);
+    let client = state.client(&command.client_id)?;
+    let result = retry_until_with_remaining(
+        deadline,
+        |remaining| {
+            client
+                .admin()
+                .describe_consumer_groups(command.group_ids.clone())
+                .include_authorized_operations(command.include_authorized_operations)
+                .deadline_after(remaining)
+                .submit()
+                .wait()
+        },
+        retry_safe,
+    )
+    .map_err(AdapterError::Client)?;
     let groups = ordered_group_results(
         result.into_groups().into_entries(),
         &command.group_ids,

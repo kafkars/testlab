@@ -32,9 +32,29 @@ pub(super) struct ObserverRequest<'a> {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct Cursor {
+pub(super) struct Cursor {
     next: i64,
     high: i64,
+}
+
+impl Cursor {
+    pub(super) const fn new(low: i64, high: i64) -> Self {
+        Self { next: low, high }
+    }
+
+    pub(super) const fn complete(self) -> bool {
+        self.next >= self.high
+    }
+
+    pub(super) fn observe(&mut self, offset: i64) -> Result<bool, ObserverError> {
+        if offset >= self.high {
+            return Ok(false);
+        }
+        self.next = self
+            .next
+            .max(offset.checked_add(1).ok_or(ObserverError::OffsetOverflow)?);
+        Ok(true)
+    }
 }
 
 type PartitionKey = (String, i32);
@@ -49,9 +69,14 @@ pub(super) fn capture(
         return Ok(Vec::new());
     }
     let consumer = consumer(request.endpoint, request.run_id, request.security)?;
-    let (assignment, mut cursors) = assignment(&consumer, targets, request.deadline)?;
-    consumer.assign(&assignment)?;
-    poll_snapshot(&consumer, &mut cursors, request.deadline)
+    loop {
+        let (assignment, mut cursors) = assignment(&consumer, &targets, request.deadline)?;
+        consumer.assign(&assignment)?;
+        if let Some(observations) = poll_snapshot(&consumer, &mut cursors, request.deadline)? {
+            return Ok(observations);
+        }
+        std::thread::sleep(Duration::from_millis(50).min(remaining(request.deadline)?));
+    }
 }
 
 fn consumer(
@@ -128,22 +153,22 @@ pub(super) fn targets(
 
 fn assignment(
     consumer: &BaseConsumer,
-    targets: BTreeSet<(String, i32)>,
+    targets: &BTreeSet<(String, i32)>,
     deadline: Instant,
 ) -> Result<Assignment, ObserverError> {
     let mut assignment = TopicPartitionList::new();
     let mut cursors = BTreeMap::new();
     for (topic, partition) in targets {
         let (low, high) = crate::observer_watermarks::capture(deadline, |timeout| {
-            consumer.fetch_watermarks(&topic, partition, timeout)
+            consumer.fetch_watermarks(topic, *partition, timeout)
         })?;
         if high < low {
             return Err(ObserverError::InvalidRecord(format!(
                 "watermarks for {topic}:{partition} are {low}..{high}"
             )));
         }
-        assignment.add_partition_offset(&topic, partition, Offset::Offset(low))?;
-        cursors.insert((topic, partition), Cursor { next: low, high });
+        assignment.add_partition_offset(topic, *partition, Offset::Offset(low))?;
+        cursors.insert((topic.clone(), *partition), Cursor::new(low, high));
     }
     Ok((assignment, cursors))
 }
@@ -152,31 +177,22 @@ fn poll_snapshot(
     consumer: &BaseConsumer,
     cursors: &mut Cursors,
     deadline: Instant,
-) -> Result<Vec<BrokerObservation>, ObserverError> {
+) -> Result<Option<Vec<BrokerObservation>>, ObserverError> {
     let mut observations = Vec::new();
     let mut seen = BTreeSet::new();
-    while cursors.values().any(|cursor| cursor.next < cursor.high) {
+    while cursors.values().any(|cursor| !cursor.complete()) {
         match consumer.poll(POLL_SLICE.min(remaining(deadline)?)) {
             Some(Ok(message)) => {
                 let key = (message.topic().to_owned(), message.partition());
                 let cursor = cursors
                     .get_mut(&key)
                     .ok_or_else(|| ObserverError::UnexpectedPartition(key.0.clone(), key.1))?;
-                if message.offset() >= cursor.high {
-                    return Err(ObserverError::InvalidRecord(format!(
-                        "offset {} exceeded snapshot watermark {} for {}:{}",
-                        message.offset(),
-                        cursor.high,
-                        key.0,
-                        key.1
-                    )));
+                if !cursor.observe(message.offset())? {
+                    // A read-committed watermark can advance while another
+                    // partition is scanned. Discard this partial snapshot and
+                    // reacquire every boundary before observing records again.
+                    return Ok(None);
                 }
-                cursor.next = cursor.next.max(
-                    message
-                        .offset()
-                        .checked_add(1)
-                        .ok_or(ObserverError::OffsetOverflow)?,
-                );
                 if seen.insert((key.0, key.1, message.offset())) {
                     let ordinal = u64::try_from(observations.len())
                         .map_err(|_| ObserverError::ObservationOverflow)?;
@@ -189,7 +205,15 @@ fn poll_snapshot(
         }
         advance_positions(consumer, cursors)?;
     }
-    Ok(observations)
+    for ((topic, partition), cursor) in cursors.iter() {
+        let (_, high) = crate::observer_watermarks::capture(deadline, |timeout| {
+            consumer.fetch_watermarks(topic, *partition, timeout)
+        })?;
+        if high != cursor.high {
+            return Ok(None);
+        }
+    }
+    Ok(Some(observations))
 }
 
 fn advance_positions(consumer: &BaseConsumer, cursors: &mut Cursors) -> Result<(), ObserverError> {

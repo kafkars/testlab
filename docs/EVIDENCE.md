@@ -448,7 +448,8 @@ restarts and their Kafka readiness probes are recorded as distinct operations
 without stopping the packaged adapter process.
 If a broker process exits before initial readiness, Testlab retains its failed
 readiness, process state, and logs, then permits one deadline-bounded start of
-the same container. A repeated exit makes the run invalid.
+the same container using `restart --no-deps` so completed one-shot TLS setup is
+not rerun. A repeated exit makes the run invalid.
 If Docker loses a reserved loopback port before Compose owns it, Testlab retains
 the failed start, removes its partial project, assigns a fresh reserved port
 set, and permits one deadline-bounded Compose retry. A second collision makes
@@ -463,6 +464,11 @@ fencing, or owned-record transfer command
 contributes every contained operation. The snapshot uses broker watermarks and
 emits structured observations with exact partition, offset, timestamp, key,
 value, and ordered header bytes.
+If read-committed visibility advances during a scan, the observer discards that
+partial snapshot, reacquires every partition watermark, and rescans under the
+original observation deadline. It also rechecks the watermarks before sealing
+a snapshot, including initially empty partitions. It never moves a boundary
+merely to accept a record or uses adapter success as broker evidence.
 
 The record comparison preserves byte-level distinctions: null and empty keys or
 values are different, a tombstone has a null value, and duplicate headers retain

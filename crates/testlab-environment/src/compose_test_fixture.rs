@@ -222,6 +222,7 @@ fn fake_docker(
             "    if [ -e \"$0.exited\" ]; then echo broker; fi\n",
             "    exit 0 ;;\n",
             "  *\" logs \"*) echo \"error while preparing configs: fixture startup exit\" ;;\n",
+            "  *\" start \"*) echo \"one-shot TLS initialization must not rerun\" >&2; exit 11 ;;\n",
             "  *\" restart --no-deps broker \"*) rm -f \"$0.exited\" ;;\n",
             "  *) echo \"stdout:$*\" ;;\n",
             "esac\n",

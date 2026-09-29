@@ -137,6 +137,11 @@ fn exited_broker_startup_is_recovered_once_with_retained_evidence() {
         artifact.name == "startup-failure-broker-001.log"
             && String::from_utf8_lossy(&artifact.bytes).contains("fixture startup exit")
     }));
+    assert!(setup.operations[8].args.ends_with(&[
+        "restart".to_owned(),
+        "--no-deps".to_owned(),
+        "broker".to_owned(),
+    ]));
 }
 
 #[test]
