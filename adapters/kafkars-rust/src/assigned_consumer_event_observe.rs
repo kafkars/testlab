@@ -1,4 +1,5 @@
 //! Public direct-consumer events are observed without substituting adapter-owned state.
+//! Retry-safe contention and empty immediate polls share the original command deadline.
 
 use std::future::Future;
 use std::io::Write;
@@ -17,7 +18,8 @@ use testlab_schema::{
 use crate::kafkars_api::{
     AssignedConsumer, AssignedConsumerEvent, AssignedConsumerFetchFailureKind,
     AssignedConsumerFetchFence, AssignedConsumerFetchThrottleFailureKind,
-    AssignedConsumerPositionFence, AssignedConsumerPositionResolutionFailureKind,
+    AssignedConsumerPositionFence, AssignedConsumerPositionResolutionFailureKind, ErrorKind,
+    RetryAdvice,
 };
 use crate::protocol::emit;
 use crate::{AdapterError, state::AdapterState};
@@ -90,14 +92,41 @@ fn observe_immediate(
     consumer: &mut AssignedConsumer,
     deadline: Instant,
 ) -> Result<AssignedConsumerEvent, AdapterError> {
+    match poll_immediate(
+        deadline,
+        || consumer.try_take_event(),
+        |error| {
+            error.kind() == ErrorKind::Backpressure
+                && error.retry_advice() == RetryAdvice::RetrySafe
+        },
+    ) {
+        Some(result) => result.map_err(AdapterError::Client),
+        None => Err(AdapterError::ConsumerRecord(
+            "assigned-consumer event observation timed out".to_owned(),
+        )),
+    }
+}
+
+pub(super) fn poll_immediate<T, E>(
+    deadline: Instant,
+    mut observe: impl FnMut() -> Result<Option<T>, E>,
+    retryable: impl Fn(&E) -> bool,
+) -> Option<Result<T, E>> {
     loop {
-        match consumer.try_take_event() {
-            Ok(Some(event)) => return Ok(event),
-            Ok(None) => {}
-            Err(error) => return Err(AdapterError::Client(error)),
+        if Instant::now() >= deadline {
+            return None;
         }
-        require_before_deadline(deadline)?;
-        std::thread::sleep(POLL_SLICE);
+        let result = observe();
+        if Instant::now() >= deadline {
+            return None;
+        }
+        match result {
+            Ok(Some(event)) => return Some(Ok(event)),
+            Ok(None) => {}
+            Err(error) if retryable(&error) => {}
+            Err(error) => return Some(Err(error)),
+        }
+        std::thread::sleep(POLL_SLICE.min(deadline.saturating_duration_since(Instant::now())));
     }
 }
 

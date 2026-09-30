@@ -602,7 +602,12 @@ and timeout in its issued command; the ordinary receive and independent-record
 contracts still establish the returned batch truth. CONS-016 binds each direct
 failure-event observer to its exact command and public fence, kind, and broker
 code; independently recorded ACL state establishes the policy transition rather
-than trusting that client event as broker truth. Successive receives are
+than trusting that client event as broker truth. Immediate `try_take_event` polls
+retry only public Backpressure carrying RetrySafe advice, and empty polls use the
+same original command deadline. No extraction starts after expiry, and a late
+event cannot become a successful completion. Other public failures remain
+terminal; authorization errors are not observer retry conditions.
+Successive receives are
 joined to their declared independently observed records in order. Exact offset
 and end starts, seek replay, paused-partition isolation, and survivor cursors
 after incremental mutation are therefore broker-backed outcomes rather than adapter
