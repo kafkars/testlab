@@ -59,7 +59,10 @@ listener and never traverse the proxy.
 Owns deterministic decisions over scenario intent, adapter history, and broker
 observations. Broker-role recovery requires an independently observed owner
 change, exact stop/restore evidence, and matching public progress while the
-original owner remains offline. Broker-policy verification independently joins
+original owner remains offline. Three-broker group recovery excludes startup
+restarts before the first scenario disruption while still requiring three exact,
+successful, non-overlapping stop/restore pairs with progress inside each outage.
+Broker-policy verification independently joins
 observed policy windows to exact public denial and recovery or bounded quota
 progress. The verifier has no process control, network I/O, or LLM dependency.
 Network-fault verification joins exact scenario controls, proxy observations,

@@ -1,4 +1,5 @@
 //! Three-broker recovery verification binds disruption terminals to group progress.
+//! Startup restarts before the first disruption are setup, never scenario restores.
 
 use std::collections::BTreeSet;
 
@@ -10,6 +11,10 @@ use testlab_schema::{
 use crate::index::HistoryIndex;
 use crate::support::violation;
 
+#[cfg(test)]
+#[path = "group_recovery_startup_test.rs"]
+mod startup_test;
+
 pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut Vec<Violation>) {
     let stopped = broker_ordinals(scenario, true);
     let started = broker_ordinals(scenario, false);
@@ -17,7 +22,14 @@ pub(crate) fn verify(scenario: &Scenario, index: &HistoryIndex, violations: &mut
         return;
     }
     let stops = operations(index, EnvironmentOperationKind::BrokerStop);
-    let starts = operations(index, EnvironmentOperationKind::BrokerStart);
+    let starts = operations(index, EnvironmentOperationKind::BrokerStart)
+        .into_iter()
+        .filter(|(sequence, _)| {
+            stops
+                .first()
+                .is_none_or(|(first_stop, _)| sequence >= first_stop)
+        })
+        .collect::<Vec<_>>();
     let distinct_stops = stops
         .iter()
         .map(|(_, operation)| disruption_target(operation))

@@ -1337,6 +1337,11 @@ CONS-011 additionally requires three distinct successful broker stop/start
 pairs and a committed group receive, or a nonempty Share acquisition followed
 by its exact successful Accept acknowledgement, while each broker remains stopped, so one
 of the three disruptions necessarily covers the original coordinator.
+Startup recovery recorded before the first scenario broker stop is environment
+setup, not a restore for that scenario. It cannot replace a missing or failed
+restore, count as committed progress, or excuse a duplicate restore or overlapping
+outage after disruption begins. Exact project, service, and ordered successful
+stop/restore identities remain required.
 CONS-014 retains each exact group pause, resume, or seek command and one matching
 operation-identified completion. The completion proves only the public control
 result. Subsequent classic and KIP-848 committed receives, positive protocol
