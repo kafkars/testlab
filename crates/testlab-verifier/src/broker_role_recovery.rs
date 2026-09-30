@@ -62,11 +62,22 @@ fn verify_target(
         after.sequence,
         before.service,
     );
+    let restart_limit = index
+        .environment_operations
+        .iter()
+        .find(|(sequence, operation)| {
+            *sequence > after.sequence
+                && operation.kind == EnvironmentOperationKind::BrokerStop
+                && stop.first().is_some_and(|(_, previous)| {
+                    disruption_target(previous) == disruption_target(operation)
+                })
+        })
+        .map_or(u64::MAX, |(sequence, _)| *sequence);
     let starts = matching_operations(
         index,
         EnvironmentOperationKind::BrokerStart,
         after.sequence,
-        u64::MAX,
+        restart_limit,
         before.service,
     );
     let start = starts.first().copied();

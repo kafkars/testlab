@@ -1,7 +1,8 @@
 //! Recovery terminals retain exact Compose identity and every readiness attempt.
 
 use testlab_schema::{
-    EnvironmentOperation, EnvironmentOperationStatus, HistoryEntry, HistoryPayload,
+    BrokerRoleTarget, EnvironmentOperation, EnvironmentOperationKind, EnvironmentOperationStatus,
+    HistoryEntry, HistoryPayload,
 };
 
 use crate::broker_role_recovery::verify;
@@ -11,6 +12,47 @@ use crate::index::HistoryIndex;
 #[test]
 fn restart_with_failed_probes_then_exact_readiness_passes() {
     assert!(violations(&restart_history()).is_empty());
+}
+
+#[test]
+fn separate_role_outages_on_the_same_broker_keep_separate_restore_windows() {
+    let entries = repeated_broker_history();
+    for role in [
+        target(),
+        BrokerRoleTarget::PartitionLeader {
+            topic: "other-records".to_owned(),
+            partition: 0,
+        },
+    ] {
+        let mut failures = Vec::new();
+        verify(
+            &scenario(role),
+            &HistoryIndex::build(&entries),
+            &mut failures,
+        );
+        assert!(failures.is_empty(), "{failures:?}");
+    }
+}
+
+#[test]
+fn later_outage_cannot_supply_a_missing_restore_or_hide_a_duplicate() {
+    let mut missing = repeated_broker_history();
+    missing.retain(|entry| !(4..=6).contains(&entry.sequence));
+    assert!(
+        violations(&missing)
+            .iter()
+            .any(|value| value == "FAULT-002")
+    );
+
+    let mut duplicate = repeated_broker_history();
+    let mut extra_start = duplicate[4].clone();
+    extra_start.sequence = 8;
+    duplicate.insert(7, extra_start);
+    assert!(
+        violations(&duplicate)
+            .iter()
+            .any(|value| value == "FAULT-002")
+    );
 }
 
 #[test]
@@ -53,6 +95,22 @@ fn restart_history() -> Vec<HistoryEntry> {
     ready.observed_unix_ms = 6;
     operation(&mut entries[5]).status = EnvironmentOperationStatus::Failed;
     entries.push(ready);
+    entries
+}
+
+fn repeated_broker_history() -> Vec<HistoryEntry> {
+    let mut entries = restart_history();
+    let later = restart_history().into_iter().map(|mut entry| {
+        entry.sequence += 10;
+        entry.observed_unix_ms += 10;
+        if let HistoryPayload::EnvironmentOperation { operation } = &mut entry.payload
+            && operation.kind == EnvironmentOperationKind::BrokerRoleObserve
+        {
+            operation.args[1] = "other-records".to_owned();
+        }
+        entry
+    });
+    entries.extend(later);
     entries
 }
 

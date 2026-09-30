@@ -1384,7 +1384,10 @@ for each typed broker-role target. FAULT-002 binds the observed original owner
 to one ordered successful stop, restore, and readiness sequence. Restore accepts
 the recorded Compose `start` or `restart --no-deps` command for the exact same
 project and service. Contiguous readiness attempts retain their failures and
-must end in a successful probe of that same project and service. Restoring a
+must end in a successful probe of that same project and service. Each restore
+window ends at the next recorded stop of that exact project and service, so
+separate role outages on one physical broker cannot share or duplicate restores.
+Missing restores and duplicates within one outage still fail. Restoring a
 partition leader additionally waits until the exact restarted broker rejoins
 the partition's full ISR, then records the still-current leader as an
 `after_restore` role fact. FAULT-003
