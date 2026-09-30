@@ -641,9 +641,13 @@ a nontransactional sentinel after a separately verified aborted transaction.
 `control_group_consumer` carries a stable operation and consumer identity plus
 one public pause, resume, or seek mutation. Pause and resume preserve the exact
 ordered unique current topic-partition set. Seek carries one current partition
-and an explicit beginning, end, or nonnegative offset position, then waits its
-sole public observer. The completion echoes only the operation, consumer, and
-structural control kind. Scenario record expectations remain harness-only;
+and an explicit beginning, end, or nonnegative offset position. Only public
+`RetrySafe` backpressure permits a new seek admission attempt; one accepted
+public observer is retained through completion. Admission and observation share
+the original command deadline, without changing the registration's configured
+seek timeout or treating abandoned observation as cancellation. The completion
+echoes only the operation, consumer, and structural control kind. Scenario
+record expectations remain harness-only;
 classic and KIP-848 scenarios prove pause isolation, resumption, and seek replay
 through committed public receives joined to independent broker coordinates.
 

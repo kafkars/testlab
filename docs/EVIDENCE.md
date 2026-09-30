@@ -633,6 +633,10 @@ Classic and KIP-848 seek scenarios run with every shared runtime duration set
 to a non-default value and with non-default Fetch and capacity policy. Classic
 selects the aggregate public operation configuration while KIP-848 selects the
 individual setters, then both exercise public membership, Fetch, seek, and close.
+Group seek retries only publicly retry-safe admission backpressure under the
+original command deadline. Once admitted, the same public observer is polled
+until its terminal or that deadline; a timeout never synthesizes completion or
+claims cancellation of accepted progress.
 The issued group-create command also retains the complete caller-ordered
 subscription, while assignment and record evidence prove that every declared
 topic reached the public consumer.

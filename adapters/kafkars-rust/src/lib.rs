@@ -20,6 +20,9 @@ mod group_assignment_observe;
 mod group_assignment_observe_test;
 mod group_checkpoint;
 mod group_consumer_configuration;
+mod group_consumer_seek;
+#[cfg(test)]
+mod group_consumer_seek_test;
 mod group_consumer_shutdown;
 mod group_consumers;
 #[cfg(test)]

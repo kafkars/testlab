@@ -158,12 +158,12 @@ impl GroupConsumers {
             GroupConsumerControl::Seek {
                 partition,
                 position,
-            } => consumer
-                .seek(
-                    TopicPartition::new(partition.topic.clone(), partition.partition),
-                    public_position(*position),
-                )
-                .wait(),
+            } => crate::group_consumer_seek::seek(
+                consumer,
+                &TopicPartition::new(partition.topic.clone(), partition.partition),
+                public_position(*position),
+                deadline,
+            ),
         }
         .map_err(StateError::Client)
     }
