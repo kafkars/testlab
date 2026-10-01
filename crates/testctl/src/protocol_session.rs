@@ -45,12 +45,16 @@ impl ProtocolSession {
         recorder.command(envelope.clone())?;
         process.send(&envelope)?;
         for _ in 0..MAX_EVENTS_PER_COMMAND {
-            let event = process.receive(deadline)?.ok_or_else(|| {
-                RunFailure::harness(
+            let Some(event) = process.receive(deadline)? else {
+                let terminal = match process.wait_success(deadline) {
+                    Ok(stderr) => format!("adapter exited successfully; stderr: {stderr}"),
+                    Err(error) => error.to_string(),
+                };
+                return Err(RunFailure::harness(
                     "subject_exited_early",
-                    format!("adapter stdout closed while waiting for {expected:?}"),
-                )
-            })?;
+                    format!("adapter stdout closed while waiting for {expected:?}; {terminal}"),
+                ));
+            };
             recorder.event(event.clone())?;
             let event_expected = self.expected_for(&event)?;
             reject_fatal(&event)?;

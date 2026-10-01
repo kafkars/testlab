@@ -61,6 +61,103 @@ fn missing_subject_executable_seals_invalid_evidence() {
     assert_no_partial_run(&evidence_root);
 }
 
+#[cfg(unix)]
+#[test]
+fn early_subject_exit_retains_stderr_in_sealed_invalid_evidence() {
+    for exit_code in [0, 23] {
+        let repository_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let fixture = fixture_directory(&repository_root);
+        let _cleanup = Cleanup(fixture.clone());
+        must(fs::create_dir_all(&fixture), "create early-exit fixture");
+        let subject_path = fixture.join("early-exit.toml");
+        let script =
+            format!("read command; printf 'exact early-exit diagnostic' >&2; exit {exit_code}");
+        must(
+            fs::write(
+                &subject_path,
+                format!(
+                    "schema_version = 2\nid = \"early-exit\"\ndisplay_name = \"early exit\"\nartifacts = []\ncommand = \"/bin/sh\"\nargs = [\"-c\", {script:?}]\nworking_directory = \".\"\n"
+                ),
+            ),
+            "write early-exit subject",
+        );
+        let repository = must(Repository::open(&repository_root), "open repository");
+        let evidence_root = fixture.join("evidence");
+        let sealed = must(
+            run_scenario(
+                &repository,
+                Path::new(SCENARIO),
+                &subject_path,
+                Path::new(ENVIRONMENT),
+                &evidence_root,
+            ),
+            "run early-exit subject",
+        );
+
+        assert_eq!(sealed.verdict.status, VerdictStatus::Invalid);
+        let message = &sealed.verdict.violations[0].message;
+        assert!(
+            message.contains("stdout closed while waiting for Ready"),
+            "{message}"
+        );
+        assert!(message.contains("exact early-exit diagnostic"), "{message}");
+        if exit_code != 0 {
+            assert!(message.contains("subject_exit_failed"), "{message}");
+        }
+        let history = must(
+            fs::read_to_string(sealed.path.join("history.jsonl")),
+            "read history",
+        );
+        assert!(history.contains("exact early-exit diagnostic"), "{history}");
+        assert_required_artifacts(&sealed.path);
+        assert_digests(&sealed.path);
+        assert_no_partial_run(&evidence_root);
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn early_stdout_close_keeps_the_original_process_deadline() {
+    let root = must(
+        fs::canonicalize(Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")),
+        "resolve repository root",
+    );
+    let subject = must(
+        toml::from_str::<testlab_schema::SubjectManifest>(concat!(
+            "schema_version = 2\nid = \"early-close\"\ndisplay_name = \"early close\"\n",
+            "artifacts = []\ncommand = \"/bin/sh\"\n",
+            "args = [\"-c\", \"read command; exec 1>&-; exec /bin/sleep 10\"]\n",
+            "working_directory = \".\"\n",
+        )),
+        "parse early-close subject",
+    );
+    let mut process = must(
+        crate::process::AdapterProcess::spawn(&root, &subject, &[]),
+        "spawn subject",
+    );
+    let mut protocol = crate::protocol_session::ProtocolSession::default();
+    let mut recorder = crate::recorder::HistoryRecorder::default();
+    let deadline = must(crate::time::Deadline::after_millis(50), "capture deadline");
+    let started = std::time::Instant::now();
+    let failure = protocol
+        .send_and_wait(
+            &mut process,
+            &mut recorder,
+            deadline,
+            testlab_schema::AdapterCommand::Finish,
+            &crate::runner_protocol::ExpectedEvent::Finished,
+        )
+        .err()
+        .unwrap_or_else(|| panic!("early stdout close must remain invalid"));
+
+    assert!(
+        failure.to_string().contains("scenario_timeout"),
+        "{failure}"
+    );
+    assert!(started.elapsed() < std::time::Duration::from_secs(1));
+    assert!(deadline.remaining().is_err());
+}
+
 fn assert_required_artifacts(run: &Path) {
     for name in [
         "manifest.json",
